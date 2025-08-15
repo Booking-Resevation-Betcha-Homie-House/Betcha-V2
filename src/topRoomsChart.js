@@ -1,0 +1,54 @@
+Chart.defaults.font.family = "'Manrope', sans-serif";
+
+const ctx = document.getElementById('topRoomsChart')?.getContext('2d');
+if (ctx) {
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['Room A', 'Room B', 'Room C', 'Room D', 'Room E'],
+      datasets: [{
+        label: 'Total Earnings (₱)',
+        data: [12450, 9200, 7850, 6400, 5200],
+        backgroundColor: [
+          '#147B42', '#3B8E47', '#61A34F', '#8BBE5C', '#B4CB68'
+        ],
+        borderRadius: 12,
+        borderSkipped: false,
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        x: {
+          ticks: {
+            callback: value => `₱${value}`,
+            color: '#6B7280',
+          },
+          grid: {
+            color: '#E5E7EB'
+          }
+        },
+        y: {
+          ticks: {
+            color: '#374151',
+          },
+          grid: {
+            display: false
+          }
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: (context) => `₱${context.parsed.x}`
+          }
+        },
+        legend: {
+          display: false
+        }
+      }
+    }
+  });
+}

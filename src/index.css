@@ -1,0 +1,241 @@
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
+
+@theme{
+  --font-inter: "Inter", sans-serif;
+  --font-manrope: "Manrope", sans-serif;
+  --font-playfairDisplay: "Playfair Display", serif;
+  --color-primary: #147B42;
+  --color-secondary: #B4CB68;
+  --color-background: #FAFAFA;
+  --color-primary-text: #1C1C1C;
+  --color-secondary-text: #FAFAFA;
+  --color-muted: #9CA3AF;
+  --shadow-harsh: 3px 5px 0 var(--color-primary-text);
+}
+
+#scroll-content {
+  display: flex;
+  animation: scroll 12s linear infinite;
+}
+
+@keyframes scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+#scrolling-content {
+  animation: scroll 20s linear infinite;
+  --gap-scroll: 45px;
+  gap:var(--gap-scroll);
+}
+
+
+.custom-scroll::-webkit-scrollbar {
+  display: none;
+}
+.custom-scroll {
+  -ms-overflow-style: none;  /* IE & Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+
+@keyframes scroll {
+      0% { transform: translateX(0); }
+      100% { transform: translateX(calc(-100% - var(--gap-scroll))); }
+    }
+
+button{
+  @apply text-primary-text text-lg font-manrope py-3.5 px-6
+}
+
+.btn-round{
+  @apply rounded-full w-10 h-10 p-5 border;
+}
+.btn-close{
+  @apply !p-3 text-[var(--color-muted)] hover:text-[var(--color-primary-text)] transition-all duration-500 ease-in-out;
+}
+
+.carousel-image {
+  @apply w-full h-full object-cover object-center flex-shrink-0;
+}
+
+.dot {
+  @apply w-3 h-3 rounded-full bg-white/30;
+}
+.dot.active {
+  @apply bg-white/70;
+}
+
+.input-style {
+  @apply border border-gray-300 rounded-xl px-5 py-3 
+         focus:outline-none focus:ring-2 focus:ring-primary 
+         hover:border-primary transition duration-200 ease-in-out overflow-hidden
+         text-base font-normal;  
+}
+
+.input-style-digit {
+  @apply border border-gray-300 rounded-xl p-3 w-10
+         focus:outline-none focus:ring-2 focus:ring-primary 
+         hover:border-primary transition duration-200 ease-in-out overflow-hidden
+         text-2xl font-normal text-center;  
+}
+
+.input-style2 {
+  @apply border border-gray-300 rounded-xl px-5 py-3 
+         hover:border-primary
+         focus-within:outline-none focus-within:ring-2 focus-within:ring-primary
+         transition duration-200 ease-in-out overflow-hidden
+         text-base font-normal flex items-center gap-3; 
+}
+
+.input-style3 {
+  @apply border border-gray-300 rounded-xl px-5 py-1.5 
+         hover:border-primary font-inter
+         focus-within:outline-none focus-within:ring-2 focus-within:ring-primary
+         transition duration-200 ease-in-out overflow-hidden
+         text-base flex items-center gap-3; 
+}
+
+@keyframes fade-in-up {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+@keyframes slide-up {
+  0% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.modal-animate {
+  animation: slide-up 0.4s ease-out;
+}
+
+@media (min-width: 640px) {
+  .modal-animate {
+    animation: fade-in-up 0.4s ease-out;
+  }
+}
+
+  
+.no-scrollbar::-webkit-scrollbar {
+display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE/Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.room-list{
+  @apply overflow-hidden p-0 mb-5 self-stretch
+}
+
+.range-thumb::-webkit-slider-thumb {
+  @apply h-4 w-4 bg-primary rounded-full cursor-pointer pointer-events-auto relative z-50;
+  appearance: none;
+}
+
+.range-thumb::-moz-range-thumb {
+  @apply h-4 w-4 bg-primary rounded-full cursor-pointer pointer-events-auto relative;
+}
+
+.dot-notif {
+  @apply w-2 h-2 rounded-full bg-primary;
+}
+
+.upload-btn {
+  @apply inline-flex items-center justify-center gap-2 px-5 py-2 rounded-full 
+    bg-neutral-200 text-primary-text text-xs 
+    font-manrope cursor-pointer hover:bg-primary/10 active:scale-95
+    transition-all duration-300 ease-in-out 
+    sm:text-sm;
+}
+
+.upload-btn-icon {
+  @apply w-4 h-4 stroke-primary-text group-hover:stroke-primary transition-all duration-300 ease-in-out ;
+}
+
+.ticket-active {
+  @apply bg-primary/10 border-l-4 border-primary shadow-sm;
+}
+
+.ticket-status {
+    @apply text-xs px-2 py-1 rounded-full font-medium;
+}
+
+.in-queue {
+  @apply bg-yellow-100 text-yellow-700;
+}
+
+.open {
+  @apply bg-green-100 text-green-700;
+}
+
+.end {
+  @apply bg-red-100 text-red-700;
+}
+
+.message-bubble {
+  @apply p-4 rounded-2xl max-w-[70%] text-sm shadow-sm;
+}
+
+.message-guest {
+  @apply flex justify-start;
+}
+
+.message-guest .message-bubble {
+  @apply bg-gray-100 text-gray-800;
+}
+
+.message-csr {
+  @apply flex justify-end;
+}
+
+.message-csr .message-bubble {
+  @apply bg-primary text-white shadow-md;
+}
+
+.searchbar.show {
+  @apply opacity-100 translate-y-0 scale-100 pointer-events-auto block;
+}
+
+body.modal-open {
+  overflow: hidden;
+  height: 100vh; /* optional: keeps height locked */
+}
+
+.status {
+  @apply text-xs px-3 py-2 rounded-full font-medium text-center;
+}
+
+.yellow {
+  @apply bg-yellow-100 text-yellow-700;
+}
+
+.green {
+  @apply bg-green-100 text-green-700;
+}
+
+.red {
+  @apply bg-red-100 text-red-700;
+}
+
+.notif-badge {
+  @apply absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-semibold rounded-full px-1.5 h-4 min-w-[16px] flex items-center justify-center
+}
