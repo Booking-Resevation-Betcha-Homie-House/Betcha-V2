@@ -36,8 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const categoryOptions = ["Condo", "Apartment", "Studio", "Dorm", "House"];
-  const statusOptions = ["Available", "Reserved", "Maintenance"];
+  const categoryOptions = ["Barkada", "Couple", "Family", "Other"];
+  const statusOptions = ["Active", "Inactive","Archived"];
 
   setupDropdown("category", categoryOptions, "Select Category");
   setupDropdown("status", statusOptions, "Select Status");
