@@ -25,7 +25,7 @@ function renderProperties(properties) {
 
     properties.forEach(property => {
         const propertyCard = document.createElement('a');
-        propertyCard.href = "property-view.html";
+        propertyCard.href = `property-view.html?id=${property._id}`;
         propertyCard.className = "relative";
 
         propertyCard.innerHTML = `

@@ -336,7 +336,7 @@
                             class="flex gap-2 justify-center items-center bg-primary/10 w-full md:w-fit
                             transition-all duration-300 ease-in-out
                             hover:bg-primary/20 hover:scale-105 rounded-2xl active:scale-95"
-                            onclick="window.location.href='property-edit.html'">
+                            onclick="goToEditPage()">
                             <svg class="w-5 stroke-primary" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M8 2H3.33333C2.97971 2 2.64057 2.14048 2.39052 2.39052C2.14048 2.64057 2 2.97971 2 3.33333V12.6667C2 13.0203 2.14048 13.3594 2.39052 13.6095C2.64057 13.8595 2.97971 14 3.33333 14H12.6667C13.0203 14 13.3594 13.8595 13.6095 13.6095C13.8595 13.3594 14 13.0203 14 12.6667V8" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
                                 <path d="M12.2499 1.75003C12.5151 1.48481 12.8748 1.33582 13.2499 1.33582C13.625 1.33582 13.9847 1.48481 14.2499 1.75003C14.5151 2.01525 14.6641 2.37496 14.6641 2.75003C14.6641 3.1251 14.5151 3.48481 14.2499 3.75003L8.24123 9.75936C8.08293 9.91753 7.88737 10.0333 7.67257 10.096L5.75723 10.656C5.69987 10.6728 5.63906 10.6738 5.58117 10.6589C5.52329 10.6441 5.47045 10.614 5.4282 10.5717C5.38594 10.5295 5.35583 10.4766 5.341 10.4188C5.32617 10.3609 5.32717 10.3001 5.3439 10.2427L5.9039 8.32736C5.96692 8.11273 6.08292 7.9174 6.24123 7.75936L12.2499 1.75003Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
@@ -503,7 +503,7 @@
                   <hr class="my-2 border-t border-neutral-300">
                   <div class="">
                     <p id="propertyMapLink" class="font-inter text-neutral-500 py-3 mb-2 text-sm">Map link</p>
-                    <div id="mapContainer" class="w-full h-[300px] bg-neutral-100 rounded-2xl overflow-hidden">
+                    <div id="mapContainer" class="w-full h-[300px] rounded-2xl overflow-hidden">
                       <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3858.9397163310573!2d121.05891147478252!3d14.716000285784096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b08c3aa74213%3A0x325214dc350bb0d1!2sSTI%20College%20Fairview!5e0!3m2!1sen!2sph!4v1752067526435!5m2!1sen!2sph" 
                           class="w-full h-full"
                           style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
@@ -1689,6 +1689,7 @@
   <script defer src="../../src/calendar2.js"></script>
   <script defer src="../../src/readTextToggle.js  "></script>
   <script defer src="../../src/multipleTabs.js"></script>
+  <script defer src="adminFunctions/property-view.js"></script>
   
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
