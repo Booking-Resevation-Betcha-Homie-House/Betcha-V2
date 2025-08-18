@@ -1,6 +1,7 @@
 // Property Edit Functions
 // This file handles populating the edit form with existing property data
 // and manages the edit functionality
+//Photo Update is not working yet
 
 document.addEventListener('DOMContentLoaded', function() {
     // Get property ID from URL parameters
