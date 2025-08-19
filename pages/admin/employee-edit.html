@@ -414,7 +414,7 @@
                             <label class="font-manrope text-sm font-bold text-neutral-600">
                                 Role
                             </label>
-                            <div x-data="{ search: '', roles: ['Admin','Project Manager','Developer','QA Tester','HR','Designer'], selected: [] }" class="space-y-4">
+                            <div x-data="{ search: '', roles: [], selected: [] }" class="space-y-4">
 
                               <!-- Search Input -->
                               <div class="flex bg-white rounded-lg p-2 border border-neutral-300 items-center gap-3 cursor-pointer overflow-hidden justify-between
@@ -900,7 +900,7 @@
 
               </span>
             </button>
-            <button type="button" onclick="window.location.href='employee-view.html'" 
+            <button type="button" id="confirmUpdateBtn"
               class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden order-1
               transition-all duration-300 ease-in-out 
               hover:cursor-pointer active:scale-95  
@@ -982,6 +982,7 @@
   <script defer src="../../src/navbar.js"></script>
   <script defer src="../../src/modal.js"></script>
   <script defer src="../../src/multipleTabs.js"></script>
+  <script defer src="adminFunctions/employee-edit-functions.js"></script>
   
 
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>

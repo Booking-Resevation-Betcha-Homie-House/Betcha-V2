@@ -120,7 +120,7 @@ function createEmployeeCard(employee) {
             hover:shadow-lg 
             transition-all duration-300 ease-in-out">
             
-            <div class="w-32 h-32 bg-primary p-5 text-white rounded-full flex items-center justify-center text-4xl font-semibold font-manrope uppercase">
+            <div class="w-32 h-32 bg-primary text-white rounded-full flex items-center justify-center text-4xl font-semibold font-manrope uppercase">
                 ${employee.pfplink ? 
                     `<img src="${employee.pfplink}" alt="Profile" class="w-full h-full rounded-full object-cover">` : 
                     firstLetter

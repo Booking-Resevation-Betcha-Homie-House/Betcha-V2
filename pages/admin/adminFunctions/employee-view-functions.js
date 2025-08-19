@@ -1,0 +1,466 @@
+/**
+ * Fetches and populates the details of a single employee in employee-view.html
+ * Assumes the employee ID is provided in the URL as ?id=EMPLOYEE_ID
+ * Populates fields with IDs: employee-name, employee-email, employee-role, etc.
+ */
+// almost complete needed to finish the profile button and the notification 
+
+let currentEmployeeId = null;
+
+async function populateEmployeeDetails() {
+	// Get employee ID from URL
+	const params = new URLSearchParams(window.location.search);
+	const employeeId = params.get('id');
+	
+	if (!employeeId) {
+		console.error('No employee ID found in URL');
+		showErrorMessage('Employee ID not found in URL');
+		return;
+	}
+
+	currentEmployeeId = employeeId;
+	
+	// Show loading state
+	showLoadingState();
+	
+	try {
+		console.log('Fetching employee details for ID:', employeeId);
+		const response = await fetch(`https://betcha-api.onrender.com/employee/display/${employeeId}`);
+		
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+		
+		const employee = await response.json();
+		console.log('Employee data received:', employee);
+		
+		// Hide loading state
+		hideLoadingState();
+		
+		// Populate employee name
+		const fullName = `${employee.firstname || ''} ${employee.minitial || ''} ${employee.lastname || ''}`.trim();
+		document.getElementById('employee-name').textContent = fullName;
+		
+		// Populate email
+		document.getElementById('employee-email').textContent = employee.email || 'No email provided';
+		
+		// Populate role (from role array)
+		const roleName = employee.role && employee.role.length > 0 ? employee.role[0].name : 'No role assigned';
+		document.getElementById('employee-role').textContent = roleName;
+		document.getElementById('employee-role-header').textContent = roleName;
+		
+		// Populate status with proper capitalization
+		const status = employee.status ? employee.status.charAt(0).toUpperCase() + employee.status.slice(1) : 'Unknown';
+		document.getElementById('employee-status').textContent = status;
+		
+		// Handle profile picture
+		const avatarElement = document.getElementById('employee-avatar');
+		if (employee.pfplink) {
+			// If profile picture exists, replace with image
+			avatarElement.innerHTML = `<img src="${employee.pfplink}" alt="Profile Picture" class="w-full h-full rounded-full object-cover">`;
+		} else {
+			// If no profile picture, show first letter of first name
+			const firstLetter = employee.firstname ? employee.firstname.charAt(0).toUpperCase() : '?';
+			avatarElement.innerHTML = firstLetter;
+		}
+		
+		// Update edit button to include employee ID
+		const editBtn = document.getElementById('edit-employee-btn');
+		if (editBtn) {
+			editBtn.onclick = () => window.location.href = `employee-edit.html?id=${employeeId}`;
+		}
+		
+		// Populate assigned properties
+		console.log('=== EMPLOYEE PROPERTIES DEBUG ===');
+		console.log('Raw employee.properties:', employee.properties);
+		console.log('Type of employee.properties:', typeof employee.properties);
+		console.log('Is array:', Array.isArray(employee.properties));
+		if (employee.properties) {
+			console.log('Length:', employee.properties.length);
+			employee.properties.forEach((prop, index) => {
+				console.log(`Property ${index}:`, prop);
+				console.log(`Property ${index} type:`, typeof prop);
+			});
+		}
+		console.log('=== END DEBUG ===');
+		
+		populateAssignedProperties(employee.properties || []);
+		
+		// Show/hide deactivate/reactivate buttons based on status
+		updateStatusButtons(employee.status);
+		
+		console.log('Employee details populated successfully');
+		
+	} catch (error) {
+		console.error('Error fetching employee details:', error);
+		hideLoadingState();
+		showErrorMessage('Failed to load employee details. Please try again.');
+	}
+}
+
+async function populateAssignedProperties(properties) {
+	const container = document.getElementById('assigned-properties-container');
+	if (!container) return;
+	
+	console.log('=== PROPERTY PROCESSING DEBUG ===');
+	console.log('Raw properties input:', properties);
+	
+	// Normalize the properties array to handle different formats
+	let normalizedProperties = [];
+	
+	if (!properties || properties.length === 0) {
+		console.log('No properties assigned');
+	} else {
+		properties.forEach((prop, index) => {
+			console.log(`Processing property ${index}:`, prop, typeof prop);
+			
+			if (typeof prop === 'string') {
+				// Check if it's a JSON stringified array
+				if (prop.startsWith('[') && prop.endsWith(']')) {
+					try {
+						const parsed = JSON.parse(prop);
+						console.log(`Parsed JSON array:`, parsed);
+						normalizedProperties.push(...parsed);
+					} catch (e) {
+						console.log(`Failed to parse as JSON:`, e);
+						normalizedProperties.push(prop);
+					}
+				}
+				// Check if it's a comma-separated list of IDs
+				else if (prop.includes(',') && prop.length > 20) { // Assuming IDs are long
+					const splitProps = prop.split(',').map(p => p.trim());
+					console.log(`Split comma-separated IDs:`, splitProps);
+					normalizedProperties.push(...splitProps);
+				}
+				// Regular string (property name or single ID)
+				else {
+					normalizedProperties.push(prop);
+				}
+			} else {
+				// Non-string property (shouldn't happen based on API data)
+				normalizedProperties.push(prop);
+			}
+		});
+	}
+	
+	console.log('Normalized properties:', normalizedProperties);
+	console.log('=== END PROPERTY PROCESSING DEBUG ===');
+	
+	if (normalizedProperties.length === 0) {
+		container.innerHTML = `
+			<div class="w-full h-[300px] flex flex-col justify-center items-center">
+				<svg class="w-16 h-16 text-neutral-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m5 0v-9a2 2 0 00-2-2H8a2 2 0 00-2 2v9m8 0V9a2 2 0 012-2h2a2 2 0 012 2v12M7 7h3v3H7V7z"></path>
+				</svg>
+				<p class="text-neutral-400 text-center">No assigned properties</p>
+			</div>
+		`;
+		return;
+	}
+	
+	try {
+		// Show loading state
+		container.innerHTML = `
+			<div class="w-full h-[200px] flex justify-center items-center">
+				<p class="text-neutral-400">Loading assigned properties...</p>
+			</div>
+		`;
+		
+		// Fetch all properties from API
+		console.log('Fetching properties data...');
+		const response = await fetch('https://betcha-api.onrender.com/property/display');
+		
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+		
+		const allProperties = await response.json();
+		console.log('All properties data received:', allProperties);
+		console.log('Employee normalized properties:', normalizedProperties);
+		
+		// Debug: Log property names from API to see what fields are available
+		if (allProperties.length > 0) {
+			console.log('Sample property structure:', allProperties[0]);
+			console.log('Available property fields:', {
+				_id: allProperties[0]._id,
+				propertyName: allProperties[0].propertyName,
+				name: allProperties[0].name,
+				title: allProperties[0].title,
+				propertyTitle: allProperties[0].propertyTitle
+			});
+		}
+		
+		// Filter properties that are assigned to this employee with more robust matching
+		const assignedPropertiesData = allProperties.filter(property => {
+			// Get all possible identifier fields from the property
+			const propertyIdentifiers = [
+				property._id,                    // MongoDB ID
+				property.propertyName,           // Property name
+				property.name,                   // Alternative name field
+				property.title,                  // Title field
+				property.propertyTitle          // Alternative title field
+			].filter(identifier => identifier); // Remove undefined/null values
+			
+			// Check if any normalized assigned property matches any property identifier
+			return normalizedProperties.some(assignedProp => {
+				const normalizedAssigned = assignedProp.toString().trim().toLowerCase();
+				return propertyIdentifiers.some(identifier => 
+					identifier.toString().trim().toLowerCase() === normalizedAssigned
+				);
+			});
+		});
+		
+		console.log('Assigned properties data:', assignedPropertiesData);
+		console.log('Matched properties count:', assignedPropertiesData.length);
+		
+		// Clear container and populate with property cards
+		container.innerHTML = '';
+		
+		if (assignedPropertiesData.length === 0) {
+			// Get all available property identifiers for debugging
+			const availableIdentifiers = allProperties.map(prop => {
+				return [prop._id, prop.propertyName, prop.name, prop.title, prop.propertyTitle].filter(id => id);
+			}).flat();
+			
+			container.innerHTML = `
+				<div class="w-full h-[400px] flex flex-col justify-center items-center p-4">
+					<svg class="w-16 h-16 text-neutral-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m5 0v-9a2 2 0 00-2-2H8a2 2 0 00-2 2v9m8 0V9a2 2 0 012-2h2a2 2 0 012 2v12M7 7h3v3H7V7z"></path>
+					</svg>
+					<p class="text-neutral-400 text-center mb-2">Property data not found</p>
+					<div class="text-xs text-neutral-300 text-center max-w-md">
+						<p class="mb-2"><strong>Assigned Properties:</strong></p>
+						<div class="bg-neutral-100 p-2 rounded mb-2">
+							${normalizedProperties.map(prop => `<div>• ${prop}</div>`).join('')}
+						</div>
+						<p class="mb-2"><strong>Available Properties (first 10):</strong></p>
+						<div class="max-h-32 overflow-y-auto text-left bg-neutral-100 p-2 rounded">
+							${availableIdentifiers.slice(0, 10).map(id => `<div>• ${id}</div>`).join('')}
+							${availableIdentifiers.length > 10 ? `<div>... and ${availableIdentifiers.length - 10} more</div>` : ''}
+						</div>
+					</div>
+				</div>
+			`;
+			return;
+		}
+		
+		assignedPropertiesData.forEach(property => {
+			const propertyCard = document.createElement('div');
+			propertyCard.className = `
+				relative rounded-2xl cursor-pointer p-8 w-full h-auto lg:h-[140px] 
+				flex flex-col lg:flex-row gap-8 bg-white border border-neutral-300 group 
+				hover:shadow-md hover:border-primary 
+				transition-all duration-500 ease-in-out overflow-hidden
+			`;
+			
+			// Get property image or use placeholder
+			const propertyImage = property.images && property.images.length > 0 
+				? property.images[0] 
+				: '/images/unit01.jpg'; // fallback image
+			
+			// Get property name
+			const propertyName = property.propertyName || property.name || 'Unknown Property';
+			
+			// Get property address
+			const propertyAddress = property.address || property.location || 'Address not specified';
+			
+			propertyCard.innerHTML = `
+				<!-- 🖼️ Property Image -->
+				<div class="w-full lg:w-[20%] group-hover:lg:w-[25%] h-[150px] lg:h-full 
+					bg-cover bg-center rounded-xl z-10 relative overflow-hidden
+					transition-all duration-500 ease-in-out"
+					style="background-image: url('${propertyImage}')">
+					<!-- Image overlay for better contrast -->
+					<div class="absolute inset-0 bg-black/20 rounded-xl"></div>
+				</div>
+
+				<!-- 📋 Property Details -->
+				<div class="w-full lg:flex-1 text-start flex flex-col justify-center z-10 px-2">
+					<p class="font-manrope font-semibold text-lg truncate mb-2 max-w-full md:max-w-[280px] md:text-xl text-gray-900 drop-shadow-sm">${propertyName}</p>
+					<div class="flex gap-2 items-center">
+						<svg class="h-4 w-4 fill-gray-700 flex-shrink-0 drop-shadow-sm" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
+							<path d="M6 0C2.68628 0 0 2.86538 0 6.4C0 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 0 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z"/>
+						</svg>
+						<p class="font-roboto text-gray-700 text-sm truncate drop-shadow-sm">${propertyAddress}</p>
+					</div>
+					${property.description ? `
+						<p class="text-sm text-gray-600 mt-2 line-clamp-2 drop-shadow-sm">${property.description}</p>
+					` : ''}
+				</div>
+
+				<!-- ➡️ Slide-in Right Arrow -->
+				<div class="absolute right-8 top-1/2 -translate-y-1/2 z-10 opacity-0 -translate-x-4 
+					group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
+					<svg class="w-5 h-5 stroke-gray-700" viewBox="0 0 10 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+						<path d="M1 0.5L9 8.5L1 16.5" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
+				</div>
+			`;
+			
+			// Add click handler to view property details
+			propertyCard.onclick = () => {
+				console.log('Clicked on property:', property);
+				// Navigate to property view page with property ID
+				if (property._id) {
+					window.location.href = `property-view.html?id=${property._id}`;
+				} else {
+					window.location.href = `property-view.html?name=${encodeURIComponent(propertyName)}`;
+				}
+			};
+			
+			container.appendChild(propertyCard);
+		});
+		
+	} catch (error) {
+		console.error('Error fetching properties data:', error);
+		container.innerHTML = `
+			<div class="w-full h-[200px] flex flex-col justify-center items-center">
+				<svg class="w-16 h-16 text-red-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+					<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+				</svg>
+				<p class="text-red-400 text-center">Failed to load property details</p>
+				<p class="text-neutral-400 text-sm text-center mt-1">Assigned: ${properties.join(', ')}</p>
+			</div>
+		`;
+	}
+}
+
+function updateStatusButtons(status) {
+	const deactivateContainer = document.querySelector('[data-modal-target="deactivateModal"]').closest('.md\\:px-6');
+	const reactivateContainer = document.querySelector('[data-modal-target="reactivateModal"]').closest('.md\\:px-6');
+	
+	if (status === 'active') {
+		// Show deactivate button, hide reactivate button
+		if (deactivateContainer) deactivateContainer.style.display = 'block';
+		if (reactivateContainer) reactivateContainer.style.display = 'none';
+	} else {
+		// Show reactivate button, hide deactivate button  
+		if (deactivateContainer) deactivateContainer.style.display = 'none';
+		if (reactivateContainer) reactivateContainer.style.display = 'block';
+	}
+	
+	console.log('Employee status:', status);
+}
+
+async function deactivateEmployee() {
+	if (!currentEmployeeId) {
+		console.error('No employee ID available');
+		return;
+	}
+
+	try {
+		console.log('Deactivating employee:', currentEmployeeId);
+		const response = await fetch(`https://betcha-api.onrender.com/employee/archive/${currentEmployeeId}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const result = await response.json();
+		console.log('Employee deactivated successfully:', result);
+		
+		// Close modal
+		document.getElementById('deactivateModal').classList.add('hidden');
+		
+		// Show success message and refresh the page
+		alert('Employee deactivated successfully!');
+		location.reload();
+		
+	} catch (error) {
+		console.error('Error deactivating employee:', error);
+		alert('Failed to deactivate employee. Please try again.');
+	}
+}
+
+async function reactivateEmployee() {
+	if (!currentEmployeeId) {
+		console.error('No employee ID available');
+		return;
+	}
+
+	try {
+		console.log('Reactivating employee:', currentEmployeeId);
+		const response = await fetch(`https://betcha-api.onrender.com/employee/unarchive/${currentEmployeeId}`, {
+			method: 'PUT',
+			headers: {
+				'Content-Type': 'application/json'
+			}
+		});
+
+		if (!response.ok) {
+			throw new Error(`HTTP error! status: ${response.status}`);
+		}
+
+		const result = await response.json();
+		console.log('Employee reactivated successfully:', result);
+		
+		// Close modal
+		document.getElementById('reactivateModal').classList.add('hidden');
+		
+		// Show success message and refresh the page
+		alert('Employee reactivated successfully!');
+		location.reload();
+		
+	} catch (error) {
+		console.error('Error reactivating employee:', error);
+		alert('Failed to reactivate employee. Please try again.');
+	}
+}
+
+function showLoadingState() {
+	// Show loading in name field
+	const nameElement = document.getElementById('employee-name');
+	if (nameElement) {
+		nameElement.textContent = 'Loading...';
+	}
+	
+	// Show loading in other fields
+	const fieldsToLoad = ['employee-email', 'employee-role', 'employee-status', 'employee-role-header'];
+	fieldsToLoad.forEach(fieldId => {
+		const element = document.getElementById(fieldId);
+		if (element) {
+			element.textContent = 'Loading...';
+		}
+	});
+}
+
+function hideLoadingState() {
+	// Loading state will be replaced by actual data, so no action needed
+}
+
+function showErrorMessage(message) {
+	// You can implement a proper error display here
+	// For now, just update the name field to show error
+	const nameElement = document.getElementById('employee-name');
+	if (nameElement) {
+		nameElement.textContent = message;
+		nameElement.style.color = '#ef4444'; // red color
+	}
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+	populateEmployeeDetails();
+	
+	// Initialize modal button handlers
+	initializeModalButtons();
+});
+
+function initializeModalButtons() {
+	// Find and update the deactivate button in the modal
+	const deactivateModalButton = document.querySelector('#deactivateModal button[onclick*="property-view.html"]');
+	if (deactivateModalButton) {
+		deactivateModalButton.onclick = deactivateEmployee;
+	}
+	
+	// Find and update the reactivate button in the modal
+	const reactivateModalButton = document.querySelector('#reactivateModal button[onclick*="property-view.html"]');
+	if (reactivateModalButton) {
+		reactivateModalButton.onclick = reactivateEmployee;
+	}
+}

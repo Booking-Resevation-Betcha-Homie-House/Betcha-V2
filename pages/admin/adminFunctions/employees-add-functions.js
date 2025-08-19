@@ -271,8 +271,16 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Populate roles from API when page loads
-    populateRoles();
+    // Wait for Alpine.js to be ready before populating roles
+    document.addEventListener('alpine:init', () => {
+        // Populate roles from API when Alpine.js is ready
+        populateRoles();
+    });
+    
+    // Fallback: Populate roles after a short delay if Alpine.js event doesn't fire
+    setTimeout(() => {
+        populateRoles();
+    }, 500);
     
     // Populate properties from API when page loads
     populateProperties();
@@ -287,42 +295,72 @@ async function populateRoles() {
             throw new Error(`Failed to fetch roles: ${response.statusText}`);
         }
         
-        const roles = await response.json();
+        const rolesData = await response.json();
+        const roles = rolesData.value || rolesData; // Handle both formats
         
-        // Find the role list container in the HTML
+        console.log('Fetched roles from API:', roles);
+        
+        // Update Alpine.js component with real role data
+        const roleSelector = document.getElementById('roleSelector');
+        if (roleSelector) {
+            try {
+                // Wait a bit for Alpine.js to initialize if needed
+                await new Promise(resolve => setTimeout(resolve, 100));
+                
+                if (window.Alpine && Alpine.$data) {
+                    const alpineData = Alpine.$data(roleSelector);
+                    if (alpineData) {
+                        alpineData.roles = roles.map(role => role.name);
+                        console.log('Updated Alpine.js roles:', alpineData.roles);
+                    }
+                }
+            } catch (error) {
+                console.warn('Could not update Alpine.js roles:', error);
+            }
+        }
+        
+        // Also ensure the role list is populated manually for compatibility
         const roleListContainer = document.querySelector('.border.border-gray-200.rounded-lg.max-h-48.overflow-y-auto');
         
         if (roleListContainer) {
-            // Clear existing content
+            // Store the original Alpine.js template structure but clear manual additions
+            const templates = roleListContainer.querySelectorAll('template');
             roleListContainer.innerHTML = '';
             
-            // Populate with roles from API
-            roles.forEach(role => {
-                const roleItem = document.createElement('label');
-                roleItem.className = 'relative flex items-center p-2 hover:bg-gray-50 cursor-pointer';
-                roleItem.innerHTML = `
-                    <input 
-                        type="checkbox" 
-                        class="peer mr-2 appearance-none w-4 h-4 rounded border-2 border-neutral-300 checked:bg-primary checked:border-primary focus:outline-none"
-                        value="${role.name}"
-                        data-role-id="${role._id}"
-                    >
-                    <svg class="absolute w-4 h-4 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity duration-200" viewBox="0 0 20 20" fill="none">
-                        <path d="M5 10.5L8.5 14L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <span class="ml-1">${role.name}</span>
-                `;
-                
-                // Add change event listener to update the selected roles display
-                const checkbox = roleItem.querySelector('input[type="checkbox"]');
-                checkbox.addEventListener('change', function() {
-                    updateSelectedRolesDisplay();
-                });
-                
-                roleListContainer.appendChild(roleItem);
+            // Re-add any templates that were removed
+            templates.forEach(template => {
+                roleListContainer.appendChild(template);
             });
             
-            console.log('Roles populated successfully:', roles);
+            // If no Alpine.js templates found, populate manually
+            if (templates.length === 0) {
+                roles.forEach(role => {
+                    const roleItem = document.createElement('label');
+                    roleItem.className = 'relative flex items-center p-2 hover:bg-gray-50 cursor-pointer';
+                    roleItem.innerHTML = `
+                        <input 
+                            type="checkbox" 
+                            class="peer mr-2 appearance-none w-4 h-4 rounded border-2 border-neutral-300 checked:bg-primary checked:border-primary focus:outline-none"
+                            value="${role.name}"
+                            data-role-id="${role._id}"
+                        >
+                        <svg class="absolute w-4 h-4 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity duration-200" viewBox="0 0 20 20" fill="none">
+                            <path d="M5 10.5L8.5 14L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                        <span class="ml-1">${role.name}</span>
+                    `;
+                    
+                    // Add change event listener to update the selected roles display
+                    const checkbox = roleItem.querySelector('input[type="checkbox"]');
+                    checkbox.addEventListener('change', function() {
+                        updateSelectedRolesDisplay();
+                    });
+                    
+                    roleListContainer.appendChild(roleItem);
+                });
+                
+                console.log('Roles populated manually in DOM:', roles);
+            }
         } else {
             console.error('Role list container not found');
         }

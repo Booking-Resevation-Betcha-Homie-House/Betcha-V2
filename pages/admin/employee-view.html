@@ -331,7 +331,7 @@
                   <!-- Header Section -->
                   <div class="flex flex-col items-center text-center p-8">
                       <!-- Profile Picture -->
-                      <div class="w-32 h-32 bg-primary mt-5 p-5 text-white rounded-full flex items-center justify-center text-4xl font-semibold font-manrope mb-4 uppercase">
+                      <div id="employee-avatar" class="w-32 h-32 bg-primary mt-5 p-5 text-white rounded-full flex items-center justify-center text-4xl font-semibold font-manrope mb-4 uppercase">
                           <svg class="h-full aspect-square fill-secondary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                            <path d="M12 12C10.9 12 9.95833 11.6083 9.175 10.825C8.39167 10.0417 8 9.1 8 8C8 6.9 8.39167 5.95833 9.175 5.175C9.95833 4.39167 10.9 4 12 4C13.1 4 14.0417 4.39167 14.825 5.175C15.6083 5.95833 16 6.9 16 8C16 9.1 15.6083 10.0417 14.825 10.825C14.0417 11.6083 13.1 12 12 12ZM4 18V17.2C4 16.6333 4.146 16.1127 4.438 15.638C4.73 15.1633 5.11733 14.8007 5.6 14.55C6.63333 14.0333 7.68333 13.646 8.75 13.388C9.81667 13.13 10.9 13.0007 12 13C13.1 12.9993 14.1833 13.1287 15.25 13.388C16.3167 13.6473 17.3667 14.0347 18.4 14.55C18.8833 14.8 19.271 15.1627 19.563 15.638C19.855 16.1133 20.0007 16.634 20 17.2V18C20 18.55 19.8043 19.021 19.413 19.413C19.0217 19.805 18.5507 20.0007 18 20H6C5.45 20 4.97933 19.8043 4.588 19.413C4.19667 19.0217 4.00067 18.5507 4 18Z"/>
                           </svg>
@@ -340,11 +340,11 @@
 
                       <!-- User Info -->
                       <div>
-                          <p class="text-3xl font-semibold text-primary-text font-manrope">Juan Dela Cruz</p>
-                          <p class="text-sm text-neutral-500 font-inter">Role</p>
+                          <p id="employee-name" class="text-3xl font-semibold text-primary-text font-manrope">Juan Dela Cruz</p>
+                          <p id="employee-role-header" class="text-sm text-neutral-500 font-inter">Role</p>
                       </div>
 
-                      <button onclick="window.location.href='employee-edit.html'" class="group cursor-pointer mt-3 !text-sm sm:text-xs !px-5 !py-2 rounded-full bg-neutral-200 hover:bg-primary/10 active:scale-95 transition-all duration-200 ease-in-out">
+                      <button id="edit-employee-btn" onclick="window.location.href='employee-edit.html'" class="group cursor-pointer mt-3 !text-sm sm:text-xs !px-5 !py-2 rounded-full bg-neutral-200 hover:bg-primary/10 active:scale-95 transition-all duration-200 ease-in-out">
                           <div class="flex gap-2 items-center">
                           <svg class="h-4 stroke-primary-text 
                           group-hover:stroke-primary
@@ -365,19 +365,19 @@
                       <!-- Email -->
                       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between ">
                           <p class="text-sm text-neutral-500 font-inter">Email</p>
-                          <p class="text-base font-medium text-primary-text font-manrope">juandelacruz@email.com</p>
+                          <p id="employee-email" class="text-base font-medium text-primary-text font-manrope">juandelacruz@email.com</p>
                       </div>
 
                       <!-- Roles -->
                       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                           <p class="text-sm text-neutral-500 font-inter">Role</p>
-                          <p class="text-base font-medium text-primary-text font-manrope">Role</p>
+                          <p id="employee-role" class="text-base font-medium text-primary-text font-manrope">Role</p>
                       </div>
 
                       <!-- Priviliges -->
                       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-                          <p class="text-sm text-neutral-500 font-inter">Privilige</p>
-                          <p class="text-base font-medium text-primary-text font-manrope">Privilige</p>
+                          <p class="text-sm text-neutral-500 font-inter">Status</p>
+                          <p id="employee-status" class="text-base font-medium text-primary-text font-manrope">Active</p>
                       </div>
 
                       <!-- Password -->
@@ -441,46 +441,10 @@
                           Assigned properties
                       </p>
                       <hr class="my-2 border-t border-neutral-300">
-                      <div class="flex flex-col w-full gap-3">
+                      <div id="assigned-properties-container" class="flex flex-col w-full gap-3">
                           <div class="w-full h-[300px] flex justify-center items-center">
-                              <p class="text-neutral-300">No reports</p>
+                              <p class="text-neutral-300">No assigned properties</p>
                           </div>
-
-                          <div id="bookingContainer" onclick="window.location.href='property-view.html'"
-                              class="relative rounded-2xl cursor-pointer p-5 w-full h-auto lg:h-[100px] flex flex-col lg:flex-row gap-5 bg-white border border-neutral-300 group 
-                              hover:shadow-md hover:border-primary 
-                              transition-all duration-500 ease-in-out overflow-hidden">
-
-                              <!-- 🖼️ Room Image -->
-                              <div
-                                  class="w-full lg:w-[20%] group-hover:lg:w-[25%] h-[150px] lg:h-full 
-                                  bg-[url('/images/unit03.jpg')] bg-cover bg-center rounded-xl z-10 
-                                  transition-all duration-500 ease-in-out">
-                              </div>
-
-                              <!-- 📋 Booking Details -->
-                              <div class="w-full lg:flex-1 text-start flex flex-col justify-end z-10">
-                                  <p class="font-manrope font-semibold text-lg truncate mb-2 max-w-full md:max-w-[250px] md:text-xl">Room name</p>
-
-                                  <!-- Address -->
-                                  <div class="flex gap-2 items-center">
-                                      <svg class="h-4 fill-neutral-500" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                                      <path d="M6 0C2.68628 0 0 2.86538 0 6.4C0 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 0 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z"/>
-                                      </svg>
-                                      <p class="font-roboto text-neutral-500 text-sm truncate">123 Anywhere St, City, PH</p>
-                                  </div>
-                              </div>
-
-                              <!-- ➡️ Slide-in Right Arrow from LEFT to RIGHT -->
-                              <div 
-                                  class="absolute right-8 top-1/2 -translate-y-1/2 z-10 opacity-0 -translate-x-4 
-                                  group-hover:opacity-100 group-hover:translate-x-0 transition-all duration-300">
-                                  <svg class="w-5 h-5 stroke-primary-text" viewBox="0 0 10 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                      <path d="M1 0.5L9 8.5L1 16.5" stroke-linecap="round" stroke-linejoin="round"/>
-                                  </svg>
-                              </div>
-                          </div>
-                          
                       </div>
 
                   </div>
@@ -899,7 +863,7 @@
   <script defer src="../../src/navbar.js"></script>
   <script defer src="../../src/modal.js"></script>
   <script defer src="../../src/multipleTabs.js"></script>
-  
+<script defer src="../admin/adminFunctions/employee-view-functions.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>

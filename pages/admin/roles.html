@@ -323,7 +323,7 @@
                         <div class="flex bg-white rounded-full px-2 pl-4 py-2 border border-neutral-300 items-center gap-3 cursor-pointer overflow-hidden justify-between
                             hover:border-primary transition-all duration-300 ease-in-out group">
                             <input type="text" placeholder="Search" class="flex-1 bg-transparent focus:outline-none text-sm md:text-base font-normal" />
-                            <div class="shrink-0 bg-neutral-100 text-primary-text w-9 h-9 rounded-full flex items-center justify-center
+                            <div id="searchButton" class="shrink-0 bg-neutral-100 text-primary-text w-9 h-9 rounded-full flex items-center justify-center cursor-pointer
                                 group-hover:bg-primary/10 group-hover:text-primary group-hover:rotate-10
                                 transition-all duration-300 ease-in-out">
                                 <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24">
@@ -347,48 +347,8 @@
                   </div>
                 </div>
                 <div class="overflow-x-auto p-3">
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
-                        <div class="bg-white rounded-3xl shadow-md flex flex-col gap-5 font-inter p-5 group
-                          hover:shadow-lg 
-                          transition-all duration-300 ease-in-out
-                          ">
-                          <!-- Content -->
-                          <div class="flex flex-col justify-center gap-2 text-neutral-500">
-                            <p class="text-base font-bold font-manrope text-primary-text 
-                              transition-all duration-300 ease-in-out
-                            group-hover:text-primary">
-                              Role Name
-                            </p>
-                            <p class=" text-xs">Privilleges:</p>
-                            <ul class="list-disc list-inside text-sm text-neutral-600 space-y-1 px-3">
-                                <li id="privillegesName">Manage Users</li>
-                            </ul>
-                          </div>
-                          <div class="flex gap-3 w-full mt-3">
-                                <button 
-                                    onclick="window.location.href='roles-edit.html'"
-                                    class="flex gap-2 justify-center items-center bg-primary/10 w-full cursor-pointer
-                                    transition-all duration-300 ease-in-out
-                                    hover:bg-primary/20 hover:scale-105 rounded-2xl active:scale-95"
-                                    >
-                                    <svg class="w-5 stroke-primary" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M8 2H3.33333C2.97971 2 2.64057 2.14048 2.39052 2.39052C2.14048 2.64057 2 2.97971 2 3.33333V12.6667C2 13.0203 2.14048 13.3594 2.39052 13.6095C2.64057 13.8595 2.97971 14 3.33333 14H12.6667C13.0203 14 13.3594 13.8595 13.6095 13.6095C13.8595 13.3594 14 13.0203 14 12.6667V8" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                                        <path d="M12.2499 1.75003C12.5151 1.48481 12.8748 1.33582 13.2499 1.33582C13.625 1.33582 13.9847 1.48481 14.2499 1.75003C14.5151 2.01525 14.6641 2.37496 14.6641 2.75003C14.6641 3.1251 14.5151 3.48481 14.2499 3.75003L8.24123 9.75936C8.08293 9.91753 7.88737 10.0333 7.67257 10.096L5.75723 10.656C5.69987 10.6728 5.63906 10.6738 5.58117 10.6589C5.52329 10.6441 5.47045 10.614 5.4282 10.5717C5.38594 10.5295 5.35583 10.4766 5.341 10.4188C5.32617 10.3609 5.32717 10.3001 5.3439 10.2427L5.9039 8.32736C5.96692 8.11273 6.08292 7.9174 6.24123 7.75936L12.2499 1.75003Z" stroke-width="1.33333" stroke-linecap="round" stroke-linejoin="round"/>
-                                    </svg>
-                                </button>
-
-                                <button 
-                                    class="flex gap-2 justify-center items-center w-full cursor-pointer
-                                    transition-all duration-300 ease-in-out bg-rose-100
-                                    hover:bg-rose-200 hover:scale-105 rounded-2xl active:scale-95">
-                                    <svg class="w-5 fill-rose-700" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M4.66666 14C4.3 14 3.98622 13.8696 3.72533 13.6087C3.46444 13.3478 3.33378 13.0338 3.33333 12.6667V4H2.66666V2.66667H6V2H10V2.66667H13.3333V4H12.6667V12.6667C12.6667 13.0333 12.5362 13.3473 12.2753 13.6087C12.0144 13.87 11.7004 14.0004 11.3333 14H4.66666ZM11.3333 4H4.66666V12.6667H11.3333V4ZM6 11.3333H7.33333V5.33333H6V11.3333ZM8.66666 11.3333H10V5.33333H8.66666V11.3333Z"/>
-                                    </svg>
-                                </button>
-                            </div>
-
-                        </div>
-                        
+                    <div id="rolesGrid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
+                        <!-- Roles will be populated here -->
                     </div>
                 
                 </div>
@@ -689,6 +649,7 @@
   <script defer src="../../src/topRoomsChart.js"></script>
   <script defer src="../../src/date.js"></script>
   <script defer src="../../src/multipleTabs.js"></script>
+  <script defer src="adminFunctions/roles-functions.js"></script>
 
 </body>
 </html>

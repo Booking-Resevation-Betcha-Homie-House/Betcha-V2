@@ -311,7 +311,9 @@
                     <div class="ml-3 flex flex-col gap-2">
                         <div class="relative flex items-center gap-2 ">
                             <input 
-                            id="input-privilleges"
+                            id="input-pm"
+                            name="privileges"
+                            value="PM"
                             type="checkbox" 
                             class="peer appearance-none w-4 h-4 rounded border-2 border-neutral-300 
                                 checked:bg-primary checked:border-primary focus:outline-none"
@@ -327,7 +329,76 @@
                             </svg>
                             
                             <!-- Label Text -->
-                            <span class="text-sm text-neutral-700 font-inter">Label Text</span>
+                            <span class="text-sm text-neutral-700 font-inter">PM</span>
+                        </div>
+                        
+                        <div class="relative flex items-center gap-2 ">
+                            <input 
+                            id="input-psr"
+                            name="privileges"
+                            value="PSR"
+                            type="checkbox" 
+                            class="peer appearance-none w-4 h-4 rounded border-2 border-neutral-300 
+                                checked:bg-primary checked:border-primary focus:outline-none"
+                            >
+                            
+                            <!-- Checkmark Icon -->
+                            <svg class="absolute left-0 w-4 h-4 text-white pointer-events-none opacity-0 
+                                        peer-checked:opacity-100 transition-opacity duration-200" 
+                                viewBox="0 0 20 20" fill="none">
+                                <path d="M5 10.5L8.5 14L15 7" 
+                                    stroke="currentColor" stroke-width="2" 
+                                    stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            
+                            <!-- Label Text -->
+                            <span class="text-sm text-neutral-700 font-inter">PSR</span>
+                        </div>
+                        
+                        <div class="relative flex items-center gap-2 ">
+                            <input 
+                            id="input-tk"
+                            name="privileges"
+                            value="TK"
+                            type="checkbox" 
+                            class="peer appearance-none w-4 h-4 rounded border-2 border-neutral-300 
+                                checked:bg-primary checked:border-primary focus:outline-none"
+                            >
+                            
+                            <!-- Checkmark Icon -->
+                            <svg class="absolute left-0 w-4 h-4 text-white pointer-events-none opacity-0 
+                                        peer-checked:opacity-100 transition-opacity duration-200" 
+                                viewBox="0 0 20 20" fill="none">
+                                <path d="M5 10.5L8.5 14L15 7" 
+                                    stroke="currentColor" stroke-width="2" 
+                                    stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            
+                            <!-- Label Text -->
+                            <span class="text-sm text-neutral-700 font-inter">TK</span>
+                        </div>
+                        
+                        <div class="relative flex items-center gap-2 ">
+                            <input 
+                            id="input-ts"
+                            name="privileges"
+                            value="TS"
+                            type="checkbox" 
+                            class="peer appearance-none w-4 h-4 rounded border-2 border-neutral-300 
+                                checked:bg-primary checked:border-primary focus:outline-none"
+                            >
+                            
+                            <!-- Checkmark Icon -->
+                            <svg class="absolute left-0 w-4 h-4 text-white pointer-events-none opacity-0 
+                                        peer-checked:opacity-100 transition-opacity duration-200" 
+                                viewBox="0 0 20 20" fill="none">
+                                <path d="M5 10.5L8.5 14L15 7" 
+                                    stroke="currentColor" stroke-width="2" 
+                                    stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            
+                            <!-- Label Text -->
+                            <span class="text-sm text-neutral-700 font-inter">TS</span>
                         </div>
                     </div>
                 </div>
@@ -492,7 +563,7 @@
 
               </span>
             </button>
-            <button type="button" onclick="window.location.href='roles.html'" 
+            <button type="button" id="confirmEditRole" 
               class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden order-1
               transition-all duration-300 ease-in-out 
               hover:cursor-pointer active:scale-95  
@@ -573,6 +644,7 @@
   <script defer src="../../src/modal.js"></script>
   <script defer src="../../src/topRoomsChart.js"></script>
   <script defer src="../../src/date.js"></script>
+  <script defer src="adminFunctions/role-edit-functions.js"></script>
   
 </body>
 </html>
