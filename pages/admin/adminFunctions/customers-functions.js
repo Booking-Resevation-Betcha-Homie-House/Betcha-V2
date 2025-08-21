@@ -88,9 +88,15 @@ function renderCustomers() {
     if (activeGrid) activeGrid.innerHTML = '';
     if (inactiveGrid) inactiveGrid.innerHTML = '';
 
-    // Separate active and inactive customers - be more flexible with status checking
-    const activeCustomers = customers.filter(customer => !customer.archived && customer.archived !== true);
-    const inactiveCustomers = customers.filter(customer => customer.archived === true);
+    // Separate active and inactive customers - handle both string and boolean values
+    const activeCustomers = customers.filter(customer => {
+        // Handle string "false", boolean false, undefined, or null as active
+        return customer.archived === "false" || customer.archived === false || !customer.archived;
+    });
+    const inactiveCustomers = customers.filter(customer => {
+        // Handle string "true" or boolean true as inactive
+        return customer.archived === "true" || customer.archived === true;
+    });
 
     console.log('Active customers found:', activeCustomers.length);
     console.log('Inactive customers found:', inactiveCustomers.length);
