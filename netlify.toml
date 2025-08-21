@@ -1,9 +1,9 @@
 [build]
-  command = "npm run build"
+  command = "npm run build-base && cp -r pages/admin/adminFunctions dist/pages/admin/"
   publish = "dist"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
 
 # Handle specific API endpoints
 [[redirects]]
