@@ -230,11 +230,19 @@ function clearSearch() {
 
 // Custom setActiveTab function for this page to override multipleTabs.js
 window.setActiveTab = function(index) {
+    console.log('setActiveTab called with index:', index);
+    
     const tabGroup = document.querySelector('[data-tab-group]');
-    if (!tabGroup) return;
+    if (!tabGroup) {
+        console.error('Could not find [data-tab-group] element');
+        return;
+    }
     
     const tabBtns = tabGroup.querySelectorAll('.tab-btn');
     const tabContents = tabGroup.querySelectorAll('.tab-content');
+    
+    console.log('Found tab buttons:', tabBtns.length);
+    console.log('Found tab contents:', tabContents.length);
 
     tabBtns.forEach((btn, i) => {
         const span = btn.querySelector('span');
@@ -243,16 +251,26 @@ window.setActiveTab = function(index) {
             btn.classList.add("bg-white", "font-semibold", "shadow");
             span?.classList.remove("text-neutral-500");
             span?.classList.add("text-primary");
+            console.log(`Activated button ${i}`);
         } else {
             btn.classList.remove("bg-white", "font-semibold", "shadow");
             span?.classList.remove("text-primary");
             span?.classList.add("text-neutral-500");
+            console.log(`Deactivated button ${i}`);
         }
     });
 
     tabContents.forEach((content, i) => {
-        content.classList.toggle("hidden", i !== index);
+        if (i === index) {
+            content.classList.remove("hidden");
+            console.log(`Showed tab content ${i}, classes:`, content.className);
+        } else {
+            content.classList.add("hidden");
+            console.log(`Hid tab content ${i}`);
+        }
     });
+    
+    console.log('setActiveTab completed');
 };
 
 function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
