@@ -3,7 +3,7 @@
 
 async function getAllFAQS() {
     try {
-        const response = await fetch('https://betcha-api.onrender.com/faq/getAll');
+        const response = await fetch('/api/faq/getAll');
         const data = await response.json();
         console.log(data);
         if (data && data.allFAQ) {
@@ -128,7 +128,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // API: Create FAQ
 async function createFAQ(question, answer) {
     try {
-        await fetch('https://betcha-api.onrender.com/faq/create', {
+        await fetch('/api/faq/create', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question, answer })
@@ -141,7 +141,7 @@ async function createFAQ(question, answer) {
 // API: Delete FAQ
 async function deleteFAQ(id) {
     try {
-        await fetch(`https://betcha-api.onrender.com/faq/delete/${id}`, {
+        await fetch(`/api/faq/delete/${id}`, {
             method: 'DELETE'
         });
     } catch (error) {
@@ -152,7 +152,7 @@ async function deleteFAQ(id) {
 // API: Update FAQ
 async function updateFAQ(id, question, answer) {
     try {
-        await fetch(`https://betcha-api.onrender.com/faq/update/${id}`, {
+        await fetch(`/api/faq/update/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question, answer })

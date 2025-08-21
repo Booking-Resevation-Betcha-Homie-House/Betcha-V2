@@ -142,7 +142,7 @@ async function addEmployee() {
 
 
         // Make API call
-        const response = await fetch('https://betcha-api.onrender.com/employee/create', {
+        const response = await fetch('/api/employee/create', {
             method: 'POST',
             body: formData
         });
@@ -359,7 +359,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Function to fetch and populate roles from the API
 async function populateRoles() {
     try {
-        const response = await fetch('https://betcha-api.onrender.com/roles/display');
+        const response = await fetch('/api/roles/display');
         
         if (!response.ok) {
             throw new Error(`Failed to fetch roles: ${response.statusText}`);
@@ -539,7 +539,7 @@ window.removeRole = removeRole;
 // Function to fetch and populate properties from the API
 async function populateProperties() {
     try {
-        const response = await fetch('https://betcha-api.onrender.com/property/display');
+        const response = await fetch('/api/property/display');
         
         if (!response.ok) {
             throw new Error(`Failed to fetch properties: ${response.statusText}`);

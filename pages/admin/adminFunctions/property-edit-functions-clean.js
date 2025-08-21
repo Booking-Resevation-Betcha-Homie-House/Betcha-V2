@@ -1,10 +1,7 @@
-/**
- * Property Edit Functions - Clean & Optimized
- * Handles property editing functionality with improved organization and readability
- */
+//refractor or clean the code if possible
 
 // ==================== CONSTANTS & GLOBALS ====================
-const API_BASE_URL = 'https://betcha-api.onrender.com';
+const API_BASE_URL = '/api';
 let currentPropertyId = null;
 let currentPropertyImages = [];
 
@@ -812,11 +809,11 @@ async function uploadAllImages() {
 
         // Try different API endpoint URLs
         const possibleUrls = [
-            `https://betcha-api.onrender.com/property/photos/append/${currentPropertyId}`,
-            `https://betcha-api.onrender.com/property/update/photos/${currentPropertyId}`,
-            `https://betcha-api.onrender.com/property/${currentPropertyId}/photos`,
-            `https://betcha-api.onrender.com/property/${currentPropertyId}/update/photos`,
-            `https://betcha-api.onrender.com/properties/${currentPropertyId}/photos`
+            `/api/property/photos/append/${currentPropertyId}`,
+            `/api/property/update/photos/${currentPropertyId}`,
+            `/api/property/${currentPropertyId}/photos`,
+            `/api/property/${currentPropertyId}/update/photos`,
+            `/api/properties/${currentPropertyId}/photos`
         ];
         
         const possibleMethods = ['PATCH', 'POST', 'PUT'];

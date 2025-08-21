@@ -2,7 +2,7 @@
 let customers = []; // Store all customers for searching (like allProperties in property-functions.js)
 let allCustomers = []; // Additional storage to match property.js pattern exactly
 let currentCustomer = null; // Track the customer currently shown in modal
-const apiUrl = 'https://betcha-api.onrender.com/guest/display';
+const apiUrl = '/api/guest/display';
 
 // Initialize the customer manager when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
@@ -510,8 +510,8 @@ async function handleCustomerDeactivation() {
     try {
         // Use the correct API endpoints
         const endpoint = isArchived 
-            ? `https://betcha-api.onrender.com/guest/unarchive/${currentCustomer._id}`
-            : `https://betcha-api.onrender.com/guest/archive/${currentCustomer._id}`;
+            ? `/api/guest/unarchive/${currentCustomer._id}`
+            : `/api/guest/archive/${currentCustomer._id}`;
 
         console.log(`Making API call to: ${endpoint}`);
         

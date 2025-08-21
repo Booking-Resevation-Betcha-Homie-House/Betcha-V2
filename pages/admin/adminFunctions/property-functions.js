@@ -6,7 +6,7 @@ let allProperties = []; // Store fetched properties for searching
 
 async function getAllProperties() {
     try {
-        const response = await fetch('https://betcha-api.onrender.com/property/display');
+        const response = await fetch('/api/property/display');
         const data = await response.json();
         if (Array.isArray(data)) {
             allProperties = data; // Save for search

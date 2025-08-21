@@ -13,6 +13,12 @@
   force = true
 
 [[redirects]]
+  from = "/api/guest/*"
+  to = "https://betcha-api.onrender.com/guest/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/api/landing/*"
   to = "https://betcha-api.onrender.com/landing/:splat"
   status = 200
@@ -21,6 +27,30 @@
 [[redirects]]
   from = "/api/property/*"
   to = "https://betcha-api.onrender.com/property/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/roles/*"
+  to = "https://betcha-api.onrender.com/roles/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/faq/*"
+  to = "https://betcha-api.onrender.com/faq/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/payment/*"
+  to = "https://betcha-api.onrender.com/payment/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/payments/*"
+  to = "https://betcha-api.onrender.com/payments/:splat"
   status = 200
   force = true
 

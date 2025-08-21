@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Fetch property data from API
 async function fetchPropertyData(propertyId) {
     try {
-        const response = await fetch(`https://betcha-api.onrender.com/property/display/${propertyId}`);
+        const response = await fetch(`/api/property/display/${propertyId}`);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);

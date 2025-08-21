@@ -120,7 +120,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Send to API
     try {
-      const response = await fetch('https://betcha-api.onrender.com/property/create', {
+      const response = await fetch('/api/property/create', {
         method: 'POST',
         body: formData
       });

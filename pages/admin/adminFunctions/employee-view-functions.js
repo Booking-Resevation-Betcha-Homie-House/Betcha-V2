@@ -25,7 +25,7 @@ async function populateEmployeeDetails() {
 	
 	try {
 		console.log('Fetching employee details for ID:', employeeId);
-		const response = await fetch(`https://betcha-api.onrender.com/employee/display/${employeeId}`);
+		const response = await fetch(`/api/employee/display/${employeeId}`);
 		
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
@@ -168,7 +168,7 @@ async function populateAssignedProperties(properties) {
 		
 		// Fetch all properties from API
 		console.log('Fetching properties data...');
-		const response = await fetch('https://betcha-api.onrender.com/property/display');
+		const response = await fetch('/api/property/display');
 		
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
@@ -350,7 +350,7 @@ async function deactivateEmployee() {
 
 	try {
 		console.log('Deactivating employee:', currentEmployeeId);
-		const response = await fetch(`https://betcha-api.onrender.com/employee/archive/${currentEmployeeId}`, {
+		const response = await fetch(`/api/employee/archive/${currentEmployeeId}`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
@@ -385,7 +385,7 @@ async function reactivateEmployee() {
 
 	try {
 		console.log('Reactivating employee:', currentEmployeeId);
-		const response = await fetch(`https://betcha-api.onrender.com/employee/unarchive/${currentEmployeeId}`, {
+		const response = await fetch(`/api/employee/unarchive/${currentEmployeeId}`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'

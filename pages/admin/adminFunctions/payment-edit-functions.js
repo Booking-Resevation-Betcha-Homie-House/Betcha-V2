@@ -47,7 +47,7 @@ async function initializeEditForm() {
         showLoadingState();
         
         // Fetch payment data
-        const response = await fetch('https://betcha-api.onrender.com/payments/display');
+        const response = await fetch('/api/payments/display');
         
         if (!response.ok) {
             throw new Error(`Failed to fetch payment data: ${response.status}`);
@@ -374,7 +374,7 @@ async function validateAndSubmitForm() {
         console.log('Updating payment data:', paymentData);
 
         // Make API call to update payment
-        const response = await fetch(`https://betcha-api.onrender.com/payments/update/${currentPaymentId}`, {
+        const response = await fetch(`/api/payments/update/${currentPaymentId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
