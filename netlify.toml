@@ -5,17 +5,36 @@
 [build.environment]
   NODE_VERSION = "18"
 
+# Handle specific API endpoints
 [[redirects]]
-  from = "/*"
-  to = "/index.html"
+  from = "/api/employee/*"
+  to = "https://betcha-api.onrender.com/employee/:splat"
   status = 200
+  force = true
 
-# Handle API calls (if you want to proxy to your backend)
+[[redirects]]
+  from = "/api/landing/*"
+  to = "https://betcha-api.onrender.com/landing/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/api/property/*"
+  to = "https://betcha-api.onrender.com/property/:splat"
+  status = 200
+  force = true
+
+# Handle all other API calls
 [[redirects]]
   from = "/api/*"
   to = "https://betcha-api.onrender.com/:splat"
   status = 200
   force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
 
 # Security headers
 [[headers]]

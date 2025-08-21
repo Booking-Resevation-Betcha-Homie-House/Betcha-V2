@@ -1,6 +1,8 @@
 // Employee Functions for Admin Dashboard
 let employees = [];
-const apiUrl = 'https://betcha-api.onrender.com/employee/display';
+
+// Use relative API URL that will be proxied by Netlify
+const apiUrl = '/api/employee/display';
 
 // Initialize the employee manager when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
