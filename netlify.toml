@@ -1,5 +1,5 @@
 [build]
-  command = "npm run build-base && cp -r pages/admin/adminFunctions dist/pages/admin/"
+  command = "npm run build-base && cp -r pages/admin/adminFunctions dist/pages/admin/ && cp -r src dist/"
   publish = "dist"
 
 [build.environment]
