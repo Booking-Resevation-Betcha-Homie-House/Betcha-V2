@@ -1,0 +1,5 @@
+# Redirect all API calls to your backend
+/api/* https://betcha-api.onrender.com/:splat 200
+
+# SPA fallback (for client-side routing if needed)
+/* /index.html 200
