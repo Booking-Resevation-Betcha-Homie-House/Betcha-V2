@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && powershell Copy-Item -Path 'pages/admin/adminFunctions' -Destination 'dist/pages/admin/adminFunctions' -Recurse",
     "lint": "eslint .",
     "preview": "vite preview"
   },
