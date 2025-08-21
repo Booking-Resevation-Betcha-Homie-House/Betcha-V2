@@ -13,6 +13,9 @@ export default defineConfig({
         // Main entry point
         main: 'index.html',
         
+        // Test page
+        netlifyProxyTest: 'netlify-proxy-test.html',
+        
         // Unauthenticated pages
         login: 'pages/unauth/login.html',
         register: 'pages/unauth/register.html',
