@@ -61,10 +61,8 @@
   status = 200
   force = true
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Note: Removed SPA fallback that was interfering with API redirects
+# If you need SPA routing, add it back with proper conditions
 
 # Security headers
 [[headers]]
