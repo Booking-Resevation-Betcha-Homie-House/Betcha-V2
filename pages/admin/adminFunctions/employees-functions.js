@@ -46,6 +46,17 @@ async function fetchEmployees() {
 }
 
 function renderEmployees() {
+    console.log('Starting to render employees...');
+    console.log('Total employees to render:', employees.length);
+    
+    // Log status values for debugging
+    if (employees.length > 0) {
+        console.log('Employee status values:');
+        employees.forEach((emp, index) => {
+            console.log(`Employee ${index + 1}: status="${emp.status}", name="${emp.firstname} ${emp.lastname}"`);
+        });
+    }
+    
     // Hide loading state
     const loadingState = document.getElementById('loading-state');
     if (loadingState) {
@@ -55,34 +66,44 @@ function renderEmployees() {
     const activeTab = document.getElementById('active-tab');
     const inactiveTab = document.getElementById('inactive-tab');
     
-    if (!activeTab || !inactiveTab) return;
+    if (!activeTab || !inactiveTab) {
+        console.error('Could not find active-tab or inactive-tab elements');
+        return;
+    }
 
     // Clear existing content
     activeTab.querySelector('.grid').innerHTML = '';
     inactiveTab.querySelector('.grid').innerHTML = '';
 
-    // Separate active and inactive employees
-    const activeEmployees = employees.filter(emp => emp.status === 'active');
-    const inactiveEmployees = employees.filter(emp => emp.status === 'archived');
+    // Separate active and inactive employees - be more flexible with status values
+    const activeEmployees = employees.filter(emp => emp.status === 'active' || emp.status === 'Active' || !emp.status);
+    const inactiveEmployees = employees.filter(emp => emp.status === 'archived' || emp.status === 'Archived' || emp.status === 'inactive' || emp.status === 'Inactive');
+
+    console.log('Active employees found:', activeEmployees.length);
+    console.log('Inactive employees found:', inactiveEmployees.length);
 
     // Render active employees
     if (activeEmployees.length > 0) {
+        console.log('Rendering active employees...');
         activeEmployees.forEach(employee => {
             const employeeCard = createEmployeeCard(employee);
             activeTab.querySelector('.grid').appendChild(employeeCard);
         });
     } else {
+        console.log('No active employees found, showing empty state');
         activeTab.querySelector('.grid').innerHTML = createEmptyState('No active employees found');
     }
 
     // Render inactive employees
     if (inactiveEmployees.length > 0) {
+        console.log('Rendering inactive employees...');
         inactiveEmployees.forEach(employee => {
             const employeeCard = createEmployeeCard(employee);
             inactiveTab.querySelector('.grid').appendChild(employeeCard);
         });
     } else {
-        activeTab.querySelector('.grid').innerHTML = createEmptyState('No inactive employees found');
+        console.log('No inactive employees found, showing empty state');
+        inactiveTab.querySelector('.grid').innerHTML = createEmptyState('No inactive employees found');
     }
 
     // Update tab counts if needed
@@ -99,6 +120,8 @@ function renderEmployees() {
         activeTab.querySelector('.grid').innerHTML = createEmptyState('No employees found in the system');
         inactiveTab.querySelector('.grid').innerHTML = createEmptyState('No employees found in the system');
     }
+    
+    console.log('Finished rendering employees');
 }
 
 function createEmployeeCard(employee) {
