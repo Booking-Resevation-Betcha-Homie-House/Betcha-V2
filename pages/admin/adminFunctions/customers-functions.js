@@ -53,6 +53,17 @@ function renderCustomers() {
         loadingState.style.display = 'none';
     }
 
+    console.log('Starting to render customers...');
+    console.log('Total customers to render:', customers.length);
+    
+    // Log customer data for debugging
+    if (customers.length > 0) {
+        console.log('Customer archived status:');
+        customers.forEach((customer, index) => {
+            console.log(`Customer ${index + 1}: archived="${customer.archived}", name="${customer.firstname} ${customer.lastname}"`);
+        });
+    }
+
     // Find the tab content containers inside #tab-contents
     const tabContentsContainer = document.getElementById('tab-contents');
     if (!tabContentsContainer) {
@@ -77,12 +88,16 @@ function renderCustomers() {
     if (activeGrid) activeGrid.innerHTML = '';
     if (inactiveGrid) inactiveGrid.innerHTML = '';
 
-    // Separate active and inactive customers
-    const activeCustomers = customers.filter(customer => !customer.archived);
-    const inactiveCustomers = customers.filter(customer => customer.archived);
+    // Separate active and inactive customers - be more flexible with status checking
+    const activeCustomers = customers.filter(customer => !customer.archived && customer.archived !== true);
+    const inactiveCustomers = customers.filter(customer => customer.archived === true);
+
+    console.log('Active customers found:', activeCustomers.length);
+    console.log('Inactive customers found:', inactiveCustomers.length);
 
     // Render active customers
     if (activeCustomers.length > 0) {
+        console.log('Rendering active customers...');
         activeCustomers.forEach((customer) => {
             const customerCard = createCustomerCard(customer);
             if (activeGrid) {
@@ -90,11 +105,13 @@ function renderCustomers() {
             }
         });
     } else {
+        console.log('No active customers found, showing empty state');
         if (activeGrid) activeGrid.innerHTML = createEmptyState('No active customers found');
     }
 
     // Render inactive customers
     if (inactiveCustomers.length > 0) {
+        console.log('Rendering inactive customers...');
         inactiveCustomers.forEach((customer) => {
             const customerCard = createCustomerCard(customer);
             if (inactiveGrid) {
@@ -102,6 +119,7 @@ function renderCustomers() {
             }
         });
     } else {
+        console.log('No inactive customers found, showing empty state');
         if (inactiveGrid) inactiveGrid.innerHTML = createEmptyState('No inactive customers found');
     }
 
