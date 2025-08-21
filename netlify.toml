@@ -61,7 +61,7 @@
   status = 200
   force = true
 
-# Note: Removed SPA fallback that was interfering with API redirects
+# Note: Removed SPA fallback that was interfering with API redirects and static files
 # If you need SPA routing, add it back with proper conditions
 
 # Security headers
