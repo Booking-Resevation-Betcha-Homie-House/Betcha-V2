@@ -112,7 +112,8 @@ function renderEmployees() {
     // Show the first tab by default if no tab is currently active
     const currentActiveTab = document.querySelector('.tab-content:not(.hidden)');
     if (!currentActiveTab) {
-        activeTab.classList.remove('hidden');
+        console.log('No active tab found, showing active tab by default');
+        showTab(0); // Show active tab by default
     }
 
     // If no employees at all, show a message
@@ -122,6 +123,57 @@ function renderEmployees() {
     }
     
     console.log('Finished rendering employees');
+}
+
+// Function to handle tab switching
+function setActiveTab(tabIndex) {
+    showTab(tabIndex);
+}
+
+// Make setActiveTab globally accessible
+window.setActiveTab = setActiveTab;
+
+function showTab(tabIndex) {
+    console.log('Switching to tab:', tabIndex);
+    const activeTab = document.getElementById('active-tab');
+    const inactiveTab = document.getElementById('inactive-tab');
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    
+    // Hide all tabs
+    if (activeTab) activeTab.classList.add('hidden');
+    if (inactiveTab) inactiveTab.classList.add('hidden');
+    
+    // Remove active styles from all buttons
+    tabButtons.forEach(btn => {
+        btn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
+        btn.querySelector('span').classList.remove('text-primary');
+        btn.querySelector('span').classList.add('text-neutral-500');
+    });
+    
+    // Show selected tab and update button styles
+    if (tabIndex === 0) {
+        // Show active employees tab
+        if (activeTab) {
+            activeTab.classList.remove('hidden');
+            console.log('Active tab now visible');
+        }
+        if (tabButtons[0]) {
+            tabButtons[0].classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
+            tabButtons[0].querySelector('span').classList.add('text-primary');
+            tabButtons[0].querySelector('span').classList.remove('text-neutral-500');
+        }
+    } else if (tabIndex === 1) {
+        // Show inactive employees tab
+        if (inactiveTab) {
+            inactiveTab.classList.remove('hidden');
+            console.log('Inactive tab now visible');
+        }
+        if (tabButtons[1]) {
+            tabButtons[1].classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
+            tabButtons[1].querySelector('span').classList.add('text-primary');
+            tabButtons[1].querySelector('span').classList.remove('text-neutral-500');
+        }
+    }
 }
 
 function createEmployeeCard(employee) {
