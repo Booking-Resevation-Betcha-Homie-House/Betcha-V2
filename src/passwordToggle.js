@@ -15,8 +15,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const isPassword = input.type === 'password';
       input.type = isPassword ? 'text' : 'password';
 
-      eyeClosed.classList.toggle('hidden', !isPassword);
-      eyeOpen.classList.toggle('hidden', isPassword);
+      // When password is hidden (type="password"), show open eye (to indicate "click to show")
+      // When password is visible (type="text"), show closed eye (to indicate "click to hide")
+      eyeOpen.classList.toggle('hidden', !isPassword);
+      eyeClosed.classList.toggle('hidden', isPassword);
     });
   });
 

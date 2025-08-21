@@ -1,7 +1,7 @@
 // Function to add a new employee
 // Role List is populated dynamically from the API
 // Property List is populated dynamically from the API
-// Does the employee can only have one role?
+
 
 async function addEmployee() {
     let originalText = ''; // Declare originalText outside try block to fix scope issue
@@ -20,11 +20,35 @@ async function addEmployee() {
         const profilePictureInput = document.querySelector('input[type="file"]');
         const profilePicture = profilePictureInput.files[0];
         
-        // Get selected roles from the DOM - only role checkboxes have data-role-id attribute
-        const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][data-role-id]');
-        const selectedRoles = Array.from(roleCheckboxes)
-            .filter(checkbox => checkbox.checked)
-            .map(checkbox => checkbox.getAttribute('data-role-id')); // This now gets the role ID from data attribute
+        // Get selected roles from Alpine.js or fallback to DOM selection
+        let selectedRoles = [];
+        
+        // First try to get roles from Alpine.js
+        const roleSelector = document.getElementById('roleSelector');
+        if (roleSelector && window.Alpine) {
+            try {
+                const alpineData = Alpine.$data(roleSelector);
+                if (alpineData && alpineData.selected && alpineData.selected.length > 0) {
+                    // Map role names to role IDs by looking up in fetched roles
+                    selectedRoles = alpineData.selected.map(roleName => {
+                        const role = window.allRoles?.find(r => r.name === roleName);
+                        return role ? role._id : roleName; // fallback to name if ID not found
+                    });
+                    console.log('Got roles from Alpine.js:', selectedRoles);
+                }
+            } catch (error) {
+                console.warn('Could not get roles from Alpine.js:', error);
+            }
+        }
+        
+        // Fallback: Get selected roles from DOM checkboxes with data-role-id attribute
+        if (selectedRoles.length === 0) {
+            const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][data-role-id]');
+            selectedRoles = Array.from(roleCheckboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => checkbox.getAttribute('data-role-id'));
+            console.log('Got roles from DOM checkboxes:', selectedRoles);
+        }
         
         // Get selected properties from the DOM
         const propertyCheckboxes = document.querySelectorAll('input[type="checkbox"][data-property-id]');
@@ -50,6 +74,31 @@ async function addEmployee() {
 
         if (selectedRoles.length === 0) {
             showError('Please select at least one role');
+            console.log('Debug: No roles selected');
+            console.log('Available roles:', window.allRoles);
+            
+            // Debug Alpine.js state
+            const roleSelector = document.getElementById('roleSelector');
+            if (roleSelector && window.Alpine) {
+                try {
+                    const alpineData = Alpine.$data(roleSelector);
+                    console.log('Alpine.js role state:', alpineData);
+                } catch (error) {
+                    console.log('Alpine.js not available or error:', error);
+                }
+            }
+            
+            // Debug DOM checkboxes
+            const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][data-role-id]');
+            console.log('DOM role checkboxes found:', roleCheckboxes.length);
+            roleCheckboxes.forEach((checkbox, index) => {
+                console.log(`Checkbox ${index}:`, {
+                    checked: checkbox.checked,
+                    value: checkbox.value,
+                    roleId: checkbox.getAttribute('data-role-id')
+                });
+            });
+            
             return;
         }
 
@@ -198,7 +247,21 @@ function resetForm() {
         profilePictureInput.value = '';
     }
     
-    // Reset role checkboxes
+    // Reset role checkboxes - handle both Alpine.js and DOM
+    const roleSelector = document.getElementById('roleSelector');
+    if (roleSelector && window.Alpine) {
+        try {
+            const alpineData = Alpine.$data(roleSelector);
+            if (alpineData) {
+                alpineData.selected = [];
+                console.log('Reset Alpine.js role selection');
+            }
+        } catch (error) {
+            console.warn('Could not reset Alpine.js roles:', error);
+        }
+    }
+    
+    // Also reset DOM checkboxes as fallback
     const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][data-role-id]');
     roleCheckboxes.forEach(checkbox => {
         checkbox.checked = false;
@@ -261,6 +324,8 @@ function validateForm() {
 
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, initializing employee add functions...');
+    
     // Add event listener to confirm button
     const confirmBtn = document.getElementById('confirmEmployeeBtn');
     if (confirmBtn) {
@@ -271,14 +336,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Check if Alpine.js is available
+    console.log('Alpine.js available:', typeof window.Alpine !== 'undefined');
+    
     // Wait for Alpine.js to be ready before populating roles
     document.addEventListener('alpine:init', () => {
+        console.log('Alpine.js initialized, populating roles...');
         // Populate roles from API when Alpine.js is ready
         populateRoles();
     });
     
     // Fallback: Populate roles after a short delay if Alpine.js event doesn't fire
     setTimeout(() => {
+        console.log('Fallback: Populating roles after 500ms delay...');
         populateRoles();
     }, 500);
     
@@ -300,6 +370,9 @@ async function populateRoles() {
         
         console.log('Fetched roles from API:', roles);
         
+        // Store roles globally for later reference
+        window.allRoles = roles;
+        
         // Update Alpine.js component with real role data
         const roleSelector = document.getElementById('roleSelector');
         if (roleSelector) {
@@ -316,54 +389,13 @@ async function populateRoles() {
                 }
             } catch (error) {
                 console.warn('Could not update Alpine.js roles:', error);
-            }
-        }
-        
-        // Also ensure the role list is populated manually for compatibility
-        const roleListContainer = document.querySelector('.border.border-gray-200.rounded-lg.max-h-48.overflow-y-auto');
-        
-        if (roleListContainer) {
-            // Store the original Alpine.js template structure but clear manual additions
-            const templates = roleListContainer.querySelectorAll('template');
-            roleListContainer.innerHTML = '';
-            
-            // Re-add any templates that were removed
-            templates.forEach(template => {
-                roleListContainer.appendChild(template);
-            });
-            
-            // If no Alpine.js templates found, populate manually
-            if (templates.length === 0) {
-                roles.forEach(role => {
-                    const roleItem = document.createElement('label');
-                    roleItem.className = 'relative flex items-center p-2 hover:bg-gray-50 cursor-pointer';
-                    roleItem.innerHTML = `
-                        <input 
-                            type="checkbox" 
-                            class="peer mr-2 appearance-none w-4 h-4 rounded border-2 border-neutral-300 checked:bg-primary checked:border-primary focus:outline-none"
-                            value="${role.name}"
-                            data-role-id="${role._id}"
-                        >
-                        <svg class="absolute w-4 h-4 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity duration-200" viewBox="0 0 20 20" fill="none">
-                            <path d="M5 10.5L8.5 14L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                        </svg>
-                        <span class="ml-1">${role.name}</span>
-                    `;
-                    
-                    // Add change event listener to update the selected roles display
-                    const checkbox = roleItem.querySelector('input[type="checkbox"]');
-                    checkbox.addEventListener('change', function() {
-                        updateSelectedRolesDisplay();
-                    });
-                    
-                    roleListContainer.appendChild(roleItem);
-                });
                 
-                console.log('Roles populated manually in DOM:', roles);
+                // Fallback: populate manually if Alpine.js fails
+                populateRolesManually(roles);
             }
-        } else {
-            console.error('Role list container not found');
         }
+        
+        console.log('Roles populated successfully');
         
     } catch (error) {
         console.error('Error fetching roles:', error);
@@ -371,15 +403,85 @@ async function populateRoles() {
     }
 }
 
+// Function to manually populate roles as fallback
+function populateRolesManually(roles) {
+    // Also ensure the role list is populated manually for compatibility
+    const roleListContainer = document.querySelector('.border.border-gray-200.rounded-lg.max-h-48.overflow-y-auto');
+    
+    if (roleListContainer) {
+        // Store the original Alpine.js template structure but clear manual additions
+        const templates = roleListContainer.querySelectorAll('template');
+        roleListContainer.innerHTML = '';
+        
+        // Re-add any templates that were removed
+        templates.forEach(template => {
+            roleListContainer.appendChild(template);
+        });
+        
+        // If no Alpine.js templates found, populate manually
+        if (templates.length === 0) {
+            roles.forEach(role => {
+                const roleItem = document.createElement('label');
+                roleItem.className = 'relative flex items-center p-2 hover:bg-gray-50 cursor-pointer';
+                roleItem.innerHTML = `
+                    <input 
+                        type="checkbox" 
+                        class="peer mr-2 appearance-none w-4 h-4 rounded border-2 border-neutral-300 checked:bg-primary checked:border-primary focus:outline-none"
+                        value="${role.name}"
+                        data-role-id="${role._id}"
+                    >
+                    <svg class="absolute w-4 h-4 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity duration-200" viewBox="0 0 20 20" fill="none">
+                        <path d="M5 10.5L8.5 14L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                    <span class="ml-1">${role.name}</span>
+                `;
+                
+                // Add change event listener to update the selected roles display
+                const checkbox = roleItem.querySelector('input[type="checkbox"]');
+                checkbox.addEventListener('change', function() {
+                    updateSelectedRolesDisplay();
+                });
+                
+                roleListContainer.appendChild(roleItem);
+            });
+            
+            console.log('Roles populated manually in DOM:', roles);
+        }
+    } else {
+        console.error('Role list container not found');
+    }
+}
+
 // Function to update the selected roles display
 function updateSelectedRolesDisplay() {
-    const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][data-role-id]');
-    const selectedRoles = Array.from(roleCheckboxes)
-        .filter(checkbox => checkbox.checked)
-        .map(checkbox => ({
-            id: checkbox.getAttribute('data-role-id'),
-            name: checkbox.value
-        }));
+    let selectedRoles = [];
+    
+    // First try to get roles from Alpine.js
+    const roleSelector = document.getElementById('roleSelector');
+    if (roleSelector && window.Alpine) {
+        try {
+            const alpineData = Alpine.$data(roleSelector);
+            if (alpineData && alpineData.selected) {
+                selectedRoles = alpineData.selected.map(roleName => ({
+                    id: window.allRoles?.find(r => r.name === roleName)?._id || roleName,
+                    name: roleName
+                }));
+            }
+        } catch (error) {
+            console.warn('Could not get roles from Alpine.js for display update:', error);
+        }
+    }
+    
+    // Fallback to DOM checkboxes if Alpine.js doesn't work
+    if (selectedRoles.length === 0) {
+        const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][data-role-id]');
+        selectedRoles = Array.from(roleCheckboxes)
+            .filter(checkbox => checkbox.checked)
+            .map(checkbox => ({
+                id: checkbox.getAttribute('data-role-id'),
+                name: checkbox.value
+            }));
+    }
     
     // Find the selected roles container
     const selectedRolesContainer = document.querySelector('.flex.flex-wrap.gap-2');
@@ -407,11 +509,28 @@ function updateSelectedRolesDisplay() {
 
 // Function to remove a role from selection
 function removeRole(roleId) {
+    // First try to remove from Alpine.js
+    const roleSelector = document.getElementById('roleSelector');
+    if (roleSelector && window.Alpine) {
+        try {
+            const alpineData = Alpine.$data(roleSelector);
+            if (alpineData && alpineData.selected) {
+                const roleName = window.allRoles?.find(r => r._id === roleId)?.name || roleId;
+                alpineData.selected = alpineData.selected.filter(s => s !== roleName);
+                console.log('Removed role from Alpine.js:', roleName);
+            }
+        } catch (error) {
+            console.warn('Could not remove role from Alpine.js:', error);
+        }
+    }
+    
+    // Also remove from DOM checkboxes as fallback
     const roleCheckbox = document.querySelector(`input[type="checkbox"][data-role-id="${roleId}"]`);
     if (roleCheckbox) {
         roleCheckbox.checked = false;
-        updateSelectedRolesDisplay();
     }
+    
+    updateSelectedRolesDisplay();
 }
 
 // Make removeRole function globally accessible for onclick attributes
@@ -591,6 +710,7 @@ if (typeof module !== 'undefined' && module.exports) {
         resetForm,
         validateForm,
         populateRoles,
+        populateRolesManually,
         updateSelectedRolesDisplay,
         removeRole,
         populateProperties,

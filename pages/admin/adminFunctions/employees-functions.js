@@ -1,5 +1,4 @@
 // Employee Functions for Admin Dashboard
-
 let employees = [];
 const apiUrl = 'https://betcha-api.onrender.com/employee/display';
 
@@ -109,11 +108,6 @@ function createEmployeeCard(employee) {
     
     // Get role name
     const roleName = employee.role && employee.role.length > 0 ? employee.role[0].name : 'No Role';
-    
-    // Get properties as comma-separated string
-    const properties = employee.properties && employee.properties.length > 0 
-        ? employee.properties.join(', ') 
-        : 'No Properties';
 
     card.innerHTML = `
         <div class="bg-white rounded-3xl shadow-md flex flex-col gap-5 font-inter p-5 items-center group
@@ -147,12 +141,6 @@ function createEmployeeCard(employee) {
                         <path d="M2.75 14.25C2.75 11.75 4.75 9.25 8 9.25C11.25 9.25 13.25 11.75 13.25 14.25" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                     <p class="text-xs">${roleName}</p>
-                </div>
-                <div class="flex items-center gap-2">
-                    <svg class="w-4 stroke-neutral-500" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M11.3333 2C11.687 2 12.0261 2.14048 12.2761 2.39052C12.5262 2.64057 12.6667 2.97971 12.6667 3.33333V12.6667H13.3333C13.5101 12.6667 13.6797 12.7369 13.8047 12.8619C13.9298 12.987 14 13.1565 14 13.3333C14 13.5101 13.9298 13.6797 13.8047 13.8047C13.6797 13.9298 13.5101 14 13.3333 14H2.66667C2.48986 14 2.32029 13.9298 2.19526 13.8047C2.07024 13.6797 2 13.5101 2 13.3333C2 13.1565 2.07024 12.987 2.19526 12.8619C2.32029 12.7369 2.48986 12.6667 2.66667 12.6667H3.33333V3.33333C3.33333 2.97971 3.47381 2.64057 3.72386 2.39052C3.97391 2.14048 4.31304 2 4.66667 2H11.3333ZM11.3333 3.33333H4.66667V12.6667H11.3333V3.33333ZM9.66667 7.33333C9.79799 7.33333 9.92802 7.3592 10.0494 7.40945C10.1707 7.45971 10.2809 7.53337 10.3738 7.62623C10.4666 7.71909 10.5403 7.82932 10.5905 7.95065C10.6408 8.07198 10.6667 8.20201 10.6667 8.33333C10.6667 8.46466 10.6408 8.59469 10.5905 8.71602C10.5403 8.83734 10.4666 8.94758 10.3738 9.04044C10.2809 9.1333 10.1707 9.20696 10.0494 9.25721C9.92802 9.30747 9.79799 9.33333 9.66667 9.33333C9.40145 9.33333 9.1471 9.22798 8.95956 9.04044C8.77202 8.8529 8.66667 8.59855 8.66667 8.33333C8.66667 8.06812 8.77202 7.81376 8.95956 7.62623C9.1471 7.43869 9.40145 7.33333 9.66667 7.33333Z"/>
-                    </svg>
-                    <p class="text-xs">${properties}</p>
                 </div>
                 <div class="flex items-center gap-2">
                     <svg class="w-4 stroke-neutral-500" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">

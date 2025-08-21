@@ -1,6 +1,7 @@
 // Property View Page JavaScript
 // This file handles fetching and displaying property data from the API
 //The report tab is not working yet
+// Amenities should only show the selected amenities
 document.addEventListener('DOMContentLoaded', function() {
     // Get property ID from URL parameters or use default
     const urlParams = new URLSearchParams(window.location.search);

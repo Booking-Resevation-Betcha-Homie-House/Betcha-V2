@@ -1,11 +1,71 @@
 // Employee Edit Form Population Functions
+// Add the password and confirm password field?
+// Utility function to parse employee field data
+function parseEmployeeFieldData(employee, fieldNames, defaultValue = null) {
+    for (const field of fieldNames) {
+        if (employee[field] !== undefined) {
+            return employee[field];
+        }
+    }
+    return defaultValue;
+}
+
+// Utility function to parse JSON or array data
+function parseDataArray(data) {
+    if (!data) return [];
+    
+    if (Array.isArray(data)) {
+        // Handle array that might contain JSON strings
+        const result = [];
+        data.forEach(item => {
+            if (typeof item === 'string' && (item.startsWith('[') || item.startsWith('{'))) {
+                try {
+                    const parsed = JSON.parse(item);
+                    if (Array.isArray(parsed)) {
+                        result.push(...parsed);
+                    } else {
+                        result.push(parsed);
+                    }
+                } catch (e) {
+                    result.push(item);
+                }
+            } else {
+                result.push(item);
+            }
+        });
+        return result;
+    }
+    
+    if (typeof data === 'string') {
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            return data.split(',').map(item => item.trim());
+        }
+    }
+    
+    return [data];
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     const urlParams = new URLSearchParams(window.location.search);
     const employeeId = urlParams.get('id');
     
     if (employeeId) {
-        populateEmployeeEditForm(employeeId);
+        // Wait for Alpine.js to be fully initialized
+        if (window.Alpine) {
+            populateEmployeeEditForm(employeeId);
+        } else {
+            // Listen for Alpine.js initialization
+            document.addEventListener('alpine:init', () => {
+                setTimeout(() => populateEmployeeEditForm(employeeId), 100);
+            });
+            
+            // Fallback timeout in case alpine:init doesn't fire
+            setTimeout(() => {
+                populateEmployeeEditForm(employeeId);
+            }, 1000);
+        }
     } else {
         console.error('No employee ID provided in URL');
     }
@@ -49,14 +109,10 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 
 async function populateEmployeeEditForm(employeeId) {
-    console.log('Populating employee edit form for ID:', employeeId);
-    
     try {
         // Fetch employee data
         const response = await fetch('https://betcha-api.onrender.com/employee/display');
         const employees = await response.json();
-        
-        console.log('All employees fetched:', employees);
         
         // Find the specific employee
         const employee = employees.find(emp => emp._id === employeeId);
@@ -65,20 +121,15 @@ async function populateEmployeeEditForm(employeeId) {
             console.error('Employee not found with ID:', employeeId);
             return;
         }
-        
-        console.log('Employee found:', employee);
-        
-        // Populate basic fields
+
+        // Populate form sections
         populateBasicFields(employee);
-        
-        // Populate roles
         await populateRoles(employee);
-        
-        // Populate assigned properties
         await populateAssignedProperties(employee);
         
     } catch (error) {
-        console.error('Error fetching employee data:', error);
+        console.error('Error loading employee data:', error);
+        showErrorMessage('Failed to load employee data. Please try again.');
     }
 }
 
@@ -103,141 +154,145 @@ function populateBasicFields(employee) {
 }
 
 async function populateRoles(employee) {
-    console.log('Populating roles for employee:', employee.roles);
-    
     try {
-        // First, fetch all available roles from the API
+        // Get role data from employee
+        const employeeRoles = parseEmployeeFieldData(employee, ['roles', 'role', 'userRoles', 'assignedRoles']);
+        if (!employeeRoles) return;
+        
+        // Fetch all available roles
         const response = await fetch('https://betcha-api.onrender.com/roles/display');
         const rolesData = await response.json();
-        const allRoles = rolesData.value || rolesData; // Handle both formats
+        const allRoles = rolesData.value || rolesData;
         
-        console.log('All roles fetched from API:', allRoles);
+        // Wait for Alpine.js initialization
+        await new Promise(resolve => setTimeout(resolve, 200));
         
-        // Wait for Alpine.js to initialize
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Find the Alpine.js component for roles
-        const roleComponent = document.querySelector('[x-data*="roles"]');
-        if (roleComponent) {
-            try {
-                // Get the Alpine.js data
-                const alpineData = Alpine.$data(roleComponent);
-                
-                // Update the roles array with real data from API
-                alpineData.roles = allRoles.map(role => role.name);
-                alpineData.allRoles = allRoles; // Store full role data for ID lookup
-                
-                // Parse employee roles (could be string or array)
-                let employeeRoles = [];
-                if (employee.roles) {
-                    if (typeof employee.roles === 'string') {
-                        try {
-                            // Try to parse as JSON array
-                            employeeRoles = JSON.parse(employee.roles);
-                        } catch (e) {
-                            // If not JSON, split by comma
-                            employeeRoles = employee.roles.split(',').map(role => role.trim());
-                        }
-                    } else if (Array.isArray(employee.roles)) {
-                        employeeRoles = employee.roles;
-                    }
-                }
-                
-                console.log('Parsed employee roles:', employeeRoles);
-                
-                // Set the selected roles in Alpine.js
-                alpineData.selected = employeeRoles.filter(role => 
-                    alpineData.roles.includes(role)
-                );
-                
-                console.log('Selected roles set to:', alpineData.selected);
-                
-            } catch (error) {
-                console.error('Error setting roles:', error);
-            }
+        // Find Alpine component for roles
+        const roleComponent = document.querySelector('div[x-data*="roles"]');
+        if (!roleComponent || !window.Alpine) {
+            console.error('Role component or Alpine.js not found');
+            return;
         }
+
+        const alpineData = Alpine.$data(roleComponent);
+        
+        // Update roles list
+        alpineData.roles = allRoles.map(role => role.name);
+        
+        // Parse and set selected roles
+        const employeeRolesList = parseDataArray(employeeRoles);
+        const selectedRoleNames = employeeRolesList.map(roleData => {
+            if (typeof roleData === 'string') {
+                const roleByName = allRoles.find(r => r.name === roleData);
+                const roleById = allRoles.find(r => r._id === roleData);
+                return roleByName?.name || roleById?.name || roleData;
+            }
+            return roleData?.name || roleData;
+        }).filter(name => alpineData.roles.includes(name));
+        
+        // Set selected roles in Alpine with proper reactivity
+        alpineData.selected = [...selectedRoleNames];
+        
+        // Ensure Alpine.js processes the update before any DOM manipulation
+        await new Promise(resolve => {
+            if (alpineData.$nextTick) {
+                alpineData.$nextTick(() => {
+                    // Wait a bit more for DOM to update
+                    setTimeout(resolve, 150);
+                });
+            } else {
+                setTimeout(resolve, 500);
+            }
+        });
+        
+        // Final verification: ensure checkboxes match Alpine state
+        const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][value]');
+        roleCheckboxes.forEach(checkbox => {
+            const shouldBeChecked = alpineData.selected.includes(checkbox.value);
+            if (checkbox.checked !== shouldBeChecked) {
+                checkbox.checked = shouldBeChecked;
+            }
+        });
         
     } catch (error) {
-        console.error('Error fetching roles from API:', error);
+        console.error('Error populating roles:', error);
     }
 }
 
 async function populateAssignedProperties(employee) {
-    console.log('Populating assigned properties for employee:', employee.properties);
-    
     try {
+        // Get property data from employee
+        const employeeProperties = parseEmployeeFieldData(employee, ['properties', 'assignedProperties', 'userProperties']);
+        if (!employeeProperties) return;
+        
         // Fetch all properties
         const response = await fetch('https://betcha-api.onrender.com/property/display');
         const allProperties = await response.json();
         
-        console.log('All properties fetched:', allProperties);
+        // Wait for Alpine.js initialization
+        await new Promise(resolve => setTimeout(resolve, 200));
         
-        // Wait for Alpine.js to initialize
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Find the Alpine.js component for properties
-        const propertyComponent = document.querySelector('[x-data*="properties"]');
-        if (propertyComponent) {
-            try {
-                const alpineData = Alpine.$data(propertyComponent);
-                
-                // Update the properties list with real data
-                alpineData.properties = allProperties.map(property => ({
-                    name: property.propertyName || property.name || 'Unnamed Property',
-                    address: property.address || 'No address provided',
-                    id: property._id
-                }));
-                
-                // Parse employee properties
-                let employeePropertyIds = [];
-                if (employee.properties) {
-                    if (typeof employee.properties === 'string') {
-                        try {
-                            // Try to parse as JSON array
-                            employeePropertyIds = JSON.parse(employee.properties);
-                        } catch (e) {
-                            // If not JSON, split by comma and clean up
-                            employeePropertyIds = employee.properties.split(',')
-                                .map(id => id.trim().replace(/^"(.*)"$/, '$1'));
-                        }
-                    } else if (Array.isArray(employee.properties)) {
-                        employeePropertyIds = employee.properties;
-                    }
-                }
-                
-                console.log('Parsed employee property IDs:', employeePropertyIds);
-                
-                // Normalize property IDs (remove ObjectId wrapper if present)
-                employeePropertyIds = employeePropertyIds.map(id => {
-                    if (typeof id === 'object' && id.$oid) {
-                        return id.$oid;
-                    }
-                    return String(id).trim();
-                });
-                
-                // Find matching properties and set selected property names
-                const selectedPropertyNames = [];
-                employeePropertyIds.forEach(propertyId => {
-                    const matchingProperty = allProperties.find(property => 
-                        String(property._id) === propertyId
-                    );
-                    if (matchingProperty) {
-                        selectedPropertyNames.push(matchingProperty.propertyName || matchingProperty.name || 'Unnamed Property');
-                    }
-                });
-                
-                console.log('Selected property names:', selectedPropertyNames);
-                
-                // Set the selected properties in Alpine.js
-                alpineData.selected = selectedPropertyNames;
-                
-            } catch (error) {
-                console.error('Error setting properties:', error);
-            }
+        // Find Alpine component for properties
+        const propertyComponent = document.querySelector('div[x-data*="properties"]');
+        if (!propertyComponent || !window.Alpine) {
+            console.error('Property component or Alpine.js not found');
+            return;
         }
+
+        const alpineData = Alpine.$data(propertyComponent);
+        
+        // Update properties list
+        alpineData.properties = allProperties.map(property => ({
+            name: property.propertyName || property.name || 'Unnamed Property',
+            address: property.address || 'No address provided',
+            id: property._id
+        }));
+        
+        // Parse and set selected properties
+        const employeePropertyIds = parseDataArray(employeeProperties);
+        const selectedPropertyNames = [];
+        
+        employeePropertyIds.forEach(propertyId => {
+            // Try multiple matching strategies
+            let matchingProperty = allProperties.find(p => String(p._id) === String(propertyId)) ||
+                                 allProperties.find(p => (p.propertyName || p.name) === String(propertyId)) ||
+                                 allProperties.find(p => {
+                                     const propName = p.propertyName || p.name || '';
+                                     return propName.toLowerCase().includes(String(propertyId).toLowerCase()) ||
+                                            String(propertyId).toLowerCase().includes(propName.toLowerCase());
+                                 });
+            
+            if (matchingProperty) {
+                selectedPropertyNames.push(matchingProperty.propertyName || matchingProperty.name || 'Unnamed Property');
+            }
+        });
+        
+        // Set selected properties in Alpine with proper reactivity
+        alpineData.selected = [...selectedPropertyNames];
+        
+        // Ensure Alpine.js processes the update before any DOM manipulation
+        await new Promise(resolve => {
+            if (alpineData.$nextTick) {
+                alpineData.$nextTick(() => {
+                    // Wait a bit more for DOM to update
+                    setTimeout(resolve, 150);
+                });
+            } else {
+                setTimeout(resolve, 500);
+            }
+        });
+        
+        // Final verification: ensure checkboxes match Alpine state
+        const propertyCheckboxes = document.querySelectorAll('input[type="checkbox"][value]');
+        propertyCheckboxes.forEach(checkbox => {
+            const shouldBeChecked = alpineData.selected.includes(checkbox.value);
+            if (checkbox.checked !== shouldBeChecked) {
+                checkbox.checked = shouldBeChecked;
+            }
+        });
         
     } catch (error) {
-        console.error('Error fetching properties:', error);
+        console.error('Error populating properties:', error);
     }
 }
 

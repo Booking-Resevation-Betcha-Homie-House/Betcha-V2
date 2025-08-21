@@ -1,6 +1,7 @@
 // Roles functionality for Admin panel
-
+// need roles validation 
 // Global variable to store all roles for filtering
+//
 let allRoles = [];
 
 // Fetch all roles from the API
@@ -199,7 +200,7 @@ async function deleteRole(roleId) {
     }
 
     try {
-        const response = await fetch(`https://betcha-api.onrender.com/role/delete/${roleId}`, {
+        const response = await fetch(`https://betcha-api.onrender.com/roles/delete/${roleId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'

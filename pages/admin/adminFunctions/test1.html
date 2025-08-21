@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Update Property Photos</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f5f5f5;
+    }
+    h2 {
+      margin-bottom: 15px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    input[type="text"] {
+      width: 100%;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 16px;
+    }
+    .upload-box {
+      border: 2px dashed #888;
+      padding: 20px;
+      border-radius: 10px;
+      text-align: center;
+      background: white;
+      cursor: pointer;
+    }
+    input[type="file"] {
+      display: none;
+    }
+    .preview {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 15px;
+    }
+    .preview img {
+      width: 150px;
+      height: 150px;
+      object-fit: cover;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px 15px;
+      font-size: 16px;
+      border: none;
+      background: #007bff;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    button:disabled {
+      background: #aaa;
+      cursor: not-allowed;
+    }
+    #message {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <h2>Update Property Photos</h2>
+
+  <div class="form-group">
+    <label for="propertyId">Property ID</label>
+    <input type="text" id="propertyId" placeholder="Enter Property ID">
+  </div>
+
+  <label for="photos" class="upload-box">
+    Click to select photos
+  </label>
+  <input type="file" id="photos" multiple accept="image/*">
+
+  <div class="preview" id="preview"></div>
+
+  <button id="uploadBtn" disabled>Upload Photos</button>
+  <div id="message"></div>
+
+  <script>
+    const propertyIdInput = document.getElementById("propertyId");
+    const photoInput = document.getElementById("photos");
+    const preview = document.getElementById("preview");
+    const uploadBtn = document.getElementById("uploadBtn");
+    const message = document.getElementById("message");
+
+    let selectedFiles = [];
+
+    photoInput.addEventListener("change", () => {
+      preview.innerHTML = "";
+      selectedFiles = Array.from(photoInput.files);
+
+      if (selectedFiles.length > 0) {
+        uploadBtn.disabled = false;
+      } else {
+        uploadBtn.disabled = true;
+      }
+
+      selectedFiles.forEach(file => {
+        const reader = new FileReader();
+        reader.onload = e => {
+          const img = document.createElement("img");
+          img.src = e.target.result;
+          preview.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    uploadBtn.addEventListener("click", async () => {
+    const propertyId = propertyIdInput.value.trim();
+
+    if (!propertyId) {
+        message.textContent = "⚠️ Please enter a Property ID.";
+        return;
+    }
+
+    message.textContent = "Uploading...";
+    const formData = new FormData();
+
+    selectedFiles.forEach(file => formData.append("photos", file));
+
+    try {
+        const response = await fetch(`https://betcha-api.onrender.com/property/update/photos/${propertyId}`, {
+        method: "PUT",
+        body: formData
+        });
+
+        const result = await response.json().catch(() => ({}));
+
+        if (response.ok) {
+        message.textContent = "✅ Photos updated successfully!";
+        } else {
+        message.textContent = "❌ Upload failed: " + (result.message || response.statusText);
+        }
+    } catch (err) {
+        message.textContent = "⚠️ Error: " + err.message;
+    }
+    });
+  </script>
+</body>
+</html>
