@@ -1,3 +1,5 @@
+// Dashboard not still finished Drop down issues Data population issue ? since no data for top property
+
 // Dashboard Functions for Admin Dashboard
 console.log('Dashboard functions script loaded');
 
@@ -138,7 +140,27 @@ async function fetchTopPropertiesData() {
         topPropertiesData = await response.json();
         console.log('Top properties data received:', topPropertiesData);
         
-        populateTopPropertiesChart(topPropertiesData);
+        // Handle the case where API returns {topProperty: {}} instead of an array
+        let chartData = topPropertiesData;
+        if (topPropertiesData && typeof topPropertiesData === 'object') {
+            // If the response has a topProperty field, use it
+            if (topPropertiesData.topProperty) {
+                chartData = Array.isArray(topPropertiesData.topProperty) ? topPropertiesData.topProperty : [];
+            }
+            // If the response is an array directly, use it
+            else if (Array.isArray(topPropertiesData)) {
+                chartData = topPropertiesData;
+            }
+            // If it's an empty object or other format, use empty array
+            else {
+                chartData = [];
+            }
+        } else {
+            chartData = [];
+        }
+        
+        console.log('Processed chart data:', chartData);
+        populateTopPropertiesChart(chartData);
         
     } catch (error) {
         console.error('Error fetching top properties data:', error);
