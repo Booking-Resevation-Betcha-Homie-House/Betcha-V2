@@ -482,19 +482,33 @@ async function refreshDashboard() {
 /**
  * Initialize month and year filter dropdowns
  */
+/**
+ * Initialize month and year filters for the dashboard
+ */
 function initializeMonthYearFilters() {
+    console.log('Initializing month/year filters...');
     initializeMonthDropdown();
     initializeYearDropdown();
+    console.log('Month/year filters initialized');
 }
 
 /**
  * Initialize month dropdown functionality
  */
 function initializeMonthDropdown() {
+    console.log('Initializing month dropdown...');
+    
     const monthDropdownBtn = document.getElementById('monthDropdownBtn');
     const monthDropdownList = document.getElementById('monthDropdownList');
     const monthDropdownIcon = document.getElementById('monthDropdownIcon');
     const selectedMonthSpan = document.getElementById('selectedMonth');
+    
+    console.log('Month dropdown elements:', {
+        btn: !!monthDropdownBtn,
+        list: !!monthDropdownList,
+        icon: !!monthDropdownIcon,
+        span: !!selectedMonthSpan
+    });
     
     if (!monthDropdownBtn || !monthDropdownList) {
         console.warn('Month dropdown elements not found');
@@ -521,6 +535,8 @@ function initializeMonthDropdown() {
     monthDropdownList.innerHTML = months.map(month => 
         `<li class="px-3 py-2 hover:bg-neutral-100 cursor-pointer transition-colors duration-200" data-month="${month.value}">${month.text}</li>`
     ).join('');
+    
+    console.log('Month dropdown populated with', months.length, 'options');
     
     // Toggle dropdown
     monthDropdownBtn.addEventListener('click', function(e) {

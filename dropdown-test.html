@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropdown Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .dropdown-container { position: relative; width: 200px; margin: 20px; }
+        .input-style { 
+            border: 1px solid #ccc; 
+            padding: 10px; 
+            border-radius: 8px; 
+            background: white; 
+            cursor: pointer;
+        }
+        .dropdown-list { 
+            position: absolute; 
+            top: 100%; 
+            left: 0; 
+            right: 0; 
+            background: white; 
+            border: 1px solid #ccc; 
+            border-radius: 8px; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-height: 200px;
+            overflow-y: auto;
+            z-index: 10;
+        }
+        .dropdown-list li { 
+            padding: 10px; 
+            cursor: pointer; 
+            list-style: none;
+        }
+        .dropdown-list li:hover { 
+            background-color: #f0f0f0; 
+        }
+        .hidden { display: none; }
+        .rotate-180 { transform: rotate(180deg); }
+        .text-muted { color: #666; }
+        .text-primary-text { color: #333; }
+        .transition-transform { transition: transform 0.3s ease; }
+    </style>
+</head>
+<body>
+    <h1>Month/Year Dropdown Test</h1>
+    
+    <div class="dropdown-container">
+        <button type="button" id="monthDropdownBtn" class="input-style flex justify-between items-center w-full">
+            <span id="selectedMonth" class="text-muted">Month</span>
+            <svg id="monthDropdownIcon" class="transition-transform" width="16" height="10" viewBox="0 0 16 10" fill="none">
+                <path d="M15 1.5L8 8.5L1 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <ul id="monthDropdownList" class="dropdown-list hidden"></ul>
+    </div>
+    
+    <div class="dropdown-container">
+        <button type="button" id="yearDropdownBtn" class="input-style flex justify-between items-center w-full">
+            <span id="selectedYear" class="text-muted">Year</span>
+            <svg id="yearDropdownIcon" class="transition-transform" width="16" height="10" viewBox="0 0 16 10" fill="none">
+                <path d="M15 1.5L8 8.5L1 1.5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+        </button>
+        <ul id="yearDropdownList" class="dropdown-list hidden"></ul>
+    </div>
+    
+    <div style="margin-top: 30px;">
+        <h3>Selected Values:</h3>
+        <p>Month: <span id="currentMonth">None</span></p>
+        <p>Year: <span id="currentYear">None</span></p>
+    </div>
+    
+    <div style="margin-top: 20px;">
+        <h3>Debug Log:</h3>
+        <div id="debugLog" style="font-family: monospace; background: #f5f5f5; padding: 10px; border-radius: 4px;"></div>
+    </div>
+
+    <script>
+        let currentMonthFilter = null;
+        let currentYearFilter = null;
+        let debugLog = '';
+        
+        function log(message) {
+            console.log(message);
+            debugLog += new Date().toLocaleTimeString() + ': ' + message + '\n';
+            document.getElementById('debugLog').textContent = debugLog;
+        }
+        
+        function initializeMonthDropdown() {
+            log('Initializing month dropdown...');
+            
+            const monthDropdownBtn = document.getElementById('monthDropdownBtn');
+            const monthDropdownList = document.getElementById('monthDropdownList');
+            const monthDropdownIcon = document.getElementById('monthDropdownIcon');
+            const selectedMonthSpan = document.getElementById('selectedMonth');
+            
+            log(`Month dropdown elements found: btn=${!!monthDropdownBtn}, list=${!!monthDropdownList}, icon=${!!monthDropdownIcon}, span=${!!selectedMonthSpan}`);
+            
+            if (!monthDropdownBtn || !monthDropdownList) {
+                log('ERROR: Month dropdown elements not found');
+                return;
+            }
+            
+            // Populate month options
+            const months = [
+                { value: 'all', text: 'All Months' },
+                { value: '01', text: 'January' },
+                { value: '02', text: 'February' },
+                { value: '03', text: 'March' },
+                { value: '04', text: 'April' },
+                { value: '05', text: 'May' },
+                { value: '06', text: 'June' },
+                { value: '07', text: 'July' },
+                { value: '08', text: 'August' },
+                { value: '09', text: 'September' },
+                { value: '10', text: 'October' },
+                { value: '11', text: 'November' },
+                { value: '12', text: 'December' }
+            ];
+            
+            monthDropdownList.innerHTML = months.map(month => 
+                `<li data-month="${month.value}">${month.text}</li>`
+            ).join('');
+            
+            log(`Month dropdown populated with ${months.length} options`);
+            
+            // Toggle dropdown
+            monthDropdownBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                monthDropdownList.classList.toggle('hidden');
+                monthDropdownIcon.classList.toggle('rotate-180');
+                log('Month dropdown toggled');
+            });
+            
+            // Handle month selection
+            monthDropdownList.addEventListener('click', function(e) {
+                if (e.target.tagName === 'LI') {
+                    const monthValue = e.target.getAttribute('data-month');
+                    const monthText = e.target.textContent;
+                    
+                    log(`Month selected: ${monthText} (${monthValue})`);
+                    
+                    // Update UI
+                    selectedMonthSpan.textContent = monthText;
+                    selectedMonthSpan.classList.remove('text-muted');
+                    selectedMonthSpan.classList.add('text-primary-text');
+                    
+                    // Update current month filter
+                    currentMonthFilter = monthValue;
+                    document.getElementById('currentMonth').textContent = monthText;
+                    
+                    // Close dropdown
+                    monthDropdownList.classList.add('hidden');
+                    monthDropdownIcon.classList.remove('rotate-180');
+                }
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                monthDropdownList.classList.add('hidden');
+                monthDropdownIcon.classList.remove('rotate-180');
+            });
+        }
+        
+        function initializeYearDropdown() {
+            log('Initializing year dropdown...');
+            
+            const yearDropdownBtn = document.getElementById('yearDropdownBtn');
+            const yearDropdownList = document.getElementById('yearDropdownList');
+            const yearDropdownIcon = document.getElementById('yearDropdownIcon');
+            const selectedYearSpan = document.getElementById('selectedYear');
+            
+            log(`Year dropdown elements found: btn=${!!yearDropdownBtn}, list=${!!yearDropdownList}, icon=${!!yearDropdownIcon}, span=${!!selectedYearSpan}`);
+            
+            if (!yearDropdownBtn || !yearDropdownList) {
+                log('ERROR: Year dropdown elements not found');
+                return;
+            }
+            
+            // Generate year options (current year and previous 3 years)
+            const currentYear = new Date().getFullYear();
+            const years = [
+                { value: 'all', text: 'All Years' }
+            ];
+            
+            for (let i = 0; i < 4; i++) {
+                const year = currentYear - i;
+                years.push({ value: year.toString(), text: year.toString() });
+            }
+            
+            yearDropdownList.innerHTML = years.map(year => 
+                `<li data-year="${year.value}">${year.text}</li>`
+            ).join('');
+            
+            log(`Year dropdown populated with ${years.length} options (${currentYear} to ${currentYear-3})`);
+            
+            // Toggle dropdown
+            yearDropdownBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                yearDropdownList.classList.toggle('hidden');
+                yearDropdownIcon.classList.toggle('rotate-180');
+                log('Year dropdown toggled');
+            });
+            
+            // Handle year selection
+            yearDropdownList.addEventListener('click', function(e) {
+                if (e.target.tagName === 'LI') {
+                    const yearValue = e.target.getAttribute('data-year');
+                    const yearText = e.target.textContent;
+                    
+                    log(`Year selected: ${yearText} (${yearValue})`);
+                    
+                    // Update UI
+                    selectedYearSpan.textContent = yearText;
+                    selectedYearSpan.classList.remove('text-muted');
+                    selectedYearSpan.classList.add('text-primary-text');
+                    
+                    // Update current year filter
+                    currentYearFilter = yearValue;
+                    document.getElementById('currentYear').textContent = yearText;
+                    
+                    // Close dropdown
+                    yearDropdownList.classList.add('hidden');
+                    yearDropdownIcon.classList.remove('rotate-180');
+                }
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                yearDropdownList.classList.add('hidden');
+                yearDropdownIcon.classList.remove('rotate-180');
+            });
+        }
+        
+        // Initialize when DOM loads
+        document.addEventListener('DOMContentLoaded', function() {
+            log('DOM loaded, starting dropdown initialization...');
+            initializeMonthDropdown();
+            initializeYearDropdown();
+            log('Dropdown initialization complete');
+        });
+    </script>
+</body>
+</html>
