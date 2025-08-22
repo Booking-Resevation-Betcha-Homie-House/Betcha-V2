@@ -466,23 +466,149 @@
           <p class="text-lg font-bold text-primary-text font-manrope">Generate Options</p>
           <div class="mt-4">
             <p class="text-sm font-medium text-neutral-700 mb-2">Report Type</p>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
               <label class="flex items-center justify-center px-4 py-2 rounded-full border border-neutral-300 cursor-pointer hover:bg-neutral-100 transition">
-                <input type="radio" name="reportType" value="monthly" class="hidden peer" checked>
+                <input type="radio" name="reportType" value="weekly" class="hidden peer" id="weekly-btn">
+                <span class="text-sm text-neutral-800 peer-checked:font-semibold peer-checked:text-primary">Weekly</span>
+              </label>
+              <label class="flex items-center justify-center px-4 py-2 rounded-full border border-neutral-300 cursor-pointer hover:bg-neutral-100 transition">
+                <input type="radio" name="reportType" value="monthly" class="hidden peer" checked id="monthly-btn">
                 <span class="text-sm text-neutral-800 peer-checked:font-semibold peer-checked:text-primary">Monthly</span>
               </label>
               <label class="flex items-center justify-center px-4 py-2 rounded-full border border-neutral-300 cursor-pointer hover:bg-neutral-100 transition">
-                <input type="radio" name="reportType" value="quarterly" class="hidden peer">
+                <input type="radio" name="reportType" value="quarterly" class="hidden peer" id="quarterly-btn">
                 <span class="text-sm text-neutral-800 peer-checked:font-semibold peer-checked:text-primary">Quarterly</span>
               </label>
               <label class="flex items-center justify-center px-4 py-2 rounded-full border border-neutral-300 cursor-pointer hover:bg-neutral-100 transition">
-                <input type="radio" name="reportType" value="semi-annual" class="hidden peer">
+                <input type="radio" name="reportType" value="semi-annual" class="hidden peer" id="semi-annual-btn">
                 <span class="text-sm text-neutral-800 peer-checked:font-semibold peer-checked:text-primary">Semi-Annual</span>
               </label>
               <label class="flex items-center justify-center px-4 py-2 rounded-full border border-neutral-300 cursor-pointer hover:bg-neutral-100 transition">
-                <input type="radio" name="reportType" value="annual" class="hidden peer">
+                <input type="radio" name="reportType" value="annual" class="hidden peer" id="annual-btn">
                 <span class="text-sm text-neutral-800 peer-checked:font-semibold peer-checked:text-primary">Annual</span>
               </label>
+            </div>
+          </div>
+          
+          <!-- Dynamic Dropdowns -->
+          <div id="date-dropdowns" class="mt-4">
+            <!-- Weekly dropdowns -->
+            <div id="weekly-dropdowns" class="hidden">
+              <p class="text-sm font-medium text-neutral-700 mb-2">Select Date Range</p>
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <select id="week-select" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                  <option value="">Select Week</option>
+                  <option value="1">Week 1</option>
+                  <option value="2">Week 2</option>
+                  <option value="3">Week 3</option>
+                  <option value="4">Week 4</option>
+                </select>
+                <select id="week-month-select" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                  <option value="">Select Month</option>
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+                <select id="week-year-select" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                  <option value="">Select Year</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                  <option value="2023">2023</option>
+                  <option value="2022">2022</option>
+                </select>
+              </div>
+            </div>
+            
+            <!-- Monthly dropdowns -->
+            <div id="monthly-dropdowns" class="">
+              <p class="text-sm font-medium text-neutral-700 mb-2">Select Date Range</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <select id="month-select" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                  <option value="">Select Month</option>
+                  <option value="1">January</option>
+                  <option value="2">February</option>
+                  <option value="3">March</option>
+                  <option value="4">April</option>
+                  <option value="5">May</option>
+                  <option value="6">June</option>
+                  <option value="7">July</option>
+                  <option value="8">August</option>
+                  <option value="9">September</option>
+                  <option value="10">October</option>
+                  <option value="11">November</option>
+                  <option value="12">December</option>
+                </select>
+                <select id="month-year-select" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                  <option value="">Select Year</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                  <option value="2023">2023</option>
+                  <option value="2022">2022</option>
+                </select>
+              </div>
+            </div>
+            
+            <!-- Quarterly dropdowns -->
+            <div id="quarterly-dropdowns" class="hidden">
+              <p class="text-sm font-medium text-neutral-700 mb-2">Select Date Range</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <select id="quarter-select" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                  <option value="">Select Quarter</option>
+                  <option value="Q1">Q1 (Jan-Mar)</option>
+                  <option value="Q2">Q2 (Apr-Jun)</option>
+                  <option value="Q3">Q3 (Jul-Sep)</option>
+                  <option value="Q4">Q4 (Oct-Dec)</option>
+                </select>
+                <select id="quarter-year-select" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                  <option value="">Select Year</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                  <option value="2023">2023</option>
+                  <option value="2022">2022</option>
+                </select>
+              </div>
+            </div>
+            
+            <!-- Semi-annual dropdowns -->
+            <div id="semi-annual-dropdowns" class="hidden">
+              <p class="text-sm font-medium text-neutral-700 mb-2">Select Date Range</p>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <select id="half-select" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                  <option value="">Select Half</option>
+                  <option value="H1">H1 (Jan-Jun)</option>
+                  <option value="H2">H2 (Jul-Dec)</option>
+                </select>
+                <select id="half-year-select" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                  <option value="">Select Year</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                  <option value="2023">2023</option>
+                  <option value="2022">2022</option>
+                </select>
+              </div>
+            </div>
+            
+            <!-- Annual dropdowns -->
+            <div id="annual-dropdowns" class="hidden">
+              <p class="text-sm font-medium text-neutral-700 mb-2">Select Date Range</p>
+              <div class="grid grid-cols-1 gap-2">
+                <select id="year-select" class="px-3 py-2 border border-neutral-300 rounded-lg text-sm">
+                  <option value="">Select Year</option>
+                  <option value="2025">2025</option>
+                  <option value="2024">2024</option>
+                  <option value="2023">2023</option>
+                  <option value="2022">2022</option>
+                </select>
+              </div>
             </div>
           </div>
           <div class="my-4">
@@ -528,7 +654,44 @@
   <script defer src="../../src/notification.js"></script>
   <script defer src="../../src/navbar.js"></script>
   <script defer src="../../src/modal.js"></script>
-  
+
+  <script>
+    // Handle report type radio button changes
+    document.addEventListener('DOMContentLoaded', function() {
+      const reportTypeRadios = document.querySelectorAll('input[name="reportType"]');
+      const dropdownContainers = {
+        'weekly': document.getElementById('weekly-dropdowns'),
+        'monthly': document.getElementById('monthly-dropdowns'),
+        'quarterly': document.getElementById('quarterly-dropdowns'),
+        'semi-annual': document.getElementById('semi-annual-dropdowns'),
+        'annual': document.getElementById('annual-dropdowns')
+      };
+
+      function showDropdowns(selectedType) {
+        // Hide all dropdown containers
+        Object.values(dropdownContainers).forEach(container => {
+          container.classList.add('hidden');
+        });
+
+        // Show the selected dropdown container
+        if (dropdownContainers[selectedType]) {
+          dropdownContainers[selectedType].classList.remove('hidden');
+        }
+      }
+
+      // Add event listeners to radio buttons
+      reportTypeRadios.forEach(radio => {
+        radio.addEventListener('change', function() {
+          if (this.checked) {
+            showDropdowns(this.value);
+          }
+        });
+      });
+
+      // Show monthly dropdowns by default (since monthly is checked by default)
+      showDropdowns('monthly');
+    });
+  </script>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>
