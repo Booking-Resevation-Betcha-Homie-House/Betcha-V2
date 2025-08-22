@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sort Functionality Test</title>
+    <title>Month/Year Filter Functionality Test</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
@@ -32,27 +32,12 @@
 </head>
 <body class="bg-gray-100 p-8">
     <div class="max-w-4xl mx-auto">
-        <h1 class="text-3xl font-bold mb-8">Top Rentals by Earnings - Sort Functionality Test</h1>
+        <h1 class="text-3xl font-bold mb-8">Top Rentals by Earnings - Month/Year Filter Test</h1>
         
         <div class="bg-white rounded-2xl shadow-md p-6 h-[500px] flex flex-col">
             <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
                 <p class="text-2xl font-bold text-gray-800 mb-4">Top Rentals by Earnings</p>
-                <div class="flex gap-2 w-full md:w-auto flex-wrap">
-                    <!-- Sort Options -->
-                    <div class="relative w-full md:w-40">
-                        <button type="button" id="sortDropdownBtn" class="input-style flex justify-between items-center w-full group">
-                            <span id="selectedSort" class="text-muted text-sm md:text-base">Sort By</span>
-                            <svg id="sortDropdownIcon" class="w-4 md:w-5 stroke-gray-400 transition-transform duration-300" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M1 1.5L8 8.5L15 1.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="bevel" />
-                            </svg>
-                        </button>
-                        <ul id="sortDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-gray-300 rounded-xl shadow hidden text-sm md:text-base text-gray-800 max-h-48 overflow-y-auto">
-                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-sort="earnings-desc">Highest Earnings</li>
-                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-sort="earnings-asc">Lowest Earnings</li>
-                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-sort="name-asc">Name A-Z</li>
-                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-sort="name-desc">Name Z-A</li>
-                        </ul>
-                    </div>
+                <div class="flex gap-4 w-full md:w-auto">
                     <!-- Month Filter -->
                     <div class="relative w-full md:w-40">
                         <button type="button" id="monthDropdownBtn" class="input-style flex justify-between items-center w-full group">
@@ -69,6 +54,12 @@
                             <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-month="04">April</li>
                             <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-month="05">May</li>
                             <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-month="06">June</li>
+                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-month="07">July</li>
+                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-month="08">August</li>
+                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-month="09">September</li>
+                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-month="10">October</li>
+                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-month="11">November</li>
+                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-month="12">December</li>
                         </ul>
                     </div>
                     <!-- Year Filter -->
@@ -81,8 +72,10 @@
                         </button>
                         <ul id="yearDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-gray-300 rounded-xl shadow hidden text-sm md:text-base text-gray-800 max-h-48 overflow-y-auto">
                             <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-year="all">All Years</li>
-                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-year="2024">2024</li>
                             <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-year="2025">2025</li>
+                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-year="2024">2024</li>
+                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-year="2023">2023</li>
+                            <li class="px-3 py-2 hover:bg-gray-100 cursor-pointer transition-colors duration-200" data-year="2022">2022</li>
                         </ul>
                     </div>
                 </div>
@@ -93,113 +86,164 @@
         </div>
         
         <div class="mt-8 p-4 bg-blue-50 rounded-lg">
-            <h3 class="font-bold text-lg mb-2">Sort Functionality Features:</h3>
+            <h3 class="font-bold text-lg mb-2">Filter Functionality Features:</h3>
             <ul class="list-disc list-inside space-y-1 text-sm">
-                <li><strong>Highest Earnings:</strong> Sort properties from highest to lowest earnings</li>
-                <li><strong>Lowest Earnings:</strong> Sort properties from lowest to highest earnings</li>
-                <li><strong>Name A-Z:</strong> Sort properties alphabetically by name</li>
-                <li><strong>Name Z-A:</strong> Sort properties reverse alphabetically by name</li>
+                <li><strong>Month Filter:</strong> Filter properties data by specific month (January - December)</li>
+                <li><strong>Year Filter:</strong> Filter properties data by specific year (2022 - 2025)</li>
+                <li><strong>All Options:</strong> Show data for all months or all years</li>
+                <li><strong>Combined Filtering:</strong> Apply both month and year filters together</li>
+                <li><strong>Auto-Sort:</strong> Data is always sorted by highest earnings first</li>
             </ul>
             
             <h3 class="font-bold text-lg mb-2 mt-4">How to test:</h3>
             <ol class="list-decimal list-inside space-y-1 text-sm">
-                <li>Click the "Sort By" dropdown to see available sorting options</li>
-                <li>Select any sorting option to see the chart update</li>
-                <li>The chart bars will re-order based on your selection</li>
-                <li>The dropdown will show your current selection</li>
+                <li>Click the "Month" dropdown to filter by specific month</li>
+                <li>Click the "Year" dropdown to filter by specific year</li>
+                <li>Select "All Months" or "All Years" to clear filters</li>
+                <li>Combine month and year filters for specific periods</li>
+                <li>Notice the chart updates with filtered data, always sorted by highest earnings</li>
             </ol>
+            
+            <div class="mt-4 p-3 bg-yellow-100 rounded">
+                <p class="text-sm"><strong>Note:</strong> In the actual dashboard, these filters will send API requests with month/year parameters to get the filtered data from the server. This test simulates the UI behavior with sample data.</p>
+            </div>
         </div>
     </div>
 
     <script>
-        // Sample data for testing
-        const sampleData = [
-            { propertyName: "Ocean View Villa", totalEarnings: 15000 },
-            { propertyName: "Mountain Cabin", totalEarnings: 8500 },
-            { propertyName: "City Apartment", totalEarnings: 12000 },
-            { propertyName: "Beach House", totalEarnings: 18500 },
-            { propertyName: "Garden Lodge", totalEarnings: 6200 },
-            { propertyName: "Penthouse Suite", totalEarnings: 22000 },
-            { propertyName: "Cozy Cottage", totalEarnings: 4500 },
-            { propertyName: "Modern Loft", totalEarnings: 9800 }
+        // Sample data for different months/years (simulating API responses)
+        const allData = [
+            { propertyName: "Ocean View Villa", totalEarnings: 15000, month: "08", year: "2025" },
+            { propertyName: "Mountain Cabin", totalEarnings: 8500, month: "07", year: "2025" },
+            { propertyName: "City Apartment", totalEarnings: 12000, month: "08", year: "2025" },
+            { propertyName: "Beach House", totalEarnings: 18500, month: "06", year: "2025" },
+            { propertyName: "Garden Lodge", totalEarnings: 6200, month: "07", year: "2025" },
+            { propertyName: "Penthouse Suite", totalEarnings: 22000, month: "08", year: "2025" },
+            { propertyName: "Cozy Cottage", totalEarnings: 4500, month: "06", year: "2025" },
+            { propertyName: "Modern Loft", totalEarnings: 9800, month: "07", year: "2025" },
+            // 2024 data
+            { propertyName: "Ocean View Villa", totalEarnings: 13000, month: "08", year: "2024" },
+            { propertyName: "Beach House", totalEarnings: 16500, month: "08", year: "2024" },
+            { propertyName: "Penthouse Suite", totalEarnings: 19000, month: "08", year: "2024" },
         ];
 
         let currentChart = null;
-        let currentSortOrder = 'earnings-desc';
+        let currentMonthFilter = 'all';
+        let currentYearFilter = 'all';
 
         // Initialize the test
         document.addEventListener('DOMContentLoaded', function() {
-            initializeSortDropdown();
-            createChart(sampleData);
+            initializeDropdowns();
+            updateChart();
         });
 
-        function initializeSortDropdown() {
-            const sortDropdownBtn = document.getElementById('sortDropdownBtn');
-            const sortDropdownList = document.getElementById('sortDropdownList');
-            const sortDropdownIcon = document.getElementById('sortDropdownIcon');
-            const selectedSortSpan = document.getElementById('selectedSort');
+        function initializeDropdowns() {
+            initializeMonthDropdown();
+            initializeYearDropdown();
+        }
+
+        function initializeMonthDropdown() {
+            const monthDropdownBtn = document.getElementById('monthDropdownBtn');
+            const monthDropdownList = document.getElementById('monthDropdownList');
+            const monthDropdownIcon = document.getElementById('monthDropdownIcon');
+            const selectedMonthSpan = document.getElementById('selectedMonth');
             
             // Toggle dropdown
-            sortDropdownBtn.addEventListener('click', function(e) {
+            monthDropdownBtn.addEventListener('click', function(e) {
                 e.stopPropagation();
-                sortDropdownList.classList.toggle('hidden');
-                sortDropdownIcon.classList.toggle('rotate-180');
+                monthDropdownList.classList.toggle('hidden');
+                monthDropdownIcon.classList.toggle('rotate-180');
             });
             
-            // Handle sort option selection
-            sortDropdownList.addEventListener('click', function(e) {
+            // Handle month selection
+            monthDropdownList.addEventListener('click', function(e) {
                 if (e.target.tagName === 'LI') {
-                    const sortValue = e.target.getAttribute('data-sort');
-                    const sortText = e.target.textContent;
+                    const monthValue = e.target.getAttribute('data-month');
+                    const monthText = e.target.textContent;
                     
                     // Update UI
-                    selectedSortSpan.textContent = sortText;
-                    selectedSortSpan.classList.remove('text-muted');
-                    selectedSortSpan.classList.add('text-primary-text');
+                    selectedMonthSpan.textContent = monthText;
+                    selectedMonthSpan.classList.remove('text-muted');
+                    selectedMonthSpan.classList.add('text-primary-text');
                     
-                    // Update current sort order
-                    currentSortOrder = sortValue;
-                    
-                    // Update chart
+                    // Update filter
+                    currentMonthFilter = monthValue;
                     updateChart();
                     
                     // Close dropdown
-                    sortDropdownList.classList.add('hidden');
-                    sortDropdownIcon.classList.remove('rotate-180');
+                    monthDropdownList.classList.add('hidden');
+                    monthDropdownIcon.classList.remove('rotate-180');
                 }
             });
             
             // Close dropdown when clicking outside
             document.addEventListener('click', function() {
-                sortDropdownList.classList.add('hidden');
-                sortDropdownIcon.classList.remove('rotate-180');
+                monthDropdownList.classList.add('hidden');
+                monthDropdownIcon.classList.remove('rotate-180');
             });
-            
-            // Set default sort option
-            selectedSortSpan.textContent = 'Highest Earnings';
-            selectedSortSpan.classList.remove('text-muted');
-            selectedSortSpan.classList.add('text-primary-text');
         }
 
-        function sortData(data, sortOrder) {
-            const sortedData = [...data];
+        function initializeYearDropdown() {
+            const yearDropdownBtn = document.getElementById('yearDropdownBtn');
+            const yearDropdownList = document.getElementById('yearDropdownList');
+            const yearDropdownIcon = document.getElementById('yearDropdownIcon');
+            const selectedYearSpan = document.getElementById('selectedYear');
             
-            switch (sortOrder) {
-                case 'earnings-desc':
-                    return sortedData.sort((a, b) => b.totalEarnings - a.totalEarnings);
-                case 'earnings-asc':
-                    return sortedData.sort((a, b) => a.totalEarnings - b.totalEarnings);
-                case 'name-asc':
-                    return sortedData.sort((a, b) => a.propertyName.localeCompare(b.propertyName));
-                case 'name-desc':
-                    return sortedData.sort((a, b) => b.propertyName.localeCompare(a.propertyName));
-                default:
-                    return sortedData;
+            // Toggle dropdown
+            yearDropdownBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                yearDropdownList.classList.toggle('hidden');
+                yearDropdownIcon.classList.toggle('rotate-180');
+            });
+            
+            // Handle year selection
+            yearDropdownList.addEventListener('click', function(e) {
+                if (e.target.tagName === 'LI') {
+                    const yearValue = e.target.getAttribute('data-year');
+                    const yearText = e.target.textContent;
+                    
+                    // Update UI
+                    selectedYearSpan.textContent = yearText;
+                    selectedYearSpan.classList.remove('text-muted');
+                    selectedYearSpan.classList.add('text-primary-text');
+                    
+                    // Update filter
+                    currentYearFilter = yearValue;
+                    updateChart();
+                    
+                    // Close dropdown
+                    yearDropdownList.classList.add('hidden');
+                    yearDropdownIcon.classList.remove('rotate-180');
+                }
+            });
+            
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function() {
+                yearDropdownList.classList.add('hidden');
+                yearDropdownIcon.classList.remove('rotate-180');
+            });
+        }
+
+        function filterData() {
+            let filteredData = [...allData];
+            
+            // Apply month filter
+            if (currentMonthFilter !== 'all') {
+                filteredData = filteredData.filter(item => item.month === currentMonthFilter);
             }
+            
+            // Apply year filter
+            if (currentYearFilter !== 'all') {
+                filteredData = filteredData.filter(item => item.year === currentYearFilter);
+            }
+            
+            // Sort by earnings (highest to lowest)
+            filteredData.sort((a, b) => b.totalEarnings - a.totalEarnings);
+            
+            return filteredData;
         }
 
         function createChart(data) {
-            const sortedData = sortData(data, currentSortOrder);
             const chartCanvas = document.getElementById('topRoomsChart');
             
             if (currentChart) {
@@ -210,14 +254,14 @@
             currentChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: sortedData.map(item => 
+                    labels: data.map(item => 
                         item.propertyName.length > 15 
                             ? item.propertyName.substring(0, 15) + '...' 
                             : item.propertyName
                     ),
                     datasets: [{
                         label: 'Earnings',
-                        data: sortedData.map(item => item.totalEarnings),
+                        data: data.map(item => item.totalEarnings),
                         backgroundColor: 'rgba(99, 102, 241, 0.5)',
                         borderColor: 'rgba(99, 102, 241, 1)',
                         borderWidth: 1
@@ -236,7 +280,13 @@
                             bodyColor: 'white',
                             callbacks: {
                                 label: function(context) {
-                                    return `Earnings: ₱${context.parsed.y.toLocaleString()}`;
+                                    const dataIndex = context.dataIndex;
+                                    const item = data[dataIndex];
+                                    return [
+                                        `Earnings: ₱${context.parsed.y.toLocaleString()}`,
+                                        `Month: ${getMonthName(item.month)}`,
+                                        `Year: ${item.year}`
+                                    ];
                                 }
                             }
                         }
@@ -262,7 +312,22 @@
         }
 
         function updateChart() {
-            createChart(sampleData);
+            const filteredData = filterData();
+            createChart(filteredData);
+            
+            // Show current filter status
+            console.log(`Current filters - Month: ${currentMonthFilter}, Year: ${currentYearFilter}`);
+            console.log(`Filtered data points: ${filteredData.length}`);
+        }
+
+        function getMonthName(monthNumber) {
+            const months = {
+                '01': 'January', '02': 'February', '03': 'March',
+                '04': 'April', '05': 'May', '06': 'June',
+                '07': 'July', '08': 'August', '09': 'September',
+                '10': 'October', '11': 'November', '12': 'December'
+            };
+            return months[monthNumber] || monthNumber;
         }
     </script>
 </body>

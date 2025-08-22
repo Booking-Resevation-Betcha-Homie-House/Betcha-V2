@@ -345,22 +345,7 @@
             <div class="bg-white rounded-2xl shadow-md p-6 h-[400px] flex flex-col">
               <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-5">
                 <p class="text-2xl font-bold text-primary-text mb-4 font-manrope">Top Rentals by Earnings</p>
-                <div class="flex gap-2 w-full md:w-auto flex-wrap">
-                  <!-- Sort Options -->
-                  <div class="relative w-full md:w-40">
-                      <button type="button" id="sortDropdownBtn" class="input-style flex justify-between items-center w-full group">
-                          <span id="selectedSort" class="text-muted text-sm md:text-base">Sort By</span>
-                          <svg id="sortDropdownIcon" class="w-4 md:w-5 stroke-neutral-300 transition-transform duration-300" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M1 1.5L8 8.5L15 1.5" stroke-width="2" stroke-linecap="round" stroke-linejoin="bevel" />
-                          </svg>
-                      </button>
-                      <ul id="sortDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-neutral-300 rounded-xl shadow hidden text-sm md:text-base text-primary-text max-h-48 overflow-y-auto">
-                          <li class="px-3 py-2 hover:bg-neutral-100 cursor-pointer transition-colors duration-200" data-sort="earnings-desc">Highest Earnings</li>
-                          <li class="px-3 py-2 hover:bg-neutral-100 cursor-pointer transition-colors duration-200" data-sort="earnings-asc">Lowest Earnings</li>
-                          <li class="px-3 py-2 hover:bg-neutral-100 cursor-pointer transition-colors duration-200" data-sort="name-asc">Name A-Z</li>
-                          <li class="px-3 py-2 hover:bg-neutral-100 cursor-pointer transition-colors duration-200" data-sort="name-desc">Name Z-A</li>
-                      </ul>
-                  </div>
+                <div class="flex gap-4 w-full md:w-auto">
                   <!-- Month -->
                   <div class="relative w-full md:w-40">
                       <button type="button" id="monthDropdownBtn" class="input-style flex justify-between items-center w-full group">
