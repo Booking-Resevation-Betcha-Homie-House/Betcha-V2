@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check-in Modal Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-button {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .test-button:hover {
+            background-color: #0056b3;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+        }
+        .modal-content {
+            background-color: white;
+            margin: 15% auto;
+            padding: 20px;
+            border-radius: 10px;
+            width: 80%;
+            max-width: 500px;
+        }
+        .close {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: black;
+        }
+        .checkbox-group {
+            margin: 15px 0;
+        }
+        .report-section {
+            display: none;
+            margin: 15px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            resize: vertical;
+        }
+        .button-group {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .btn {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn-primary {
+            background-color: #28a745;
+            color: white;
+        }
+        .btn-danger {
+            background-color: #dc3545;
+            color: white;
+        }
+        .btn-secondary {
+            background-color: #6c757d;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>Check-in Modal Test</h1>
+    <p>This page tests the check-in modal functionality with customer report features.</p>
+    
+    <button class="test-button" onclick="openCheckinModal()">Open Check-in Modal</button>
+    
+    <!-- Check-in Modal -->
+    <div id="checkinModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeCheckinModal()">&times;</span>
+            <h2>Confirm Check-in</h2>
+            
+            <div class="booking-info">
+                <p><strong>Property:</strong> Demo Resort 1</p>
+                <p><strong>Guest:</strong> John Doe</p>
+                <p><strong>Check-in Date:</strong> 2025-01-15</p>
+                <p><strong>Check-in Time:</strong> 2:00 PM</p>
+                <p><strong>Booking ID:</strong> TEST123</p>
+            </div>
+            
+            <!-- Customer Report Section -->
+            <div class="checkbox-group">
+                <input type="checkbox" id="include-customer-report-checkin" onchange="toggleCustomerReport()">
+                <label for="include-customer-report-checkin">Include Customer Report (Optional)</label>
+            </div>
+            
+            <div id="customer-report-section-checkin" class="report-section">
+                <label for="input-customer-report-checkin">Customer Report Remarks:</label>
+                <textarea id="input-customer-report-checkin" rows="3" placeholder="Enter any customer-related issues, complaints, or remarks..."></textarea>
+            </div>
+            
+            <div class="button-group">
+                <button class="btn btn-secondary" onclick="closeCheckinModal()">Close</button>
+                <button class="btn btn-danger" onclick="cancelCheckin()">Cancel Booking</button>
+                <button class="btn btn-primary" onclick="confirmCheckin()">Confirm Check-in</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function openCheckinModal() {
+            document.getElementById('checkinModal').style.display = 'block';
+        }
+        
+        function closeCheckinModal() {
+            document.getElementById('checkinModal').style.display = 'none';
+            // Reset form
+            document.getElementById('include-customer-report-checkin').checked = false;
+            document.getElementById('input-customer-report-checkin').value = '';
+            document.getElementById('customer-report-section-checkin').style.display = 'none';
+        }
+        
+        function toggleCustomerReport() {
+            const checkbox = document.getElementById('include-customer-report-checkin');
+            const reportSection = document.getElementById('customer-report-section-checkin');
+            const textarea = document.getElementById('input-customer-report-checkin');
+            
+            if (checkbox.checked) {
+                reportSection.style.display = 'block';
+                textarea.focus();
+            } else {
+                reportSection.style.display = 'none';
+                textarea.value = '';
+            }
+        }
+        
+        function confirmCheckin() {
+            const includeReport = document.getElementById('include-customer-report-checkin').checked;
+            const reportText = document.getElementById('input-customer-report-checkin').value;
+            
+            let message = '✅ Check-in confirmed successfully!\n\n';
+            
+            if (includeReport && reportText.trim()) {
+                message += 'Customer report submitted with remarks:\n';
+                message += `"${reportText}"\n\n`;
+            }
+            
+            message += 'Next steps:\n• Guest has been checked in\n• Payment processed\n• Room access provided';
+            
+            alert(message);
+            closeCheckinModal();
+        }
+        
+        function cancelCheckin() {
+            const includeReport = document.getElementById('include-customer-report-checkin').checked;
+            const reportText = document.getElementById('input-customer-report-checkin').value;
+            
+            let message = '✅ Check-in cancelled successfully!\n\n';
+            
+            if (includeReport && reportText.trim()) {
+                message += 'Customer report submitted with remarks:\n';
+                message += `"${reportText}"\n\n`;
+            }
+            
+            message += 'Booking ID: TEST123';
+            
+            alert(message);
+            closeCheckinModal();
+        }
+        
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('checkinModal');
+            if (event.target === modal) {
+                closeCheckinModal();
+            }
+        }
+    </script>
+</body>
+</html>

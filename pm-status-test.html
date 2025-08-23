@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Status Filtering Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .test-result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .success { background: #d4edda; border-color: #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border-color: #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border-color: #bee5eb; color: #0c5460; }
+        .warning { background: #fff3cd; border-color: #ffeaa7; color: #856404; }
+    </style>
+</head>
+<body>
+    <h1>PM Status Filtering Test</h1>
+    
+    <div class="container">
+        <h3>Valid Booking Statuses</h3>
+        <p>Based on your code, these are the valid statuses:</p>
+        <ul>
+            <li>'Pending Payment'</li>
+            <li>'Reserved'</li>
+            <li>'Fully-Paid'</li>
+            <li>'Checked-In'</li>
+            <li>'Checked-Out'</li>
+            <li>'Completed'</li>
+            <li>'Cancel'</li>
+        </ul>
+    </div>
+
+    <div class="container">
+        <h3>Test Controls</h3>
+        <button onclick="testStatusFiltering()">Test Status Filtering</button>
+        <button onclick="clearResults()">Clear Results</button>
+    </div>
+
+    <div class="container">
+        <h3>Test Results</h3>
+        <div id="results">
+            <p>Click "Test Status Filtering" to see how the statuses are categorized.</p>
+        </div>
+    </div>
+
+    <script>
+        // Status checking functions (copied from the PM functions)
+        function isCheckoutStatus(status) {
+            if (!status) return false;
+            
+            const statusLower = status.toString().toLowerCase();
+            
+            // Check for exact status matches from validBookingStatuses
+            if (statusLower === 'checked-out' || statusLower === 'completed' || statusLower === 'cancel') {
+                return true;
+            }
+            
+            // Check for partial matches
+            if (statusLower.includes('checkout') || 
+                statusLower.includes('checked-out') || 
+                statusLower.includes('checked out') ||
+                statusLower.includes('complete') ||
+                statusLower.includes('finished') ||
+                statusLower.includes('ended')) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        function isCheckinStatus(status) {
+            if (!status) return false;
+            
+            const statusLower = status.toString().toLowerCase();
+            
+            // Check for exact status matches from validBookingStatuses
+            if (statusLower === 'pending payment' || statusLower === 'reserved' || statusLower === 'fully-paid' || statusLower === 'checked-in') {
+                return true;
+            }
+            
+            // Check for partial matches
+            if (statusLower.includes('pending') || 
+                statusLower.includes('reserved') || 
+                statusLower.includes('confirmed') ||
+                statusLower.includes('checked-in') ||
+                statusLower.includes('checked in')) {
+                return true;
+            }
+            
+            return false;
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '<p>Click "Test Status Filtering" to see how the statuses are categorized.</p>';
+        }
+
+        function testStatusFiltering() {
+            console.log('=== TESTING STATUS FILTERING ===');
+            
+            const results = document.getElementById('results');
+            results.innerHTML = '';
+            
+            // Test all valid statuses
+            const testStatuses = [
+                'Pending Payment',
+                'Reserved', 
+                'Fully-Paid',
+                'Checked-In',
+                'Checked-Out',
+                'Completed',
+                'Cancel',
+                // Add some edge cases
+                'pending payment',
+                'CHECKED-OUT',
+                'Checked Out',
+                'Complete',
+                'Finished',
+                'Ended'
+            ];
+            
+            let checkinStatuses = [];
+            let checkoutStatuses = [];
+            let unknownStatuses = [];
+            
+            testStatuses.forEach(status => {
+                const isCheckout = isCheckoutStatus(status);
+                const isCheckin = isCheckinStatus(status);
+                
+                console.log(`Status: "${status}" -> Checkout: ${isCheckout}, Checkin: ${isCheckin}`);
+                
+                if (isCheckout) {
+                    checkoutStatuses.push(status);
+                } else if (isCheckin) {
+                    checkinStatuses.push(status);
+                } else {
+                    unknownStatuses.push(status);
+                }
+            });
+            
+            // Display results
+            let resultsHTML = '<h4>Status Filtering Results:</h4>';
+            
+            if (checkinStatuses.length > 0) {
+                resultsHTML += '<div class="test-result success"><strong>Check-in Tab (' + checkinStatuses.length + '):</strong>';
+                checkinStatuses.forEach(status => {
+                    resultsHTML += `<div>• ${status}</div>`;
+                });
+                resultsHTML += '</div>';
+            }
+            
+            if (checkoutStatuses.length > 0) {
+                resultsHTML += '<div class="test-result error"><strong>Check-out Tab (' + checkoutStatuses.length + '):</strong>';
+                checkoutStatuses.forEach(status => {
+                    resultsHTML += `<div>• ${status}</div>`;
+                });
+                resultsHTML += '</div>';
+            }
+            
+            if (unknownStatuses.length > 0) {
+                resultsHTML += '<div class="test-result warning"><strong>Unknown Status (' + unknownStatuses.length + '):</strong>';
+                unknownStatuses.forEach(status => {
+                    resultsHTML += `<div>• ${status}</div>`;
+                });
+                resultsHTML += '</div>';
+            }
+            
+            // Add summary
+            resultsHTML += `<div class="test-result info">
+                <strong>Summary:</strong><br>
+                • Check-in statuses: ${checkinStatuses.length}<br>
+                • Check-out statuses: ${checkoutStatuses.length}<br>
+                • Unknown statuses: ${unknownStatuses.length}<br>
+                • Total tested: ${testStatuses.length}
+            </div>`;
+            
+            // Test the specific problematic case
+            resultsHTML += '<div class="test-result info">';
+            resultsHTML += '<strong>Problem Case Test:</strong><br>';
+            const problemStatus = 'Checked-Out';
+            resultsHTML += `• Status: "${problemStatus}"<br>`;
+            resultsHTML += `• isCheckoutStatus(): ${isCheckoutStatus(problemStatus)}<br>`;
+            resultsHTML += `• isCheckinStatus(): ${isCheckinStatus(problemStatus)}<br>`;
+            resultsHTML += `• Should go to: ${isCheckoutStatus(problemStatus) ? 'Check-out Tab' : 'Check-in Tab'}`;
+            resultsHTML += '</div>';
+            
+            results.innerHTML = resultsHTML;
+            
+            console.log('=== END STATUS FILTERING TEST ===');
+            console.log('Check-in statuses:', checkinStatuses);
+            console.log('Check-out statuses:', checkoutStatuses);
+            console.log('Unknown statuses:', unknownStatuses);
+        }
+
+        // Initialize
+        console.log('PM Status Filtering Test page loaded');
+    </script>
+</body>
+</html>

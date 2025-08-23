@@ -3,6 +3,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const menuBtn = document.querySelector('button[onclick="toggleDropdown()"]');
   const markAllBtn = document.querySelector('button[onclick="markAllAsRead()"]');
 
+  // Check if notification elements exist before adding listeners
+  if (!dropdown || !menuBtn || !markAllBtn) {
+    console.log('Notification elements not found on this page, skipping notification.js setup');
+    return;
+  }
+
   // Toggle dropdown
   menuBtn.addEventListener('click', (e) => {
     e.stopPropagation(); // prevent triggering document click

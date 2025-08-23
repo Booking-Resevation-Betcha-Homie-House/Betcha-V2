@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Test User Data</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 20px; 
+            background: #f5f5f5;
+        }
+        .container { 
+            max-width: 600px; 
+            margin: 0 auto; 
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button { 
+            padding: 12px 24px; 
+            margin: 10px 5px; 
+            cursor: pointer; 
+            background: #3b82f6;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #2563eb;
+        }
+        .success {
+            background: #10b981;
+            padding: 15px;
+            border-radius: 6px;
+            color: white;
+            margin: 15px 0;
+        }
+        .info {
+            background: #f3f4f6;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #3b82f6;
+            margin: 15px 0;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .nav-link {
+            display: inline-block;
+            padding: 10px 20px;
+            background: #6366f1;
+            color: white;
+            text-decoration: none;
+            border-radius: 6px;
+            margin: 10px 5px 0 0;
+        }
+        .nav-link:hover {
+            background: #4f46e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Setup Test Data for Betcha Employee System</h1>
+        
+        <div class="info">
+            <strong>Purpose:</strong> This page sets up test data in localStorage to simulate a logged-in employee with properties and role privileges.
+        </div>
+        
+        <h2>Quick Setup</h2>
+        <button onclick="setupEmployeeData()">Setup Employee Test Data</button>
+        <button onclick="clearAllData()">Clear All Data</button>
+        <button onclick="showCurrentData()">Show Current Data</button>
+        
+        <div id="result"></div>
+        
+        <h2>Navigation</h2>
+        <a href="pages/employee/ts.html" class="nav-link">Go to Transactions Page</a>
+        <a href="pages/employee/dashboard.html" class="nav-link">Go to Dashboard</a>
+        <a href="transaction-api-test.html" class="nav-link">API Test Page</a>
+    </div>
+
+    <script>
+        function setupEmployeeData() {
+            // Clear existing data first
+            localStorage.clear();
+            
+            // Set up comprehensive test employee data
+            const testData = {
+                // Basic user info
+                firstName: 'Juan',
+                middleInitial: 'D',
+                lastName: 'Cruz',
+                email: 'juan.cruz@betcha.com',
+                userId: '64f8a7b2c4e1234567890abc',
+                pfplink: '',
+                verified: true,
+                status: 'active',
+                role: 'employee',
+                
+                // Role and permissions
+                roleID: '68a85518a3af5eecc10e7c8a',
+                
+                // Properties (sample property IDs)
+                properties: ["685c32000741b89b5f2c97b9"]
+            };
+            
+            // Set individual localStorage items (matching login-functions.js structure)
+            Object.keys(testData).forEach(key => {
+                if (key === 'properties') {
+                    localStorage.setItem(key, JSON.stringify(testData[key]));
+                } else {
+                    localStorage.setItem(key, testData[key]);
+                }
+            });
+            
+            // Show success message
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = `
+                <div class="success">
+                    ✅ Employee test data setup complete!
+                    <br><br>
+                    <strong>Employee:</strong> Juan D. Cruz<br>
+                    <strong>Role ID:</strong> ${testData.roleID}<br>
+                    <strong>Properties:</strong> ${testData.properties.join(', ')}<br>
+                    <br>
+                    You can now navigate to the Transactions page to see the data in action.
+                </div>
+                <h3>Stored Data:</h3>
+                <pre>${JSON.stringify(testData, null, 2)}</pre>
+            `;
+            
+            console.log('Test employee data setup complete:', testData);
+        }
+        
+        function clearAllData() {
+            localStorage.clear();
+            document.getElementById('result').innerHTML = `
+                <div style="background: #ef4444; padding: 15px; border-radius: 6px; color: white;">
+                    🗑️ All localStorage data cleared!
+                </div>
+            `;
+            console.log('localStorage cleared');
+        }
+        
+        function showCurrentData() {
+            const currentData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                let value = localStorage.getItem(key);
+                
+                // Try to parse JSON values
+                try {
+                    value = JSON.parse(value);
+                } catch (e) {
+                    // Keep as string if not JSON
+                }
+                
+                currentData[key] = value;
+            }
+            
+            const resultDiv = document.getElementById('result');
+            if (Object.keys(currentData).length === 0) {
+                resultDiv.innerHTML = `
+                    <div style="background: #f59e0b; padding: 15px; border-radius: 6px; color: white;">
+                        ⚠️ No data found in localStorage
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="info">
+                        <strong>Current localStorage Data:</strong>
+                    </div>
+                    <pre>${JSON.stringify(currentData, null, 2)}</pre>
+                `;
+            }
+            
+            console.log('Current localStorage data:', currentData);
+        }
+        
+        // Auto-show current data on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            showCurrentData();
+        });
+    </script>
+</body>
+</html>

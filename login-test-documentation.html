@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f0f0f0;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .success { background: #d4edda; }
+        .error { background: #f8d7da; }
+        .info { background: #d1ecf1; }
+        button {
+            background: #007bff;
+            color: white;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        input {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Betcha Login Functionality Test</h1>
+    
+    <div class="test-section">
+        <h2>Login Functionality Features:</h2>
+        <ul>
+            <li>✅ API Integration with https://betcha-api.onrender.com/auth/login</li>
+            <li>✅ POST request with email and password</li>
+            <li>✅ Success handling with user data storage</li>
+            <li>✅ Error handling with user feedback</li>
+            <li>✅ LocalStorage data saving:
+                <ul>
+                    <li>firstName, middleInitial, lastName</li>
+                    <li>pfplink (profile picture link)</li>
+                    <li>role (user type)</li>
+                    <li>userId, email, verified status, status</li>
+                    <li>roleID for employees (from role array)</li>
+                    <li>properties array for employees</li>
+                </ul>
+            </li>
+            <li>✅ User redirection based on role:
+                <ul>
+                    <li>Admin → ../../admin/dashboard.html</li>
+                    <li>Employee → ../../employee/dashboard.html</li>
+                    <li>Guest → ../../auth/profile.html</li>
+                </ul>
+            </li>
+            <li>✅ Form validation (email format, required fields)</li>
+            <li>✅ Loading states and user feedback</li>
+            <li>✅ Enter key support for form submission</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Credentials:</h2>
+        
+        <h3>Guest Account:</h3>
+        <p><strong>Email:</strong> chsigno123@gmail.com</p>
+        <p><strong>Password:</strong> betcha1234</p>
+        
+        <h3>Employee Account (with role):</h3>
+        <p><strong>Email:</strong> tsluke@gmail.com</p>
+        <p><strong>Password:</strong> [Ask for password]</p>
+        
+        <h3>Expected Employee Response:</h3>
+        <pre>{
+  "message": "Login successful.",
+  "userType": "employee",
+  "user": {
+    "_id": "68a85684a3af5eecc10e7ca6",
+    "firstname": "TS - Luke",
+    "minitial": "N",
+    "lastname": "Yey",
+    "email": "tsluke@gmail.com",
+    "pfplink": "",
+    "role": ["68a85518a3af5eecc10e7c8a"],
+    "properties": ["685c32000741b89b5f2c97b9"],
+    "userType": "employee",
+    "status": "active",
+    "createdAt": "2025-08-22T11:37:40.860Z",
+    "updatedAt": "2025-08-22T11:37:40.860Z",
+    "__v": 0
+  }
+}</pre>
+    </div>
+
+    <div class="test-section">
+        <h2>Files Modified:</h2>
+        <ul>
+            <li><strong>pages/unauth/login.html</strong> - Added loginButton ID and script import</li>
+            <li><strong>pages/unauth/unauthFunctions/login-functions.js</strong> - Complete login functionality</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>How to Test:</h2>
+        <ol>
+            <li>Open <code>pages/unauth/login.html</code> in your browser</li>
+            <li>Enter the test credentials or your own</li>
+            <li>Click "Log in" button or press Enter</li>
+            <li>Check browser console for API responses</li>
+            <li>Check localStorage for saved user data</li>
+            <li>Verify redirection based on user type</li>
+        </ol>
+    </div>
+
+    <div class="test-section">
+        <h2>LocalStorage Viewer</h2>
+        <button onclick="viewLocalStorage()">View Current LocalStorage</button>
+        <button onclick="clearLocalStorage()">Clear LocalStorage</button>
+        <div id="storage-display" style="margin-top: 10px; font-family: monospace;"></div>
+    </div>
+
+    <script>
+        function viewLocalStorage() {
+            const keys = ['firstName', 'middleInitial', 'lastName', 'pfplink', 'role', 'userId', 'email', 'verified', 'status', 'roleID', 'properties'];
+            let display = '<h4>Current LocalStorage Values:</h4>';
+            
+            keys.forEach(key => {
+                const value = localStorage.getItem(key);
+                display += `<div><strong>${key}:</strong> ${value || 'Not set'}</div>`;
+            });
+            
+            document.getElementById('storage-display').innerHTML = display;
+        }
+
+        function clearLocalStorage() {
+            const keys = ['firstName', 'middleInitial', 'lastName', 'pfplink', 'role', 'userId', 'email', 'verified', 'status', 'roleID', 'properties'];
+            keys.forEach(key => localStorage.removeItem(key));
+            document.getElementById('storage-display').innerHTML = '<div style="color: green;">LocalStorage cleared!</div>';
+        }
+    </script>
+</body>
+</html>

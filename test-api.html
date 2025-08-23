@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Test</title>
+</head>
+<body>
+    <h1>API Test</h1>
+    <div id="results">Loading...</div>
+
+    <script>
+        console.log('Test script loaded');
+        
+        async function testAPI() {
+            try {
+                console.log('Making API call...');
+                const response = await fetch('https://betcha-api.onrender.com/dashboard/admin/summary');
+                console.log('Response received:', response);
+                
+                if (!response.ok) {
+                    throw new Error(`API error: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('Data parsed:', data);
+                
+                document.getElementById('results').innerHTML = '<pre>' + JSON.stringify(data, null, 2) + '</pre>';
+                
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('results').innerHTML = 'Error: ' + error.message;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, calling testAPI');
+            testAPI();
+        });
+    </script>
+</body>
+</html>

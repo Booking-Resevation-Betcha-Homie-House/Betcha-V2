@@ -1,4 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
+  console.log('Modal.js loaded successfully');
 
   const smodal = document.getElementById("fullscreenModalCard");
   const scloseBtn = document.getElementById("closeFullscreenModal");
@@ -18,9 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Open modal
   document.querySelectorAll('[data-modal-target]').forEach(btn => {
+    console.log(`Found modal trigger button for: ${btn.getAttribute('data-modal-target')}`);
     btn.addEventListener('click', () => {
       const targetId = btn.getAttribute('data-modal-target');
       const targetModal = document.getElementById(targetId);
+      console.log(`Attempting to open modal: ${targetId}`, targetModal);
 
       // Close all open modals
       document.querySelectorAll('.modal').forEach(modal => {
@@ -29,6 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Open target modal
       if (targetModal) {
+        console.log(`Opening modal: ${targetId}`);
         targetModal.classList.remove('hidden');
         document.body.classList.add('modal-open'); // 👈 lock scroll
         

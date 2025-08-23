@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .container {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        #results {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 20px;
+            white-space: pre-wrap;
+            font-family: monospace;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h1>PM API Test - Check-in Today</h1>
+    
+    <div class="container">
+        <h3>Test Controls</h3>
+        <button onclick="testAPICall()">Test API Call</button>
+        <button onclick="testWithSampleProperty()">Test with Sample Property ID</button>
+        <button onclick="clearResults()">Clear Results</button>
+        <button onclick="checkLocalStorage()">Check Local Storage</button>
+    </div>
+
+    <div class="container">
+        <h3>Set Test Property ID</h3>
+        <input type="text" id="propertyId" placeholder="Enter Property ID" value="685ec7548e71fd2d8829f03d" style="width: 300px; padding: 8px;">
+        <button onclick="setTestProperty()">Set Property</button>
+    </div>
+
+    <div id="results">
+        Ready to test PM API calls...
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://betcha-api.onrender.com';
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const timestamp = new Date().toLocaleTimeString();
+            const className = type === 'error' ? 'error' : type === 'success' ? 'success' : '';
+            results.innerHTML += `<span class="${className}">[${timestamp}] ${message}</span>\n`;
+            results.scrollTop = results.scrollHeight;
+            console.log(message);
+        }
+
+        function clearResults() {
+            document.getElementById('results').innerHTML = '';
+        }
+
+        function checkLocalStorage() {
+            log('=== LOCAL STORAGE CHECK ===');
+            const properties = localStorage.getItem('properties');
+            if (properties) {
+                log('Properties in localStorage: ' + properties, 'success');
+                try {
+                    const parsed = JSON.parse(properties);
+                    log('Parsed properties: ' + JSON.stringify(parsed, null, 2));
+                } catch (e) {
+                    log('Error parsing properties: ' + e.message, 'error');
+                }
+            } else {
+                log('No properties found in localStorage', 'error');
+            }
+        }
+
+        function setTestProperty() {
+            const propertyId = document.getElementById('propertyId').value;
+            if (!propertyId) {
+                log('Please enter a property ID', 'error');
+                return;
+            }
+            
+            const testProperty = [{
+                _id: propertyId,
+                name: 'Test Property',
+                title: 'Test Property Title'
+            }];
+            
+            localStorage.setItem('properties', JSON.stringify(testProperty));
+            log('Set test property in localStorage: ' + propertyId, 'success');
+        }
+
+        async function testWithSampleProperty() {
+            log('=== TESTING WITH SAMPLE PROPERTY ===');
+            setTestProperty();
+            await testAPICall();
+        }
+
+        async function testAPICall() {
+            try {
+                log('=== STARTING API TEST ===');
+                
+                // Get property IDs from localStorage
+                const propertiesData = localStorage.getItem('properties');
+                let propertyIds = [];
+                
+                if (propertiesData) {
+                    const properties = JSON.parse(propertiesData);
+                    log('Found properties in localStorage: ' + JSON.stringify(properties));
+                    
+                    if (Array.isArray(properties)) {
+                        propertyIds = properties.map(p => p._id || p.id);
+                    } else if (properties._id || properties.id) {
+                        propertyIds = [properties._id || properties.id];
+                    }
+                } else {
+                    log('No properties in localStorage, using sample ID');
+                    propertyIds = ['685ec7548e71fd2d8829f03d'];
+                }
+                
+                log('Property IDs to use: ' + JSON.stringify(propertyIds));
+                
+                const requestBody = {
+                    propertyIds: propertyIds
+                };
+                
+                log('Making API call to: ' + API_BASE_URL + '/pm/bookings/checkinToday');
+                log('Request body: ' + JSON.stringify(requestBody, null, 2));
+                
+                const response = await fetch(`${API_BASE_URL}/pm/bookings/checkinToday`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                log('Response status: ' + response.status);
+                log('Response headers: ' + JSON.stringify(Object.fromEntries(response.headers.entries()), null, 2));
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    log('API Response (Success): ' + JSON.stringify(data, null, 2), 'success');
+                    
+                    // Test the population function
+                    if (window.populateCheckinTab) {
+                        log('Testing populateCheckinTab function...');
+                        window.populateCheckinTab(data);
+                    }
+                } else {
+                    const errorText = await response.text();
+                    log('API Response (Error): ' + errorText, 'error');
+                }
+                
+            } catch (error) {
+                log('JavaScript Error: ' + error.message, 'error');
+                log('Stack trace: ' + error.stack, 'error');
+            }
+        }
+
+        // Initialize
+        log('PM API Test page loaded');
+        log('Click "Test API Call" to test the PM check-in API');
+    </script>
+</body>
+</html>

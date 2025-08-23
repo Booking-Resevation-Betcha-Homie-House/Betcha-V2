@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Transaction API Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        button { padding: 10px 20px; margin: 10px 5px; cursor: pointer; }
+        .result { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 4px; }
+        pre { overflow-x: auto; }
+        .status { padding: 5px 10px; border-radius: 4px; color: white; }
+        .pending { background: #ff9800; }
+        .completed { background: #4caf50; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Transaction API Test</h1>
+        
+        <div class="section">
+            <h2>Setup Test Data</h2>
+            <button onclick="setupTestUserData()">Setup Test User Data in localStorage</button>
+            <button onclick="clearLocalStorage()">Clear localStorage</button>
+            <div class="result" id="setupResult"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Test Transaction API</h2>
+            <button onclick="testTransactionAPI()">Fetch Transactions</button>
+            <div class="result" id="apiResult"></div>
+        </div>
+        
+        <div class="section">
+            <h2>Display Transactions</h2>
+            <div id="transactionDisplay"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://betcha-api.onrender.com';
+
+        function setupTestUserData() {
+            // Setup test user data with property IDs
+            const testUserData = {
+                userId: "test123",
+                name: "Test Employee",
+                role: [{ roleID: "test-role-id" }],
+                properties: ["685c32000741b89b5f2c97b9"] // Sample property ID from the API example
+            };
+            
+            localStorage.setItem('userData', JSON.stringify(testUserData));
+            localStorage.setItem('roleID', 'test-role-id');
+            
+            document.getElementById('setupResult').innerHTML = `
+                <h3>Test user data setup complete!</h3>
+                <pre>${JSON.stringify(testUserData, null, 2)}</pre>
+            `;
+        }
+
+        function clearLocalStorage() {
+            localStorage.clear();
+            document.getElementById('setupResult').innerHTML = '<h3>localStorage cleared!</h3>';
+        }
+
+        async function testTransactionAPI() {
+            try {
+                const userData = localStorage.getItem('userData');
+                if (!userData) {
+                    document.getElementById('apiResult').innerHTML = '<div class="status pending">Please setup test user data first!</div>';
+                    return;
+                }
+
+                const user = JSON.parse(userData);
+                const propertyIds = user.properties;
+
+                console.log('Testing API with property IDs:', propertyIds);
+
+                const response = await fetch(`${API_BASE_URL}/ts/transactionsByProperties`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        propertyIds: propertyIds
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="status completed">API Response Successful!</div>
+                    <h3>Raw API Response:</h3>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+
+                displayTransactions(data);
+
+            } catch (error) {
+                console.error('API Test Error:', error);
+                document.getElementById('apiResult').innerHTML = `
+                    <div class="status pending">API Error: ${error.message}</div>
+                `;
+            }
+        }
+
+        function displayTransactions(data) {
+            const displayDiv = document.getElementById('transactionDisplay');
+            
+            let html = '<h3>Formatted Transaction Display</h3>';
+            
+            // Display Pending Transactions
+            html += '<h4>Pending Transactions:</h4>';
+            if (data.pending && data.pending.length > 0) {
+                data.pending.forEach(transaction => {
+                    html += createTransactionCard(transaction, 'pending');
+                });
+            } else {
+                html += '<p>No pending transactions</p>';
+            }
+            
+            // Display Completed Transactions
+            html += '<h4>Completed Transactions:</h4>';
+            if (data.completed && data.completed.length > 0) {
+                data.completed.forEach(transaction => {
+                    html += createTransactionCard(transaction, 'completed');
+                });
+            } else {
+                html += '<p>No completed transactions</p>';
+            }
+            
+            displayDiv.innerHTML = html;
+        }
+
+        function createTransactionCard(transaction, type) {
+            const checkIn = new Date(transaction.checkIn).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            const checkOut = new Date(transaction.checkOut).toLocaleDateString('en-US', {
+                month: 'short',
+                day: 'numeric',
+                year: 'numeric'
+            });
+            
+            const amount = parseFloat(transaction.totalAmount).toLocaleString('en-PH', {
+                style: 'currency',
+                currency: 'PHP'
+            });
+
+            return `
+                <div style="border: 1px solid #ddd; padding: 15px; margin: 10px 0; border-radius: 8px; background: white;">
+                    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px;">
+                        <div>
+                            <strong>Trans#:</strong><br>
+                            #${transaction.transNo}
+                        </div>
+                        <div>
+                            <strong>Guest:</strong><br>
+                            ${transaction.nameOfGuest}
+                        </div>
+                        <div>
+                            <strong>Property:</strong><br>
+                            ${transaction.propertyName}
+                        </div>
+                        <div>
+                            <strong>Dates:</strong><br>
+                            ${checkIn} - ${checkOut}
+                        </div>
+                        <div>
+                            <strong>Payment:</strong><br>
+                            ${transaction.paymentMode}
+                        </div>
+                        <div>
+                            <strong>Amount:</strong><br>
+                            ${amount}
+                        </div>
+                        <div>
+                            <strong>Status:</strong><br>
+                            <span class="status ${type}">${transaction.status}</span>
+                        </div>
+                        <div>
+                            <strong>Booking ID:</strong><br>
+                            ${transaction.bookingId}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>
