@@ -173,20 +173,38 @@ function validateLoginForm(email, password) {
 // Initialize login functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('logInForm');
-    const loginButton = document.querySelector('#loginButton');
     
-    if (loginForm && loginButton) {
-        // Add click event to login button
-        loginButton.addEventListener('click', function(e) {
+    if (loginForm) {
+        // Check for auto-filled values on page load
+        setTimeout(() => {
+            const emailInput = loginForm.querySelector('#email');
+            const passwordInput = loginForm.querySelector('#password');
+            if (emailInput && emailInput.value) {
+                // Trigger input event to handle auto-filled values
+                emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+            if (passwordInput && passwordInput.value) {
+                // Trigger input event to handle auto-filled values
+                passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
+            }
+        }, 100);
+        
+        // Handle form submission
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault(); // Prevent default form submission
             e.preventDefault();
             
-            const emailInput = loginForm.querySelector('input[type="email"]');
-            const passwordInput = loginForm.querySelector('input[type="password"]');
+            const emailInput = loginForm.querySelector('#email');
+            const passwordInput = loginForm.querySelector('#password');
             
             if (!emailInput || !passwordInput) {
                 showMessage('Form inputs not found.', 'error');
                 return;
             }
+            
+            // Trigger input events to ensure auto-filled values are recognized
+            emailInput.dispatchEvent(new Event('input', { bubbles: true }));
+            passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
             
             const email = emailInput.value.trim();
             const password = passwordInput.value;
@@ -196,19 +214,13 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
-        // Add form submit event
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            loginButton.click();
-        });
-
         // Add Enter key support for inputs
         const inputs = loginForm.querySelectorAll('input');
         inputs.forEach(input => {
             input.addEventListener('keypress', function(e) {
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    loginButton.click();
+                    loginForm.dispatchEvent(new Event('submit'));
                 }
             });
         });

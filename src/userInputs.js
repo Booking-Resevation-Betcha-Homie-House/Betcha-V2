@@ -1,6 +1,19 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const months = [
+    { display: "Jan", value: "1" },
+    { display: "Feb", value: "2" },
+    { display: "Mar", value: "3" },
+    { display: "Apr", value: "4" },
+    { display: "May", value: "5" },
+    { display: "Jun", value: "6" },
+    { display: "Jul", value: "7" },
+    { display: "Aug", value: "8" },
+    { display: "Sep", value: "9" },
+    { display: "Oct", value: "10" },
+    { display: "Nov", value: "11" },
+    { display: "Dec", value: "12" }
+  ];
   const thisYear = new Date().getFullYear();
 
   function setupDropdown(id, options, placeholder = "Select") {
@@ -21,10 +34,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fill options
     options.forEach(opt => {
       const li = document.createElement("li");
-      li.textContent = opt;
+      // Handle both simple strings and month objects
+      const displayText = typeof opt === 'object' ? opt.display : opt;
+      const value = typeof opt === 'object' ? opt.value : opt;
+      
+      li.textContent = displayText;
       li.className = "px-4 py-2 hover:bg-neutral-100 active:bg-neutral-100 cursor-pointer font-normal";
       li.onclick = () => {
-        display.textContent = opt;
+        // Store the actual value as a data attribute
+        display.textContent = displayText;
+        display.dataset.value = value;
         display.classList.remove("text-gray-400");
         display.classList.add("text-primary-text");
         list.classList.add("hidden");

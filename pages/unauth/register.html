@@ -348,7 +348,7 @@
                     </span>
                 </button>
             </div>
-            <div class="flex flex-col items-center gap-5 p-8">
+            <div class="flex flex-col items-center gap-5 p-8" id="registeredModal">
                 <p class="font-manrope text-primary-text font-bold text-2xl">Registered</p>
                 <p class="font-roboto text-muted text-xs md:text-sm">You’re all set! Time to book your room!</p>
                 <div class="flex flex-col md:flex-row gap-3 w-full mt-5">
@@ -356,7 +356,7 @@
                         class="group relative rounded-full w-full bg-neutral-200 flex items-center justify-center overflow-hidden 
                         hover:cursor-pointer active:scale-95
                         transition-all duration-300 ease-in-out 
-                        ">
+                        " id="loginButton">
                         <span class="text-primary-text text-sm
                         group-hover:-translate-x-1
                         transition-transform duration-500 ease-in-out 
@@ -372,7 +372,7 @@
                     <button type="button"
                         class="group relative w-full btn rounded-full bg-primary px-6 py-3 flex items-center justify-center overflow-hidden 
                         hover:cursor-pointer active:scale-95
-                        transition-all duration-500 ease-in-out ">
+                        transition-all duration-500 ease-in-out " id="verifyButton">
                         <span class="text-secondary-text text-base group-hover:-translate-x-1
                         transition-transform duration-500 ease-in-out 
                         md:text-lg">Verify ID</span>
@@ -391,5 +391,7 @@
     <script defer src="../../src/imageCarousel.js"></script>
     <script defer src="../../src/userInputs.js"></script>
     <script defer src="../../src/passwordToggle.js"></script>
+    <script defer src="./unauthFunctions/registerPage-functions.js"></script>
+    <script defer src="./unauthFunctions/register-actions.js"></script>
 </body>
 </html> 
