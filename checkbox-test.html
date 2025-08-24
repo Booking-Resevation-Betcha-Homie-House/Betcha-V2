@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkbox Test</title>
+    <script defer src="https://unpkg.com/alpinejs"></script>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .checkbox-item { margin: 10px 0; }
+        .selected { background-color: #e0f2fe; padding: 10px; margin: 10px 0; border-radius: 5px; }
+        .checkbox { margin-right: 10px; }
+    </style>
+</head>
+<body>
+    <h1>Checkbox Test with Alpine.js</h1>
+    
+    <div x-data="{ 
+        search: '', 
+        roles: ['TS', 'TK', 'PM', 'PSR', 'Admin'], 
+        selected: ['PM'],
+        toggleRole(role) {
+            if (this.selected.includes(role)) {
+                this.selected = this.selected.filter(s => s !== role);
+            } else {
+                this.selected.push(role);
+            }
+            console.log('Selected roles:', this.selected);
+        }
+    }">
+        
+        <h2>Roles</h2>
+        <input type="text" x-model="search" placeholder="Search roles..." style="width: 200px; padding: 5px; margin-bottom: 10px;">
+        
+        <div class="checkbox-item" x-for="role in roles.filter(r => r.toLowerCase().includes(search.toLowerCase()))" :key="role">
+            <label>
+                <input 
+                    type="checkbox" 
+                    class="checkbox"
+                    :value="role"
+                    :checked="selected.includes(role)"
+                    @change="toggleRole(role)"
+                >
+                <span x-text="role"></span>
+            </label>
+        </div>
+        
+        <div class="selected">
+            <strong>Selected roles:</strong>
+            <span x-text="selected.join(', ')"></span>
+        </div>
+        
+        <div style="margin-top: 20px;">
+            <button @click="selected = ['PM', 'TS']" style="padding: 10px; margin-right: 10px;">Set PM, TS</button>
+            <button @click="selected = []" style="padding: 10px;">Clear All</button>
+        </div>
+    </div>
+    
+    <script>
+        // Test programmatic updates
+        setTimeout(() => {
+            const alpineData = Alpine.$data(document.querySelector('[x-data]'));
+            console.log('Initial Alpine data:', alpineData);
+            
+            // Test updating selected roles
+            setTimeout(() => {
+                alpineData.selected = ['TS', 'TK'];
+                console.log('Updated selected roles to:', alpineData.selected);
+            }, 2000);
+        }, 1000);
+    </script>
+</body>
+</html>

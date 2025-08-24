@@ -130,6 +130,12 @@ function initializeTicketingFeatures() {
     fetchAndPopulateTickets();
     setupTabSwitching();
     setupTicketSelection();
+    
+    // Initially hide close ticket button until a ticket is selected
+    const closeTicketBtn = document.querySelector('[data-modal-target="closeTicketModal"]');
+    if (closeTicketBtn) {
+        closeTicketBtn.style.display = 'none';
+    }
 }
 
 async function fetchAndPopulateTickets() {
@@ -283,6 +289,16 @@ function loadTicketDetails(ticket) {
         ticket.messages?.forEach(msg => messagesArea.appendChild(createMessageElement(msg)));
         messagesArea.scrollTop = messagesArea.scrollHeight;
     }
+
+    // Hide close ticket button for completed/resolved tickets
+    const closeTicketBtn = document.querySelector('[data-modal-target="closeTicketModal"]');
+    if (closeTicketBtn) {
+        if (ticket.status === 'completed' || ticket.status === 'resolved') {
+            closeTicketBtn.style.display = 'none';
+        } else {
+            closeTicketBtn.style.display = 'block';
+        }
+    }
 }
 
 function createMessageElement(message) {
@@ -432,6 +448,12 @@ function clearChatArea() {
                 </div>
             </div>
         `;
+    }
+
+    // Reset close ticket button to visible when no ticket is selected
+    const closeTicketBtn = document.querySelector('[data-modal-target="closeTicketModal"]');
+    if (closeTicketBtn) {
+        closeTicketBtn.style.display = 'block';
     }
 }
 

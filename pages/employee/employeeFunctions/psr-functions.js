@@ -127,7 +127,8 @@ function hideDashboardSections(privileges) {
     const sectionPrivilegeMap = {
         'PSR-summary': ['PSR'], // PSR Summary section requires PSR privilege
         'tickets': ['TK'], // Tickets section requires TK privilege  
-        'PM': ['PM'] // Property Monitoring section requires PM privilege
+        'PM': ['PM'], // Property Monitoring section requires PM privilege
+        'transactions': ['TS'] // Transactions section requires TS privilege
     };
     
     // Check each section
@@ -325,15 +326,15 @@ function populateTransactionsData(transactionsData) {
         return;
     }
     
-    // Find the transactions container
+    // Find the transactions container - look for the specific container on PSR page
     const transactionsContainer = document.querySelector('.space-y-4.overflow-y-auto');
     if (!transactionsContainer) {
-        console.warn('Transactions container not found');
+        console.warn('Transactions container not found on PSR page');
         return;
     }
     
     // Clear existing transaction items (keep the first one as template)
-    const existingItems = transactionsContainer.querySelectorAll('.grid.grid-cols-2');
+    const existingItems = transactionsContainer.querySelectorAll('.grid.grid-cols-2.md\\:grid-cols-4');
     existingItems.forEach((item, index) => {
         if (index > 0) { // Keep the first item as template
             item.remove();
@@ -364,42 +365,42 @@ function populateTransactionsData(transactionsData) {
         
         if (index === 0) {
             // Update the existing first item
-            transactionElement = transactionsContainer.querySelector('.grid.grid-cols-2');
+            transactionElement = transactionsContainer.querySelector('.grid.grid-cols-2.md\\:grid-cols-4');
         } else {
             // Clone the first item for new transactions
-            const template = transactionsContainer.querySelector('.grid.grid-cols-2');
+            const template = transactionsContainer.querySelector('.grid.grid-cols-2.md\\:grid-cols-4');
             transactionElement = template.cloneNode(true);
             transactionsContainer.appendChild(transactionElement);
         }
         
         if (transactionElement) {
             // Update transaction number
-            const transNoElement = transactionElement.querySelector('p.text-sm.font-semibold');
+            const transNoElement = transactionElement.querySelector('p.text-sm.font-semibold.text-neutral-800.font-inter.truncate');
             if (transNoElement) {
-                transNoElement.textContent = `#${transaction.transactionNo}`;
+                transNoElement.textContent = `#${transaction.transactionNo || transaction.id || 'N/A'}`;
             }
             
-            // Update property name
-            const propertyElements = transactionElement.querySelectorAll('p.text-sm.font-semibold');
-            if (propertyElements[1]) {
-                propertyElements[1].textContent = transaction.propertyName;
-                propertyElements[1].title = transaction.propertyName; // Add tooltip for long names
+            // Update property name - find the second p element with the right classes
+            const propertyElements = transactionElement.querySelectorAll('p.text-sm.font-semibold.text-neutral-800.font-inter.truncate');
+            if (propertyElements.length > 1) {
+                propertyElements[1].textContent = transaction.propertyName || transaction.property || 'Unknown Property';
+                propertyElements[1].title = transaction.propertyName || transaction.property || 'Unknown Property'; // Add tooltip for long names
             }
             
-            // Update booking date
-            if (propertyElements[2]) {
-                propertyElements[2].textContent = formatDate(transaction.dateOfBooking);
+            // Update booking date - find the third p element
+            if (propertyElements.length > 2) {
+                propertyElements[2].textContent = formatDate(transaction.dateOfBooking || transaction.bookingDate || transaction.date || new Date());
             }
             
-            // Update amount
+            // Update amount - find the span inside the last p element
             const amountSpan = transactionElement.querySelector('span');
             if (amountSpan) {
-                amountSpan.textContent = formatCurrency(transaction.amount);
+                amountSpan.textContent = formatCurrency(transaction.amount || transaction.totalAmount || 0);
             }
         }
     });
     
-    console.log(`${transactionsData.length} transactions populated`);
+    console.log(`${transactionsData.length} transactions populated on PSR page`);
 }
 
 // Download Functionality

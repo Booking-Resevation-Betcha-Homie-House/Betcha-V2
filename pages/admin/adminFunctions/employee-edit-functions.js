@@ -56,19 +56,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (employeeId) {
         // Wait for Alpine.js to be fully initialized
-        if (window.Alpine) {
-            populateEmployeeEditForm(employeeId);
-        } else {
-            // Listen for Alpine.js initialization
-            document.addEventListener('alpine:init', () => {
-                setTimeout(() => populateEmployeeEditForm(employeeId), 100);
-            });
-            
-            // Fallback timeout in case alpine:init doesn't fire
-            setTimeout(() => {
-                populateEmployeeEditForm(employeeId);
-            }, 1000);
-        }
+        waitForAlpineAndPopulate(employeeId);
     } else {
         console.error('No employee ID provided in URL');
     }
@@ -110,6 +98,43 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
 });
+
+// Function to handle discarding changes and returning to employee view
+function discardChanges() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const employeeId = urlParams.get('id');
+    
+    if (employeeId) {
+        // Redirect to employee view with the current employee ID
+        window.location.href = `employee-view.html?id=${employeeId}`;
+    } else {
+        // Fallback to employees list if no ID is found
+        window.location.href = 'employees.html';
+    }
+}
+
+// Function to wait for Alpine.js and then populate the form
+function waitForAlpineAndPopulate(employeeId) {
+    const maxAttempts = 50; // 5 seconds max wait
+    let attempts = 0;
+    
+    function checkAlpine() {
+        attempts++;
+        
+        if (window.Alpine && window.Alpine.$data) {
+            console.log('Alpine.js is ready, populating form...');
+            populateEmployeeEditForm(employeeId);
+        } else if (attempts < maxAttempts) {
+            console.log(`Waiting for Alpine.js... Attempt ${attempts}/${maxAttempts}`);
+            setTimeout(checkAlpine, 100);
+        } else {
+            console.error('Alpine.js failed to initialize after 5 seconds');
+            showError('Failed to initialize form components. Please refresh the page.');
+        }
+    }
+    
+    checkAlpine();
+}
 
 async function populateEmployeeEditForm(employeeId) {
     try {
@@ -158,32 +183,46 @@ function populateBasicFields(employee) {
 
 async function populateRoles(employee) {
     try {
+        console.log('Starting to populate roles for employee:', employee);
+        
         // Get role data from employee
         const employeeRoles = parseEmployeeFieldData(employee, ['roles', 'role', 'userRoles', 'assignedRoles']);
-        if (!employeeRoles) return;
+        console.log('Employee roles data:', employeeRoles);
+        
+        if (!employeeRoles) {
+            console.log('No employee roles found, skipping role population');
+            return;
+        }
         
         // Fetch all available roles
         const response = await fetch(`${API_BASE}/roles/display`);
         const rolesData = await response.json();
         const allRoles = rolesData.value || rolesData;
+        console.log('All available roles:', allRoles);
         
         // Wait for Alpine.js initialization
         await new Promise(resolve => setTimeout(resolve, 200));
         
         // Find Alpine component for roles
         const roleComponent = document.querySelector('div[x-data*="roles"]');
+        console.log('Role component found:', !!roleComponent);
+        
         if (!roleComponent || !window.Alpine) {
             console.error('Role component or Alpine.js not found');
             return;
         }
 
         const alpineData = Alpine.$data(roleComponent);
+        console.log('Alpine data for roles:', alpineData);
         
         // Update roles list
         alpineData.roles = allRoles.map(role => role.name);
+        console.log('Updated roles list:', alpineData.roles);
         
         // Parse and set selected roles
         const employeeRolesList = parseDataArray(employeeRoles);
+        console.log('Parsed employee roles list:', employeeRolesList);
+        
         const selectedRoleNames = employeeRolesList.map(roleData => {
             if (typeof roleData === 'string') {
                 const roleByName = allRoles.find(r => r.name === roleData);
@@ -193,29 +232,28 @@ async function populateRoles(employee) {
             return roleData?.name || roleData;
         }).filter(name => alpineData.roles.includes(name));
         
+        console.log('Selected role names:', selectedRoleNames);
+        
         // Set selected roles in Alpine with proper reactivity
         alpineData.selected = [...selectedRoleNames];
         
-        // Ensure Alpine.js processes the update before any DOM manipulation
-        await new Promise(resolve => {
-            if (alpineData.$nextTick) {
-                alpineData.$nextTick(() => {
-                    // Wait a bit more for DOM to update
-                    setTimeout(resolve, 150);
-                });
-            } else {
-                setTimeout(resolve, 500);
-            }
+        // Store all roles for later use in form submission
+        alpineData.allRoles = allRoles;
+        
+        console.log('Roles populated successfully:', {
+            allRoles: alpineData.roles,
+            selectedRoles: alpineData.selected,
+            alpineData: alpineData
         });
         
-        // Final verification: ensure checkboxes match Alpine state
-        const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][value]');
-        roleCheckboxes.forEach(checkbox => {
-            const shouldBeChecked = alpineData.selected.includes(checkbox.value);
-            if (checkbox.checked !== shouldBeChecked) {
-                checkbox.checked = shouldBeChecked;
-            }
-        });
+        // Verify the checkboxes are properly bound
+        setTimeout(() => {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"][value]');
+            console.log('Found checkboxes:', checkboxes.length);
+            checkboxes.forEach(checkbox => {
+                console.log(`Checkbox ${checkbox.value}: checked=${checkbox.checked}, shouldBeChecked=${alpineData.selected.includes(checkbox.value)}`);
+            });
+        }, 500);
         
     } catch (error) {
         console.error('Error populating roles:', error);
@@ -273,25 +311,9 @@ async function populateAssignedProperties(employee) {
         // Set selected properties in Alpine with proper reactivity
         alpineData.selected = [...selectedPropertyNames];
         
-        // Ensure Alpine.js processes the update before any DOM manipulation
-        await new Promise(resolve => {
-            if (alpineData.$nextTick) {
-                alpineData.$nextTick(() => {
-                    // Wait a bit more for DOM to update
-                    setTimeout(resolve, 150);
-                });
-            } else {
-                setTimeout(resolve, 500);
-            }
-        });
-        
-        // Final verification: ensure checkboxes match Alpine state
-        const propertyCheckboxes = document.querySelectorAll('input[type="checkbox"][value]');
-        propertyCheckboxes.forEach(checkbox => {
-            const shouldBeChecked = alpineData.selected.includes(checkbox.value);
-            if (checkbox.checked !== shouldBeChecked) {
-                checkbox.checked = shouldBeChecked;
-            }
+        console.log('Properties populated successfully:', {
+            allProperties: alpineData.properties,
+            selectedProperties: alpineData.selected
         });
         
     } catch (error) {

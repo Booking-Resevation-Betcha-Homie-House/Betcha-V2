@@ -203,8 +203,8 @@ function createCustomerCard(customer) {
     `;
 
     // Add click event to show customer details in modal
-    cardContainer.addEventListener('click', () => {
-        showCustomerDetails(customer);
+    cardContainer.addEventListener('click', async () => {
+        await showCustomerDetails(customer);
     });
 
     return cardContainer;
@@ -402,7 +402,23 @@ function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
     }
 }
 
-function showCustomerDetails(customer) {
+// Function to fetch customer reports from the API
+async function fetchCustomerReports(customerId) {
+    try {
+        const response = await fetch(`${API_BASE}/reports/${customerId}`);
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const reports = await response.json();
+        console.log('Customer reports fetched:', reports);
+        return reports;
+    } catch (error) {
+        console.error('Error fetching customer reports:', error);
+        return [];
+    }
+}
+
+async function showCustomerDetails(customer) {
     // Store the current customer for deactivation functionality
     currentCustomer = customer;
     
@@ -430,8 +446,11 @@ function showCustomerDetails(customer) {
         const statusColor = customer.archived ? 'bg-gray-100 text-gray-700' : 
                            (customer.warning ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700');
 
+        // Fetch customer reports
+        const reports = await fetchCustomerReports(customer._id);
+
         violationsContainer.innerHTML = `
-            <div class="bg-white rounded-xl px-4 py-3 border border-neutral-200 font-inter">
+            <div class="bg-white rounded-xl px-4 py-3 border border-neutral-200 font-inter mb-4">
                 <div class="flex items-center justify-between mb-3">
                     <p class="font-semibold text-primary-text tracking-wide">Customer Information</p>
                     <span class="text-xs px-2 py-1 rounded-full ${statusColor}">${status}</span>
@@ -453,13 +472,59 @@ function showCustomerDetails(customer) {
                     </div>
                 ` : ''}
             </div>
+            
+            <div class="bg-white rounded-xl px-4 py-3 border border-neutral-200 font-inter">
+                <div class="flex items-center justify-between mb-3">
+                    <p class="font-semibold text-primary-text tracking-wide">Reports History</p>
+                    <span class="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">${reports.length} Reports</span>
+                </div>
+                
+                ${reports.length > 0 ? `
+                    <div class="space-y-3">
+                        ${reports.map(report => {
+                            const reportDate = new Date(report.dateCreated).toLocaleDateString();
+                            return `
+                                <div class="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-200">
+                                    <div class="flex items-start justify-between mb-3">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2 mb-2">
+                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                                    ${report.transNo}
+                                                </span>
+                                                <span class="text-xs text-gray-500">${reportDate}</span>
+                                            </div>
+                                            <div class="space-y-2">
+                                                <div class="flex items-center gap-2">
+                                                    <span class="text-xs font-medium text-gray-700">Reported by:</span>
+                                                    <span class="text-sm text-blue-700 font-semibold">${report.reportedBy}</span>
+                                                </div>
+                                                <div class="flex items-start gap-2">
+                                                    <span class="text-xs font-medium text-gray-700 mt-0.5">Reason:</span>
+                                                    <span class="text-sm text-gray-800 leading-relaxed">${report.reason || 'No reason specified'}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="flex-shrink-0">
+                                            <svg class="w-5 h-5 text-blue-500" fill="currentColor" viewBox="0 0 20 20">
+                                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                            </svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : `
+                    <p class="text-sm text-neutral-500 text-center py-4">No reports found for this customer.</p>
+                `}
+            </div>
         `;
     }
 
     // Update the modal title section
     const modalTitleSection = modal.querySelector('.font-medium.text-primary.font-manrope');
     if (modalTitleSection) {
-        modalTitleSection.textContent = 'Customer Details:';
+        modalTitleSection.textContent = 'Customer Details & Reports:';
     }
 
     // Update deactivate button based on customer status

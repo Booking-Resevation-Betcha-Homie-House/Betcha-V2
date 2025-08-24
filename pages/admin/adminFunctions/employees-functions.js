@@ -231,7 +231,7 @@ function createEmployeeCard(employee) {
                 <p class="text-base font-bold font-manrope text-primary-text 
                     transition-all duration-300 ease-in-out
                     group-hover:text-primary">
-                    ${employee.firstname} ${employee.minitial} ${employee.lastname}
+                    ${formatEmployeeName(employee)}
                 </p>
                 <div class="flex items-center gap-2">
                     <svg class="w-4 stroke-neutral-500" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -258,6 +258,27 @@ function createEmployeeCard(employee) {
     `;
 
     return card;
+}
+
+// Function to format employee name as "First Name Middle Initial and First Letter of their Surname"
+function formatEmployeeName(employee) {
+    const firstName = employee.firstname || '';
+    const middleInitial = employee.minitial || '';
+    const lastName = employee.lastname || '';
+    
+    // Get first letter of surname
+    const surnameFirstLetter = lastName.charAt(0) || '';
+    
+    // Format: "First Name Middle Initial. and First Letter of their Surname"
+    if (firstName && middleInitial && surnameFirstLetter) {
+        return `${firstName} ${middleInitial}. ${surnameFirstLetter}`;
+    } else if (firstName && surnameFirstLetter) {
+        return `${firstName} ${surnameFirstLetter}`;
+    } else if (firstName) {
+        return firstName;
+    } else {
+        return 'Unknown';
+    }
 }
 
 function createEmptyState(message) {
