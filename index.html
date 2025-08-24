@@ -7,15 +7,15 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Betcha Booking</title>
   </head>
- <body class="bg-background">
+ <body class="bg-background overflow-x-hidden">
 
   <!-- Main Content -->
-    <div class="relative w-screen h-screen flex flex-col bg-[url(/public/images/landingPageBG.jpg)] bg-cover bg-center ">
+    <div class="relative w-full min-h-screen flex flex-col bg-[url(/public/images/landingPageBG.jpg)] bg-cover bg-center overflow-hidden">
       <div class="absolute inset-0 bg-green-950/30 z-10 pointer-events-none"></div>
       
       <!-- Blur + Content Layer -->
-      <div class="absolute w-full inset-0 backdrop-blur-xs flex items-center justify-center z-20 pointer-events-none"></div>
-      <nav class="w-full flex justify-between items-center py-5 px-4 sm:px-10 z-30">
+      <div class="absolute inset-0 backdrop-blur-xs flex items-center justify-center z-20 pointer-events-none"></div>
+      <nav class="w-full max-w-7xl mx-auto flex justify-between items-center py-5 px-4 sm:px-6 lg:px-8 z-30">
         <!-- Logo -->
         <div class="flex gap-2 items-center justify-center">
           <svg class="w-auto h-[24px] fill-secondary-text" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
@@ -102,7 +102,8 @@
     </div>
     
     <!-- About Us -->
-    <div class="relative flex flex-col w-full h-full bg-[url('/images/texture01.png')] bg-no-repeat bg-cover py-20">
+    <div class="relative flex flex-col w-full bg-[url('/images/texture01.png')] bg-no-repeat bg-cover bg-center py-20 overflow-hidden">
+      <div class="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       <div class="flex gap-5 justify-center items-center">
         <div class="border border-primary w-full h-[1px]"></div>
         <svg class="h-5 w-auto fill-primary" viewBox="0 0 26 28" xmlns="http://www.w3.org/2000/svg">
@@ -113,8 +114,8 @@
 
       <div class="flex flex-col justify-center items-center my-10 md:my-36 overflow-hidden">
         <p class="font-manrope text-gray-600 text-xl mb-5">About us</p>
-        <p class="font-playfairDisplay text-primary text-5xl w-full px-10 text-center 
-          mb-20 md:text-8xl md:w-2xl lg:w-4xl">
+        <p class="font-playfairDisplay text-primary text-5xl w-full max-w-full px-4 sm:px-10 text-center 
+          mb-20 md:text-8xl md:max-w-2xl lg:max-w-4xl">
           A <i>Homey</i> Stay Made Just For You.
         </p>
         <p class="font-manrope text-muted text-sm w-full text-center px-10 
@@ -186,22 +187,20 @@
     </div>
 
     <!-- Ads Banner-->
-    <div class="relative flex flex-col justify-center items-center w-full h-[100px] md:h-[250px] md:mt-10 text-white text-center px-4 overflow-hidden">
+    <div id="adsBanner" class="relative flex flex-col justify-center items-center w-full h-[100px] md:h-[250px] md:mt-10 text-center px-4 overflow-hidden">
       <img 
-        src="/public/images/banner01.png" 
+        id="adsBannerImg"
+        src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
         class="absolute inset-0 w-full h-full object-cover filter blur-xs brightness-80"
+        alt="Advertisement Banner"
       />
 
       <!-- Content (above bg) -->
       <div class="relative z-10">
-        <h1 class="text-lg md:text-4xl font-bold tracking-wide drop-shadow-lg">
-          ☀️ Summer Splash Sale!
-        </h1>
-        <p class="text-xs md:text-lg mt-1 md:mt-4 max-w-xl drop-shadow-lg">
-          Book your stay now and enjoy up to 30% off this summer season.
-        </p>
+        <h1 id="adsBannerTitle" class="text-lg md:text-4xl font-bold tracking-wide drop-shadow-lg"></h1>
+        <p id="adsBannerContent" class="text-xs md:text-lg mt-1 md:mt-4 max-w-xl drop-shadow-lg"></p>
       </div>
-
+      </div>
     </div>
 
     <!-- Featured Units -->
@@ -218,7 +217,7 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 w-full mb-5 mt-15 lg:mt-0">
-        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]">
+        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]" id="featuredUnit1">
           <div class="absolute inset-0 bg-[url('/images/unit04.jpg')] bg-cover bg-center z-0 group transition-transform duration-[2000ms] ease-out group-hover:scale-110"></div>
           <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
@@ -247,7 +246,7 @@
           </div>
         </div>
 
-        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]">
+        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]" id="featuredUnit2">
           <div class="absolute inset-0 bg-[url('/images/unit05.jpg')] bg-cover bg-center z-0 transition-transform duration-[2000ms] ease-out group-hover:scale-110"></div>
           <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
@@ -278,7 +277,7 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 w-full">
-        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]">
+        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]" id="featuredUnit3">
           <div class="absolute inset-0 bg-[url('/images/unit01.jpg')] bg-cover bg-center z-0 transition-transform duration-[2000ms] ease-out group-hover:scale-110"></div>
           <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
@@ -306,7 +305,7 @@
             </div>
           </div>
         </div>
-        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]">
+        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]" id="featuredUnit4">
           <div class="absolute inset-0 bg-[url('/images/unit02.jpg')] bg-cover bg-center z-0 transition-transform duration-[2000ms] ease-out group-hover:scale-110"></div>
           <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
@@ -334,7 +333,7 @@
             </div>
           </div>
         </div>
-        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]">
+        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]" id="featuredUnit5">
           <div class="absolute inset-0 bg-[url('/images/unit03.jpg')] bg-cover bg-center z-0 transition-transform duration-[2000ms] ease-out group-hover:scale-110"></div>
           <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
@@ -410,7 +409,7 @@
               with simple answers — so you can find what you need without the hassle.
             </p>
           </div>
-          <div class="col-auto w-full space-y-4 md:col-span-4">
+          <div class="col-auto w-full space-y-4 md:col-span-4" id="faqContainer">
             <!-- FAQ Item -->
             <div class="rounded-3xl border-4 border-black bg-background text-primary-text w-full p-2 shadow-harsh shadow-primary-text md:p-5">
               <button onclick="toggleFaq(this)" class="w-full h-full flex justify-between items-center  text-left hover:cursor-pointer ">
@@ -433,7 +432,6 @@
               </div>
             </div>
 
-
           </div>
         </div>
       </div>
@@ -446,7 +444,7 @@
 
       <div class="relative z-30 grid grid-cols-1 md:grid-cols-2 p-10 gap-10">
         <div class="flex flex-col justify-center items-center gap-2">
-          <p class="font-manrope text-secondary-text text-center font-bold text-5xl md:text-7xl lg:text-8xl">321 days</p>
+          <p class="font-manrope text-secondary-text text-center font-bold text-5xl md:text-7xl lg:text-8xl" id="bookedDays">321 days</p>
           <p class="font-roboto text-secondary-text">of booked dates</p>
         </div>
 
@@ -667,7 +665,7 @@
           <button id="closeFullscreenModal"
             class="group relative rounded-full border border-background px-6 py-3 mt-10 z-50 flex items-center justify-center overflow-hidden 
             hover:cursor-pointer  active:scale-95
-            transition-all duration-300 ease-in-out " onclick="window.location.href='https://betchatrial.netlify.app/netlify-proxy-test.html'" >
+            transition-all duration-300 ease-in-out ">
           
             <span class="text-secondary-text font-manrope text-base font-bold 
             group-hover:-translate-x-1
@@ -689,7 +687,8 @@
       </div>
     </div>
 
-  <script defer src="src/modal.js"></script>
-  <script defer src="src/faqs.js"></script>
-</body>
+    <script src="pages/unauth/unauthFunctions/landingPage-functions.js"></script>
+    <script defer src="src/modal.js"></script>
+    <script defer src="src/faqs.js"></script>
+  </body>
 </html>
