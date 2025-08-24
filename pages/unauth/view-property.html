@@ -230,16 +230,16 @@
 
       <!-- Big Left Image -->
       <div class="rounded-none bg-neutral-300 h-full col-span-1 sm:col-span-3 flex items-center justify-center text-white
-        md:rounded-2xl">
+        md:rounded-2xl" id="photo1">
         No photo
       </div>
 
       <!-- Right side two images -->
       <div class="hidden sm:grid sm:col-span-2 sm:grid-rows-2 sm:gap-3 h-full">
-        <div class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white">
+        <div class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white" id="photo2">
           No photo
         </div>
-        <div class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white">
+        <div class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white" id="photo3">
           No photo
         </div>
       </div>
@@ -344,7 +344,7 @@
               <svg class="w-auto h-3 fill-yellow-400" viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
                 <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
               </svg>
-              <span class="font-inter text-neutral-500">4.5</span>
+              <span class="font-inter text-neutral-500" id="rate">4.5</span>
             </div>
           </div>
 
@@ -378,7 +378,7 @@
             </p>
             <div class="h-[1px] w-full border border-neutral-300 rounded-full"></div>
             <div class="w-full mb-5 p-3">
-              <ul class="flex flex-col list-none text-sm md:text-base">
+              <ul class="flex flex-col list-none text-sm md:text-base" id="amenityList">
                 <li class="w-full p-2">
                   <div class="flex gap-3 items-center">
                     <svg class="h-5 fill-primary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -526,9 +526,9 @@
         <p class="font-manrope text-xl text-primary-text font-medium py-3 md:text-2xl">Location</p>
         <div class="h-[1px] w-full border border-neutral-300"></div>
         <div class="m-3">
-          <p class="font-inter text-neutral-500 py-3 mb-2 text-sm md:text-base">Full address</p>
+          <p class="font-inter text-neutral-500 py-3 mb-2 text-sm md:text-base" id="fulladd">Full address</p>
           <div id="mapContainer" class="w-full h-[500px] bg-neutral-100 rounded-2xl overflow-hidden">
-            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3858.9397163310573!2d121.05891147478252!3d14.716000285784096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b08c3aa74213%3A0x325214dc350bb0d1!2sSTI%20College%20Fairview!5e0!3m2!1sen!2sph!4v1752067526435!5m2!1sen!2sph" 
+            <iframe id="maplink" src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3858.9397163310573!2d121.05891147478252!3d14.716000285784096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b08c3aa74213%3A0x325214dc350bb0d1!2sSTI%20College%20Fairview!5e0!3m2!1sen!2sph!4v1752067526435!5m2!1sen!2sph" 
                 class="w-full h-full"
                 style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
             </iframe>
@@ -626,7 +626,7 @@
             
 
             <!-- 🖼️ 2-Column Photo Grid -->
-            <div class="grid md:grid-cols-2 gap-4 ">
+            <div class="grid md:grid-cols-2 gap-4 " id="allPhoto">
               <img src="/public/images/unit01.jpg" alt="Room view 1" class="rounded-xl w-full h-100 object-cover" />
               <img src="/public/images/unit02.jpg" alt="Room view 1" class="rounded-xl w-full h-100 object-cover" />
               <img src="/public/images/unit03.jpg" alt="Room view 1" class="rounded-xl w-full h-100 object-cover" />
@@ -662,8 +662,7 @@
             <p class="font-manrope text-3xl text-primary-text font-medium mb-5">Included Perks</p>
 
             <!-- Ammenities List -->
-
-            <div class="px-3 mb-5">
+            <div class="px-3 mb-5" id="amenitiesModal">
               <p class="font-manrope text-2xl text-primary-text">Essentials</p>
               <ul class="flex flex-wrap list-none">
                 <li id="essentials-wifi" class="w-full p-2">
@@ -1494,7 +1493,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                   </svg>
                 </button>
-                <span class="guestCount w-6 text-center text-primary-text font-medium">1</span>
+                <span class="guestCount w-6 text-center text-primary-text font-medium" id="guestCount">1</span>
                 <button class="increaseGuest text-lg text-neutral-600 !p-4 rounded-full 
                   hover:bg-primary/10 hover:text-black active:bg-primary/10 active:scale-95
                   transition-all duration-300 ease-in-out" 
@@ -1657,7 +1656,7 @@
               <button type="button" 
                 class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-sm
                 hover:cursor-pointer active:scale-95 hover:shaadow-lg
-                transition-all duration-300 ease-in-out">
+                transition-all duration-300 ease-in-out" id="confirmDate">
                     <span class="text-secondary-text text-base  
                     group-hover:-translate-x-1 
                     transition-transform duration-500 ease-in-out
@@ -1721,7 +1720,7 @@
           <button type="button" 
             class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-sm
             hover:cursor-pointer active:scale-95 hover:shaadow-lg
-            transition-all duration-300 ease-in-out">
+            transition-all duration-300 ease-in-out" id="confirmGuestCount">
                 <span class="text-secondary-text text-base  
                 group-hover:-translate-x-1 
                 transition-transform duration-500 ease-in-out
@@ -1747,6 +1746,7 @@
     <script defer src="../../src/multipleTabs.js"></script>
     <script defer src="../../src/modal.js"></script>
     <script defer src="../../src/notification.js"></script>
-    <script defer src="../../src/readTextToggle.js  "></script>
+    <script defer src="../../src/readTextToggle.js"></script>
+    <script defer src="./unauthFunctions/view-property-functions.js"></script>
 </body>
 </html>

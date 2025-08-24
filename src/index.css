@@ -1,6 +1,15 @@
 @import "tailwindcss";
 @import url('https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Manrope:wght@200..800&family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap');
 
+/* Modal scroll handling */
+body.modal-open {
+  overflow: hidden;
+}
+
+body:not(.modal-open) {
+  overflow: auto;
+}
+
 @theme{
   --font-inter: "Inter", sans-serif;
   --font-manrope: "Manrope", sans-serif;

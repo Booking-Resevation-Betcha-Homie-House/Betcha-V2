@@ -148,7 +148,8 @@ async function fetchAndDisplayFeaturedUnits() {
 
             const cardContent = unitCard.querySelector('.relative.z-20');
             if (cardContent) {
-                cardContent.onclick = () => window.location.href = `/pages/unauth/property.html?id=${unit._id}`;
+                cardContent.onclick = () => window.location.href = `/pages/unauth/view-property.html?id=${unit._id}`;
+                cardContent.style.cursor = 'pointer';
             }
         }
     } catch (error) {
