@@ -28,11 +28,11 @@ document.addEventListener('DOMContentLoaded', function () {
 
     tabBtns.forEach((btn, index) => {
       btn.addEventListener('click', () => {
-        setActiveTab(group, index);
+        window.setActiveTab(group, index);
       });
     });
 
     // Optional: activate first tab by default
-    setActiveTab(group, 0);
+    window.setActiveTab(group, 0);
   });
 });
