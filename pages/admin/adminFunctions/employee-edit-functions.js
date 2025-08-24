@@ -1,3 +1,6 @@
+// API Base URL
+const API_BASE = 'https://betcha-api.onrender.com';
+
 // Employee Edit Form Population Functions
 // Add the password and confirm password field?
 // Utility function to parse employee field data
@@ -111,7 +114,7 @@ document.addEventListener('DOMContentLoaded', function() {
 async function populateEmployeeEditForm(employeeId) {
     try {
         // Fetch employee data
-        const response = await fetch('/api/employee/display');
+        const response = await fetch(`${API_BASE}/employee/display`);
         const employees = await response.json();
         
         // Find the specific employee
@@ -160,7 +163,7 @@ async function populateRoles(employee) {
         if (!employeeRoles) return;
         
         // Fetch all available roles
-        const response = await fetch('/api/roles/display');
+        const response = await fetch(`${API_BASE}/roles/display`);
         const rolesData = await response.json();
         const allRoles = rolesData.value || rolesData;
         
@@ -226,7 +229,7 @@ async function populateAssignedProperties(employee) {
         if (!employeeProperties) return;
         
         // Fetch all properties
-        const response = await fetch('/api/property/display');
+        const response = await fetch(`${API_BASE}/property/display`);
         const allProperties = await response.json();
         
         // Wait for Alpine.js initialization
@@ -468,10 +471,10 @@ async function submitEmployeeUpdate() {
         
         console.log('Update data being sent:', updateData);
         console.log('Employee ID:', employeeId);
-        console.log('API URL:', `/api/employee/update/${employeeId}`);
+        console.log('API URL:', `${API_BASE}/employee/update/${employeeId}`);
         
         // Make API call to update employee
-        const response = await fetch(`/api/employee/update/${employeeId}`, {
+        const response = await fetch(`${API_BASE}/employee/update/${employeeId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
@@ -528,7 +531,7 @@ async function handleProfilePictureUpdate(employeeId) {
         formData.append('pfp', profilePicture);
         
         // Make API call to update profile picture
-        const response = await fetch(`/api/employee/update/pfp/${employeeId}`, {
+        const response = await fetch(`${API_BASE}/employee/update/pfp/${employeeId}`, {
             method: 'PUT',
             body: formData
         });

@@ -1,5 +1,5 @@
 // Payment functions for admin panel
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'https://betcha-api.onrender.com';
 
 // Constants for reusable styles and configurations
 const UI_STYLES = {

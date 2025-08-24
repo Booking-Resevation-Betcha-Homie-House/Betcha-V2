@@ -1,5 +1,8 @@
 // Add Role functionality for Admin panel
 
+// API Base URL
+const API_BASE = 'https://betcha-api.onrender.com';
+
 // Function to collect form data
 function collectFormData() {
     // Get role name
@@ -40,7 +43,7 @@ function validateFormData(data) {
 // Function to create a new role via API
 async function createRole(roleData) {
     try {
-        const response = await fetch('/api/roles/create', {
+        const response = await fetch(`${API_BASE}/roles/create`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

@@ -2,6 +2,9 @@
 // Role List is populated dynamically from the API
 // Property List is populated dynamically from the API
 
+// API Base URL
+const API_BASE = 'https://betcha-api.onrender.com';
+
 
 async function addEmployee() {
     let originalText = ''; // Declare originalText outside try block to fix scope issue
@@ -142,7 +145,7 @@ async function addEmployee() {
 
 
         // Make API call
-        const response = await fetch('/api/employee/create', {
+        const response = await fetch(`${API_BASE}/employee/create`, {
             method: 'POST',
             body: formData
         });
@@ -359,7 +362,7 @@ document.addEventListener('DOMContentLoaded', function() {
 // Function to fetch and populate roles from the API
 async function populateRoles() {
     try {
-        const response = await fetch('/api/roles/display');
+        const response = await fetch(`${API_BASE}/roles/display`);
         
         if (!response.ok) {
             throw new Error(`Failed to fetch roles: ${response.statusText}`);
@@ -539,7 +542,7 @@ window.removeRole = removeRole;
 // Function to fetch and populate properties from the API
 async function populateProperties() {
     try {
-        const response = await fetch('/api/property/display');
+        const response = await fetch(`${API_BASE}/property/display`);
         
         if (!response.ok) {
             throw new Error(`Failed to fetch properties: ${response.statusText}`);

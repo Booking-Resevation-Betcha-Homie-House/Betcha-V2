@@ -4,10 +4,13 @@
 //
 let allRoles = [];
 
+// API Base URL
+const API_BASE = 'https://betcha-api.onrender.com';
+
 // Fetch all roles from the API
 async function fetchRoles() {
     try {
-        const response = await fetch('/api/roles/display', {
+        const response = await fetch(`${API_BASE}/roles/display`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -200,7 +203,7 @@ async function deleteRole(roleId) {
     }
 
     try {
-        const response = await fetch(`/api/roles/delete/${roleId}`, {
+        const response = await fetch(`${API_BASE}/roles/delete/${roleId}`, {
             method: 'DELETE',
             headers: {
                 'Content-Type': 'application/json'

@@ -1,5 +1,8 @@
 document.addEventListener("DOMContentLoaded", () => {
-  const unavailableDates = ["2025-07-04", "2025-07-05"];
+  // Initialize with empty arrays, will be populated by property-view.js
+  let unavailableDates = [];
+  let bookedDates = [];
+  let maintenanceDates = [];
 
   document.querySelectorAll(".calendar-instance").forEach(calendarEl => {
     let currentDate = new Date();
@@ -31,14 +34,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
       for (let d = 1; d <= daysInMonth; d++) {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isBooked = bookedDates.includes(dateStr);
+        const isMaintenance = maintenanceDates.includes(dateStr);
         const isUnavailable = unavailableDates.includes(dateStr);
         const isSelected = selectedDate === dateStr;
 
         let classes = "w-full aspect-square text-xs flex items-center justify-center rounded cursor-pointer transition ";
-        if (isUnavailable) {
+        
+        if (isBooked) {
+          classes += "bg-primary text-white font-bold";
+        } else if (isMaintenance) {
+          classes += "bg-rose-700 text-white font-bold";
+        } else if (isUnavailable) {
           classes += "bg-neutral-200 text-neutral-400 cursor-not-allowed";
         } else if (isSelected) {
-          classes += "bg-primary text-white font-bold";
+          classes += "bg-secondary text-white font-bold";
         } else {
           classes += "bg-background text-black hover:bg-secondary";
         }
@@ -67,6 +77,21 @@ document.addEventListener("DOMContentLoaded", () => {
 
     calendarEl.querySelector(".nextMonth").addEventListener("click", () => {
       currentDate.setMonth(currentDate.getMonth() + 1);
+      render();
+    });
+
+    // Listen for calendar data updates from property-view.js
+    calendarEl.addEventListener("calendarDataUpdated", (event) => {
+      console.log("📅 Calendar data update received in calendar2.js:", event.detail);
+      
+      // Update the date arrays
+      bookedDates = event.detail.bookedDates || [];
+      maintenanceDates = event.detail.maintenanceDates || [];
+      unavailableDates = event.detail.allUnavailableDates || [];
+      
+      console.log("📅 Updated dates - Booked:", bookedDates, "Maintenance:", maintenanceDates);
+      
+      // Re-render the calendar with new data
       render();
     });
 

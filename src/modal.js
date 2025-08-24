@@ -59,13 +59,92 @@ document.addEventListener('DOMContentLoaded', () => {
               console.log(`📊 Found ${xDataElements.length} Alpine.js components in modal`);
             }
             
-            // Re-apply amenity selections when modal opens (if function exists)
-            if (window.currentPropertyData && window.populateAmenities) {
-              window.populateAmenities(window.currentPropertyData.amenities, window.currentPropertyData.otherAmenities);
-              console.log('🏠 Amenities data repopulated in modal');
-            }
+            // Note: Amenities are already populated when the page loads, no need to repopulate here
+            // This prevents duplicate population issues
+            console.log('🏠 Amenities modal opened - data already populated');
           }, 150);
         }
+        
+        // Special handling for regular amenities modal
+        if (targetId === 'ammenitiesModal') {
+          console.log('🏠 Regular amenities modal opened');
+          
+          // Check if amenities are populated in the new categorized structure
+          const essentialsContainer = targetModal.querySelector('#essentialsList');
+          const kitchenDiningContainer = targetModal.querySelector('#kitchenDiningList');
+          const safetySecurityContainer = targetModal.querySelector('#safetySecurityList');
+          const entertainmentContainer = targetModal.querySelector('#entertainmentList');
+          const outdoorParkingContainer = targetModal.querySelector('#outdoorParkingList');
+          const othersContainer = targetModal.querySelector('#othersContainer');
+          
+          if (essentialsContainer) {
+            console.log('✅ Essentials container found in modal');
+            if (essentialsContainer.children.length === 0) {
+              console.warn('⚠️ Essentials container is empty - amenities may not have been populated');
+            } else {
+              console.log(`📊 Found ${essentialsContainer.children.length} essential amenities in modal`);
+            }
+          } else {
+            console.error('❌ Essentials container not found in modal');
+          }
+          
+          if (kitchenDiningContainer) {
+            console.log('✅ Kitchen & Dining container found in modal');
+            if (kitchenDiningContainer.children.length === 0) {
+              console.log('ℹ️ Kitchen & Dining container is empty (no kitchen amenities)');
+            } else {
+              console.log(`📊 Found ${kitchenDiningContainer.children.length} kitchen & dining amenities in modal`);
+            }
+          } else {
+            console.error('❌ Kitchen & Dining container not found in modal');
+          }
+          
+          if (safetySecurityContainer) {
+            console.log('✅ Safety & Security container found in modal');
+            if (safetySecurityContainer.children.length === 0) {
+              console.log('ℹ️ Safety & Security container is empty (no safety amenities)');
+            } else {
+              console.log(`📊 Found ${safetySecurityContainer.children.length} safety & security amenities in modal`);
+            }
+          } else {
+            console.error('❌ Safety & Security container not found in modal');
+          }
+          
+          if (entertainmentContainer) {
+            console.log('✅ Entertainment container found in modal');
+            if (entertainmentContainer.children.length === 0) {
+              console.log('ℹ️ Entertainment container is empty (no entertainment amenities)');
+            } else {
+              console.log(`📊 Found ${entertainmentContainer.children.length} entertainment amenities in modal`);
+            }
+          } else {
+            console.error('❌ Entertainment container not found in modal');
+          }
+          
+          if (outdoorParkingContainer) {
+            console.log('✅ Outdoor & Parking container found in modal');
+            if (outdoorParkingContainer.children.length === 0) {
+              console.log('ℹ️ Outdoor & Parking container is empty (no outdoor amenities)');
+            } else {
+              console.log(`📊 Found ${outdoorParkingContainer.children.length} outdoor & parking amenities in modal`);
+            }
+          } else {
+            console.error('❌ Outdoor & Parking container not found in modal');
+          }
+          
+          if (othersContainer) {
+            console.log('✅ Others container found in modal');
+            if (othersContainer.children.length === 0) {
+              console.log('ℹ️ Others container is empty (no other amenities)');
+            } else {
+              console.log(`📊 Found ${othersContainer.children.length} other amenity items in modal`);
+            }
+          } else {
+            console.error('❌ Others container not found in modal');
+          }
+        }
+      } else {
+        console.error(`Modal with ID '${targetId}' not found`);
       }
     });
   });
@@ -77,6 +156,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (modal) {
         modal.classList.add('hidden');
         document.body.classList.remove('modal-open'); // 👈 unlock scroll
+        
+        // Dispatch custom event for modal closing
+        const modalClosedEvent = new CustomEvent('modalClosed', {
+          detail: { modalId: modal.id, modal: modal }
+        });
+        document.dispatchEvent(modalClosedEvent);
       }
     });
   });
@@ -87,8 +172,31 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.target === modal) {
         modal.classList.add('hidden');
         document.body.classList.remove('modal-open'); // 👈 unlock scroll
+        
+        // Dispatch custom event for modal closing
+        const modalClosedEvent = new CustomEvent('modalClosed', {
+          detail: { modalId: modal.id, modal: modal }
+        });
+        document.dispatchEvent(modalClosedEvent);
       }
     });
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      const openModal = document.querySelector('.modal:not(.hidden)');
+      if (openModal) {
+        openModal.classList.add('hidden');
+        document.body.classList.remove('modal-open'); // 👈 unlock scroll
+        
+        // Dispatch custom event for modal closing
+        const modalClosedEvent = new CustomEvent('modalClosed', {
+          detail: { modalId: openModal.id, modal: openModal }
+        });
+        document.dispatchEvent(modalClosedEvent);
+      }
+    }
   });
 
 });

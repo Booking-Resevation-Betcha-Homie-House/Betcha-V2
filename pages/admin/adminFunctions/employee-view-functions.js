@@ -5,6 +5,9 @@
  */
 // almost complete needed to finish the profile button and the notification 
 
+// API Base URL
+const API_BASE = 'https://betcha-api.onrender.com';
+
 let currentEmployeeId = null;
 
 async function populateEmployeeDetails() {
@@ -25,7 +28,7 @@ async function populateEmployeeDetails() {
 	
 	try {
 		console.log('Fetching employee details for ID:', employeeId);
-		const response = await fetch(`/api/employee/display/${employeeId}`);
+		const response = await fetch(`${API_BASE}/employee/display/${employeeId}`);
 		
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
@@ -168,7 +171,7 @@ async function populateAssignedProperties(properties) {
 		
 		// Fetch all properties from API
 		console.log('Fetching properties data...');
-		const response = await fetch('/api/property/display');
+		const response = await fetch(`${API_BASE}/property/display`);
 		
 		if (!response.ok) {
 			throw new Error(`HTTP error! status: ${response.status}`);
@@ -350,7 +353,7 @@ async function deactivateEmployee() {
 
 	try {
 		console.log('Deactivating employee:', currentEmployeeId);
-		const response = await fetch(`/api/employee/archive/${currentEmployeeId}`, {
+		const response = await fetch(`${API_BASE}/employee/archive/${currentEmployeeId}`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'
@@ -385,7 +388,7 @@ async function reactivateEmployee() {
 
 	try {
 		console.log('Reactivating employee:', currentEmployeeId);
-		const response = await fetch(`/api/employee/unarchive/${currentEmployeeId}`, {
+		const response = await fetch(`${API_BASE}/employee/unarchive/${currentEmployeeId}`, {
 			method: 'PUT',
 			headers: {
 				'Content-Type': 'application/json'

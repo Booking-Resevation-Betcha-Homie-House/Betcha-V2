@@ -347,6 +347,8 @@
                         grid grid-cols-1 sm:grid-cols-5 gap-3
                         h-[250px] md:h-[400px]">
 
+
+
                 <!-- Big Left Image -->
                 <div class="rounded-2xl bg-neutral-300 h-full col-span-1 sm:col-span-3 flex items-center justify-center text-white">
                   No photos
@@ -1048,6 +1050,14 @@
                                   file: file,
                                   size: this.formatFileSize(file.size)
                               });
+                              this.updateConfirmButtonState();
+                              // Update PhotosSection display
+                              console.log('Alpine.js: Calling updatePhotosSection with images:', this.images);
+                              if (window.updatePhotosSection) {
+                                  window.updatePhotosSection(this.images);
+                              } else {
+                                  console.error('Alpine.js: updatePhotosSection function not found!');
+                              }
                           };
                           reader.readAsDataURL(file);
                       });
@@ -1075,6 +1085,11 @@
                       // Remove from both arrays
                       this.images.splice(index, 1);
                       this.selectedFiles.splice(index, 1);
+                      this.updateConfirmButtonState();
+                      // Update PhotosSection display
+                      if (window.updatePhotosSection) {
+                          window.updatePhotosSection(this.images);
+                      }
                   },
                   
                   formatFileSize(bytes) {
@@ -1088,6 +1103,35 @@
                   clearAllImages() {
                       this.images = [];
                       this.selectedFiles = [];
+                      this.updateConfirmButtonState();
+                      // Update PhotosSection display
+                      console.log('Alpine.js: clearAllImages - Calling updatePhotosSection with images:', this.images);
+                      if (window.updatePhotosSection) {
+                          window.updatePhotosSection(this.images);
+                      } else {
+                          console.error('Alpine.js: updatePhotosSection function not found!');
+                      }
+                  },
+                  
+                  updateConfirmButtonState() {
+                      const confirmBtn = document.getElementById('confirmPropertyBtn');
+                      if (confirmBtn) {
+                          if (this.images.length >= 3) {
+                              confirmBtn.disabled = false;
+                              confirmBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                              confirmBtn.classList.add('hover:cursor-pointer', 'active:scale-95');
+                          } else {
+                              confirmBtn.disabled = true;
+                              confirmBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                              confirmBtn.classList.remove('hover:cursor-pointer', 'active:scale-95');
+                          }
+                      }
+                  },
+                  
+                  init() {
+                      this.$nextTick(() => {
+                          this.updateConfirmButtonState();
+                      });
                   },
                   
                   showError(message) {
@@ -1114,9 +1158,19 @@
                             <span x-show="!isDragOver">Drop images here or click to browse</span>
                             <span x-show="isDragOver">Drop images here!</span>
                         </span>
-                        <span class="text-xs text-neutral-500 mt-1" x-show="!isDragOver">
-                            Max 10 images, 5MB each
+                        <div class="text-xs mt-2 space-y-1" x-show="!isDragOver">
+                            <div class="flex items-center justify-center gap-1.5">
+                                <span class="font-semibold text-rose-600">Minimum 3 images required</span>
+                                <span class="text-neutral-400">•</span>
+                                <span class="text-neutral-600">Max 10 images, 5MB each</span>
+                            </div>
+                        </div>
+                        <div class="mt-2" x-show="images.length > 0">
+                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium"
+                                  :class="images.length >= 3 ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'">
+                                <span x-text="`${images.length}/3 images selected`"></span>
                         </span>
+                        </div>
                         <input id="images" type="file" multiple accept="image/*" class="hidden" @change="previewImages">
                     </label>
 
@@ -1148,10 +1202,29 @@
                 <!-- Image Summary and Clear All Button -->
                 <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4" x-show="images.length > 0">
                     <!-- Image Summary -->
-                    <div class="text-sm text-neutral-600">
-                        <span x-text="`${images.length} image${images.length !== 1 ? 's' : ''} selected`"></span>
-                        <span x-show="images.length > 0" class="mx-2">•</span>
-                        <span x-show="images.length > 0" x-text="`Total: ${formatFileSize(selectedFiles.reduce((sum, file) => sum + file.size, 0))}`"></span>
+                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 text-sm">
+                        <!-- Image Count -->
+                        <div class="flex items-center gap-2">
+                            <span class="font-medium text-neutral-700" x-text="`${images.length} image${images.length !== 1 ? 's' : ''} selected`"></span>
+                            <span class="text-neutral-400">•</span>
+                            <span class="text-neutral-600" x-text="`Total: ${formatFileSize(selectedFiles.reduce((sum, file) => sum + file.size, 0))}`"></span>
+                        </div>
+                        
+                        <!-- Status Indicator -->
+                        <div class="flex items-center gap-2">
+                            <span x-show="images.length >= 3" class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-green-100 text-green-700 text-xs font-medium">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                                Minimum requirement met
+                            </span>
+                            <span x-show="images.length > 0 && images.length < 3" class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-amber-100 text-amber-700 text-xs font-medium">
+                                <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/>
+                                </svg>
+                                <span x-text="images.length === 2 ? 'Need one more image' : 'Need two more images'"></span>
+                            </span>
+                        </div>
                     </div>
                     
                     <!-- Clear All Button -->
@@ -2425,12 +2498,12 @@
 
               </span>
             </button>
-            <button type="button"  
+            <button type="button" id="confirmPropertyBtn"
               class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden order-1
               transition-all duration-300 ease-in-out 
               hover:cursor-pointer active:scale-95  
               lg:order-2">
-                <span class="text-secondary-text text-lg transition-transform duration-500 ease-in-out group-hover:-translate-x-1">Confirm</span>
+                <span class="text-secondary-text text-lg transition-transform duration-500 ease-in-out group-hover:-translate-x-1" x-text="images.length >= 3 ? 'Confirm' : 'Need 3+ Images'"></span>
                 <span class="overflow-hidden max-w-[30px] lg:max-w-0 lg:group-hover:max-w-[30px] transition-all duration-500 ease-in-out">
                     <svg class="w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9.55006 15.15L18.0251 6.675C18.2251 6.475 18.4584 6.375 18.7251 6.375C18.9917 6.375 19.2251 6.475 19.4251 6.675C19.6251 6.875 19.7251 7.11267 19.7251 7.388C19.7251 7.66333 19.6251 7.90067 19.4251 8.1L10.2501 17.3C10.0501 17.5 9.81673 17.6 9.55006 17.6C9.28339 17.6 9.05006 17.5 8.85006 17.3L4.55006 13C4.35006 12.8 4.25406 12.5627 4.26206 12.288C4.27006 12.0133 4.37439 11.7757 4.57506 11.575C4.77572 11.3743 5.01339 11.2743 5.28806 11.275C5.56272 11.2757 5.80006 11.3757 6.00006 11.575L9.55006 15.15Z"/>

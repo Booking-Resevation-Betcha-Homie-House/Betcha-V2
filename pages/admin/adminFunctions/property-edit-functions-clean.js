@@ -1,13 +1,18 @@
 //refractor or clean the code if possible
 
 // ==================== CONSTANTS & GLOBALS ====================
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'https://betcha-api.onrender.com';
 let currentPropertyId = null;
 let currentPropertyImages = [];
 
 // ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Property Edit Functions - DOM loaded!');
+    
+    // Check if global amenity functions are available
+    console.log('🔍 Checking global amenity functions availability:');
+    console.log('  - window.getAmenityDisplayInfo:', typeof window.getAmenityDisplayInfo);
+    console.log('  - window.getAmenityIcon:', typeof window.getAmenityIcon);
     
     const propertyId = getPropertyIdFromUrl();
     if (propertyId) {
@@ -359,37 +364,11 @@ function populateAmenities(amenities, otherAmenities) {
 function updateAmenitiesDisplay(amenities) {
     console.log('Updating amenities display with:', amenities);
     
-    // Find the amenities container using a more robust approach
-    let container = null;
-    
-    // First try: Find by looking for the "Ammenities" text
-    const amenitiesHeaders = document.querySelectorAll('p');
-    for (let header of amenitiesHeaders) {
-        if (header.textContent.trim().includes('Ammenities')) {
-            // Get the parent container and find the UL within it
-            const parent = header.closest('.bg-white');
-            if (parent) {
-                container = parent.querySelector('ul');
-                break;
-            }
-        }
-    }
-    
-    // Second try: Direct search by structure
-    if (!container) {
-        const amenitiesSections = document.querySelectorAll('.bg-white');
-        for (let section of amenitiesSections) {
-            const amenitiesText = section.querySelector('p');
-            if (amenitiesText && amenitiesText.textContent.includes('Ammenities')) {
-                container = section.querySelector('ul');
-                break;
-            }
-        }
-    }
+    // Find the amenities container by ID
+    const container = document.getElementById('amenitiesDisplay');
     
     if (!container) {
-        console.warn('Amenities display container not found. Available sections:', 
-                    document.querySelectorAll('.bg-white').length);
+        console.warn('Amenities display container not found with ID: amenitiesDisplay');
         return;
     }
     
@@ -410,47 +389,183 @@ function updateAmenitiesDisplay(amenities) {
         return;
     }
     
-    // Amenity display mapping
-    const amenityDisplayMap = {
-        'wifi': { name: 'Wifi', icon: 'M11.9999 21C11.2999 21 10.7082 20.7583 10.2249 20.275C9.74152 19.7917 9.49985 19.2 9.49985 18.5C9.49985 17.8 9.74152 17.2083 10.2249 16.725C10.7082 16.2417 11.2999 16 11.9999 16C12.6999 16 13.2915 16.2417 13.7749 16.725C14.2582 17.2083 14.4999 17.8 14.4999 18.5C14.4999 19.2 14.2582 19.7917 13.7749 20.275C13.2915 20.7583 12.6999 21 11.9999 21ZM11.9999 10C13.2499 10 14.4375 10.2 15.5629 10.6C16.6882 11 17.7089 11.55 18.6249 12.25C18.9582 12.5 19.1292 12.8293 19.1379 13.238C19.1465 13.6467 19.0005 14.0007 18.6999 14.3C18.4165 14.5833 18.0665 14.7293 17.6499 14.738C17.2332 14.7467 16.8582 14.634 16.5249 14.4C15.8915 13.9667 15.1915 13.625 14.4249 13.375C13.6582 13.125 12.8499 13 11.9999 13C11.1499 13 10.3415 13.125 9.57485 13.375C8.80818 13.625 8.10818 13.9667 7.47485 14.4C7.14152 14.6333 6.76652 14.7417 6.34985 14.725C5.93318 14.7083 5.58318 14.5583 5.29985 14.275C5.01652 13.975 4.87485 13.621 4.87485 13.213C4.87485 12.805 5.04152 12.4757 5.37485 12.225C6.29152 11.525 7.31252 10.979 8.43785 10.587C9.56318 10.195 10.7505 9.99933 11.9999 10ZM11.9999 4C14.0832 4 16.0459 4.34167 17.8879 5.025C19.7299 5.70833 21.3839 6.675 22.8499 7.925C23.1832 8.20833 23.3582 8.55833 23.3749 8.975C23.3915 9.39167 23.2499 9.75 22.9499 10.05C22.6665 10.3333 22.3165 10.4793 21.8999 10.488C21.4832 10.4967 21.1082 10.3673 20.7749 10.1C19.5749 9.11667 18.2292 8.35433 16.7379 7.813C15.2465 7.27167 13.6672 7.00067 11.9999 7C10.3325 6.99933 8.75352 7.27033 7.26285 7.813C5.77218 8.35567 4.42618 9.118 3.22485 10.1C2.89152 10.3667 2.51652 10.496 2.09985 10.488C1.68318 10.48 1.33318 10.334 1.04985 10.05C0.749851 9.75 0.608184 9.39167 0.624851 8.975C0.641518 8.55833 0.816518 8.20833 1.14985 7.925C2.61652 6.675 4.27085 5.70833 6.11285 5.025C7.95485 4.34167 9.91718 4 11.9999 4Z' },
-        'aircon': { name: 'Air conditioning', icon: 'M18.0002 4C18.7959 4 19.5589 4.31607 20.1215 4.87868C20.6842 5.44129 21.0002 6.20435 21.0002 7V12C21.0002 12.7956 20.6842 13.5587 20.1215 14.1213C19.5589 14.6839 18.7959 15 18.0002 15H6.00023C5.20458 15 4.44152 14.6839 3.87891 14.1213C3.3163 13.5587 3.00023 12.7956 3.00023 12V7C3.00023 6.20435 3.3163 5.44129 3.87891 4.87868C4.44152 4.31607 5.20458 4 6.00023 4H18.0002ZM18.0002 6H6.00023C5.7553 6.00003 5.51889 6.08996 5.33586 6.25272C5.15282 6.41547 5.03589 6.63975 5.00723 6.883L5.00023 7V12C5.00026 12.2449 5.09019 12.4813 5.25294 12.6644C5.4157 12.8474 5.63998 12.9643 5.88323 12.993L6.00023 13V11C6.00026 10.7551 6.09019 10.5187 6.25294 10.3356C6.4157 10.1526 6.63998 10.0357 6.88323 10.007L7.00023 10H17.0002C17.2452 10 17.4816 10.09 17.6646 10.2527C17.8476 10.4155 17.9646 10.6397 17.9932 10.883L18.0002 11V13C18.2452 13 18.4816 12.91 18.6646 12.7473C18.8476 12.5845 18.9646 12.3603 18.9932 12.117L19.0002 12V7C19.0002 6.75507 18.9103 6.51866 18.7475 6.33563C18.5848 6.15259 18.3605 6.03566 18.1172 6.007L18.0002 6ZM16.0002 12H8.00023V13H16.0002V12ZM16.0002 7C16.2654 7 16.5198 7.10536 16.7073 7.29289C16.8949 7.48043 17.0002 7.73478 17.0002 8C17.0002 8.26522 16.8949 8.51957 16.7073 8.70711C16.5198 8.89464 16.2654 9 16.0002 9C15.735 9 15.4807 8.89464 15.2931 8.70711C15.1056 8.51957 15.0002 8.26522 15.0002 8C15.0002 7.73478 15.1056 7.48043 15.2931 7.29289C15.4807 7.10536 15.735 7 16.0002 7ZM10.0002 16C10.2654 16 10.5198 16.1054 10.7073 16.2929C10.8949 16.4804 11.0002 16.7348 11.0002 17V18.172C10.9998 18.9672 10.6836 19.7298 10.1212 20.292L9.70723 20.707C9.51863 20.8892 9.26603 20.99 9.00383 20.9877C8.74163 20.9854 8.49082 20.8802 8.30541 20.6948C8.12 20.5094 8.01483 20.2586 8.01256 19.9964C8.01028 19.7342 8.11107 19.4816 8.29323 19.293L8.70723 18.879C8.89478 18.6915 9.00017 18.4372 9.00023 18.172V17C9.00023 16.7348 9.10559 16.4804 9.29312 16.2929C9.48066 16.1054 9.73501 16 10.0002 16ZM13.0002 17C13.0002 16.7348 13.1056 16.4804 13.2931 16.2929C13.4807 16.1054 13.735 16 14.0002 16C14.2654 16 14.5198 16.1054 14.7073 16.2929C14.8949 16.4804 15.0002 16.7348 15.0002 17V18.172C15.0003 18.4372 15.1057 18.6915 15.2932 18.879L15.7072 19.293C15.8027 19.3852 15.8789 19.4956 15.9313 19.6176C15.9837 19.7396 16.0113 19.8708 16.0125 20.0036C16.0136 20.1364 15.9883 20.2681 15.9381 20.391C15.8878 20.5138 15.8135 20.6255 15.7196 20.7194C15.6257 20.8133 15.5141 20.8875 15.3912 20.9378C15.2683 20.9881 15.1366 21.0134 15.0038 21.0123C14.871 21.0111 14.7398 20.9835 14.6178 20.9311C14.4958 20.8787 14.3855 20.8025 14.2932 20.707L13.8792 20.293C13.3166 19.7305 13.0004 18.9676 13.0002 18.172V17ZM6.00023 16C6.26545 16 6.5198 16.1054 6.70734 16.2929C6.89487 16.4804 7.00023 16.7348 7.00023 17V17.613C7.00012 18.0328 6.86794 18.4418 6.62242 18.7823C6.3769 19.1228 6.03048 19.3774 5.63223 19.51L4.31623 19.949C4.06454 20.0328 3.78986 20.0132 3.55263 19.8945C3.3154 19.7758 3.13504 19.5677 3.05123 19.316C2.96742 19.0643 2.98703 18.7896 3.10574 18.5524C3.22445 18.3152 3.43254 18.1348 3.68423 18.051L5.00023 17.613V17C5.00023 16.7348 5.10559 16.4804 5.29312 16.2929C5.48066 16.1054 5.73501 16 6.00023 16ZM17.0002 17C17.0002 16.7348 17.1056 16.4804 17.2931 16.2929C17.4807 16.1054 17.735 16 18.0002 16C18.2654 16 18.5198 16.1054 18.7073 16.2929C18.8949 16.4804 19.0002 16.7348 19.0002 17V17.613L20.3162 18.051C20.5679 18.1348 20.776 18.3152 20.8947 18.5524C21.0134 18.7896 21.033 19.0643 20.9492 19.316C20.8654 19.5677 20.6851 19.7758 20.4478 19.8945C20.2106 20.0132 19.9359 20.0328 19.6842 19.949L18.3682 19.509C17.9703 19.3765 17.6241 19.1222 17.3786 18.7821C17.1331 18.4421 17.0008 18.0334 17.0002 17.614V17Z' },
-        'stove': { name: 'Stove', icon: 'M12 2C13.1 2 14 2.9 14 4V6H10V4C10 2.9 10.9 2 12 2ZM21 9V7L20 8H19V6C19 5.45 18.55 5 18 5S17 5.45 17 6V8H16L15 7V9H21ZM9 7L8 8H7V6C7 5.45 6.55 5 6 5S5 5.45 5 6V8H4L3 7V9H9ZM2 10V19C2 20.1 2.9 21 4 21H20C21.1 21 22 20.1 22 19V10H2ZM4 12H8V16H4V12ZM10 12H14V16H10V12ZM16 12H20V16H16V12Z' },
-        'bathtub': { name: 'Bathtub', icon: 'M2 12C2 11.45 2.45 11 3 11S4 11.45 4 12V13H2V12ZM20 12C20 11.45 20.45 11 21 11S22 11.45 22 12V13H20V12ZM6 12V9C6 7.9 6.9 7 8 7H16C17.1 7 18 7.9 18 9V12H20V19C20 20.1 19.1 21 18 21H6C4.9 21 4 20.1 4 19V12H6ZM8 9V12H16V9H8Z' },
-        'washer': { name: 'Washer', icon: 'M12 2C13.1 2 14 2.9 14 4V6H10V4C10 2.9 10.9 2 12 2ZM18 8V6C18 4.9 17.1 4 16 4H8C6.9 4 6 4.9 6 6V8C4.9 8 4 8.9 4 10V20C4 21.1 4.9 22 6 22H18C19.1 22 20 21.1 20 20V10C20 8.9 19.1 8 18 8ZM12 18C9.79 18 8 16.21 8 14S9.79 10 12 10 16 11.79 16 14 14.21 18 12 18ZM12 12C10.9 12 10 12.9 10 14S10.9 16 12 16 14 15.1 14 14 13.1 12 12 12Z' },
-        'bedset': { name: 'Complete bed', icon: 'M2 18V13C2 12.55 2.09167 12.1417 2.275 11.775C2.45833 11.4083 2.7 11.0833 3 10.8V8C3 7.16667 3.29167 6.45833 3.875 5.875C4.45833 5.29167 5.16667 5 6 5H10C10.3833 5 10.7417 5.071 11.075 5.213C11.4083 5.355 11.7167 5.55067 12 5.8C12.2833 5.55 12.5917 5.35433 12.925 5.213C13.2583 5.07167 13.6167 5.00067 14 5H18C18.8333 5 19.5417 5.29167 20.125 5.875C20.7083 6.45833 21 7.16667 21 8V10.8C21.3 11.0833 21.5417 11.4083 21.725 11.775C21.9083 12.1417 22 12.55 22 13V18C22 18.2833 21.904 18.521 21.712 18.713C21.52 18.905 21.2827 19.0007 21 19C20.7173 18.9993 20.48 18.9033 20.288 18.712C20.096 18.5207 20 18.2833 20 18V17H4V18C4 18.2833 3.904 18.521 3.712 18.713C3.52 18.905 3.28267 19.0007 3 19C2.71733 18.9993 2.48 18.9033 2.288 18.712C2.096 18.5207 2 18.2833 2 18ZM13 10H19V8C19 7.71667 18.904 7.47933 18.712 7.288C18.52 7.09667 18.2827 7.00067 18 7H14C13.7167 7 13.4793 7.096 13.288 7.288C13.0967 7.48 13.0007 7.71733 13 8V10ZM5 10H11V8C11 7.71667 10.904 7.47933 10.712 7.288C10.52 7.09667 10.2827 7.00067 10 7H6C5.71667 7 5.47933 7.096 5.288 7.288C5.09667 7.48 5.00067 7.71733 5 8V10Z' },
-        'hanger': { name: 'Hangers', icon: 'M14.0002 6C14.0002 5.46957 13.7895 4.96086 13.4144 4.58579C13.0393 4.21071 12.5306 4 12.0002 4C11.4698 4 10.961 4.21071 10.586 4.58579C10.2109 4.96086 10.0002 5.46957 10.0002 6C10.0002 7.667 10.6702 9 12.0002 10H11.9922M11.9922 10L19.9632 14.428C20.2751 14.6012 20.535 14.8548 20.716 15.1623C20.8969 15.4698 20.9923 15.8202 20.9922 16.177V17C20.9922 17.5304 20.7815 18.0391 20.4064 18.4142C20.0313 18.7893 19.5226 19 18.9922 19H4.99219C4.46175 19 3.95305 18.7893 3.57797 18.4142C3.2029 18.0391 2.99219 17.5304 2.99219 17V16.177C2.99209 15.8202 3.08746 15.4698 3.2684 15.1623C3.44933 14.8548 3.70925 14.6012 4.02119 14.428L11.9922 10Z' },
-        'hairDryer': { name: 'Hair Dryer', icon: 'M8 10C9.10457 10 10 9.10457 10 8C10 6.89543 9.10457 6 8 6C6.89543 6 6 6.89543 6 8C6 9.10457 6.89543 10 8 10ZM18 11C18 11 11 14 8 14C6.4087 14 4.88258 13.3679 3.75736 12.2426C2.63214 11.1174 2 9.5913 2 8C2 6.4087 2.63214 4.88258 3.75736 3.75736C4.88258 2.63214 6.4087 2 8 2C11 2 18 5 18 5M18 11V5M18 11L22 13V3L18 5M7 13.9L7.8 19C7.9 19.5 8.4 20 9 20H11C11.6 20 11.9 19.6 11.8 19L10.9 13.5M11.64 18C11.64 18 14.94 16 18.94 16C19.4704 16 19.9791 16.2107 20.3542 16.5858C20.7293 16.9609 20.94 17.4696 20.94 18C20.94 18.5304 20.7293 19.0391 20.3542 19.4142C19.9791 19.7893 19.4704 20 18.94 20H17C16.4696 20 15.9609 20.2107 15.5858 20.5858C15.2107 20.9609 15 21.4696 15 22' }
-    };
+    // Limit to 5 amenities and get user-friendly names and icons
+    const displayAmenities = amenities.slice(0, 5);
+    
+    // Use global amenity functions if available, otherwise fall back to local mapping
+    let amenityMapping = {};
+    
+    if (window.getAmenityDisplayInfo) {
+        // Use the global function to get display info
+        displayAmenities.forEach(amenity => {
+            const info = window.getAmenityDisplayInfo(amenity);
+            amenityMapping[amenity] = { name: info.name, iconType: info.icon };
+        });
+    } else {
+        // Fallback mapping
+        amenityMapping = {
+            'wifi': { name: 'WiFi', iconType: 'wifi' },
+            'ref': { name: 'Refrigerator', iconType: 'refrigerator' },
+            'bathtub': { name: 'Bathtub', iconType: 'bathtub' },
+            'washer': { name: 'Washer', iconType: 'washer' },
+            'streaming': { name: 'Streaming Services', iconType: 'tv' },
+            'smokeAlarm': { name: 'Smoke Alarm', iconType: 'smokeAlarm' },
+            'freeParking': { name: 'Free Parking', iconType: 'parking' },
+            'balcony': { name: 'Balcony', iconType: 'balcony' },
+            'allowed': { name: 'Pets Allowed', iconType: 'pets' },
+            'crib': { name: 'Crib', iconType: 'crib' },
+            'aircon': { name: 'Air Conditioning', iconType: 'aircon' },
+            'bedset': { name: 'Complete Bed', iconType: 'bed' },
+            'hanger': { name: 'Hangers', iconType: 'hanger' },
+            'hairDryer': { name: 'Hair Dryer', iconType: 'hairDryer' },
+            'iron': { name: 'Iron', iconType: 'iron' },
+            'extraPillowBlanket': { name: 'Extra Pillows & Blankets', iconType: 'pillow' },
+            'towel': { name: 'Towel', iconType: 'towel' },
+            'microwave': { name: 'Microwave', iconType: 'microwave' },
+            'stove': { name: 'Stove', iconType: 'stove' },
+            'oven': { name: 'Oven', iconType: 'oven' },
+            'coffeeMaker': { name: 'Coffee Maker', iconType: 'coffee' },
+            'toaster': { name: 'Toaster', iconType: 'toaster' },
+            'PotsPans': { name: 'Pots & Pans', iconType: 'pots' },
+            'spices': { name: 'Spices', iconType: 'spices' },
+            'dishesCutlery': { name: 'Dishes & Cutlery', iconType: 'dishes' },
+            'diningTable': { name: 'Dining Table', iconType: 'table' },
+            'shower': { name: 'Shower', iconType: 'shower' },
+            'shampoo': { name: 'Shampoo', iconType: 'shampoo' },
+            'soap': { name: 'Soap', iconType: 'soap' },
+            'toilet': { name: 'Toilet', iconType: 'toilet' },
+            'toiletPaper': { name: 'Toilet Paper', iconType: 'toiletPaper' },
+            'dryer': { name: 'Dryer', iconType: 'dryer' },
+            'dryingRack': { name: 'Drying Rack', iconType: 'dryingRack' },
+            'ironBoard': { name: 'Iron Board', iconType: 'ironBoard' },
+            'cleaningProduct': { name: 'Cleaning Products', iconType: 'cleaning' },
+            'tv': { name: 'TV', iconType: 'tv' },
+            'soundSystem': { name: 'Sound System', iconType: 'speaker' },
+            'consoleGames': { name: 'Gaming Console', iconType: 'gamepad' },
+            'boardGames': { name: 'Board Games', iconType: 'chess' },
+            'cardGames': { name: 'Card Games', iconType: 'cards' },
+            'billiard': { name: 'Billiard Table', iconType: 'billiard' },
+            'fireExtinguisher': { name: 'Fire Extinguisher', iconType: 'fireExtinguisher' },
+            'firstAidKit': { name: 'First Aid Kit', iconType: 'firstAid' },
+            'cctv': { name: 'CCTV', iconType: 'cctv' },
+            'smartLock': { name: 'Smart Lock', iconType: 'smartLock' },
+            'guard': { name: 'Security Guard', iconType: 'guard' },
+            'stairGate': { name: 'Stair Gate', iconType: 'gate' },
+            'paidParking': { name: 'Paid Parking', iconType: 'parking' },
+            'bike': { name: 'Bicycle', iconType: 'bike' },
+            'garden': { name: 'Garden', iconType: 'garden' },
+            'grill': { name: 'Grill', iconType: 'grill' },
+            'firePit': { name: 'Fire Pit', iconType: 'firePit' },
+            'pool': { name: 'Swimming Pool', iconType: 'pool' },
+            'petsAllowed': { name: 'Pets Allowed', iconType: 'pets' },
+            'petsNotAllowed': { name: 'No Pets', iconType: 'pets' },
+            'petBowls': { name: 'Pet Bowls', iconType: 'petBowl' },
+            'petBed': { name: 'Pet Bed', iconType: 'petBed' },
+            'babyBath': { name: 'Baby Bath', iconType: 'babyBath' }
+        };
+    }
     
     // Add each amenity to the display
-    amenities.forEach(amenity => {
-        const displayInfo = amenityDisplayMap[amenity];
-        if (displayInfo) {
-            const listItem = document.createElement('li');
-            listItem.className = 'w-full p-2';
-            listItem.innerHTML = `
-                <div class="flex gap-3 items-center">
-                    <svg class="h-5 fill-primary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="${displayInfo.icon}"/>
-                    </svg>
-                    <span class="font-inter text-primary-text">${displayInfo.name}</span>
-                </div>
-            `;
-            container.appendChild(listItem);
+    displayAmenities.forEach(amenity => {
+        const mapping = amenityMapping[amenity] || { name: amenity, iconType: 'default' };
+        
+        // Get the icon SVG - use global function if available, otherwise use local function
+        let iconSvg;
+        console.log(`🔍 Processing amenity "${amenity}" with mapping:`, mapping);
+        
+        if (window.getAmenityIcon) {
+            const iconPath = window.getAmenityIcon(mapping.iconType);
+            console.log(`✅ Using global function for "${mapping.iconType}": ${iconPath}`);
+            iconSvg = `<img src="${iconPath}" alt="${mapping.name}" class="h-5 w-5 fill-primary-text">`;
         } else {
-            // Fallback for unmapped amenities
+            console.log(`⚠️ Global function not available, using local fallback for "${mapping.iconType}"`);
+            iconSvg = getAmenityIconFromModal(mapping.iconType);
+        }
+        
             const listItem = document.createElement('li');
             listItem.className = 'w-full p-2';
             listItem.innerHTML = `
                 <div class="flex gap-3 items-center">
-                    <span class="font-inter text-primary-text">${amenity}</span>
+                ${iconSvg}
+                <span class="font-inter text-primary-text">${mapping.name}</span>
                 </div>
             `;
             container.appendChild(listItem);
-        }
     });
     
-    console.log('Amenities display updated successfully');
+    console.log('Amenities display updated successfully - showing', displayAmenities.length, 'amenities');
+}
+
+// Function to get amenity icons from the modal - now using the same icons as property-view.js
+function getAmenityIconFromModal(iconType) {
+    // Use the global function from property-view.js if available, otherwise fall back to local mapping
+    if (window.getAmenityIcon) {
+        const iconPath = window.getAmenityIcon(iconType);
+        return `<img src="${iconPath}" alt="${iconType}" class="h-5 fill-primary-text">`;
+    }
+    
+    // Fallback icon mapping (comprehensive version)
+    const iconMap = {
+        'wifi': '/public/svg/wifi.svg',
+        'refrigerator': '/public/svg/refrigerator.svg',
+        'bathtub': '/public/svg/bath.svg',
+        'washer': '/public/svg/washer.svg',
+        'tv': '/public/svg/tv.svg',
+        'smokeAlarm': '/public/svg/smokeAlarm.svg',
+        'parking': '/public/svg/parkring.svg',
+        'balcony': '/public/svg/balcony.svg',
+        'pets': '/public/svg/petPaw.svg',
+        'crib': '/public/svg/crib.svg',
+        'aircon': '/public/svg/aircon.svg',
+        'bed': '/public/svg/bed.svg',
+        'hanger': '/public/svg/hanger.svg',
+        'hairDryer': '/public/svg/hairDryer.svg',
+        'iron': '/public/svg/iron.svg',
+        'pillow': '/public/svg/extraPillowsBlanket.svg',
+        'towel': '/public/svg/towel.svg',
+        'microwave': '/public/svg/microwave.svg',
+        'stove': '/public/svg/stove.svg',
+        'oven': '/public/svg/oven.svg',
+        'coffee': '/public/svg/coffeeMaker.svg',
+        'toaster': '/public/svg/toaster.svg',
+        'pots': '/public/svg/pan.svg',
+        'spices': '/public/svg/salt.svg',
+        'dishes': '/public/svg/dishes.svg',
+        'table': '/public/svg/diningtable.svg',
+        'shower': '/public/svg/shower.svg',
+        'shampoo': '/public/svg/shampoo.svg',
+        'soap': '/public/svg/soap.svg',
+        'toilet': '/public/svg/toilet.svg',
+        'toiletPaper': '/public/svg/toiletPaper.svg',
+        'dryer': '/public/svg/dryer.svg',
+        'dryingRack': '/public/svg/ironBoard.svg',
+        'ironBoard': '/public/svg/ironBoard.svg',
+        'cleaning': '/public/svg/detergent.svg',
+        'speaker': '/public/svg/speaker.svg',
+        'gamepad': '/public/svg/console.svg',
+        'chess': '/public/svg/chess.svg',
+        'cards': '/public/svg/card.svg',
+        'billiard': '/public/svg/chess.svg',
+        'fireExtinguisher': '/public/svg/fireExtinguisher.svg',
+        'firstAid': '/public/svg/firstAidKit.svg',
+        'cctv': '/public/svg/cctv.svg',
+        'smartLock': '/public/svg/smartLock.svg',
+        'guard': '/public/svg/guard.svg',
+        'gate': '/public/svg/gate.svg',
+        'bike': '/public/svg/bike.svg',
+        'garden': '/public/svg/garden.svg',
+        'grill': '/public/svg/grill.svg',
+        'firePit': '/public/svg/firePit.svg',
+        'pool': '/public/svg/pool.svg',
+        'petBowl': '/public/svg/bowl.svg',
+        'petBed': '/public/svg/bed.svg',
+        'babyBath': '/public/svg/bath.svg',
+        'default': '/public/svg/add.svg'
+    };
+    
+    const iconPath = iconMap[iconType] || iconMap['default'];
+    console.log(`🎨 Local fallback icon path for ${iconType}: ${iconPath}`);
+    return `<img src="${iconPath}" alt="${iconType}" class="h-5 fill-primary-text">`;
 }
 
 function clearAmenitySelections() {
@@ -809,11 +924,11 @@ async function uploadAllImages() {
 
         // Try different API endpoint URLs
         const possibleUrls = [
-            `/api/property/photos/append/${currentPropertyId}`,
-            `/api/property/update/photos/${currentPropertyId}`,
-            `/api/property/${currentPropertyId}/photos`,
-            `/api/property/${currentPropertyId}/update/photos`,
-            `/api/properties/${currentPropertyId}/photos`
+            `${API_BASE_URL}/property/photos/append/${currentPropertyId}`,
+            `${API_BASE_URL}/property/update/photos/${currentPropertyId}`,
+            `${API_BASE_URL}/property/${currentPropertyId}/photos`,
+            `${API_BASE_URL}/property/${currentPropertyId}/update/photos`,
+            `${API_BASE_URL}/properties/${currentPropertyId}/photos`
         ];
         
         const possibleMethods = ['PATCH', 'POST', 'PUT'];
@@ -925,6 +1040,15 @@ function initializeSaveAndDiscardFunctionality() {
             e.preventDefault();
             showModal('discardDetailsModal');
         });
+    }
+
+    // Confirm discard button in modal
+    const confirmDiscardButton = document.getElementById('confirmDiscardButton');
+    if (confirmDiscardButton) {
+        confirmDiscardButton.onclick = () => {
+            hideModal('discardDetailsModal');
+            redirectToPropertyView();
+        };
     }
 }
 
@@ -1049,6 +1173,18 @@ function showModal(modalId) {
 function hideModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.add('hidden');
+}
+
+// ==================== REDIRECT FUNCTIONS ====================
+function redirectToPropertyView() {
+    if (currentPropertyId) {
+        // Redirect to property view page with the current property ID
+        window.location.href = `property-view.html?id=${currentPropertyId}`;
+    } else {
+        // Fallback: redirect to properties list page
+        console.warn('No property ID found, redirecting to properties list');
+        window.location.href = 'property.html';
+    }
 }
 
 // DOM manipulation utilities

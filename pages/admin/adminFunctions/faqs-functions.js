@@ -1,9 +1,12 @@
 // finished? need to be tested
 // for what yung get five faq na api?
 
+// API Base URL
+const API_BASE = 'https://betcha-api.onrender.com';
+
 async function getAllFAQS() {
     try {
-        const response = await fetch('/api/faq/getAll');
+        const response = await fetch(`${API_BASE}/faq/getAll`);
         const data = await response.json();
         console.log(data);
         if (data && data.allFAQ) {
@@ -128,7 +131,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // API: Create FAQ
 async function createFAQ(question, answer) {
     try {
-        await fetch('/api/faq/create', {
+        await fetch(`${API_BASE}/faq/create`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question, answer })
@@ -141,7 +144,7 @@ async function createFAQ(question, answer) {
 // API: Delete FAQ
 async function deleteFAQ(id) {
     try {
-        await fetch(`/api/faq/delete/${id}`, {
+        await fetch(`${API_BASE}/faq/delete/${id}`, {
             method: 'DELETE'
         });
     } catch (error) {
@@ -152,7 +155,7 @@ async function deleteFAQ(id) {
 // API: Update FAQ
 async function updateFAQ(id, question, answer) {
     try {
-        await fetch(`/api/faq/update/${id}`, {
+        await fetch(`${API_BASE}/faq/update/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question, answer })

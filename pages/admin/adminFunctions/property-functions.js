@@ -2,14 +2,30 @@
 
 // Fetch and display properties in the property list grid
 
+// API Base URL
+const API_BASE = 'https://betcha-api.onrender.com';
+
 let allProperties = []; // Store fetched properties for searching
 
 async function getAllProperties() {
+    // Only run if we're on a page that needs properties
+    const grid = document.querySelector('.grid.gap-4.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-4.h-full');
+    if (!grid) {
+        console.log('Property grid not found on this page, skipping property fetch');
+        return;
+    }
+
     try {
-        const response = await fetch('/api/property/display');
+        const response = await fetch(`${API_BASE}/property/display`);
         const data = await response.json();
+        console.log('API Response:', data); // Debug: Log the full API response
         if (Array.isArray(data)) {
             allProperties = data; // Save for search
+            // Debug: Log the first property to see its structure
+            if (data.length > 0) {
+                console.log('First property structure:', data[0]);
+                console.log('First property photoLinks:', data[0].photoLinks);
+            }
             renderProperties(allProperties);
         }
     } catch (error) {
@@ -28,15 +44,22 @@ function renderProperties(properties) {
         propertyCard.href = `property-view.html?id=${property._id}`;
         propertyCard.className = "relative";
 
+        // Debug: Log the image URL being generated
+        const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/public/images/unit01.jpg';
+        console.log(`Property: ${property.name}, Image URL: ${imageUrl}`);
+
         propertyCard.innerHTML = `
             <div class="bg-white rounded-3xl overflow-hidden shadow-md flex flex-col group
                 transition-all duration-300 ease-in-out
                 hover:shadow-lg ">
-                <!-- Image (placeholder if not available) -->
+                <!-- Image (use property image or fallback) -->
                 <div class="w-full h-38 md:h-56 overflow-hidden">
-                    <img src="/public/images/unit01.jpg" class="w-full h-full object-cover object-center bg-neutral-300
-                        transition-all duration-300 ease-in-out
-                        group-hover:scale-105">
+                    <img src="${imageUrl}" 
+                         class="w-full h-full object-cover object-center bg-neutral-300
+                         transition-all duration-300 ease-in-out
+                         group-hover:scale-105"
+                         onerror="this.src='/public/images/unit01.jpg'"
+                         alt="${property.name}">
                 </div>
                 <div class="p-5">
                     <!-- Title + Address -->

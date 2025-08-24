@@ -2,6 +2,7 @@
 // Get rid of the TS in the dashboard
 // Get rid of the elemts in the Sidebar
 //PM 90% done 
+// Static data for the category for report "Disaster"
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
 document.addEventListener('DOMContentLoaded', function() {

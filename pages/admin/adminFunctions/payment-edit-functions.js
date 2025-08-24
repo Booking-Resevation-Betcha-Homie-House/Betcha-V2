@@ -16,6 +16,9 @@ const CATEGORY_IMAGES = {
     'unionbank': '/images/qr-ub.png'
 };
 
+// API Base URL
+const API_BASE = 'https://betcha-api.onrender.com';
+
 // Global variables
 let currentPaymentId = null;
 let currentPaymentData = null;
@@ -47,7 +50,7 @@ async function initializeEditForm() {
         showLoadingState();
         
         // Fetch payment data
-        const response = await fetch('/api/payments/display');
+        const response = await fetch(`${API_BASE}/payments/display`);
         
         if (!response.ok) {
             throw new Error(`Failed to fetch payment data: ${response.status}`);
@@ -374,7 +377,7 @@ async function validateAndSubmitForm() {
         console.log('Updating payment data:', paymentData);
 
         // Make API call to update payment
-        const response = await fetch(`/api/payments/update/${currentPaymentId}`, {
+        const response = await fetch(`${API_BASE}/payments/update/${currentPaymentId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',

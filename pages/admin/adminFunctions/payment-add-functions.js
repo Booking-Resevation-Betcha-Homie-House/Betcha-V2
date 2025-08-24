@@ -1,5 +1,5 @@
 // Payment Add Functions
-const API_BASE_URL = '/api';
+const API_BASE_URL = 'https://betcha-api.onrender.com';
 
 // Payment categories/methods
 const PAYMENT_METHODS = [

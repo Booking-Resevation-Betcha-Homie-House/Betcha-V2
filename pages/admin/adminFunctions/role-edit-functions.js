@@ -3,6 +3,9 @@
 // Global variable to store the current role ID
 let currentRoleId = null;
 
+// API Base URL
+const API_BASE = 'https://betcha-api.onrender.com';
+
 // Function to get role ID from sessionStorage (set from roles.html)
 function getCurrentRoleId() {
     return sessionStorage.getItem('editRoleId');
@@ -11,7 +14,7 @@ function getCurrentRoleId() {
 // Function to fetch role details by ID
 async function fetchRoleById(roleId) {
     try {
-        const response = await fetch('/api/roles/display', {
+        const response = await fetch(`${API_BASE}/roles/display`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -101,7 +104,7 @@ function validateFormData(data) {
 // Function to update role via API
 async function updateRole(roleId, roleData) {
     try {
-        const response = await fetch(`/api/roles/update/${roleId}`, {
+        const response = await fetch(`${API_BASE}/roles/update/${roleId}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json'
