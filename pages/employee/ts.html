@@ -101,7 +101,7 @@
             <div class="relative inline-block text-left">
                 <!-- Bell Icon -->
                 <div class="relative">
-                  <button onclick="toggleDropdown()" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
+                  <button id="notifBellBtnDesktop" onclick="toggleDropdown()" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
                   hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
                   transition-all buration-300 ease-in-out
                   hidden md:block">
@@ -207,7 +207,7 @@
                 <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-52 border border-neutral-300 bg-white rounded-3xl shadow-lg py-5 px-3 z-50 text-sm font-manrope text-primary-text">
                 <a href="profile.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">Profile</a>
                 <hr class="my-2 border-neutral-300">
-                <a href="#" class="block px-4 py-2 rounded-xl text-red-500 hover:bg-primary/10 font-semibold">Log Out</a>
+                <a id="logoutBtn" href="#" class="block px-4 py-2 rounded-xl text-red-500 hover:bg-primary/10 font-semibold">Log Out</a>
                 </div>
             </div>
           </div>
@@ -232,81 +232,11 @@
             </button>
           </div>
           <div id="tab-contents" class="w-full h-full p-3 overflow-x-auto">
-            <div  class="tab-content hidden ">
-              <div 
-                data-modal-target="viewTSModal"
-                class="grid grid-cols-2 md:grid-cols-4 gap-5 p-4 bg-neutral-50 rounded-xl border border-neutral-200 cursor-pointer active:scale-95 hover:bg-neutral-100 transition-all duration-300 ease-in-out">
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Trans#</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">#1001</p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Guest</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">John Doe</p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Property</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">
-                    Seaside Villa with an Extremely Long Name That Gets Cut
-                  </p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Booking Date</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">Aug 10, 2025</p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Payment mode</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">Mode</p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Total amount</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">₱<span>00.00</span></p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Status</p>
-                  <p class="text-sm font-semibold text-neutral-800 green w-fit font-inter truncate">
-                    Status
-                  </p>
-                </div>
-              </div>
+            <div class="tab-content">
+              <!-- Pending transactions will be populated here by JavaScript -->
             </div>
-            <div  class="tab-content hidden ">
-              <div 
-                data-modal-target="viewTSModal"
-                class="grid grid-cols-2 md:grid-cols-4 gap-5 p-4 bg-neutral-50 rounded-xl border border-neutral-200 cursor-pointer active:scale-95 hover:bg-neutral-100 transition-all duration-300 ease-in-out">
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Trans#</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">#1001</p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Guest</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">John Doe</p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Property</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">
-                    Seaside Villa with an Extremely Long Name That Gets Cut
-                  </p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Booking Date</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">Aug 10, 2025</p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Payment mode</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">Mode</p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Total amount</p>
-                  <p class="text-sm font-semibold text-neutral-800 font-inter truncate">₱<span>00.00</span></p>
-                </div>
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs text-neutral-500 font-manrope">Status</p>
-                  <p class="text-sm font-semibold text-neutral-800 green w-fit font-inter truncate">
-                    Status
-                  </p>
-                </div>
-              </div>
+            <div class="tab-content hidden">
+              <!-- Completed transactions will be populated here by JavaScript -->
             </div>
           </div>
         </div>
@@ -565,6 +495,7 @@
   <script defer src="../../src/notification.js"></script>
   <script defer src="../../src/navbar.js"></script>
   <script defer src="../../src/modal.js"></script>
+  <script defer src="../admin/adminFunctions/logout-functions.js"></script>
   <script defer src="../../src/multipleTabs.js"></script>
   <script defer src="employeeFunctions/ts-functions.js"></script>
 

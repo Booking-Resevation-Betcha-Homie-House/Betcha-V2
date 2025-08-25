@@ -67,7 +67,8 @@ function filterSidebarByPrivileges(privileges) {
         'PM': ['pm.html']
     };
 
-    document.querySelectorAll('nav a[href]').forEach(link => {
+    // Get ONLY sidebar navigation links using specific IDs
+    document.querySelectorAll('#sidebar-dashboard, #sidebar-psr, #sidebar-ts, #sidebar-tk, #sidebar-pm').forEach(link => {
         const href = link.getAttribute('href');
         if (href === 'dashboard.html' || !href.includes('.html')) return;
 

@@ -14,15 +14,26 @@ document.addEventListener('DOMContentLoaded', function() {
 async function checkRolePrivileges() {
     try {
         const roleID = localStorage.getItem('roleID');
-        if (!roleID) return;
+        if (!roleID) {
+            console.warn('PM - No roleID found in localStorage');
+            return;
+        }
 
+        console.log('PM - Checking privileges for roleID:', roleID);
+        
+        // Fetch role privileges from API
         const roleData = await fetchRolePrivileges(roleID);
         
         if (roleData && roleData.privileges) {
+            console.log('PM - Role privileges:', roleData.privileges);
+            
+            // Filter sidebar based on privileges
             filterSidebarByPrivileges(roleData.privileges);
+        } else {
+            console.error('PM - No privileges found in role data');
         }
     } catch (error) {
-        console.error('Error checking role privileges:', error);
+        console.error('PM - Error checking role privileges:', error);
     }
 }
 
@@ -35,42 +46,122 @@ async function fetchRolePrivileges(roleID) {
 
         if (response.ok) {
             const data = await response.json();
+            console.log('PM - Role data received:', data);
             return data;
+        } else {
+            console.error('PM - Failed to fetch role privileges:', response.status);
+            return null;
         }
-        return null;
     } catch (error) {
-        console.error('Error fetching role privileges:', error);
+        console.error('PM - Error fetching role privileges:', error);
         return null;
     }
 }
 
 function filterSidebarByPrivileges(privileges) {
+    console.log('PM - Filtering sidebar and content sections with privileges:', privileges);
+    
+    // Define what each privilege allows access to
     const privilegeMap = {
-        'TS': ['ts.html'],
-        'PSR': ['psr.html'],
-        'TK': ['tk.html'],
-        'PM': ['pm.html']
+        'TS': ['ts.html'], // TS only has access to Transactions
+        'PSR': ['psr.html'], // PSR has access to Property Summary Report
+        'TK': ['tk.html'], // TK has access to Ticketing
+        'PM': ['pm.html'] // PM has access to Property Monitoring
     };
     
-    const sidebarLinks = document.querySelectorAll('nav a[href]');
+    // Get ONLY sidebar navigation links using specific IDs
+    const sidebarLinks = document.querySelectorAll('#sidebar-dashboard, #sidebar-psr, #sidebar-ts, #sidebar-tk, #sidebar-pm');
     
     sidebarLinks.forEach(link => {
         const href = link.getAttribute('href');
-        if (href === 'dashboard.html' || !href.includes('.html')) return;
+        
+        // Skip dashboard link and non-management links
+        if (href === 'dashboard.html' || !href.includes('.html')) {
+            return;
+        }
         
         let hasAccess = false;
+        
+        // Check if user has privilege for this link
         privileges.forEach(privilege => {
             if (privilegeMap[privilege] && privilegeMap[privilege].includes(href)) {
                 hasAccess = true;
             }
         });
         
-        link.style.display = hasAccess ? 'flex' : 'none';
+        // Hide the link if user doesn't have access
+        if (!hasAccess) {
+            console.log(`PM - Hiding sidebar item: ${href} (no access with privileges: ${privileges.join(', ')})`);
+            link.style.display = 'none';
+        } else {
+            console.log(`PM - Showing sidebar item: ${href} (access granted with privileges: ${privileges.join(', ')})`);
+            link.style.display = 'flex';
+        }
     });
     
+    // Hide content sections based on privileges
+    hideDashboardSections(privileges);
+    
+    // Special handling for PM privilege - remove specific items if PM only
+    if (privileges.includes('PM') && privileges.length === 1) {
+        // PM only has access to Property Monitoring, hide others
+        hideSpecificSidebarItems(['psr.html', 'tk.html', 'ts.html']);
+    }
+    
+    // Check if current user should have access to this page
     if (!privileges.includes('PM')) {
+        console.warn('PM - User does not have PM privilege, should not access this page');
         showAccessDeniedMessage();
     }
+}
+
+function hideDashboardSections(privileges) {
+    console.log('PM - Hiding dashboard sections based on privileges:', privileges);
+    
+    // Define content sections that should be hidden based on privileges
+    const sectionPrivilegeMap = {
+        'PSR-summary': ['PSR'], // PSR Summary section requires PSR privilege
+        'tickets': ['TK'], // Tickets section requires TK privilege  
+        'PM': ['PM'], // Property Monitoring section requires PM privilege
+        'transactions': ['TS'] // Transactions section requires TS privilege
+    };
+    
+    // Check each section
+    Object.keys(sectionPrivilegeMap).forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (!section) {
+            console.log(`PM - Section not found: ${sectionId}`);
+            return;
+        }
+        
+        const requiredPrivileges = sectionPrivilegeMap[sectionId];
+        let hasAccess = false;
+        
+        // Check if user has any of the required privileges for this section
+        privileges.forEach(privilege => {
+            if (requiredPrivileges.includes(privilege)) {
+                hasAccess = true;
+            }
+        });
+        
+        if (!hasAccess) {
+            console.log(`PM - Hiding content section: ${sectionId} (no access with privileges: ${privileges.join(', ')})`);
+            section.style.display = 'none';
+        } else {
+            console.log(`PM - Showing content section: ${sectionId} (access granted with privileges: ${privileges.join(', ')})`);
+            section.style.display = 'block';
+        }
+    });
+}
+
+function hideSpecificSidebarItems(itemsToHide) {
+    itemsToHide.forEach(href => {
+        const link = document.querySelector(`nav a[href="${href}"]`);
+        if (link) {
+            console.log(`PM - Specifically hiding: ${href}`);
+            link.style.display = 'none';
+        }
+    });
 }
 
 function showAccessDeniedMessage() {
@@ -95,19 +186,16 @@ function showAccessDeniedMessage() {
 
 // Additional PM-specific functions can be added here
 function initializePropertyMonitoringFeatures() {
+    // Initialize PM-specific tab switching functionality
+    setupPMTabSwitching();
+    
     window.loadTodaysCheckins();
     
     // Check if we're coming from dashboard and should open a booking modal
     checkDashboardRedirect();
     
-    const tabButtons = document.querySelectorAll('[data-tab]');
-    tabButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            setTimeout(() => {
-                loadTodaysCheckins();
-            }, 100);
-        });
-    });
+    // Note: Tab switching is now handled by setupPMTabSwitching() function
+    // which properly manages the Check-in and Check-out tabs
     
     const endBookingConfirmBtn = document.querySelector('#checkoutModal .bg-primary');
     if (endBookingConfirmBtn) {
@@ -115,7 +203,7 @@ function initializePropertyMonitoringFeatures() {
     }
     
     initializeCheckinConfirmationModal();
-    initializeCalendarBookings();
+    initializePMCalendar(); // Use PM-specific single-selection calendar
 
     // Load admins when cancel modal is opened
     document.addEventListener('click', function(e) {
@@ -173,6 +261,96 @@ function initializePropertyMonitoringFeatures() {
             try { sendCancellationNoticeToAdmin(); } catch (_) {}
         }
     });
+}
+
+// PM-Specific Tab Switching Function
+function setupPMTabSwitching() {
+    console.log('PM - Setting up tab switching functionality...');
+    
+    // Get all tab buttons and content containers
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    if (tabButtons.length === 0 || tabContents.length === 0) {
+        console.warn('PM - No tab buttons or content found');
+        return;
+    }
+    
+    console.log(`PM - Found ${tabButtons.length} tab buttons and ${tabContents.length} tab contents`);
+    
+    // Set the first tab as active by default
+    setActivePMTab(0);
+    
+    // Add click event listeners to all tab buttons
+    tabButtons.forEach((button, index) => {
+        button.addEventListener('click', function() {
+            console.log(`PM - Tab ${index} clicked: ${this.textContent.trim()}`);
+            setActivePMTab(index);
+        });
+    });
+    
+    console.log('PM - Tab switching functionality initialized successfully');
+}
+
+// Function to set the active PM tab
+function setActivePMTab(activeIndex) {
+    console.log(`PM - Setting active tab to index: ${activeIndex}`);
+    
+    // Get all tab buttons and content containers
+    const tabButtons = document.querySelectorAll('.tab-btn');
+    const tabContents = document.querySelectorAll('.tab-content');
+    
+    // Update tab button styles
+    tabButtons.forEach((button, index) => {
+        const span = button.querySelector('span');
+        if (index === activeIndex) {
+            // Active tab styling
+            button.classList.add('bg-white', 'font-semibold', 'shadow');
+            button.classList.remove('text-neutral-500');
+            if (span) {
+                span.classList.remove('text-neutral-500');
+                span.classList.add('text-primary');
+            }
+            console.log(`PM - Tab ${index} button activated: ${button.textContent.trim()}`);
+        } else {
+            // Inactive tab styling
+            button.classList.remove('bg-white', 'font-semibold', 'shadow');
+            button.classList.add('text-neutral-500');
+            if (span) {
+                span.classList.remove('text-primary');
+                span.classList.add('text-neutral-500');
+            }
+        }
+    });
+    
+    // Show/hide tab content
+    tabContents.forEach((content, index) => {
+        if (index === activeIndex) {
+            // Show active tab content
+            content.classList.remove('hidden');
+            console.log(`PM - Tab ${index} content shown: ${content.querySelector('.space-y-4') ? 'Check-in' : 'Check-out'}`);
+        } else {
+            // Hide inactive tab content
+            content.classList.add('hidden');
+        }
+    });
+    
+    // Load data for the active tab
+    if (activeIndex === 0) {
+        // Check-in tab - load check-in data
+        console.log('PM - Loading check-in data for active tab');
+        if (typeof window.loadTodaysCheckins === 'function') {
+            window.loadTodaysCheckins();
+        }
+    } else if (activeIndex === 1) {
+        // Check-out tab - load check-out data
+        console.log('PM - Loading check-out data for active tab');
+        if (typeof window.loadTodaysCheckins === 'function') {
+            window.loadTodaysCheckins();
+        }
+    }
+    
+    console.log(`PM - Active tab set to index ${activeIndex} successfully`);
 }
 
 // Check if we should open a booking modal from dashboard redirect
@@ -1507,6 +1685,9 @@ async function sendCancellationNoticeToAdmin() {
     }
 }
 
+// Make PM tab switching globally accessible for debugging
+window.setActivePMTab = setActivePMTab;
+
 // Main function to load today's check-ins (make globally accessible)
 window.loadTodaysCheckins = async function() {
     try {
@@ -1691,6 +1872,107 @@ function initializeCalendarBookings() {
             }
         }
     });
+}
+
+// PM-Specific Single-Selection Calendar Function
+function initializePMCalendar() {
+    console.log('PM - Initializing single-selection calendar...');
+    
+    const calendarEl = document.querySelector('.calendar-instance');
+    if (!calendarEl) {
+        console.warn('PM - Calendar instance not found');
+        return;
+    }
+    
+    let selectedDate = null; // Single date instead of Set
+    let currentDate = new Date(); // Track current month view
+    
+    const renderCalendar = () => {
+        const current = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+        const year = current.getFullYear();
+        const month = current.getMonth();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        const startDay = new Date(year, month, 1).getDay();
+        
+        const leftLabel = calendarEl.querySelector('.leftMonthLabel');
+        const leftCal = calendarEl.querySelector('.leftCalendar');
+        
+        if (!leftLabel || !leftCal) {
+            console.warn('PM - Calendar elements not found');
+            return;
+        }
+        
+        leftLabel.textContent = current.toLocaleString("default", { month: "long", year: "numeric" });
+        
+        let html = `
+            <div class="grid grid-cols-7 gap-1 text-center font-manrope font-semibold border-b border-neutral-300 pb-1 mb-2">
+                ${['S','M','T','W','T','F','S'].map(d => `<div class="w-full aspect-square flex items-center justify-center text-xs">${d}</div>`).join("")}
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center">
+        `;
+        
+        for (let i = 0; i < startDay; i++) html += `<div></div>`;
+        
+        for (let d = 1; d <= daysInMonth; d++) {
+            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+            const isSelected = selectedDate === dateStr;
+            
+            let classes = "w-full aspect-square text-xs flex items-center justify-center rounded cursor-pointer transition ";
+            
+            if (isSelected) {
+                classes += "bg-primary text-white font-bold"; // Use primary color for single selection
+            } else {
+                classes += "bg-background text-black hover:bg-primary/10";
+            }
+            
+            html += `<div class="${classes}" data-date="${dateStr}">${d}</div>`;
+        }
+        
+        html += "</div>";
+        leftCal.innerHTML = html;
+    };
+    
+    // Single date selection
+    calendarEl.addEventListener("click", e => {
+        const dateEl = e.target.closest("[data-date]");
+        if (dateEl) {
+            const clickedDate = dateEl.dataset.date;
+            
+            // Single selection - replace previous selection
+            selectedDate = clickedDate;
+            
+            console.log('PM - Single date selected:', selectedDate);
+            
+            // Load bookings for the selected date
+            loadBookingsByDate(selectedDate);
+            
+            renderCalendar();
+        }
+    });
+    
+    // Month navigation
+    const prevBtn = calendarEl.querySelector(".prevMonth");
+    const nextBtn = calendarEl.querySelector(".nextMonth");
+    
+    if (prevBtn) {
+        prevBtn.addEventListener("click", () => {
+            currentDate.setMonth(currentDate.getMonth() - 1);
+            selectedDate = null; // Clear selection when changing months
+            renderCalendar();
+        });
+    }
+    
+    if (nextBtn) {
+        nextBtn.addEventListener("click", () => {
+            currentDate.setMonth(currentDate.getMonth() + 1);
+            selectedDate = null; // Clear selection when changing months
+            renderCalendar();
+        });
+    }
+    
+    // Initial render
+    renderCalendar();
+    console.log('PM - Single-selection calendar initialized successfully');
 }
 
 // Function to load bookings by date

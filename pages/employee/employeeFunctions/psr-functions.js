@@ -30,13 +30,13 @@ async function checkRolePrivileges() {
             return;
         }
 
-        console.log('Checking privileges for roleID:', roleID);
+        console.log('PSR - Checking privileges for roleID:', roleID);
         
         // Fetch role privileges from API
         const roleData = await fetchRolePrivileges(roleID);
         
         if (roleData && roleData.privileges) {
-            console.log('Role privileges:', roleData.privileges);
+            console.log('PSR - Role privileges:', roleData.privileges);
             
             // Filter sidebar based on privileges
             filterSidebarByPrivileges(roleData.privileges);
@@ -59,7 +59,7 @@ async function fetchRolePrivileges(roleID) {
 
         if (response.ok) {
             const data = await response.json();
-            console.log('Role data received:', data);
+            console.log('PSR - Role data received:', data);
             return data;
         } else {
             console.error('Failed to fetch role privileges:', response.status);
@@ -72,7 +72,7 @@ async function fetchRolePrivileges(roleID) {
 }
 
 function filterSidebarByPrivileges(privileges) {
-    console.log('Filtering sidebar and content sections with privileges:', privileges);
+            console.log('PSR - Filtering sidebar and content sections with privileges:', privileges);
     
     // Define what each privilege allows access to
     const privilegeMap = {
@@ -82,8 +82,8 @@ function filterSidebarByPrivileges(privileges) {
         'PM': ['pm.html'] // PM has access to Property Monitoring
     };
     
-    // Get all sidebar links
-    const sidebarLinks = document.querySelectorAll('nav a[href]');
+    // Get ONLY sidebar navigation links using specific IDs
+    const sidebarLinks = document.querySelectorAll('#sidebar-dashboard, #sidebar-psr, #sidebar-ts, #sidebar-tk, #sidebar-pm');
     
     sidebarLinks.forEach(link => {
         const href = link.getAttribute('href');
@@ -104,10 +104,10 @@ function filterSidebarByPrivileges(privileges) {
         
         // Hide the link if user doesn't have access
         if (!hasAccess) {
-            console.log(`Hiding sidebar item: ${href} (no access with privileges: ${privileges.join(', ')})`);
+            console.log(`PSR - Hiding sidebar item: ${href} (no access with privileges: ${privileges.join(', ')})`);
             link.style.display = 'none';
         } else {
-            console.log(`Showing sidebar item: ${href} (access granted with privileges: ${privileges.join(', ')})`);
+            console.log(`PSR - Showing sidebar item: ${href} (access granted with privileges: ${privileges.join(', ')})`);
             link.style.display = 'flex';
         }
     });
@@ -115,10 +115,16 @@ function filterSidebarByPrivileges(privileges) {
     // Hide content sections based on privileges
     hideDashboardSections(privileges);
     
-    // Special handling for TS privilege - remove specific items
-    if (privileges.includes('TS') && privileges.length === 1) {
-        // TS only has access to Transactions, hide others
-        hideSpecificSidebarItems(['psr.html', 'tk.html', 'pm.html']);
+    // Special handling for PSR privilege - remove specific items if PSR only
+    if (privileges.includes('PSR') && privileges.length === 1) {
+        // PSR only has access to Property Summary Report, hide others
+        hideSpecificSidebarItems(['ts.html', 'tk.html', 'pm.html']);
+    }
+    
+    // Check if current user should have access to this page
+    if (!privileges.includes('PSR')) {
+        console.warn('PSR - User does not have PSR privilege, should not access this page');
+        showAccessDeniedMessage();
     }
 }
 
@@ -147,10 +153,10 @@ function hideDashboardSections(privileges) {
         });
         
         if (!hasAccess) {
-            console.log(`Hiding content section: ${sectionId} (no access with privileges: ${privileges.join(', ')})`);
+            console.log(`PSR - Hiding content section: ${sectionId} (no access with privileges: ${privileges.join(', ')})`);
             section.style.display = 'none';
         } else {
-            console.log(`Showing content section: ${sectionId} (access granted with privileges: ${privileges.join(', ')})`);
+            console.log(`PSR - Showing content section: ${sectionId} (access granted with privileges: ${privileges.join(', ')})`);
             section.style.display = 'block';
         }
     });
@@ -160,10 +166,34 @@ function hideSpecificSidebarItems(itemsToHide) {
     itemsToHide.forEach(href => {
         const link = document.querySelector(`nav a[href="${href}"]`);
         if (link) {
-            console.log(`Specifically hiding: ${href}`);
+            console.log(`PSR - Specifically hiding: ${href}`);
             link.style.display = 'none';
         }
     });
+}
+
+function showAccessDeniedMessage() {
+    // Create access denied message
+    const message = document.createElement('div');
+    message.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
+    message.innerHTML = `
+        <div class="bg-white p-8 rounded-lg shadow-lg max-w-md mx-4">
+            <div class="text-center">
+                <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4
+                          c-.77-.833-1.964-.833-2.732 0L4.732 19.5c-.77.833.192 2.5 1.732 2.5z"/>
+                </svg>
+                <h2 class="text-xl font-bold text-gray-800 mb-2">Access Denied</h2>
+                <p class="text-gray-600 mb-4">You don't have permission to access the Property Summary Report module.</p>
+                <button onclick="window.location.href='dashboard.html'"
+                        class="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90">
+                    Return to Dashboard
+                </button>
+            </div>
+        </div>
+    `;
+    document.body.appendChild(message);
 }
 
 // API Data Loading Functions

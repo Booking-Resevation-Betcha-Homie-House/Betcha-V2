@@ -17,17 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Open modal
-  document.querySelectorAll('[data-modal-target]').forEach(btn => {
-    console.log(`Found modal trigger button for: ${btn.getAttribute('data-modal-target')}`);
-    btn.addEventListener('click', () => {
-      const targetId = btn.getAttribute('data-modal-target');
-      const targetModal = document.getElementById(targetId);
+  // Helper to open a modal by id
+  function openModalById(targetId) {
+    const targetModal = document.getElementById(targetId);
       console.log(`Attempting to open modal: ${targetId}`, targetModal);
 
-      // Close all open modals
+      // Close other open modals but NOT the notification dropdown (it's not a .modal)
       document.querySelectorAll('.modal').forEach(modal => {
-        modal.classList.add('hidden');
+        if (modal.id !== targetId) {
+          modal.classList.add('hidden');
+        }
       });
 
       // Open target modal
@@ -146,7 +145,23 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         console.error(`Modal with ID '${targetId}' not found`);
       }
+  }
+
+  // Bind to existing elements (progressive enhancement)
+  document.querySelectorAll('[data-modal-target]').forEach(btn => {
+    console.log(`Found modal trigger button for: ${btn.getAttribute('data-modal-target')}`);
+    btn.addEventListener('click', () => {
+      openModalById(btn.getAttribute('data-modal-target'));
     });
+  });
+
+  // Delegate clicks for dynamically-added elements
+  document.addEventListener('click', (e) => {
+    const trigger = e.target.closest('[data-modal-target]');
+    if (!trigger) return;
+    const targetId = trigger.getAttribute('data-modal-target');
+    if (!targetId) return;
+    openModalById(targetId);
   });
 
   // Close modal

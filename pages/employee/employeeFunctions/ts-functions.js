@@ -328,53 +328,57 @@ function setupTabSwitching() {
     try {
         console.log('Setting up tab switching functionality');
         
-        // Make setActiveTab function available globally if not already defined
-        if (typeof window.setActiveTab === 'undefined') {
-            window.setActiveTab = function(tabIndex) {
-                console.log('Switching to tab:', tabIndex);
-                
-                // Get all tab buttons and contents
-                const tabButtons = document.querySelectorAll('.tab-btn');
-                const tabContents = document.querySelectorAll('.tab-content');
-                
-                // Remove active classes from all tabs
-                tabButtons.forEach(btn => {
-                    btn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
-                    btn.classList.add('text-neutral-500');
-                    const span = btn.querySelector('span');
-                    if (span) {
-                        span.classList.remove('text-primary');
-                        span.classList.add('text-neutral-500');
-                    }
-                });
-                
-                // Hide all tab contents
-                tabContents.forEach(content => {
-                    content.classList.add('hidden');
-                });
-                
-                // Activate selected tab
-                if (tabButtons[tabIndex]) {
-                    tabButtons[tabIndex].classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
-                    tabButtons[tabIndex].classList.remove('text-neutral-500');
-                    const span = tabButtons[tabIndex].querySelector('span');
-                    if (span) {
-                        span.classList.add('text-primary');
-                        span.classList.remove('text-neutral-500');
-                    }
-                }
-                
-                // Show selected tab content
-                if (tabContents[tabIndex]) {
-                    tabContents[tabIndex].classList.remove('hidden');
-                }
-            };
+        // Define setActiveTab function globally so it can be called from HTML onclick
+        window.setActiveTab = function(tabIndex) {
+            console.log('Switching to tab:', tabIndex);
             
-            // Set default active tab (pending - index 0)
-            setTimeout(() => {
-                window.setActiveTab(0);
-            }, 100);
-        }
+            // Get all tab buttons and contents
+            const tabButtons = document.querySelectorAll('.tab-btn');
+            const tabContents = document.querySelectorAll('.tab-content');
+            
+            console.log(`Found ${tabButtons.length} tab buttons and ${tabContents.length} tab contents`);
+            
+            // Remove active classes from all tabs
+            tabButtons.forEach(btn => {
+                btn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
+                btn.classList.add('text-neutral-500');
+                const span = btn.querySelector('span');
+                if (span) {
+                    span.classList.remove('text-primary');
+                    span.classList.add('text-neutral-500');
+                }
+            });
+            
+            // Hide all tab contents
+            tabContents.forEach(content => {
+                content.classList.add('hidden');
+            });
+            
+            // Activate selected tab
+            if (tabButtons[tabIndex]) {
+                tabButtons[tabIndex].classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
+                tabButtons[tabIndex].classList.remove('text-neutral-500');
+                const span = tabButtons[tabIndex].querySelector('span');
+                if (span) {
+                    span.classList.add('text-primary');
+                    span.classList.remove('text-neutral-500');
+                }
+            }
+            
+            // Show selected tab content
+            if (tabContents[tabIndex]) {
+                tabContents[tabIndex].classList.remove('hidden');
+                console.log(`Tab ${tabIndex} content shown`);
+            } else {
+                console.error(`Tab content ${tabIndex} not found`);
+            }
+        };
+        
+        // Set default active tab (pending - index 0) after a short delay
+        setTimeout(() => {
+            console.log('Setting default active tab...');
+            window.setActiveTab(0);
+        }, 100);
         
     } catch (error) {
         console.error('Error setting up tab switching:', error);
@@ -1526,8 +1530,8 @@ function filterSidebarByPrivileges(privileges) {
         'PM': ['pm.html'] // PM has access to Property Monitoring
     };
     
-    // Get all sidebar links
-    const sidebarLinks = document.querySelectorAll('nav a[href]');
+    // Get ONLY sidebar navigation links using specific IDs
+    const sidebarLinks = document.querySelectorAll('#sidebar-dashboard, #sidebar-psr, #sidebar-ts, #sidebar-tk, #sidebar-pm');
     
     sidebarLinks.forEach(link => {
         const href = link.getAttribute('href');

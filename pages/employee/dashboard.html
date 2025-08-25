@@ -26,7 +26,7 @@
             </svg>
         </div> 
         <nav class="mt-10 font-manrope">
-            <a href="dashboard.html" 
+            <a href="dashboard.html" id="sidebar-dashboard"
                 class="flex gap-3 items-center rounded-xl p-3 bg-primary shadow-lg shadow-primary/25
                 transition-all duration-300 ease-in-out">
                 <svg class="h-5 fill-white" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -37,7 +37,7 @@
             <hr class="my-4 border-t- border-neutral-300">
             <p class="font-semibold mb-3">Management</p>
             <div class="mb-3">
-                <a href="psr.html" 
+                <a href="psr.html" id="sidebar-psr"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -48,7 +48,7 @@
 
                     <span class="text-neutral-500 group-hover:text-primary">Property Summary Report</span>
                 </a>
-                <a href="ts.html" 
+                <a href="ts.html" id="sidebar-ts"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -58,7 +58,7 @@
 
                     <span class="text-neutral-500 group-hover:text-primary">Transactions</span>
                 </a>
-                <a href="tk.html" 
+                <a href="tk.html" id="sidebar-tk"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -68,7 +68,7 @@
 
                     <span class="text-neutral-500 group-hover:text-primary">Ticketing</span>
                 </a>
-                <a href="pm.html" 
+                <a href="pm.html" id="sidebar-pm"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -101,7 +101,7 @@
             <div class="relative inline-block text-left">
                 <!-- Bell Icon -->
                 <div class="relative">
-                  <button onclick="toggleDropdown()" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
+                  <button id="notifBellBtnDesktop" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
                   hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
                   transition-all buration-300 ease-in-out
                   hidden md:block">
@@ -207,7 +207,7 @@
                 <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-52 border border-neutral-300 bg-white rounded-3xl shadow-lg py-5 px-3 z-50 text-sm font-manrope text-primary-text">
                 <a href="profile.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">Profile</a>
                 <hr class="my-2 border-neutral-300">
-                <a href="#" class="block px-4 py-2 rounded-xl text-red-500 hover:bg-primary/10 font-semibold">Log Out</a>
+                <a id="logoutBtn" href="#" class="block px-4 py-2 rounded-xl text-red-500 hover:bg-primary/10 font-semibold">Log Out</a>
                 </div>
             </div>
             </div>
@@ -730,6 +730,7 @@
   <script defer src="../../src/notification.js"></script>
   <script defer src="../../src/navbar.js"></script>
   <script defer src="../../src/modal.js"></script>
+  <script defer src="../admin/adminFunctions/logout-functions.js"></script>
   <script defer src="employeeFunctions/employeeDashboard.js"></script>
   <script defer src="employeeFunctions/psr-functions.js"></script>
 

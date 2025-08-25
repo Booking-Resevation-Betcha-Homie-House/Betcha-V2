@@ -436,20 +436,76 @@ async function loadAndPopulateTodayCheckins() {
     const data = await response.json();
     console.log('Today\'s check-ins data received:', data);
     
+    // Debug: Log the raw data structure
+    if (Array.isArray(data)) {
+      console.log('Dashboard: API returned array with', data.length, 'items');
+      data.forEach((item, index) => {
+        console.log(`Dashboard: Item ${index}:`, {
+          hasBookingId: !!item.bookingId,
+          hasPropertyId: !!item.propertyId,
+          status: item.status,
+          guestName: item.nameOfGuest || item.guestName,
+          propertyName: item.nameOfProperty || item.propertyName
+        });
+      });
+    }
+    
     // Handle the actual API response structure - it's an array with message and booking objects
     if (Array.isArray(data)) {
-      // Filter out message objects and keep only booking objects
-      const bookings = data.filter(item => item.bookingId && item.propertyId);
+      // Filter out message objects and keep only valid booking objects
+      const allBookings = data.filter(item => item.bookingId && item.propertyId);
       
-      if (bookings.length > 0) {
-        populateTodayCheckins(bookings);
+      // Apply the same status filtering logic as the PM page
+      const validBookings = allBookings.filter(booking => {
+        // Skip bookings without status
+        if (!booking.status) {
+          console.warn('Booking has no status, excluding:', booking);
+          return false;
+        }
+        
+        const statusLower = booking.status.toString().toLowerCase();
+        
+        // Exclude cancelled, completed, and checked-out bookings
+        if (statusLower === 'cancel' || 
+            statusLower === 'cancelled' ||
+            statusLower === 'checked-out' || 
+            statusLower === 'completed' ||
+            statusLower === 'finished' ||
+            statusLower === 'ended' ||
+            statusLower.includes('checkout') ||
+            statusLower.includes('checked-out') ||
+            statusLower.includes('checked out') ||
+            statusLower.includes('complete') ||
+            statusLower.includes('finished') ||
+            statusLower.includes('ended')) {
+          console.log('Excluding booking with status:', booking.status, 'for guest:', booking.nameOfGuest || booking.guestName);
+          return false;
+        }
+        
+        // Include pending, reserved, confirmed, and checked-in bookings
+        return true;
+      });
+      
+      console.log(`Filtered ${allBookings.length} total bookings down to ${validBookings.length} valid check-ins`);
+      
+      if (validBookings.length > 0) {
+        populateTodayCheckins(validBookings);
       } else {
-        console.warn('No valid bookings found in response');
+        console.warn('No valid check-ins found after status filtering');
         showNoCheckinsMessage();
       }
     } else if (data.bookings && Array.isArray(data.bookings)) {
-      // Fallback for the expected structure
-      populateTodayCheckins(data.bookings);
+      // Fallback for the expected structure - apply same filtering
+      const validBookings = data.bookings.filter(booking => {
+        if (!booking.status) return false;
+        
+        const statusLower = booking.status.toString().toLowerCase();
+        return !(statusLower === 'cancel' || statusLower === 'cancelled' || 
+                statusLower === 'checked-out' || statusLower === 'completed' ||
+                statusLower.includes('checkout') || statusLower.includes('complete'));
+      });
+      
+      populateTodayCheckins(validBookings);
     } else {
       console.warn('Invalid response format - expected array or data.bookings');
       showNoCheckinsMessage();
@@ -544,11 +600,31 @@ function createCheckinElement(checkin) {
     }
   }
   
+  // Get status for display
+  const status = checkin.status || 'Unknown';
+  let statusColor = 'bg-blue-100 text-blue-800';
+  let statusText = status;
+  
+  // Determine status color and text
+  const statusLower = status.toString().toLowerCase();
+  if (statusLower.includes('pending') || statusLower.includes('reserved')) {
+    statusColor = 'bg-yellow-100 text-yellow-800';
+    statusText = 'Pending';
+  } else if (statusLower.includes('confirmed') || statusLower.includes('fully-paid')) {
+    statusColor = 'bg-green-100 text-green-800';
+    statusText = 'Confirmed';
+  } else if (statusLower.includes('checked-in')) {
+    statusColor = 'bg-green-100 text-green-800';
+    statusText = 'Checked-In';
+  }
+  
   checkinDiv.innerHTML = `
     <!-- Name + Property -->
     <div class="flex-1 min-w-0 flex flex-col gap-1 mb-2 sm:mb-0 text-center sm:text-left">
       <p class="text-sm font-medium text-neutral-800 truncate font-manrope">${guestName}</p>
       <p class="text-xs text-neutral-500 truncate">${propertyName}</p>
+      <!-- Status Badge -->
+      <span class="inline-block px-2 py-1 text-xs rounded-full ${statusColor} font-medium mt-1">${statusText}</span>
     </div>
 
     <!-- Dates -->
