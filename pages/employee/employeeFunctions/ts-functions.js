@@ -12,7 +12,39 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize transaction functionality
     initializeTransactionFeatures();
+    
+    // Check if we're coming from dashboard and should open a transaction modal
+    checkDashboardRedirect();
 });
+
+// Check if we should open a transaction modal from dashboard redirect
+function checkDashboardRedirect() {
+    try {
+        const shouldOpenModal = localStorage.getItem('openTransactionModal');
+        const selectedTransaction = localStorage.getItem('selectedTransaction');
+        
+        if (shouldOpenModal === 'true' && selectedTransaction) {
+            console.log('Dashboard redirect detected, opening transaction modal...');
+            
+            // Parse the transaction data
+            const transaction = JSON.parse(selectedTransaction);
+            
+            // Clear the flags
+            localStorage.removeItem('openTransactionModal');
+            localStorage.removeItem('redirectFromDashboard');
+            
+            // Wait a bit for the page to fully load, then open the modal
+            setTimeout(() => {
+                openTransactionModal(transaction, true); // Skip API call since we have transaction data
+            }, 500);
+        }
+    } catch (error) {
+        console.error('Error checking dashboard redirect:', error);
+        // Clear flags on error
+        localStorage.removeItem('openTransactionModal');
+        localStorage.removeItem('redirectFromDashboard');
+    }
+}
 
 // Initialize Transaction Features
 async function initializeTransactionFeatures() {
@@ -350,7 +382,7 @@ function setupTabSwitching() {
 }
 
 // Open Transaction Modal with Data
-function openTransactionModal(transaction) {
+function openTransactionModal(transaction, skipApiCall = false) {
     try {
         console.log('Opening transaction modal for:', transaction);
         
@@ -376,8 +408,17 @@ function openTransactionModal(transaction) {
         // Setup modal close functionality
         setupModalCloseHandlers(modal);
         
-        // Fetch detailed booking information
-        fetchBookingDetails(transaction.bookingId, modal, transaction);
+        if (skipApiCall) {
+            // Skip API call and directly populate with transaction data
+            console.log('Skipping API call, using transaction data directly');
+            setTimeout(() => {
+                restoreModalContent(modal);
+                populateModalWithTransactionData(modal, transaction);
+            }, 300);
+        } else {
+            // Fetch detailed booking information
+            fetchBookingDetails(transaction.bookingId, modal, transaction);
+        }
         
         console.log('Transaction modal opened successfully');
         
@@ -448,6 +489,7 @@ function restoreModalContent(modal) {
     try {
         const modalContent = modal.querySelector('.overflow-y-auto');
         if (modalContent) {
+            console.log('Restoring modal content...');
             modalContent.innerHTML = `
                 <p class="text-lg font-bold text-primary-text font-manrope" data-transaction-number>Transaction no.</p>
                 <p class="text-neutral-700 font-semibold">Guest: <span class="font-normal" data-guest-name>Name</span></p>
@@ -466,33 +508,44 @@ function restoreModalContent(modal) {
                         <p class="text-neutral-700 font-semibold">Status:</p>
                         <div class="p-5 max-w-xs mx-auto">
                             <ol class="relative border-s border-neutral-200">
+                                <!-- Step 1 -->
                                 <li class="mb-6 ms-4">
-                                    <span class="status-step absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="reserved"></span>
+                                    <span class="absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="reserved"></span>
                                     <h3 class="text-sm font-medium leading-tight">Reserved</h3>
                                     <p class="text-xs text-neutral-500">Booking reserved successfully</p>
                                 </li>
+                                
+                                <!-- Step 2 -->
                                 <li class="mb-6 ms-4">
-                                    <span class="status-step absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="paid"></span>
+                                    <span class="absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="paid"></span>
                                     <h3 class="text-sm font-medium leading-tight">Fully Paid</h3>
                                     <p class="text-xs text-neutral-500">Payment confirmed</p>
                                 </li>
+                                
+                                <!-- Step 3 -->
                                 <li class="mb-6 ms-4">
-                                    <span class="status-step absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="checkin"></span>
+                                    <span class="absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="checkin"></span>
                                     <h3 class="text-sm font-medium leading-tight">Check In</h3>
                                     <p class="text-xs text-neutral-500">Guest has checked in</p>
                                 </li>
+
+                                <!-- Step 4 -->
                                 <li class="mb-6 ms-4">
-                                    <span class="status-step absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="checkout"></span>
+                                    <span class="absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="checkout"></span>
                                     <h3 class="text-sm font-medium leading-tight">Check Out</h3>
                                     <p class="text-xs text-neutral-500">Guest has checked out</p>
                                 </li>
+
+                                <!-- Step 5 -->
                                 <li class="mb-6 ms-4">
-                                    <span class="status-step absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="completed"></span>
+                                    <span class="absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="completed"></span>
                                     <h3 class="text-sm font-medium leading-tight">Completed</h3>
                                     <p class="text-xs text-neutral-500">Booking completed</p>
                                 </li>
+
+                                <!-- Cancelled (The bg should be bg-rose-700) -->
                                 <li class="ms-4">
-                                    <span class="status-step absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="cancelled"></span>
+                                    <span class="absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="cancelled"></span>
                                     <h3 class="text-sm font-medium leading-tight">Cancelled</h3>
                                     <p class="text-xs text-neutral-500">Booking Cancelled</p>
                                 </li>
@@ -505,16 +558,17 @@ function restoreModalContent(modal) {
                         <p class="text-neutral-700 font-semibold">Price details:</p>
                         <div class="flex justify-between items-center">
                             <div class="text-primary-text font-inter">
-                                <p>Package fee (₱ <span id="packageFee">00</span> x <span id="numOfDays">00</span> day/s)</p>
+                                <p>₱ <span id="pricePerDay">00</span><span> x </span> <span id="daysOfStay">00</span> <span>day/s</span></p>
                             </div>
-                            <p class="text-primary-text font-inter">₱ <span id="totalPackageFee">00</span></p>
+                            <p class="text-primary-text font-inter">₱ <span id="totalPriceDay">00</span></p>
                         </div>
                         <div class="flex justify-between items-center mb-3">
                             <div class="text-primary-text font-inter">
-                                <p>Additional guests (₱ <span id="additionalPaxPrice">00</span> x <span id="additionalPax">00</span> guest/s)</p>
+                                <p>₱ <span id="addGuestPrice">00</span><span> x </span> <span id="daysOfStay">00</span> <span>guest/s</span></p>
                             </div>
-                            <p class="text-primary-text font-inter">₱ <span id="totalAdditionalPax">00</span></p>
+                            <p class="text-primary-text font-inter">₱ <span id="totalAddGuest">00</span></p>
                         </div>
+                        
                         <div class="flex justify-between items-center">
                             <p class="text-primary-text font-inter">Reservation fee</p>
                             <p class="text-primary-text font-inter">₱ <span id="reservationFee">00</span></p>
@@ -526,7 +580,7 @@ function restoreModalContent(modal) {
                         <hr class="my-4 border-t border-neutral-300">
                         <div class="flex justify-between items-center">
                             <p class="text-primary-text text-xl font-bold font-manrope">Total:</p>
-                            <p class="text-primary-text text-xl font-inter" data-total-amount>₱ <span id="totalFee">00</span></p>
+                            <p class="text-primary-text text-xl font-inter" data-total-amount>₱ <span id="totalPrice">00</span></p>
                         </div>
                     </div>
                     
@@ -566,6 +620,7 @@ function restoreModalContent(modal) {
                     </div>
                 </div>
             `;
+            console.log('Modal content restored successfully');
         }
     } catch (error) {
         console.error('Error restoring modal content:', error);
@@ -1042,11 +1097,13 @@ function updateButtonVisibility(modal, booking) {
 function updateStatusProgressionDetailed(modal, currentStatus) {
     try {
         console.log('Updating detailed status progression for status:', currentStatus);
+        console.log('Modal element:', modal);
+        console.log('Modal HTML structure:', modal.innerHTML);
         
         // Define status progression order and mapping
         const statusProgression = [
             { key: 'reserved', status: 'Reserved' },
-            { key: 'paid', status: 'Fully-Paid' },
+            { key: 'paid', status: 'Fully Paid' },
             { key: 'checkin', status: 'Check In' },
             { key: 'checkout', status: 'Check Out' },
             { key: 'completed', status: 'Completed' }
@@ -1055,29 +1112,45 @@ function updateStatusProgressionDetailed(modal, currentStatus) {
         // Map API status to progression status
         const statusMapping = {
             'Pending Payment': 'Reserved',
+            'Reserved': 'Reserved',
             'Fully-Paid': 'Fully-Paid',
-            'Checked In': 'Check In',
-            'Checked Out': 'Check Out',
+            'Checked-In': 'Check In',
+            'Check In': 'Check In',
+            'Checked-Out': 'Check Out',
+            'Check Out': 'Check Out',
             'Completed': 'Completed',
+            'Cancel': 'Cancelled',
             'Cancelled': 'Cancelled'
         };
         
         const mappedStatus = statusMapping[currentStatus] || currentStatus;
         const currentStepIndex = statusProgression.findIndex(step => step.status === mappedStatus);
         
+        console.log(`Status mapping: ${currentStatus} -> ${mappedStatus}`);
+        console.log(`Looking for step with status: ${mappedStatus}`);
+        console.log(`Available steps:`, statusProgression.map(s => s.status));
+        console.log(`Current step index: ${currentStepIndex}`);
+        
         // Update status steps
         statusProgression.forEach((step, index) => {
             const stepElement = modal.querySelector(`[data-status-step="${step.key}"]`);
+            console.log(`Looking for step ${step.key}:`, stepElement);
             if (stepElement) {
+                console.log(`Found step element for ${step.key}, updating classes...`);
                 stepElement.classList.remove('bg-primary', 'bg-neutral-300', 'bg-rose-700');
                 
                 if (mappedStatus === 'Cancelled') {
                     stepElement.classList.add('bg-neutral-300');
+                    console.log(`Step ${step.key} set to neutral (cancelled)`);
                 } else if (index <= currentStepIndex) {
                     stepElement.classList.add('bg-primary');
+                    console.log(`Step ${step.key} set to primary (completed)`);
                 } else {
                     stepElement.classList.add('bg-neutral-300');
+                    console.log(`Step ${step.key} set to neutral (not reached)`);
                 }
+            } else {
+                console.warn(`Step element not found for: ${step.key}`);
             }
         });
         
@@ -1178,7 +1251,9 @@ function populateModalWithTransactionData(modal, transaction) {
         updateElement('[data-property-name]', transaction.propertyName);
         updateElement('[data-checkin-date]', checkInDate);
         updateElement('[data-checkout-date]', checkOutDate);
-        updateElement('[data-payment-mode]', transaction.paymentMode);
+        updateElement('[data-checkin-time]', '1:00 PM'); // Default time since not in transaction data
+        updateElement('[data-checkout-time]', '11:00 AM'); // Default time since not in transaction data
+        updateElement('[data-payment-category]', transaction.paymentMode || 'N/A');
         updateElement('[data-status]', transaction.status);
         updateElement('[data-booking-id]', transaction.bookingId);
         
@@ -1200,7 +1275,11 @@ function populateModalWithTransactionData(modal, transaction) {
         }
         
         // Update status progression
-        updateStatusProgression(modal, transaction.status);
+        console.log('About to update status progression...');
+        setTimeout(() => {
+            console.log('Calling updateStatusProgression after delay...');
+            updateStatusProgression(modal, transaction.status);
+        }, 500); // Increased delay to ensure content is rendered
         
         // Update status color
         const statusElement = modal.querySelector('[data-status]');
@@ -1223,56 +1302,99 @@ function populateModalWithTransactionData(modal, transaction) {
 function updateStatusProgression(modal, currentStatus) {
     try {
         console.log('Updating status progression for status:', currentStatus);
+        console.log('Modal element:', modal);
         
-        // Define status progression order
+        // Get all status step elements (the span elements with the dots)
+        const statusSteps = modal.querySelectorAll('ol li span');
+        
+        if (statusSteps.length === 0) {
+            console.warn('No status steps found in modal');
+            // Let's see what's actually in the modal
+            console.log('Modal HTML:', modal.innerHTML);
+            console.log('Looking for ol li span elements...');
+            const olElements = modal.querySelectorAll('ol');
+            console.log('Found ol elements:', olElements.length);
+            olElements.forEach((ol, index) => {
+                console.log(`OL ${index}:`, ol);
+                const liElements = ol.querySelectorAll('li');
+                console.log(`  LI elements: ${liElements.length}`);
+                liElements.forEach((li, liIndex) => {
+                    const spanElements = li.querySelectorAll('span');
+                    console.log(`    LI ${liIndex} span elements: ${spanElements.length}`);
+                });
+            });
+            return;
+        }
+        
+        console.log(`Found ${statusSteps.length} status steps`);
+        statusSteps.forEach((step, index) => {
+            console.log(`Step ${index + 1}:`, step);
+        });
+        
+        // Define the status progression order based on the HTML structure
         const statusProgression = [
-            'Reserved',
-            'Fully-Paid',
-            'Check In',
-            'Check Out', 
-            'Completed'
+            'Reserved',      // Step 1
+            'Fully-Paid',    // Step 2  
+            'Check In',      // Step 3
+            'Check Out',     // Step 4
+            'Completed',     // Step 5
+            'Cancelled'      // Step 6
         ];
         
         // Map API status to progression status
         const statusMapping = {
             'Pending Payment': 'Reserved',
+            'Reserved': 'Reserved',
             'Fully-Paid': 'Fully-Paid',
             'Checked In': 'Check In',
             'Checked Out': 'Check Out',
             'Completed': 'Completed',
+            'Cancel': 'Cancelled',
             'Cancelled': 'Cancelled'
         };
         
         const mappedStatus = statusMapping[currentStatus] || currentStatus;
         const currentStepIndex = statusProgression.indexOf(mappedStatus);
         
-        // Get all status step elements
-        const statusSteps = modal.querySelectorAll('ol li span');
+        console.log(`Status mapping: ${currentStatus} -> ${mappedStatus} (step ${currentStepIndex})`);
         
+        // Reset all status steps to neutral
         statusSteps.forEach((step, index) => {
-            const stepElement = step;
-            
             // Remove all status classes
-            stepElement.classList.remove('bg-primary', 'bg-neutral-300', 'bg-rose-700');
+            step.classList.remove('bg-primary', 'bg-neutral-300', 'bg-rose-700', 'bg-blue-500');
             
-            if (mappedStatus === 'Cancelled') {
-                // Handle cancelled status - only show cancelled step
-                if (index === statusSteps.length - 1) { // Last step (cancelled)
-                    stepElement.classList.add('bg-rose-700');
-                } else {
-                    stepElement.classList.add('bg-neutral-300');
-                }
-            } else {
-                // Normal progression
-                if (index <= currentStepIndex) {
-                    stepElement.classList.add('bg-primary'); // Completed steps
-                } else {
-                    stepElement.classList.add('bg-neutral-300'); // Future steps
-                }
-            }
+            // Add default neutral class
+            step.classList.add('bg-neutral-300');
         });
         
-        console.log(`Status progression updated: ${currentStatus} -> ${mappedStatus} (step ${currentStepIndex})`);
+        if (mappedStatus === 'Cancelled') {
+            // Handle cancelled status - only show cancelled step as active
+            statusSteps.forEach((step, index) => {
+                if (index === 5) { // Last step (Cancelled)
+                    step.classList.remove('bg-neutral-300');
+                    step.classList.add('bg-rose-700');
+                }
+            });
+            console.log('Status progression updated: Cancelled (red dot)');
+        } else if (currentStepIndex >= 0) {
+            // Normal progression - highlight completed steps
+            statusSteps.forEach((step, index) => {
+                if (index <= currentStepIndex) {
+                    step.classList.remove('bg-neutral-300');
+                    // Use a more explicit blue color that should be visible
+                    step.classList.add('bg-blue-500'); // Completed steps
+                }
+            });
+            console.log(`Status progression updated: ${mappedStatus} (step ${currentStepIndex + 1} of ${statusProgression.length})`);
+        } else {
+            console.warn(`Unknown status: ${mappedStatus}, keeping all steps neutral`);
+        }
+        
+        // Debug: Log the final state of each step
+        statusSteps.forEach((step, index) => {
+            const classes = step.className;
+            console.log(`Step ${index + 1}: ${classes}`);
+        });
         
     } catch (error) {
         console.error('Error updating status progression:', error);

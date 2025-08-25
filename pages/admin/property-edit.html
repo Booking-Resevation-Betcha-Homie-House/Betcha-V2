@@ -343,17 +343,7 @@
                         <span class="text-sm text-rose-700">Discard</span>
                     </button>
                     
-                    <!-- Test Button for Demo -->
-                    <button
-                        onclick="window.loadTestPropertyData && window.loadTestPropertyData()"
-                        class="flex gap-2 justify-center items-center w-full md:w-fit cursor-pointer
-                        transition-all duration-300 ease-in-out bg-blue-100 
-                        hover:bg-blue-200 hover:scale-105 rounded-2xl active:scale-95">
-                        <svg class="w-5 fill-blue-700" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M12 2L15 9L22 9L17 14L19 21L12 17L5 21L7 14L2 9L9 9L12 2Z"/>
-                        </svg>
-                        <span class="text-sm text-blue-700">Load Test Data</span>
-                    </button>
+                    
                 </div>
                 <!-- Images -->
                 <div id="PhotosSection"
@@ -466,20 +456,7 @@
 
                         </div>
                         <div class="flex flex-col gap-2 w-full group">
-                            <label for="statusDropdownBtn" class="font-manrope text-sm font-bold text-neutral-600 group-hover:text-primary transition-all duration-300">
-                                Status
-                            </label>
-                            <div class="relative w-full">
-                                <button type="button" id="statusDropdownBtn" class="input-style3 flex justify-between items-center w-full group">
-                                    <span id="selectedStatus" class="text-neutral-600 text-sm md:text-base">Select status</span>
-
-                                    <svg id="statusDropdownIcon" class="w-4 md:w-5 text-neutral-500 transition-transform duration-300" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M1 1.5L8 8.5L15 1.5" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="bevel" />
-                                    </svg>
-                                </button>
-
-                                <ul id="statusDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-neutral-300 rounded-xl shadow hidden text-sm md:text-base text-primary-text max-h-48 overflow-y-auto"></ul>
-                            </div>
+                            <!-- Status field removed; controlled by Archive/Activate button -->
                         </div>
                         <div class="flex flex-col gap-2 w-full group">
                             <label for="input-prop-packCap" class="font-manrope text-sm font-bold text-neutral-600 group-hover:text-primary transition-all duration-300">

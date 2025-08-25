@@ -2,7 +2,7 @@ Chart.defaults.font.family = "'Manrope', sans-serif";
 
 const ctx = document.getElementById('topRoomsChart')?.getContext('2d');
 if (ctx) {
-  new Chart(ctx, {
+  const instance = new Chart(ctx, {
     type: 'bar',
     data: {
       labels: ['Room A', 'Room B', 'Room C', 'Room D', 'Room E'],
@@ -51,4 +51,15 @@ if (ctx) {
       }
     }
   });
+
+  // Expose instance and an updater without changing design
+  window.topRoomsChartInstance = instance;
+  window.updateTopRoomsChart = function(labels, values) {
+    try {
+      if (!Array.isArray(labels) || !Array.isArray(values)) return;
+      instance.data.labels = labels;
+      instance.data.datasets[0].data = values;
+      instance.update();
+    } catch (_) {}
+  };
 }

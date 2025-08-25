@@ -97,6 +97,9 @@ function showAccessDeniedMessage() {
 function initializePropertyMonitoringFeatures() {
     window.loadTodaysCheckins();
     
+    // Check if we're coming from dashboard and should open a booking modal
+    checkDashboardRedirect();
+    
     const tabButtons = document.querySelectorAll('[data-tab]');
     tabButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -113,6 +116,129 @@ function initializePropertyMonitoringFeatures() {
     
     initializeCheckinConfirmationModal();
     initializeCalendarBookings();
+
+    // Load admins when cancel modal is opened
+    document.addEventListener('click', function(e) {
+        const openCancelBtn = e.target.closest('[data-modal-target="cancelBookingModal"]');
+        if (openCancelBtn) {
+            try { loadAdminsIntoCancelModal(); } catch (_) {}
+            try {
+                const modal = document.getElementById('cancelBookingModal');
+                if (modal) {
+                    const transNo = openCancelBtn.getAttribute('data-trans-no');
+                    const guestId = openCancelBtn.getAttribute('data-guest-id');
+                    const bookingId = openCancelBtn.getAttribute('data-booking-id');
+                    if (transNo) modal.dataset.transNo = transNo;
+                    if (guestId) modal.dataset.guestId = guestId;
+                    if (bookingId) modal.dataset.bookingId = bookingId;
+                    console.log('CancelModal: received from open button:', {
+                        transNo: transNo || 'N/A',
+                        guestId: guestId || 'N/A'
+                    });
+                    console.log('CancelModal: current dataset after attach:', Object.fromEntries(Object.entries(modal.dataset)));
+
+                    // If still missing, enrich from API immediately
+                    (async () => {
+                        try {
+                            if ((!modal.dataset.transNo || !modal.dataset.guestId) && modal.dataset.bookingId) {
+                                const resp = await fetch(`${API_BASE_URL}/booking/${modal.dataset.bookingId}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+                                if (resp.ok) {
+                                    const data = await resp.json();
+                                    const b = data?.booking || {};
+                                    if (!modal.dataset.transNo && (b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo)) {
+                                        modal.dataset.transNo = b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo;
+                                    }
+                                    if (!modal.dataset.guestId && (b.guestId || b?.guest?.id)) {
+                                        modal.dataset.guestId = b.guestId || b?.guest?.id;
+                                    }
+                                    if (b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets) {
+                                        modal.dataset.ewallet = b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets;
+                                    }
+                                    console.log('CancelModal: enriched dataset via booking API ->', Object.fromEntries(Object.entries(modal.dataset)));
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('CancelModal: enrichment fetch failed', e);
+                        }
+                    })();
+                }
+            } catch (_) {}
+        }
+    });
+
+    // Handle sending cancellation notice to selected admin
+    document.addEventListener('click', function(e) {
+        const sendBtn = e.target.closest('#send-cancel-notice-btn');
+        if (sendBtn) {
+            try { sendCancellationNoticeToAdmin(); } catch (_) {}
+        }
+    });
+}
+
+// Check if we should open a booking modal from dashboard redirect
+function checkDashboardRedirect() {
+    try {
+        const shouldOpenModal = localStorage.getItem('openBookingModal');
+        const selectedBooking = localStorage.getItem('selectedBooking');
+        
+        if (shouldOpenModal === 'true' && selectedBooking) {
+            console.log('Dashboard redirect detected, opening booking modal...');
+            
+            // Parse the booking data
+            const booking = JSON.parse(selectedBooking);
+            
+            // Clear the flags
+            localStorage.removeItem('openBookingModal');
+            localStorage.removeItem('redirectFromDashboard');
+            localStorage.removeItem('selectedBooking');
+            
+            // Open the check-in confirmation modal with the booking data
+            setTimeout(() => {
+                openBookingModalFromDashboard(booking);
+            }, 500); // Small delay to ensure page is fully loaded
+        }
+    } catch (error) {
+        console.error('Error checking dashboard redirect:', error);
+        // Clear any corrupted data
+        localStorage.removeItem('openBookingModal');
+        localStorage.removeItem('redirectFromDashboard');
+        localStorage.removeItem('selectedBooking');
+    }
+}
+
+// Open booking modal from dashboard with booking data
+function openBookingModalFromDashboard(booking) {
+    try {
+        console.log('Opening booking modal from dashboard with data:', booking);
+        
+        // Get the modal element
+        const modal = document.getElementById('checkinConfirmModal');
+        if (!modal) {
+            console.error('Check-in confirmation modal not found');
+            return;
+        }
+        
+        // Populate the modal with booking data
+        populateCheckinConfirmModal(
+            booking.bookingId || booking._id || '',
+            booking.nameOfProperty || booking.propertyName || 'Property',
+            booking.nameOfGuest || booking.guestName || 'Guest',
+            booking.checkIn || '',
+            booking.timeIn || '1:00 PM',
+            'Confirmed', // Default status for dashboard bookings
+            booking.guestId || '',
+            booking.transNo || ''
+        );
+        
+        // Open the modal
+        modal.classList.remove('hidden');
+        document.body.classList.add('modal-open');
+        
+        console.log('Booking modal opened successfully from dashboard');
+        
+    } catch (error) {
+        console.error('Error opening booking modal from dashboard:', error);
+    }
 }
 
 // Function to get property IDs from localStorage
@@ -277,31 +403,37 @@ function populateCheckoutTab(checkoutData) {
                 if (shouldExcludeBooking(item)) return false;
                 
                 const isCheckoutToday = isCheckoutDateToday(item.checkOut);
-                const isNotCancelled = item.status !== 'Cancel' && item.status !== 'Cancelled';
+                const statusStr = (item.status || '').toString().toLowerCase();
+                const isNotCancelled = statusStr !== 'cancel' && statusStr !== 'cancelled';
+                const isNotCheckedOut = !statusStr.includes('checked-out') && !statusStr.includes('checked out') && !statusStr.includes('completed');
                 
-                return hasBookingFields && isCheckoutToday && isNotCancelled;
+                return hasBookingFields && isCheckoutToday && isNotCancelled && isNotCheckedOut;
             });
         } else if (checkoutData && checkoutData.bookings && Array.isArray(checkoutData.bookings)) {
             checkoutBookings = checkoutData.bookings.filter(item => {
                 const hasBookingFields = item.bookingId || item._id || item.transNo ||
                                        (item.propertyName && item.guestName);
                 const isCheckoutToday = isCheckoutDateToday(item.checkOut);
-                const isNotCancelled = item.status !== 'Cancel' && item.status !== 'Cancelled';
+                const statusStr = (item.status || '').toString().toLowerCase();
+                const isNotCancelled = statusStr !== 'cancel' && statusStr !== 'cancelled';
+                const isNotCheckedOut = !statusStr.includes('checked-out') && !statusStr.includes('checked out') && !statusStr.includes('completed');
                 
                 if (shouldExcludeBooking(item)) return false;
                 
-                return hasBookingFields && isCheckoutToday && isNotCancelled;
+                return hasBookingFields && isCheckoutToday && isNotCancelled && isNotCheckedOut;
             });
         } else if (checkoutData && checkoutData.data && Array.isArray(checkoutData.data)) {
             checkoutBookings = checkoutData.data.filter(item => {
                 const hasBookingFields = item.bookingId || item._id || item.transNo ||
                                        (item.propertyName && item.guestName);
                 const isCheckoutToday = isCheckoutDateToday(item.checkOut);
-                const isNotCancelled = item.status !== 'Cancel' && item.status !== 'Cancelled';
+                const statusStr = (item.status || '').toString().toLowerCase();
+                const isNotCancelled = statusStr !== 'cancel' && statusStr !== 'cancelled';
+                const isNotCheckedOut = !statusStr.includes('checked-out') && !statusStr.includes('checked out') && !statusStr.includes('completed');
                 
                 if (shouldExcludeBooking(item)) return false;
                 
-                return hasBookingFields && isCheckoutToday && isNotCancelled;
+                return hasBookingFields && isCheckoutToday && isNotCancelled && isNotCheckedOut;
             });
         }
         
@@ -528,15 +660,9 @@ function openEndBookingModal(bookingId, propertyName, guestName, checkInDate, ch
     
     // Set the modal content with booking details
     const modalTitle = modal.querySelector('.text-xl.font-bold');
-    const remarksTextarea = modal.querySelector('#input-checkout-remarks');
     
     if (modalTitle) {
         modalTitle.textContent = `End Booking - ${propertyName}`;
-    }
-    
-    if (remarksTextarea) {
-        remarksTextarea.value = '';
-        remarksTextarea.placeholder = `Enter property-related remarks for ${propertyName}...`;
     }
     
     // Store booking data for the confirm action
@@ -545,22 +671,164 @@ function openEndBookingModal(bookingId, propertyName, guestName, checkInDate, ch
     modal.dataset.guestName = guestName;
     modal.dataset.checkInDate = checkInDate;
     modal.dataset.checkOutDate = checkOutDate;
-    modal.dataset.guestId = guestId;
-    modal.dataset.transNo = transNo;
+    modal.dataset.guestId = guestId || '';
+    modal.dataset.transNo = transNo || '';
+    // Try to store propertyId if available from the latest cache
+    try {
+        const match = (window.lastCheckInData || []).find(b => (b.bookingId === bookingId || b._id === bookingId));
+        if (match && match.propertyId) modal.dataset.propertyId = match.propertyId;
+    } catch (_) {}
+
+    // Backfill missing IDs by fetching booking details
+    (async () => {
+        try {
+            if (!modal.dataset.guestId || !modal.dataset.transNo || !modal.dataset.propertyId) {
+                const resp = await fetch(`${API_BASE_URL}/booking/${bookingId}`);
+                if (resp.ok) {
+                    const payload = await resp.json();
+                    const b = payload?.booking || {};
+                    if (!modal.dataset.guestId && (b.guestId || b.guest?.id)) {
+                        modal.dataset.guestId = b.guestId || b.guest?.id;
+                    }
+                    if (!modal.dataset.transNo && (b.transNo || b.reservation?.paymentNo || b.package?.paymentNo)) {
+                        modal.dataset.transNo = b.transNo || b.reservation?.paymentNo || b.package?.paymentNo;
+                    }
+                    if (!modal.dataset.propertyId && b.propertyId) {
+                        modal.dataset.propertyId = b.propertyId;
+                    }
+                    console.log('Backfilled modal dataset from booking API:', Object.fromEntries(Object.entries(modal.dataset)));
+                } else {
+                    console.warn('Failed to backfill booking details:', resp.status);
+                }
+            }
+        } catch (e) {
+            console.warn('Error backfilling booking details:', e);
+        }
+    })();
     
-    // Initialize customer report checkbox functionality
+    // Initialize customer/property report checkbox functionality
     initializeCustomerReportCheckbox();
     
     // Show the modal
     modal.classList.remove('hidden');
+}
+
+// Function to handle End Booking confirmation
+async function handleEndBookingConfirm() {
+    const modal = document.getElementById('checkoutModal');
+    if (!modal) return;
     
-    // Focus on the remarks textarea
-    if (remarksTextarea) {
-        remarksTextarea.focus();
+    const bookingId = modal.dataset.bookingId;
+    const propertyName = modal.dataset.propertyName;
+    const guestName = modal.dataset.guestName;
+    const guestId = modal.dataset.guestId;
+    const transNo = modal.dataset.transNo;
+    const includeCustomerReport = document.getElementById('include-customer-report')?.checked || false;
+    const customerReportRemarks = includeCustomerReport ? (document.getElementById('input-customer-report')?.value || '') : '';
+    const includePropertyReport = document.getElementById('include-property-report')?.checked || false;
+    const propertyReportMessage = includePropertyReport ? (document.getElementById('input-property-report')?.value || '') : '';
+    
+    if (!bookingId) {
+        console.error('No booking ID found for confirmation');
+        return;
+    }
+    
+    try {
+        // If customer report checkbox is active, call the /report API
+        if (includeCustomerReport && customerReportRemarks && guestId) {
+            const reportData = {
+                guestId: guestId,
+                reason: customerReportRemarks,
+                transNo: transNo || '',
+                reportedBy: 'PM'
+            };
+            
+            const reportResponse = await fetch(`${API_BASE_URL}/report`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(reportData)
+            });
+            
+            if (!reportResponse.ok) {
+                throw new Error(`Report API failed: ${reportResponse.status} ${reportResponse.statusText}`);
+            }
+        }
+        
+        // If property report checkbox is active, call the property report API
+        if (includePropertyReport && propertyReportMessage) {
+            // Resolve propertyId: from modal dataset or last loaded booking cache
+            const propertyId = modal.dataset.propertyId || (window.lastCheckInData?.find?.(b => (b.bookingId === bookingId || b._id === bookingId))?.propertyId) || '';
+            
+            if (!propertyId) {
+                console.warn('Property ID not found; skipping property report creation');
+            } else {
+                // Sender: from logged-in user's full name
+                const sender = `${localStorage.getItem('firstName') || ''} ${localStorage.getItem('lastName') || ''}`.trim() || 'Unknown';
+                // Category: from dropdown
+                const category = document.getElementById('select-property-report-category')?.value || 'Other';
+                // Status: default for creation
+                const status = 'Unsolved';
+                // transNo: from modal dataset
+                const transNoValue = transNo || modal.dataset.transNo || '';
+
+                const propertyReportData = {
+                    sender: sender,
+                    category: category,
+                    status: status,
+                    date: new Date().toISOString(),
+                    transNo: transNoValue,
+                    message: propertyReportMessage
+                };
+                
+                const propertyReportResponse = await fetch(`${API_BASE_URL}/property/${propertyId}/report`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(propertyReportData)
+                });
+                
+                if (!propertyReportResponse.ok) {
+                    throw new Error(`Property report API failed: ${propertyReportResponse.status} ${propertyReportResponse.statusText}`);
+                }
+            }
+        }
+        
+        // Success path: perform checkout (update booking status)
+        const checkoutResponse = await fetch(`${API_BASE_URL}/booking/update-status/${bookingId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'Checked-Out' })
+        });
+        
+        if (!checkoutResponse.ok) {
+            throw new Error(`Checkout failed: ${checkoutResponse.status} ${checkoutResponse.statusText}`);
+        }
+        
+        const checkoutResult = await checkoutResponse.json();
+        console.log('Checkout API success:', checkoutResult);
+        
+        // Close modal and refresh
+        modal.classList.add('hidden');
+        document.body.classList.remove('modal-open');
+        console.log('End booking processed successfully');
+        
+        // Refresh data to reflect changes
+        if (typeof loadTodaysCheckins === 'function') {
+            loadTodaysCheckins();
+        }
+        
+        // Optional UX feedback
+        try { alert('✅ Booking checked out successfully.'); } catch(_) {}
+    } catch (error) {
+        console.error('Error during end booking confirmation:', error);
+        try { alert(`Error ending booking: ${error.message}`); } catch(_) {}
     }
 }
 
-// Function to initialize customer report checkbox functionality
+// Function to initialize customer/property report checkbox functionality
 function initializeCustomerReportCheckbox() {
     // Initialize customer report checkbox
     const customerCheckbox = document.getElementById('include-customer-report');
@@ -614,189 +882,6 @@ function initializeCustomerReportCheckbox() {
                 propertyReportTextarea.value = '';
             }
         });
-    }
-}
-
-// Function to handle End Booking confirmation
-async function handleEndBookingConfirm() {
-    const modal = document.getElementById('checkoutModal');
-    if (!modal) return;
-    
-    const bookingId = modal.dataset.bookingId;
-    const propertyName = modal.dataset.propertyName;
-    const guestName = modal.dataset.guestName;
-    const guestId = modal.dataset.guestId;
-    const transNo = modal.dataset.transNo;
-    const propertyRemarks = document.getElementById('input-checkout-remarks')?.value || '';
-    const includeCustomerReport = document.getElementById('include-customer-report')?.checked || false;
-    const customerReportRemarks = includeCustomerReport ? (document.getElementById('input-customer-report')?.value || '') : '';
-    const includePropertyReport = document.getElementById('include-property-report')?.checked || false;
-    const propertyReportMessage = includePropertyReport ? (document.getElementById('input-property-report')?.value || '') : '';
-    
-    if (!bookingId) {
-        console.error('No booking ID found for confirmation');
-        return;
-    }
-    
-    try {
-        // If customer report checkbox is active, call the /report API
-        if (includeCustomerReport && customerReportRemarks && guestId) {
-            const reportData = {
-                guestId: guestId,
-                reason: customerReportRemarks,
-                transNo: transNo || '',
-                reportedBy: 'PM' // Using PM as the reportedBy value
-            };
-            
-            console.log('Sending customer report:', reportData);
-            
-            const reportResponse = await fetch(`${API_BASE_URL}/report`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(reportData)
-            });
-            
-            if (!reportResponse.ok) {
-                throw new Error(`Report API failed: ${reportResponse.status} ${reportResponse.statusText}`);
-            }
-            
-            const reportResult = await reportResponse.json();
-            console.log('Customer report submitted successfully:', reportResult);
-        }
-        
-        // If property report checkbox is active, call the property report API
-        if (includePropertyReport && propertyReportMessage) {
-            // Get current date in ISO format
-            const currentDate = new Date().toISOString();
-            
-            const propertyReportData = {
-                sender: guestName || 'PM Staff',
-                category: 'Disaster', // Static category as requested - easily editable in the future
-                status: 'Unsolved',
-                date: currentDate,
-                transNo: transNo || '',
-                message: propertyReportMessage
-            };
-            
-            console.log('Sending property report:', propertyReportData);
-            
-            // TODO: PROPERTY ID HARDCODED - EASILY EDITABLE LOCATION
-            // Current property ID: 6859662f5153fadbed4ebe48
-            // To change: Replace the hardcoded ID in the URL below
-            // This could be made dynamic by getting it from the booking data in the future
-            const propertyReportResponse = await fetch(`${API_BASE_URL}/property/6859662f5153fadbed4ebe48/report`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(propertyReportData)
-            });
-            
-            if (!propertyReportResponse.ok) {
-                throw new Error(`Property Report API failed: ${propertyReportResponse.status} ${propertyReportResponse.statusText}`);
-            }
-            
-            const propertyReportResult = await propertyReportResponse.json();
-            console.log('Property report submitted successfully:', propertyReportResult);
-        }
-        
-        // Prepare confirmation data
-        const confirmationData = {
-            bookingId,
-            propertyName,
-            guestName,
-            propertyRemarks,
-            includeCustomerReport,
-            customerReportRemarks,
-            includePropertyReport,
-            propertyReportMessage
-        };
-        
-        console.log('Booking confirmation data:', confirmationData);
-        
-        // Here you would typically call an API to update the booking status
-        // For now, we'll just log the action and close the modal
-        
-        // Close the modal
-        modal.classList.add('hidden');
-        
-        // Show success message with summary
-        let successMessage = `Booking ended successfully for ${guestName} at ${propertyName}`;
-        if (includeCustomerReport && customerReportRemarks) {
-            successMessage += `\n\nCustomer report submitted successfully.`;
-        }
-        if (includePropertyReport && propertyReportMessage) {
-            successMessage += `\n\nProperty report submitted successfully.`;
-        }
-        
-        alert(successMessage);
-        
-        // Refresh the data to reflect the change
-        loadTodaysCheckins();
-        
-    } catch (error) {
-        console.error('Error during booking confirmation:', error);
-        
-        // Show error message
-        let errorMessage = `Error ending booking: ${error.message}`;
-        if (includeCustomerReport) {
-            errorMessage += '\n\nCustomer report could not be submitted.';
-        }
-        if (includePropertyReport) {
-            errorMessage += '\n\nProperty report could not be submitted.';
-        }
-        
-        alert(errorMessage);
-    }
-}
-
-// Helper function to format time
-function formatTime(timeInput) {
-    if (!timeInput) return '12:00 PM';
-    
-    try {
-        // If it's already a formatted time string, return as is
-        if (typeof timeInput === 'string' && timeInput.includes(':')) {
-            return timeInput;
-        }
-        
-        // If it's a date string or timestamp, format it
-        const date = new Date(timeInput);
-        if (!isNaN(date.getTime())) {
-            return date.toLocaleTimeString('en-US', { 
-                hour: 'numeric', 
-                minute: '2-digit', 
-                hour12: true 
-            });
-        }
-        
-        return '12:00 PM';
-    } catch (error) {
-        console.error('Error formatting time:', error);
-        return '12:00 PM';
-    }
-}
-
-// Helper function to format date
-function formatDate(dateInput) {
-    if (!dateInput) return 'Today';
-    
-    try {
-        const date = new Date(dateInput);
-        if (!isNaN(date.getTime())) {
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
-                day: 'numeric', 
-                year: 'numeric' 
-            });
-        }
-        
-        return dateInput; // Return as-is if it's already a string
-    } catch (error) {
-        console.error('Error formatting date:', error);
-        return dateInput;
     }
 }
 
@@ -1266,6 +1351,162 @@ function updateBookingElementToConfirmed(bookingElement) {
     }
 }
 
+// Fetch admins and populate dropdown in cancel modal
+async function loadAdminsIntoCancelModal() {
+    try {
+        const selectEl = document.getElementById('select-cancel-admin');
+        if (!selectEl) return;
+
+        // Show loading state only if options not yet loaded
+        if (!selectEl.dataset.loaded) {
+            selectEl.innerHTML = `<option value="" disabled selected>Loading admins...</option>`;
+            const resp = await fetch(`${API_BASE_URL}/admin/display`, { method: 'GET' });
+            if (!resp.ok) throw new Error(`Failed to fetch admins: ${resp.status}`);
+            const admins = await resp.json();
+
+            // Populate options
+            selectEl.innerHTML = `<option value="" disabled selected>Select an admin</option>`;
+            (admins || []).forEach(a => {
+                const id = a._id || a.id || '';
+                const name = [a.firstname, a.minitial, a.lastname].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || 'Unnamed Admin';
+                const opt = document.createElement('option');
+                opt.value = id;
+                opt.textContent = name;
+                selectEl.appendChild(opt);
+            });
+
+            selectEl.dataset.loaded = 'true';
+        }
+    } catch (err) {
+        console.error('Error loading admins for cancel modal:', err);
+        const selectEl = document.getElementById('select-cancel-admin');
+        if (selectEl) {
+            selectEl.innerHTML = `<option value="" disabled selected>Failed to load admins</option>`;
+        }
+    }
+}
+
+// Ensure modal has booking context (transNo, guestId) by fetching booking
+async function prepareCancelModalContext(bookingId) {
+    try {
+        const modal = document.getElementById('cancelBookingModal');
+        if (!modal || !bookingId) return;
+        const resp = await fetch(`${API_BASE_URL}/booking/${bookingId}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+        if (resp.ok) {
+            const data = await resp.json();
+            const b = data?.booking || {};
+            if (b.transNo) modal.dataset.transNo = b.transNo;
+            if (b.guestId || b.guest?.id) modal.dataset.guestId = b.guestId || b.guest?.id;
+        }
+    } catch (e) {
+        console.warn('Failed to prepare cancel modal context:', e);
+    }
+}
+
+// Build request and POST to notify cancellation endpoint
+async function sendCancellationNoticeToAdmin() {
+    try {
+        // Prefer cancel modal when sending
+        const modal = document.getElementById('cancelBookingModal') || document.getElementById('checkinConfirmModal');
+        const selectEl = document.getElementById('select-cancel-admin');
+        const messageTextarea = document.getElementById('input-cancel-admin');
+        if (!selectEl || !messageTextarea) {
+            alert('Missing admin selection or message field.');
+            return;
+        }
+
+        // API expects recipient as guestId based on provided sample; fallback to selected admin if missing
+        const toId = (modal?.dataset?.guestId) || selectEl.value;
+        const toName = 'admin';
+        if (!toId) {
+            alert('Please select an admin to notify.');
+            return;
+        }
+
+        const fromId = localStorage.getItem('employeeId') || localStorage.getItem('userId') || 'unknown-employee';
+        const fromName = `${localStorage.getItem('firstName') || 'Employee'} ${localStorage.getItem('lastName') || ''}`.trim();
+        const fromRole = 'employee';
+
+        // Optional data if available
+        let transNo = (modal?.dataset?.transNo) || localStorage.getItem('currentTransNo') || '';
+        let guestIdForNotify = modal?.dataset?.guestId || '';
+        let numberEwalletBank = localStorage.getItem('ewalletNumber') || 'N/A';
+        // If missing, fetch from /booking/{id}
+        if (!transNo || !guestIdForNotify || numberEwalletBank === 'N/A') {
+            try {
+                const bookingId = modal?.dataset?.bookingId || document.querySelector('#viewBookingModal [data-modal-target="cancelBookingModal"]')?.getAttribute('data-booking-id');
+                if (bookingId) {
+                    const resp = await fetch(`${API_BASE_URL}/booking/${bookingId}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        const b = data?.booking || {};
+                        transNo = transNo || b.transNo || b.reservation?.paymentNo || b.package?.paymentNo || '';
+                        guestIdForNotify = guestIdForNotify || b.guestId || b.guest?.id || '';
+                        numberEwalletBank = (b.reservation?.numberBankEwallets || b.package?.numberBankEwallets || numberEwalletBank || '').toString() || 'N/A';
+                        if (modal) {
+                            if (transNo) modal.dataset.transNo = transNo;
+                            if (guestIdForNotify) modal.dataset.guestId = guestIdForNotify;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn('NotifyCancellation: fallback fetch failed', e);
+            }
+        }
+        const amountRefund = Number(localStorage.getItem('amountRefund') || 0);
+
+        if (!transNo) {
+            alert('Missing transaction number. Please open the booking from the calendar/list so we can capture its transNo.');
+            return;
+        }
+
+        let payload = {
+            fromId,
+            fromName,
+            fromRole,
+            toId,
+            toName,
+            toRole: 'admin',
+            message: messageTextarea.value || 'Requesting approval to cancel a booking.',
+            transNo,
+            amountRefund,
+            reasonToGuest: messageTextarea.value || 'Cancellation notice',
+            numberEwalletBank
+        };
+
+        console.log('NotifyCancellation: modal dataset ->', modal ? Object.fromEntries(Object.entries(modal.dataset)) : 'NO_MODAL');
+        console.log('NotifyCancellation: outgoing payload ->', payload);
+
+        // Remove optional fields if they are empty / default
+        if (!payload.amountRefund) delete payload.amountRefund;
+        if (!payload.numberEwalletBank || payload.numberEwalletBank === 'N/A') delete payload.numberEwalletBank;
+        if (!payload.reasonToGuest) delete payload.reasonToGuest;
+
+        const resp = await fetch(`${API_BASE_URL}/notify/cancellation`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!resp.ok) {
+            const text = await resp.text().catch(() => '');
+            console.error('NotifyCancellation: server error body ->', text);
+            throw new Error(`Notify API failed: ${resp.status} ${resp.statusText}${text ? ` - ${text}` : ''}`);
+        }
+
+        alert('✅ Cancellation notice sent to admin.');
+        // Close modal
+        const cancelModal = document.getElementById('cancelBookingModal');
+        if (cancelModal) {
+            cancelModal.classList.add('hidden');
+            document.body.classList.remove('modal-open');
+        }
+    } catch (err) {
+        console.error('Error sending cancellation notice:', err);
+        alert(`Failed to send cancellation notice: ${err.message}`);
+    }
+}
+
 // Main function to load today's check-ins (make globally accessible)
 window.loadTodaysCheckins = async function() {
     try {
@@ -1388,8 +1629,11 @@ function initializeCalendarBookings() {
                 checkInDate: bookingCard.dataset.checkinDate,
                 checkOutDate: bookingCard.dataset.checkoutDate,
                 checkInTime: bookingCard.dataset.checkinTime,
-                checkOutTime: bookingCard.dataset.checkoutTime
+                checkOutTime: bookingCard.dataset.checkoutTime,
+                guestId: bookingCard.dataset.guestId,
+                transNo: bookingCard.dataset.transNo
             };
+            console.log('ViewBooking: extracted from card ->', bookingData);
             
             // Populate and show the modal
             populateViewBookingModal(bookingData);
@@ -1400,6 +1644,50 @@ function initializeCalendarBookings() {
                 console.log('Opening viewBookingModal manually');
                 modal.classList.remove('hidden');
                 document.body.classList.add('modal-open');
+                // Attach for cancel flow
+                const cancelBtn = modal.querySelector('[data-modal-target="cancelBookingModal"]');
+                if (cancelBtn) {
+                    if (bookingData.transNo) cancelBtn.setAttribute('data-trans-no', bookingData.transNo);
+                    if (bookingData.guestId) cancelBtn.setAttribute('data-guest-id', bookingData.guestId);
+                    console.log('ViewBooking: cancel button attrs ->', {
+                        transNo: cancelBtn.getAttribute('data-trans-no') || 'N/A',
+                        guestId: cancelBtn.getAttribute('data-guest-id') || 'N/A'
+                    });
+
+                    // If details are missing, fetch from /booking/{id} before user opens cancel modal
+                    (async () => {
+                        try {
+                            if (!cancelBtn.getAttribute('data-trans-no') || !cancelBtn.getAttribute('data-guest-id')) {
+                                const id = bookingData.bookingId;
+                                if (id) {
+                                    const resp = await fetch(`${API_BASE_URL}/booking/${id}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+                                    if (resp.ok) {
+                                        const data = await resp.json();
+                                        const b = data?.booking || {};
+                                        if (b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo) {
+                                            const t = b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo;
+                                            cancelBtn.setAttribute('data-trans-no', t);
+                                        }
+                                        if (b.guestId || b?.guest?.id) {
+                                            cancelBtn.setAttribute('data-guest-id', b.guestId || b?.guest?.id);
+                                        }
+                                        // For completeness store ewallet
+                                        if (b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets) {
+                                            cancelBtn.setAttribute('data-ewallet', b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets);
+                                        }
+                                        console.log('ViewBooking: enriched cancel button via booking API ->', {
+                                            transNo: cancelBtn.getAttribute('data-trans-no') || 'N/A',
+                                            guestId: cancelBtn.getAttribute('data-guest-id') || 'N/A',
+                                            ewallet: cancelBtn.getAttribute('data-ewallet') || 'N/A'
+                                        });
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('ViewBooking: enrichment fetch failed', e);
+                        }
+                    })();
+                }
             }
         }
     });
@@ -1504,6 +1792,18 @@ function createCalendarBookingElement(booking) {
     bookingDiv.setAttribute('data-checkout-date', booking.checkOut || '');
     bookingDiv.setAttribute('data-checkin-time', booking.timeIn || formatTime(booking.checkInTime || '2:00 PM'));
     bookingDiv.setAttribute('data-checkout-time', booking.timeOut || formatTime(booking.checkOutTime || '11:00 AM'));
+    // Propagate ids for downstream modals
+    if (booking.guestId || booking.guest?.id) {
+        bookingDiv.setAttribute('data-guest-id', booking.guestId || booking.guest?.id);
+    }
+    if (booking.transNo || booking.reservation?.paymentNo || booking.package?.paymentNo) {
+        bookingDiv.setAttribute('data-trans-no', booking.transNo || booking.reservation?.paymentNo || booking.package?.paymentNo);
+    }
+    console.log('CalendarCard dataset:', {
+        bookingId: bookingDiv.getAttribute('data-booking-id'),
+        guestId: bookingDiv.getAttribute('data-guest-id') || 'N/A',
+        transNo: bookingDiv.getAttribute('data-trans-no') || 'N/A'
+    });
     
     // Extract data from the API response structure
     const propertyName = booking.nameOfProperty || booking.propertyName || booking.property?.name || booking.property?.title || 'Property Name';
@@ -1689,10 +1989,15 @@ function isCheckoutDateToday(checkOutDate) {
         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const checkoutDateOnly = new Date(checkoutDate.getFullYear(), checkoutDate.getMonth(), checkoutDate.getDate());
         
-        const isToday = todayDate.getTime() === checkoutDateOnly.getTime();
+        // Business rule: show in checkout tab on the day AFTER actual checkout date
+        const showDate = new Date(checkoutDateOnly);
+        showDate.setDate(showDate.getDate() + 1);
+        
+        const isToday = todayDate.getTime() === showDate.getTime();
         console.log('Date comparison:', {
             today: todayDate.toISOString().split('T')[0],
             checkout: checkoutDateOnly.toISOString().split('T')[0],
+            showDatePlusOne: showDate.toISOString().split('T')[0],
             isToday: isToday
         });
         
@@ -1743,4 +2048,16 @@ async function enhanceBookingDataWithStatus(bookings) {
     }
     
     return enhancedBookings;
+}
+
+// Utility: format a date string or Date into 'Mon DD, YYYY'
+function formatDate(dateInput) {
+    try {
+        const d = (dateInput instanceof Date) ? dateInput : new Date(dateInput);
+        if (isNaN(d.getTime())) return '';
+        return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    } catch (e) {
+        console.error('formatDate error for input:', dateInput, e);
+        return '';
+    }
 }

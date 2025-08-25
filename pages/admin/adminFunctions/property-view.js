@@ -96,6 +96,8 @@ function populateBasicInfo(data) {
             statusContainer.className = 'status orange inline-block w-fit';
         }
     }
+    // Update archive/activate button based on status
+    updateArchiveButtonUI(data.status);
     
     // Ratings
     const propertyRatingsElement = document.getElementById('propertyRatings');
@@ -204,6 +206,30 @@ function populateBasicInfo(data) {
         if (addressSection) {
             addressSection.appendChild(cityInfo);
         }
+    }
+}
+
+// Update Archive button to Activate when status is Archived
+function updateArchiveButtonUI(status) {
+    const btn = document.getElementById('archivePropertyBtn');
+    if (!btn) return;
+
+    const isArchived = (status || '').toLowerCase() === 'archived';
+    if (isArchived) {
+        btn.classList.remove('bg-rose-100', 'hover:bg-rose-200');
+        btn.classList.add('bg-emerald-100', 'hover:bg-emerald-200');
+        btn.querySelector('span')?.classList?.remove('text-rose-700');
+        btn.querySelector('span')?.classList?.add('text-emerald-700');
+        // Update label if it exists or rebuild content minimally
+        const labelSpan = btn.querySelector('span');
+        if (labelSpan) labelSpan.textContent = 'Activate';
+        else btn.innerText = 'Activate';
+    } else {
+        btn.classList.remove('bg-emerald-100', 'hover:bg-emerald-200');
+        btn.classList.add('bg-rose-100', 'hover:bg-rose-200');
+        const labelSpan = btn.querySelector('span');
+        if (labelSpan) labelSpan.textContent = 'Archive';
+        else btn.innerText = 'Archive';
     }
 }
 
@@ -1480,7 +1506,15 @@ async function initializeDeleteButton() {
             console.log('🖱️ Delete button clicked!');
             e.preventDefault();
             
-            if (confirm('Are you sure you want to archive this property? This action will set the property status to "Archived".')) {
+            // Determine current status from the status text on the page
+            const currentStatus = document.getElementById('statusText')?.textContent?.trim() || '';
+            const isArchived = currentStatus.toLowerCase() === 'archived';
+            const nextStatus = isArchived ? 'Active' : 'Archived';
+            const confirmMessage = isArchived
+                ? 'Activate this property? This will set the status to "Active".'
+                : 'Are you sure you want to archive this property? This will set the status to "Archived".';
+
+            if (confirm(confirmMessage)) {
                 try {
                     // Get current property ID from URL
                 const urlParams = new URLSearchParams(window.location.search);
@@ -1491,39 +1525,39 @@ async function initializeDeleteButton() {
                         return;
                     }
                     
-                    console.log('Archiving property:', propertyId);
+                    console.log(`Updating property status to ${nextStatus}:`, propertyId);
                     
-                    // Make PATCH API call to update property status to "Archived"
+                    // Make PATCH API call to update property status
                     const response = await fetch(`${API_BASE}/property/update/status/${propertyId}`, {
                         method: 'PATCH',
                         headers: {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            status: "Archived"
+                            status: nextStatus
                         })
                     });
                     
                     if (response.ok) {
                         const result = await response.json();
-                        console.log('Property archived successfully:', result);
-                        showSuccessMessage('Property has been successfully archived!');
-                        
-                        // Redirect to admin properties list page
-                        setTimeout(() => {
-                            window.location.href = 'property.html';
-                        }, 2000);
+                        console.log('Property status updated successfully:', result);
+                        showSuccessMessage(`Property status set to ${nextStatus}!`);
+                        // Update UI
+                        document.getElementById('statusText').textContent = nextStatus;
+                        updateArchiveButtonUI(nextStatus);
+                        // Redirect back to properties list (same behavior for Archive and Activate)
+                        setTimeout(() => { window.location.href = 'property.html'; }, 1500);
                     } else {
                         const errorData = await response.json();
-                        console.error('Failed to archive property:', errorData);
-                        showErrorMessage(`Failed to archive property: ${errorData.message || 'Unknown error'}`);
+                        console.error('Failed to update property status:', errorData);
+                        showErrorMessage(`Failed to update property status: ${errorData.message || 'Unknown error'}`);
                     }
                 } catch (error) {
-                    console.error('Error archiving property:', error);
-                    showErrorMessage('An error occurred while archiving the property. Please try again.');
+                    console.error('Error updating property status:', error);
+                    showErrorMessage('An error occurred while updating the property status. Please try again.');
                 }
             } else {
-                console.log('❌ User cancelled the archive action');
+                console.log('❌ User cancelled the status change action');
             }
         });
     } else {

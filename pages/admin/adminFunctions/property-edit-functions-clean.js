@@ -186,13 +186,9 @@ function populateDropdowns(data) {
         }
     }
     
-    // Populate status dropdown
+    // Update archive/activate button UI based on status instead of dropdown
     if (data.status) {
-        const statusButton = document.getElementById('statusDropdownBtn');
-        const selectedStatus = document.getElementById('selectedStatus');
-        if (statusButton && selectedStatus) {
-            selectedStatus.textContent = data.status;
-        }
+        updateArchiveButtonUI(data.status);
     }
 }
 
@@ -656,7 +652,6 @@ function initializeModalSystem() {
 
 function initializeDropdowns() {
     setupDropdown('category', ['Hotel', 'Apartment', 'Resort', 'Villa']);
-    setupDropdown('status', ['Available', 'Unavailable', 'Maintenance']);
     setupTimeDropdowns();
 }
 
@@ -687,6 +682,74 @@ function setupDropdown(type, options) {
 function setupTimeDropdowns() {
     setupTimeDropdown('checkIn');
     setupTimeDropdown('checkOut');
+}
+
+// ==================== ARCHIVE/ACTIVATE TOGGLE ====================
+function initializeArchiveToggle() {
+    const toggleBtn = document.getElementById('archiveToggleBtn');
+    const toggleText = document.getElementById('archiveToggleText');
+    const selectedStatus = document.getElementById('selectedStatus');
+
+    if (!toggleBtn || !toggleText) return;
+
+    const currentStatus = (selectedStatus?.textContent || '').trim();
+    updateArchiveButtonUI(currentStatus);
+
+    // Always attach handler once
+    if (!toggleBtn._archiveHandlerAttached) {
+        toggleBtn.addEventListener('click', async () => {
+            const statusNow = (document.getElementById('statusText')?.textContent || selectedStatus?.textContent || '').trim();
+            if (statusNow.toLowerCase() === 'archived') {
+                await updatePropertyStatus('Active');
+            }
+        });
+        toggleBtn._archiveHandlerAttached = true;
+    }
+}
+
+function updateArchiveButtonUI(status) {
+    const toggleBtn = document.getElementById('archiveToggleBtn');
+    const toggleText = document.getElementById('archiveToggleText');
+    if (!toggleBtn || !toggleText) return;
+
+    const isArchived = (status || '').toLowerCase() === 'archived';
+
+    if (isArchived) {
+        // Make button prominent and actionable
+        toggleBtn.classList.remove('bg-neutral-100', 'hover:bg-neutral-200');
+        toggleBtn.classList.add('bg-emerald-100', 'hover:bg-emerald-200');
+        toggleText.classList.remove('text-neutral-700');
+        toggleText.classList.add('text-emerald-700');
+        toggleText.textContent = 'Activate';
+        toggleBtn.disabled = false;
+        toggleBtn.style.pointerEvents = 'auto';
+        toggleBtn.style.opacity = '1';
+    } else {
+        // In non-archived states, show as Archive but disabled (no archiving flow here)
+        toggleBtn.classList.remove('bg-emerald-100', 'hover:bg-emerald-200');
+        toggleBtn.classList.add('bg-neutral-100', 'hover:bg-neutral-200');
+        toggleText.classList.remove('text-emerald-700');
+        toggleText.classList.add('text-neutral-700');
+        toggleText.textContent = 'Archive';
+        toggleBtn.disabled = true;
+        toggleBtn.style.pointerEvents = 'none';
+        toggleBtn.style.opacity = '0.6';
+    }
+}
+
+async function updatePropertyStatus(newStatus) {
+    try {
+        if (!currentPropertyId) throw new Error('Property ID not found');
+        await PropertyAPI.updateProperty(currentPropertyId, { status: newStatus });
+        const selectedStatus = document.getElementById('selectedStatus');
+        if (selectedStatus) selectedStatus.textContent = newStatus;
+        updateArchiveButtonUI(newStatus);
+        showSuccessMessage(`Status updated to ${newStatus}`);
+        // Redirect to properties list to match archive behavior
+        setTimeout(() => { window.location.href = 'property.html'; }, 1500);
+    } catch (error) {
+        handleError('Failed to update status', error);
+    }
 }
 
 function setupTimeDropdown(type) {
@@ -1106,9 +1169,19 @@ function getValue(id) {
 }
 
 function collectAmenities() {
-    const checkedAmenities = Array.from(document.querySelectorAll('input[name="amenities"]:checked'))
-        .map(checkbox => checkbox.value);
-    return checkedAmenities;
+    // Collect all checked amenity checkboxes inside the amenities modal,
+    // regardless of category grouping (e.g., essentials[], kitchenDining[], bathroom[], etc.)
+    const modal = document.getElementById('editAmmenitiesModal');
+    const scope = modal || document;
+
+    const checkedNodes = scope.querySelectorAll('input[type="checkbox"]:checked');
+    const values = Array.from(checkedNodes)
+        .map(el => el.value)
+        .filter(Boolean);
+
+    // Dedupe values
+    const uniqueValues = Array.from(new Set(values));
+    return uniqueValues;
 }
 
 function collectCustomAmenities() {
