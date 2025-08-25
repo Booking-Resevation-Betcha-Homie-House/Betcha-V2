@@ -1118,7 +1118,8 @@ if (typeof module !== 'undefined' && module.exports) {
         testCountsAPI,
         refreshCountsOnly,
         setActiveTab,
-        refreshAuditTrails
+        refreshAuditTrails,
+        sendGuestNotification
     };
 }
 
@@ -1130,3 +1131,840 @@ window.testCountsAPI = testCountsAPI;
 window.refreshCountsOnly = refreshCountsOnly;
 window.setActiveTab = setActiveTab;
 window.refreshAuditTrails = refreshAuditTrails;
+window.sendGuestNotification = sendGuestNotification;
+
+// Guest Notification Functionality
+// ================================
+
+/**
+ * Send notification message to guest
+ * @param {Object} notificationData - The notification payload
+ * @returns {Promise<Object>} - API response
+ */
+async function sendGuestNotification(notificationData) {
+    try {
+        console.log('Sending guest notification:', notificationData);
+        
+        const response = await fetch(`${API_BASE}/notify/message`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(notificationData)
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log('Guest notification sent successfully:', result);
+        
+        // Show success message
+        showNotificationSuccess('Guest notification sent successfully!');
+        
+        return result;
+        
+    } catch (error) {
+        console.error('Error sending guest notification:', error);
+        
+        // Show error message
+        showNotificationError(`Failed to send notification: ${error.message}`);
+        
+        throw error;
+    }
+}
+
+/**
+ * Show success notification message
+ * @param {string} message - Success message to display
+ */
+function showNotificationSuccess(message) {
+    // Create success message element
+    const successElement = document.createElement('div');
+    successElement.id = 'notification-success';
+    successElement.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
+    successElement.innerHTML = `
+        <svg class="w-5 h-5 fill-green-500" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+        </svg>
+        <span class="font-medium">${message}</span>
+    `;
+    
+    // Remove existing success message if any
+    const existingSuccess = document.getElementById('notification-success');
+    if (existingSuccess) {
+        existingSuccess.remove();
+    }
+    
+    document.body.appendChild(successElement);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (successElement.parentNode) {
+            successElement.remove();
+        }
+    }, 5000);
+}
+
+/**
+ * Show error notification message
+ * @param {string} message - Error message to display
+ */
+function showNotificationError(message) {
+    // Create error message element
+    const errorElement = document.createElement('div');
+    errorElement.id = 'notification-error';
+    errorElement.className = 'fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg z-50 flex items-center gap-2';
+    errorElement.innerHTML = `
+        <svg class="w-5 h-5 fill-red-500" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+        </svg>
+        <span class="font-medium">${message}</span>
+    `;
+    
+    // Remove existing error message if any
+    const existingError = document.getElementById('notification-error');
+    if (existingError) {
+        existingError.remove();
+    }
+    
+    document.body.appendChild(errorElement);
+    
+    // Auto-remove after 8 seconds (longer for errors)
+    setTimeout(() => {
+        if (errorElement.parentNode) {
+            errorElement.remove();
+        }
+    }, 8000);
+}
+
+/**
+ * Initialize guest notification functionality
+ * Sets up event listeners for guest message buttons
+ */
+function initializeGuestNotifications() {
+    console.log('Initializing guest notification functionality...');
+    
+    // Set up event listener for guest message button
+    const guestMsgBtn = document.getElementById('guestMsgBtn');
+    if (guestMsgBtn) {
+        console.log('Guest message button found, setting up event listener');
+        
+        guestMsgBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            console.log('Guest message button clicked');
+            
+            try {
+                // Get admin user data from localStorage or use defaults
+                const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || 'admin-user';
+                const adminName = localStorage.getItem('adminName') || localStorage.getItem('firstName') + ' ' + localStorage.getItem('lastName') || 'Admin User';
+                
+                // Create sample notification payload
+                const notificationPayload = {
+                    fromId: adminId,
+                    fromName: adminName,
+                    fromRole: "admin",
+                    toId: "685009ff53a090e126b9e2b4", // Sample guest ID
+                    toName: "Jon Do",
+                    toRole: "guest",
+                    message: "Welcome to Betcha Booking! We're excited to have you stay with us."
+                };
+                
+                console.log('Sending notification with payload:', notificationPayload);
+                
+                // Send the notification
+                await sendGuestNotification(notificationPayload);
+                
+            } catch (error) {
+                console.error('Failed to send guest notification:', error);
+            }
+        });
+        
+        console.log('Guest message button event listener set up successfully');
+    } else {
+        console.warn('Guest message button (guestMsgBtn) not found in the DOM');
+    }
+}
+
+// Initialize guest notifications when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait a bit for other dashboard elements to load
+    setTimeout(() => {
+        initializeGuestNotifications();
+    }, 1000);
+});
+
+// Make guest notification functions globally accessible
+window.initializeGuestNotifications = initializeGuestNotifications;
+window.showNotificationSuccess = showNotificationSuccess;
+window.showNotificationError = showNotificationError;
+
+// API Testing Functions for Notification & Booking Updates
+// ======================================================
+
+/**
+ * Test the notification status update API
+ * @param {string} notifId - Notification ID to test
+ * @param {string} statusRejection - Status to test ("Rejected" or "Complete")
+ */
+async function testNotificationStatusAPI(notifId = 'test-notif-123', statusRejection = 'Complete') {
+    try {
+        console.log('🧪 Testing Notification Status API...');
+        console.log('Endpoint:', `${API_BASE}/notify/status-rejection/${notifId}`);
+        console.log('Payload:', { statusRejection });
+        
+        const response = await fetch(`${API_BASE}/notify/status-rejection/${notifId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ statusRejection })
+        });
+        
+        console.log('Response Status:', response.status);
+        console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            console.error('❌ API Error Response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Notification Status API Response:', result);
+        
+        // Test if response meets our criteria
+        const meetsCriteria = validateNotificationStatusResponse(result);
+        console.log('📋 Meets API Criteria:', meetsCriteria);
+        
+        return { success: true, data: result, meetsCriteria };
+        
+    } catch (error) {
+        console.error('❌ Notification Status API Test Failed:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Test the booking status update API
+ * @param {string} bookingId - Booking ID to test
+ * @param {string} status - Status to test ("Cancel")
+ */
+async function testBookingStatusAPI(bookingId = 'test-booking-456', status = 'Cancel') {
+    try {
+        console.log('🧪 Testing Booking Status API...');
+        console.log('Endpoint:', `${API_BASE}/booking/update-status/${bookingId}`);
+        console.log('Payload:', { status });
+        
+        const response = await fetch(`${API_BASE}/booking/update-status/${bookingId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        
+        console.log('Response Status:', response.status);
+        console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            console.error('❌ API Error Response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Booking Status API Response:', result);
+        
+        // Test if response meets our criteria
+        const meetsCriteria = validateBookingStatusResponse(result);
+        console.log('📋 Meets API Criteria:', meetsCriteria);
+        
+        return { success: true, data: result, meetsCriteria };
+        
+    } catch (error) {
+        console.error('❌ Booking Status API Test Failed:', error);
+        return { success: false, error: error.message };
+    }
+}
+
+/**
+ * Validate notification status API response against our criteria
+ * @param {Object} response - API response to validate
+ * @returns {Object} Validation result with details
+ */
+function validateNotificationStatusResponse(response) {
+    const criteria = {
+        hasSuccessField: false,
+        hasMessageField: false,
+        hasDataField: false,
+        hasNotifId: false,
+        hasStatusRejection: false,
+        hasUpdatedAt: false,
+        overallValid: false
+    };
+    
+    try {
+        // Check required fields
+        criteria.hasSuccessField = typeof response.success === 'boolean';
+        criteria.hasMessageField = typeof response.message === 'string';
+        criteria.hasDataField = response.data && typeof response.data === 'object';
+        
+        if (criteria.hasDataField) {
+            criteria.hasNotifId = response.data.notifId && typeof response.data.notifId === 'string';
+            criteria.hasStatusRejection = response.data.statusRejection && typeof response.data.statusRejection === 'string';
+            criteria.hasUpdatedAt = response.data.updatedAt && typeof response.data.updatedAt === 'string';
+        }
+        
+        // Overall validation
+        criteria.overallValid = criteria.hasSuccessField && 
+                               criteria.hasMessageField && 
+                               criteria.hasDataField &&
+                               criteria.hasNotifId &&
+                               criteria.hasStatusRejection;
+        
+    } catch (error) {
+        console.error('Error validating notification response:', error);
+        criteria.overallValid = false;
+    }
+    
+    return criteria;
+}
+
+/**
+ * Validate booking status API response against our criteria
+ * @param {Object} response - API response to validate
+ * @returns {Object} Validation result with details
+ */
+function validateBookingStatusResponse(response) {
+    const criteria = {
+        hasSuccessField: false,
+        hasMessageField: false,
+        hasDataField: false,
+        hasBookingId: false,
+        hasStatus: false,
+        hasUpdatedAt: false,
+        overallValid: false
+    };
+    
+    try {
+        // Check required fields
+        criteria.hasSuccessField = typeof response.success === 'boolean';
+        criteria.hasMessageField = typeof response.message === 'string';
+        criteria.hasDataField = response.data && typeof response.data === 'object';
+        
+        if (criteria.hasDataField) {
+            criteria.hasBookingId = response.data.bookingId && typeof response.data.bookingId === 'string';
+            criteria.hasStatus = response.data.status && typeof response.data.status === 'string';
+            criteria.hasUpdatedAt = response.data.updatedAt && typeof response.data.updatedAt === 'string';
+        }
+        
+        // Overall validation
+        criteria.overallValid = criteria.hasSuccessField && 
+                               criteria.hasMessageField && 
+                               criteria.hasDataField &&
+                               criteria.hasBookingId &&
+                               criteria.hasStatus;
+        
+    } catch (error) {
+        console.error('Error validating booking response:', error);
+        criteria.overallValid = false;
+    }
+    
+    return criteria;
+}
+
+/**
+ * Run comprehensive API tests for notification and booking functionality
+ */
+async function runComprehensiveAPITests() {
+    console.log('🚀 Starting Comprehensive API Tests...');
+    console.log('=====================================');
+    
+    // Test 1: Notification Status API
+    console.log('\n📧 Test 1: Notification Status Update API');
+    console.log('----------------------------------------');
+    const notifTest = await testNotificationStatusAPI();
+    
+    // Test 2: Booking Status API
+    console.log('\n📋 Test 2: Booking Status Update API');
+    console.log('------------------------------------');
+    const bookingTest = await testBookingStatusAPI();
+    
+    // Summary
+    console.log('\n📊 API Test Summary');
+    console.log('==================');
+    console.log('Notification API:', notifTest.success ? '✅ PASSED' : '❌ FAILED');
+    console.log('Booking API:', bookingTest.success ? '✅ PASSED' : '❌ FAILED');
+    
+    if (notifTest.success && notifTest.meetsCriteria) {
+        console.log('✅ Notification API meets all criteria for implementation');
+    } else {
+        console.log('⚠️ Notification API may need adjustments before implementation');
+    }
+    
+    if (bookingTest.success && bookingTest.meetsCriteria) {
+        console.log('✅ Booking API meets all criteria for implementation');
+    } else {
+        console.log('⚠️ Booking API may need adjustments before implementation');
+    }
+    
+    return {
+        notification: notifTest,
+        booking: bookingTest,
+        allPassed: notifTest.success && bookingTest.success
+    };
+}
+
+// Make test functions globally accessible
+window.testNotificationStatusAPI = testNotificationStatusAPI;
+window.testBookingStatusAPI = testBookingStatusAPI;
+window.runComprehensiveAPITests = runComprehensiveAPITests;
+window.validateNotificationStatusResponse = validateNotificationStatusResponse;
+window.validateBookingStatusResponse = validateBookingStatusResponse;
+
+// Enhanced API Testing Functions with Real Data Support
+// ===================================================
+
+/**
+ * Get sample notification IDs from the system (if available)
+ * This would typically come from a notifications list or database
+ */
+function getSampleNotificationIds() {
+    // In a real system, you'd fetch this from your notifications API
+    // For now, return common patterns that might exist
+    return [
+        '685597501a58eb359c2a0e8d', // Sample ID from your payload
+        '685009ff53a090e126b9e2b4', // Another sample ID
+        // Add more sample IDs as needed
+    ];
+}
+
+/**
+ * Get sample booking IDs from the system (if available)
+ * This would typically come from a bookings list or database
+ */
+function getSampleBookingIds() {
+    // In a real system, you'd fetch this from your bookings API
+    // For now, return common patterns that might exist
+    return [
+        'booking-001',
+        'booking-002',
+        // Add more sample IDs as needed
+    ];
+}
+
+/**
+ * Test notification status API with real or sample IDs
+ * @param {string} notifId - Notification ID to test (optional, will use sample if not provided)
+ * @param {string} statusRejection - Status to test ("Rejected" or "Complete")
+ */
+async function testNotificationStatusAPIWithRealData(notifId = null, statusRejection = 'Complete') {
+    try {
+        // Use provided ID or get a sample ID
+        const testNotifId = notifId || getSampleNotificationIds()[0];
+        
+        if (!testNotifId) {
+            throw new Error('No notification ID available for testing. Please provide a valid ID.');
+        }
+        
+        console.log('🧪 Testing Notification Status API with Real Data...');
+        console.log('Endpoint:', `${API_BASE}/notify/status-rejection/${testNotifId}`);
+        console.log('Payload:', { statusRejection });
+        console.log('Using Notification ID:', testNotifId);
+        
+        const response = await fetch(`${API_BASE}/notify/status-rejection/${testNotifId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ statusRejection })
+        });
+        
+        console.log('Response Status:', response.status);
+        console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            console.error('❌ API Error Response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Notification Status API Response:', result);
+        
+        // Test if response meets our criteria
+        const meetsCriteria = validateNotificationStatusResponse(result);
+        console.log('📋 Meets API Criteria:', meetsCriteria);
+        
+        return { success: true, data: result, meetsCriteria, notifId: testNotifId };
+        
+    } catch (error) {
+        console.error('❌ Notification Status API Test Failed:', error);
+        return { success: false, error: error.message, notifId: notifId || 'unknown' };
+    }
+}
+
+/**
+ * Test booking status API with real or sample IDs
+ * @param {string} bookingId - Booking ID to test (optional, will use sample if not provided)
+ * @param {string} status - Status to test ("Cancel")
+ */
+async function testBookingStatusAPIWithRealData(bookingId = null, status = 'Cancel') {
+    try {
+        // Use provided ID or get a sample ID
+        const testBookingId = bookingId || getSampleBookingIds()[0];
+        
+        if (!testBookingId) {
+            throw new Error('No booking ID available for testing. Please provide a valid ID.');
+        }
+        
+        console.log('🧪 Testing Booking Status API with Real Data...');
+        console.log('Endpoint:', `${API_BASE}/booking/update-status/${testBookingId}`);
+        console.log('Payload:', { status });
+        console.log('Using Booking ID:', testBookingId);
+        
+        const response = await fetch(`${API_BASE}/booking/update-status/${testBookingId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status })
+        });
+        
+        console.log('Response Status:', response.status);
+        console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
+        
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            console.error('❌ API Error Response:', errorText);
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Booking Status API Response:', result);
+        
+        // Test if response meets our criteria
+        const meetsCriteria = validateBookingStatusResponse(result);
+        console.log('📋 Meets API Criteria:', meetsCriteria);
+        
+        return { success: true, data: result, meetsCriteria, bookingId: testBookingId };
+        
+    } catch (error) {
+        console.error('❌ Booking Status API Test Failed:', error);
+        return { success: false, error: error.message, bookingId: bookingId || 'unknown' };
+    }
+}
+
+/**
+ * Interactive test function that prompts for real IDs
+ */
+async function testWithUserProvidedIDs() {
+    console.log('🔍 Interactive API Testing with User-Provided IDs');
+    console.log('================================================');
+    
+    // Prompt for notification ID
+    const notifId = prompt('Enter a real Notification ID to test (or leave empty to use sample):');
+    const statusRejection = prompt('Enter status to test ("Rejected" or "Complete"):', 'Complete');
+    
+    // Prompt for booking ID
+    const bookingId = prompt('Enter a real Booking ID to test (or leave empty to use sample):');
+    const status = prompt('Enter status to test (default: "Cancel"):', 'Cancel');
+    
+    console.log('\n📧 Testing with provided IDs:');
+    console.log('Notification ID:', notifId || 'Using sample');
+    console.log('Status Rejection:', statusRejection);
+    console.log('Booking ID:', bookingId || 'Using sample');
+    console.log('Status:', status);
+    
+    // Run tests with provided IDs
+    const notifTest = await testNotificationStatusAPIWithRealData(notifId, statusRejection);
+    const bookingTest = await testBookingStatusAPIWithRealData(bookingId, status);
+    
+    // Summary
+    console.log('\n📊 Test Results Summary');
+    console.log('======================');
+    console.log('Notification API:', notifTest.success ? '✅ PASSED' : '❌ FAILED');
+    console.log('Booking API:', bookingTest.success ? '✅ PASSED' : '❌ FAILED');
+    
+    return { notification: notifTest, booking: bookingTest };
+}
+
+// Make enhanced test functions globally accessible
+window.testNotificationStatusAPIWithRealData = testNotificationStatusAPIWithRealData;
+window.testBookingStatusAPIWithRealData = testBookingStatusAPIWithRealData;
+window.testWithUserProvidedIDs = testWithUserProvidedIDs;
+window.getSampleNotificationIds = getSampleNotificationIds;
+window.getSampleBookingIds = getSampleBookingIds;
+
+// Production Notification & Booking Management Functions
+// ===================================================
+
+/**
+ * Update notification status (Reject or Accept cancellation request)
+ * @param {string} notifId - Notification ID to update
+ * @param {string} statusRejection - Status: "Rejected" or "Complete"
+ * @returns {Promise<Object>} - API response
+ */
+async function updateNotificationStatus(notifId, statusRejection) {
+    try {
+        if (!notifId) {
+            throw new Error('Notification ID is required');
+        }
+        
+        if (!['Rejected', 'Complete'].includes(statusRejection)) {
+            throw new Error('Status must be either "Rejected" or "Complete"');
+        }
+        
+        console.log('🔄 Updating notification status...');
+        console.log('Notification ID:', notifId);
+        console.log('Status:', statusRejection);
+        
+        const response = await fetch(`${API_BASE}/notify/status-rejection/${notifId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ statusRejection })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Notification status updated successfully:', result);
+        
+        // Show success message
+        showNotificationSuccess(`Cancellation request ${statusRejection.toLowerCase()} successfully`);
+        
+        return result;
+        
+    } catch (error) {
+        console.error('❌ Error updating notification status:', error);
+        
+        // Show error message
+        showNotificationError(`Failed to update notification status: ${error.message}`);
+        
+        throw error;
+    }
+}
+
+/**
+ * Update booking status to "Cancel" (only called when admin accepts cancellation)
+ * @param {string} bookingId - Booking ID to update
+ * @returns {Promise<Object>} - API response
+ */
+async function cancelBooking(bookingId) {
+    try {
+        if (!bookingId) {
+            throw new Error('Booking ID is required');
+        }
+        
+        console.log('🔄 Cancelling booking...');
+        console.log('Booking ID:', bookingId);
+        
+        const response = await fetch(`${API_BASE}/booking/update-status/${bookingId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ status: 'Cancel' })
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Booking cancelled successfully:', result);
+        
+        // Show success message
+        showNotificationSuccess('Booking cancelled successfully');
+        
+        return result;
+        
+    } catch (error) {
+        console.error('❌ Error cancelling booking:', error);
+        
+        // Show error message
+        showNotificationError(`Failed to cancel booking: ${error.message}`);
+        
+        throw error;
+    }
+}
+
+/**
+ * Handle cancellation request workflow
+ * This function manages the complete flow: update notification status + cancel booking if accepted
+ * @param {string} notifId - Notification ID
+ * @param {string} bookingId - Booking ID (required if accepting cancellation)
+ * @param {string} action - "accept" or "reject"
+ * @returns {Promise<Object>} - Result of the operation
+ */
+async function handleCancellationRequest(notifId, bookingId, action) {
+    try {
+        console.log('🚀 Handling cancellation request...');
+        console.log('Action:', action);
+        console.log('Notification ID:', notifId);
+        console.log('Booking ID:', bookingId);
+        
+        if (action === 'accept') {
+            // Admin accepts cancellation
+            if (!bookingId) {
+                throw new Error('Booking ID is required when accepting cancellation');
+            }
+            
+            // Step 1: Update notification status to "Complete"
+            console.log('📝 Step 1: Updating notification status to "Complete"');
+            const notifResult = await updateNotificationStatus(notifId, 'Complete');
+            
+            // Step 2: Cancel the booking
+            console.log('📝 Step 2: Cancelling the booking');
+            const bookingResult = await cancelBooking(bookingId);
+            
+            console.log('✅ Cancellation request accepted and processed successfully');
+            
+            return {
+                success: true,
+                action: 'accepted',
+                notification: notifResult,
+                booking: bookingResult,
+                message: 'Cancellation request accepted and booking cancelled'
+            };
+            
+        } else if (action === 'reject') {
+            // Admin rejects cancellation
+            console.log('📝 Rejecting cancellation request');
+            const notifResult = await updateNotificationStatus(notifId, 'Rejected');
+            
+            console.log('✅ Cancellation request rejected successfully');
+            
+            return {
+                success: true,
+                action: 'rejected',
+                notification: notifResult,
+                message: 'Cancellation request rejected'
+            };
+            
+        } else {
+            throw new Error('Invalid action. Must be "accept" or "reject"');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error handling cancellation request:', error);
+        
+        // Show error message
+        showNotificationError(`Failed to process cancellation request: ${error.message}`);
+        
+        throw error;
+    }
+}
+
+/**
+ * Create UI elements for handling cancellation requests
+ * This function creates accept/reject buttons for notification items
+ * @param {string} notifId - Notification ID
+ * @param {string} bookingId - Booking ID
+ * @param {HTMLElement} container - Container to append buttons to
+ */
+function createCancellationActionButtons(notifId, bookingId, container) {
+    // Remove existing buttons if any
+    const existingButtons = container.querySelectorAll('.cancellation-action-btn');
+    existingButtons.forEach(btn => btn.remove());
+    
+    // Create button container
+    const buttonContainer = document.createElement('div');
+    buttonContainer.className = 'flex gap-2 mt-3';
+    
+    // Accept button
+    const acceptBtn = document.createElement('button');
+    acceptBtn.className = 'px-3 py-1 bg-green-500 text-white text-xs rounded hover:bg-green-600 transition-colors cancellation-action-btn';
+    acceptBtn.textContent = 'Accept Cancellation';
+    acceptBtn.addEventListener('click', async () => {
+        try {
+            acceptBtn.disabled = true;
+            acceptBtn.textContent = 'Processing...';
+            
+            await handleCancellationRequest(notifId, bookingId, 'accept');
+            
+            // Optionally refresh the notifications list
+            // refreshNotifications();
+            
+        } catch (error) {
+            console.error('Failed to accept cancellation:', error);
+        } finally {
+            acceptBtn.disabled = false;
+            acceptBtn.textContent = 'Accept Cancellation';
+        }
+    });
+    
+    // Reject button
+    const rejectBtn = document.createElement('button');
+    rejectBtn.className = 'px-3 py-1 bg-red-500 text-white text-xs rounded hover:bg-red-600 transition-colors cancellation-action-btn';
+    rejectBtn.textContent = 'Reject Cancellation';
+    rejectBtn.addEventListener('click', async () => {
+        try {
+            rejectBtn.disabled = true;
+            rejectBtn.textContent = 'Processing...';
+            
+            await handleCancellationRequest(notifId, bookingId, 'reject');
+            
+            // Optionally refresh the notifications list
+            // refreshNotifications();
+            
+        } catch (error) {
+            console.error('Failed to reject cancellation:', error);
+        } finally {
+            rejectBtn.disabled = false;
+            rejectBtn.textContent = 'Reject Cancellation';
+        }
+    });
+    
+    // Add buttons to container
+    buttonContainer.appendChild(acceptBtn);
+    buttonContainer.appendChild(rejectBtn);
+    container.appendChild(buttonContainer);
+}
+
+/**
+ * Initialize cancellation management functionality
+ * Sets up event listeners and prepares the system for handling cancellation requests
+ */
+function initializeCancellationManagement() {
+    console.log('🚀 Initializing cancellation management system...');
+    
+    // Look for notification elements that might contain cancellation requests
+    const notificationElements = document.querySelectorAll('[data-notification-id]');
+    
+    notificationElements.forEach(element => {
+        const notifId = element.dataset.notificationId;
+        const bookingId = element.dataset.bookingId;
+        
+        if (notifId && bookingId) {
+            console.log('Found notification with booking:', { notifId, bookingId });
+            
+            // Check if this notification is a cancellation request
+            const isCancellationRequest = element.textContent.toLowerCase().includes('cancellation') ||
+                                        element.textContent.toLowerCase().includes('cancel');
+            
+            if (isCancellationRequest) {
+                console.log('Adding cancellation action buttons to notification:', notifId);
+                createCancellationActionButtons(notifId, bookingId, element);
+            }
+        }
+    });
+    
+    console.log('✅ Cancellation management system initialized');
+}
+
+// Make production functions globally accessible
+window.updateNotificationStatus = updateNotificationStatus;
+window.cancelBooking = cancelBooking;
+window.handleCancellationRequest = handleCancellationRequest;
+window.createCancellationActionButtons = createCancellationActionButtons;
+window.initializeCancellationManagement = initializeCancellationManagement;
+
+// Initialize cancellation management when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    // Wait for other dashboard elements to load
+    setTimeout(() => {
+        initializeCancellationManagement();
+    }, 1500);
+});
