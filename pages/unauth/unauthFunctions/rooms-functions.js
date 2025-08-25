@@ -1,30 +1,32 @@
 // Function to create property card HTML
 function createPropertyCard(property) {
     return `
-        <a href="view-property.html" id="linkToView">
-            <div class="room-list">
-                <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3" style="background-image: url('${property.photoLinks[0]}'); background-size: cover; background-position: center;">
+            <a href="view-property.html?id=${property._id}">
+              <div class="room-list">
+                <div class="relative bg-neutral-300 w-full aspect-square rounded-3xl mb-3 overflow-hidden group">
+                  <img src="${property.photoLinks[0]}" alt="${property.name}" 
+                    class="w-full h-full object-cover rounded-3xl transition duration-500 ease-in-out transform group-hover:scale-110">
                 </div>
                 <div class="flex flex-col items-start mx-3">
-                    <div class="flex justify-between items-center w-full">
-                        <p id="roomName" class="font-inter text-primary-text">${property.name}</p>
-                        <div class="flex items-center gap-1">
-                            <svg class="w-auto h-3 fill-primary-text" viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                            </svg>
-                            <span class="font-inter text-primary-text">${property.rating}</span>
-                        </div>
+                  <div class="flex justify-between items-center w-full">
+                    <p id="roomName" class="font-roboto text-primary-text" id="name">${property.name}</p>
+                    <div class="flex items-center gap-1">
+                      <svg class="w-auto h-3 fill-primary-text" viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
+                      </svg>
+                      <span id="rating" class="font-roboto text-primary-text">${property.rating}</span>
                     </div>
-                    <div class="flex items-center w-full gap-2 mb-2.5">
-                        <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                        </svg>
-                        <p class="font-inter text-muted text-sm">${property.address}</p>
-                    </div>
-                    <p class="font-inter text-primary-text">₱ <span class="font-inter text-primary-text">${property.packagePrice}</span> <span class="font-inter text-muted">/ night</span></p>
+                  </div>
+                  <div class="flex items-center w-full gap-2 mb-2.5">
+                    <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
+                    </svg>
+                    <p id="roomAdress" class="font-roboto text-muted text-sm" id="adress">${property.city}</p>
+                  </div>
+                  <p class="font-roboto text-primary-text">₱ <span id="roomPrice" class="font-roboto text-primary-text" id="packagePrice">${property.packagePrice.toLocaleString()}</span> <span class="font-roboto text-muted">/ day</span></p>
                 </div>
-            </div>
-        </a>
+              </div>
+            </a>
     `;
 }
 
@@ -63,7 +65,7 @@ function createFeaturedPropertyCard(property) {
     const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/public/images/unit01.jpg';
     return `
         <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110" id="imageProperty1" style="background-image: url('${imageUrl}')"></div>
+            <div class="absolute inset-0 bg-cover bg-center z-0 transform transition-transform duration-500 ease-in-out group-hover:scale-110" id="imageProperty1" style="background-image: url('${imageUrl}')"></div>
             <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
             <div class="relative z-20 h-full flex flex-col justify-end p-6">
@@ -208,7 +210,7 @@ function createPopularPropertyCard(property) {
     const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/public/images/unit01.jpg';
     return `
         <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110" id="imageProperty" style="background-image: url('${imageUrl}')"></div>
+            <div class="absolute inset-0 bg-cover bg-center z-0 transform transition-transform duration-500 ease-in-out group-hover:scale-110" id="imageProperty" style="background-image: url('${imageUrl}')"></div>
             <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
             <div class="relative z-20 h-full flex flex-col justify-end p-6">

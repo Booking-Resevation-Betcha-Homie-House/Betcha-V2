@@ -502,6 +502,21 @@ document.addEventListener("DOMContentLoaded", () => {
       
       // Store dates globally for confirm button
       window.selectedBookingDates = selectedDates;
+
+      // Get check-in/check-out elements
+      const checkInEl = document.getElementById('searchCheckIn');
+      const checkOutEl = document.getElementById('searchCheckOut');
+      
+      if (checkInEl && checkOutEl) {
+        if (selectedDates.length >= 1) {
+          checkInEl.value = selectedDates[0];
+          checkInEl.dispatchEvent(new Event('input'));
+        }
+        if (selectedDates.length >= 2) {
+          checkOutEl.value = selectedDates[selectedDates.length - 1];
+          checkOutEl.dispatchEvent(new Event('input'));
+        }
+      }
     });
   });
 

@@ -77,6 +77,39 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
+    // Initialize pill remove handlers
+    function setupPillRemoveHandlers() {
+      const pills = [locationPill, datePill, guestPill, pricePill];
+      pills.forEach(pill => {
+        const removeBtn = pill.querySelector('.pill-remove');
+        if (removeBtn) {
+          removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (pill === locationPill) {
+              searchState.city = '';
+              if (locationInput) locationInput.value = '';
+            } else if (pill === datePill) {
+              searchState.checkIn = '';
+              searchState.checkOut = '';
+              if (checkInInput) checkInInput.value = '';
+              if (checkOutInput) checkOutInput.value = '';
+            } else if (pill === guestPill) {
+              searchState.guests = 1;
+              if (guestCount) guestCount.textContent = '1';
+            } else if (pill === pricePill) {
+              searchState.priceStart = 1000;
+              searchState.priceEnd = 20000;
+              if (minPrice) minPrice.value = '1000';
+              if (maxPrice) maxPrice.value = '20000';
+              if (minRange) minRange.value = '1000';
+              if (maxRange) maxRange.value = '20000';
+            }
+            updatePills();
+          });
+        }
+      });
+    }
+
     // Initialize search state handlers
     function updatePills() {
       // Location pill
@@ -91,7 +124,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
       // Date pill
       if (searchState.checkIn || searchState.checkOut) {
-        const options = { month: 'long', day: 'numeric', year: 'numeric' };
+        const options = { day: '2-digit', month: '2-digit', year: '2-digit' };
         datePill.classList.remove('hidden');
         datePill.classList.add('flex');
         
@@ -99,13 +132,12 @@ document.addEventListener("DOMContentLoaded", () => {
           const checkInDate = new Date(searchState.checkIn);
           const checkOutDate = new Date(searchState.checkOut);
           datePill.querySelector('.pill-text').textContent = 
-            `${checkInDate.toLocaleDateString('en-US', options)} - ${checkOutDate.toLocaleDateString('en-US', options)}`;
+            `${checkInDate.toLocaleDateString('en-US', options)} to ${checkOutDate.toLocaleDateString('en-US', options)}`;
         } else if (searchState.checkIn) {
           const checkInDate = new Date(searchState.checkIn);
           datePill.querySelector('.pill-text').textContent = 
             `${checkInDate.toLocaleDateString('en-US', options)} - Select checkout`;
         }
-        console.log('Date pill updated:', datePill.querySelector('.pill-text').textContent);
       } else {
         datePill.classList.add('hidden');
         datePill.classList.remove('flex');
@@ -154,13 +186,13 @@ document.addEventListener("DOMContentLoaded", () => {
     const checkOutInput = document.getElementById('searchCheckOut');
     
     if (checkInInput && checkOutInput) {
-      checkInInput.addEventListener('change', () => {
+      checkInInput.addEventListener('input', () => {
         searchState.checkIn = checkInInput.value;
         console.log('Check-in date updated:', searchState.checkIn);
         updatePills();
       });
 
-      checkOutInput.addEventListener('change', () => {
+      checkOutInput.addEventListener('input', () => {
         searchState.checkOut = checkOutInput.value;
         console.log('Check-out date updated:', searchState.checkOut);
         updatePills();
@@ -225,6 +257,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Make setActiveTab available globally
     window.setActiveTab = setActiveTab;
+
+    // Setup pill remove handlers
+    setupPillRemoveHandlers();
 
     // Initial pills update
     updatePills();

@@ -646,8 +646,8 @@
         
         <!-- Date Tab Content -->
         <div class="tab-content hidden flex-1 overflow-hidden mb-5 md:mb-0">
-          <div class="calendar-instance h-full w-full flex flex-col items-center justify-center" data-calendar-id="1" id="calendarIdsearch">
-            <div class="w-full max-w-2xl overflow-y-auto bg-white border border-neutral-300 rounded-3xl shadow-sm custom-scroll">
+          <div class="calendar-instance h-full w-full flex flex-col items-center justify-center mb-2" data-calendar-id="1" id="calendarIdsearch">
+            <div class="w-full max-w-lg overflow-y-auto bg-white border border-neutral-300 rounded-3xl shadow-sm custom-scroll">
               <!-- Hidden inputs for storing selected dates -->
               <input type="hidden" id="searchCheckIn" name="checkIn">
               <input type="hidden" id="searchCheckOut" name="checkOut">
@@ -774,18 +774,51 @@
         <!-- Bottom nav -->
         <div class="mt-auto w-full space-y-3">
             <!-- Filter Pills -->
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="searchPills">
-              <div id="locationPill" class="hidden items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700">
-                <span class="truncate pill-text"></span>
+            <div class="flex flex-wrap justify-start gap-2" id="searchPills">
+              <div id="locationPill" class="hidden w-fit items-center justify-center gap-2 pl-2.5 pr-1.5 py-1.5 border border-neutral-200 rounded-full text-xs font-medium text-neutral-700 shadow-sm bg-white hover:border-neutral-300 transition-colors">
+                <svg class="flex-shrink-0 w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span class="pill-text text-center"></span>
+                <button class="pill-remove flex-shrink-0 -mr-0.5 text-neutral-400 hover:text-neutral-600 transition-colors">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-              <div id="datePill" class="hidden items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700">
-                <span class="truncate pill-text"></span>
+              <div id="guestPill" class="hidden w-fit items-center justify-center gap-2 pl-2.5 pr-1.5 py-1.5 border border-neutral-200 rounded-full text-xs font-medium text-neutral-700 shadow-sm bg-white hover:border-neutral-300 transition-colors">
+                <svg class="flex-shrink-0 w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                </svg>
+                <span class="pill-text text-center"></span>
+                <button class="pill-remove flex-shrink-0 -mr-0.5 text-neutral-400 hover:text-neutral-600 transition-colors">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-              <div id="guestPill" class="hidden items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700">
-                <span class="truncate pill-text"></span>
+              <div id="pricePill" class="hidden w-fit items-center justify-center gap-2 pl-2.5 pr-1.5 py-1.5 border border-neutral-200 rounded-full text-xs font-medium text-neutral-700 shadow-sm bg-white hover:border-neutral-300 transition-colors">
+                <svg class="flex-shrink-0 w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span class="pill-text text-center"></span>
+                <button class="pill-remove flex-shrink-0 -mr-0.5 text-neutral-400 hover:text-neutral-600 transition-colors">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
-              <div id="pricePill" class="hidden items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700">
-                <span class="truncate pill-text"></span>
+              <div id="datePill" class="hidden w-fit items-center justify-center gap-2 pl-2.5 pr-1.5 py-1.5 border border-neutral-200 rounded-full text-xs font-medium text-neutral-700 shadow-sm bg-white hover:border-neutral-300 transition-colors">
+                <svg class="flex-shrink-0 w-3.5 h-3.5 text-neutral-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                </svg>
+                <span class="pill-text text-center"></span>
+                <button class="pill-remove flex-shrink-0 -mr-0.5 text-neutral-400 hover:text-neutral-600 transition-colors">
+                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
@@ -802,7 +835,8 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
               </svg>
-              <span class="text-secondary-text text-sm md:text-base font-medium">Search</span>
+              <span class="text-secondary-text text-sm md:text-base font-medium cursor-pointer hover:text-primary-hover transition-colors" id="searchButtonId">Search</span>
+
             </button>
           </div>
         </div>
@@ -821,5 +855,74 @@
     <script defer src="../../src/modal.js"></script>
     <script defer src="../../src/notification.js"></script>
     <script defer src="./unauthFunctions/rooms-functions.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('searchButtonId').addEventListener('click', function() {
+          // Get the text content from the pills since they contain the validated values
+          const locationPill = document.getElementById('locationPill');
+          const datePill = document.getElementById('datePill');
+          const guestPill = document.getElementById('guestPill');
+          const pricePill = document.getElementById('pricePill');
+
+          // Get city from location pill
+          const city = locationPill.querySelector('.pill-text').textContent;
+          
+          // Get dates from the searchCheckIn/searchCheckOut inputs
+          const checkIn = document.getElementById('searchCheckIn')?.value;
+          const checkOut = document.getElementById('searchCheckOut')?.value;
+          
+          // Get price range from the range inputs
+          const priceStart = document.getElementById('input-minPrice')?.value;
+          const priceEnd = document.getElementById('input-maxPrice')?.dataset?.value || document.getElementById('input-maxPrice')?.value;
+          
+          // Get guest count from searchGuestCount element
+          const guestCount = parseInt(document.getElementById('searchGuestCount')?.textContent || '0');
+
+          // Validate all required fields
+          if (!city) {
+            alert('Please select a city');
+            return;
+          }
+          if (!checkIn || !checkOut) {
+            alert('Please select both check-in and check-out dates');
+            return;
+          }
+          
+          // Additional validation to ensure dates are valid
+          try {
+            const checkInDate = new Date(checkIn);
+            const checkOutDate = new Date(checkOut);
+            if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
+              alert('Please select valid dates');
+              return;
+            }
+          } catch (e) {
+            alert('Please select valid dates');
+            return;
+          }
+          if (!priceStart || !priceEnd) {
+            alert('Please set price range');
+            return;
+          }
+          if (!guestCount || guestCount < 1) {
+            alert('Please select number of guests');
+            return;
+          }
+
+          // Construct query parameters
+          const queryParams = new URLSearchParams({
+            city: city,
+            checkIn: checkIn,
+            checkOut: checkOut,
+            priceStartrange: priceStart,
+            priceEndrange: priceEnd,
+            people: guestCount
+          });
+
+          // Redirect to search results page with parameters
+          window.location.href = `search-result.html?${queryParams.toString()}`;
+        });
+      });
+    </script>
   </body>
 </html>

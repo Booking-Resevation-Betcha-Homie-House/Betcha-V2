@@ -1,40 +1,102 @@
 document.addEventListener('DOMContentLoaded', () => {
+  // Range elements
   const minRange = document.querySelector('#minRange');
   const maxRange = document.querySelector('#maxRange');
   const minPriceText = document.querySelector('#minPrice');
   const maxPriceText = document.querySelector('#maxPrice');
   const highlight = document.querySelector('#rangeHighlight');
 
-  function updateSlider() {
-    let min = parseInt(minRange.value);
-    let max = parseInt(maxRange.value);
+  // Number input elements
+  const minPriceInput = document.querySelector('#input-minPrice');
+  const maxPriceInput = document.querySelector('#input-maxPrice');
+
+  // Set initial values for number inputs
+  if (minPriceInput) minPriceInput.value = minRange.value;
+  if (maxPriceInput) maxPriceInput.value = maxRange.value;
+
+  function updateValues(newMin, newMax, source = null) {
+    let min = parseInt(newMin);
+    let max = parseInt(newMax);
+
+    // Enforce min/max constraints
+    min = Math.max(parseInt(minRange.min), Math.min(parseInt(minRange.max), min));
+    max = Math.max(parseInt(minRange.min), Math.min(parseInt(minRange.max), max));
 
     // Prevent overlap
     if (min > max) {
-      [minRange.value, maxRange.value] = [max, min];
-      [min, max] = [max, min];
+      if (source === 'min') {
+        min = max;
+      } else {
+        max = min;
+      }
     }
 
-    // Update the price display
+    // Update range inputs (if they weren't the source)
+    if (source !== 'range') {
+      minRange.value = min;
+      maxRange.value = max;
+    }
+
+    // Update number inputs (if they weren't the source)
+    if (source !== 'input') {
+      if (minPriceInput) minPriceInput.value = min;
+      if (maxPriceInput) maxPriceInput.value = max;
+    }
+
+    // Update the price display text
     minPriceText.textContent = min;
     maxPriceText.textContent = max;
 
-    // Update summary text (optional, if you're showing it elsewhere)
-    const minText = document.getElementById("minPriceText");
-    const maxText = document.getElementById("maxPriceText");
-    if (minText) minText.textContent = min;
-    if (maxText) maxText.textContent = max;
-
-    // Highlight bar
+    // Update highlight bar
     const rangeWidth = minRange.max - minRange.min;
     const left = ((min - minRange.min) / rangeWidth) * 100;
     const right = ((max - minRange.min) / rangeWidth) * 100;
     highlight.style.left = `${left}%`;
     highlight.style.width = `${right - left}%`;
+
+    // Dispatch change event for search state updates
+    minRange.dispatchEvent(new Event('change'));
+    maxRange.dispatchEvent(new Event('change'));
   }
 
-  minRange.addEventListener('input', updateSlider);
-  maxRange.addEventListener('input', updateSlider);
+  // Range input listeners
+  minRange.addEventListener('input', () => {
+    updateValues(minRange.value, maxRange.value, 'range');
+  });
 
-  updateSlider(); // call it once on load
+  maxRange.addEventListener('input', () => {
+    updateValues(minRange.value, maxRange.value, 'range');
+  });
+
+  // Number input listeners
+  if (minPriceInput) {
+    minPriceInput.addEventListener('input', () => {
+      updateValues(minPriceInput.value, maxPriceInput.value, 'input');
+    });
+
+    // Handle empty input
+    minPriceInput.addEventListener('blur', () => {
+      if (!minPriceInput.value) {
+        minPriceInput.value = minRange.min;
+        updateValues(minRange.min, maxPriceInput.value, 'input');
+      }
+    });
+  }
+
+  if (maxPriceInput) {
+    maxPriceInput.addEventListener('input', () => {
+      updateValues(minPriceInput.value, maxPriceInput.value, 'input');
+    });
+
+    // Handle empty input
+    maxPriceInput.addEventListener('blur', () => {
+      if (!maxPriceInput.value) {
+        maxPriceInput.value = maxRange.max;
+        updateValues(minPriceInput.value, maxRange.max, 'input');
+      }
+    });
+  }
+
+  // Initialize with default values
+  updateValues(minRange.value, maxRange.value);
 });
