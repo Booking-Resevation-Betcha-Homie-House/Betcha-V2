@@ -67,6 +67,158 @@ async function fetchCalendarData(propertyId) {
 // Make fetchCalendarData available globally
 window.fetchCalendarData = fetchCalendarData;
 
+// Initialize Search Calendar
+function initializeSearchCalendar(calendarId) {
+  const calendar = document.getElementById(calendarId);
+  if (!calendar) return;
+
+  const leftCalendar = calendar.querySelector('.leftCalendar');
+  const rightCalendar = calendar.querySelector('.rightCalendar');
+  const leftLabel = calendar.querySelector('.leftMonthLabel');
+  const rightLabel = calendar.querySelector('.rightMonthLabel');
+  const prevBtn = calendar.querySelector('.prevMonth');
+  const nextBtn = calendar.querySelector('.nextMonth');
+  const checkInInput = document.getElementById('searchCheckIn');
+  const checkOutInput = document.getElementById('searchCheckOut');
+
+  let currentDate = new Date();
+  let selectedStartDate = null;
+  let selectedEndDate = null;
+
+  function updateCalendars() {
+    // Left calendar (current month)
+    const leftMonth = new Date(currentDate);
+    renderCalendar(leftCalendar, leftMonth, leftLabel);
+
+    // Right calendar (next month)
+    const rightMonth = new Date(currentDate);
+    rightMonth.setMonth(rightMonth.getMonth() + 1);
+    renderCalendar(rightCalendar, rightMonth, rightLabel);
+  }
+
+  function renderCalendar(container, date, labelEl) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    
+    // Update month label
+    labelEl.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    // Get first day of month and total days
+    const firstDay = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+
+    // Create calendar HTML
+    let html = `
+      <div class="grid grid-cols-7 gap-1">
+        <div class="text-center text-xs font-medium text-neutral-400">Sun</div>
+        <div class="text-center text-xs font-medium text-neutral-400">Mon</div>
+        <div class="text-center text-xs font-medium text-neutral-400">Tue</div>
+        <div class="text-center text-xs font-medium text-neutral-400">Wed</div>
+        <div class="text-center text-xs font-medium text-neutral-400">Thu</div>
+        <div class="text-center text-xs font-medium text-neutral-400">Fri</div>
+        <div class="text-center text-xs font-medium text-neutral-400">Sat</div>
+    `;
+
+    // Add empty cells for days before the first of the month
+    for (let i = 0; i < firstDay; i++) {
+      html += '<div></div>';
+    }
+
+    // Add days
+    for (let day = 1; day <= totalDays; day++) {
+      const currentDateObj = new Date(year, month, day);
+      const dateStr = currentDateObj.toISOString().split('T')[0];
+      const isDisabled = currentDateObj < new Date().setHours(0,0,0,0);
+      const isSelected = (selectedStartDate && dateStr === selectedStartDate) ||
+                        (selectedEndDate && dateStr === selectedEndDate);
+      const isInRange = selectedStartDate && selectedEndDate &&
+                       dateStr > selectedStartDate && dateStr < selectedEndDate;
+
+      let classes = 'flex items-center justify-center w-8 h-8 rounded-full text-sm ';
+      
+      if (isDisabled) {
+        classes += 'text-neutral-300 cursor-not-allowed';
+      } else if (isSelected) {
+        classes += 'bg-primary text-white cursor-pointer hover:bg-primary/90';
+      } else if (isInRange) {
+        classes += 'bg-primary/10 text-primary cursor-pointer hover:bg-primary/20';
+      } else {
+        classes += 'text-neutral-600 cursor-pointer hover:bg-neutral-100';
+      }
+
+      html += `
+        <div class="flex items-center justify-center">
+          <button class="${classes}" 
+                  data-date="${dateStr}"
+                  ${isDisabled ? 'disabled' : ''}>
+            ${day}
+          </button>
+        </div>`;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    // Add click handlers to date buttons
+    container.querySelectorAll('button[data-date]').forEach(button => {
+      if (!button.disabled) {
+        button.addEventListener('click', () => {
+          const dateStr = button.dataset.date;
+          
+          if (!selectedStartDate || (selectedStartDate && selectedEndDate) || dateStr < selectedStartDate) {
+            // Start new selection
+            selectedStartDate = dateStr;
+            selectedEndDate = null;
+            checkInInput.value = dateStr;
+            checkOutInput.value = '';
+            
+            // Dispatch change event for searchCheckIn
+            const startEvent = new Event('change', { bubbles: true });
+            checkInInput.dispatchEvent(startEvent);
+            
+          } else {
+            // Complete the selection
+            selectedEndDate = dateStr;
+            checkOutInput.value = dateStr;
+            
+            // Dispatch change event for searchCheckOut
+            const endEvent = new Event('change', { bubbles: true });
+            checkOutInput.dispatchEvent(endEvent);
+          }
+          
+          // Log current selection state
+          console.log('Date Selection:', { start: selectedStartDate, end: selectedEndDate });
+          
+          updateCalendars();
+        });
+      }
+    });
+  }
+
+  // Initialize navigation buttons
+  if (prevBtn) {
+    prevBtn.addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() - 1);
+      updateCalendars();
+    });
+  }
+
+  if (nextBtn) {
+    nextBtn.addEventListener('click', () => {
+      currentDate.setMonth(currentDate.getMonth() + 1);
+      updateCalendars();
+    });
+  }
+
+  // Initial render
+  updateCalendars();
+}
+
+// Initialize all calendars when DOM is loaded
+document.addEventListener('DOMContentLoaded', () => {
+  initializeSearchCalendar('calendarIdsearch');
+});
+
 // Function to fetch calendar data
 async function fetchCalendarData(propertyId) {
   try {

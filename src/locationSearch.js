@@ -1,32 +1,55 @@
-document.addEventListener("DOMContentLoaded", () => {
-      const locationInput = document.getElementById("locationInput");
-      const locationDropdown = document.getElementById("locationDropdown");
+document.addEventListener("DOMContentLoaded", async () => {
+  const locationInput = document.querySelector('[data-location-input]');
+  const locationList = document.querySelector('[data-location-list]');
+  let cities = [];
 
-      const locations = ["Quezon City", "Makati", "Taguig", "Pasig", "Marikina"];
+  // Fetch cities from API
+  async function fetchCities() {
+    try {
+      const response = await fetch('https://betcha-api.onrender.com/cities');
+      const data = await response.json();
+      cities = data.cities;
+      return cities;
+    } catch (error) {
+      console.error('Error fetching cities:', error);
+      return [];
+    }
+  }
 
-      // Add options dynamically
-      locations.forEach(location => {
-        const li = document.createElement("li");
-        li.textContent = location;
-        li.className = "px-4 py-2 hover:bg-neutral-100 cursor-pointer transition-all";
+  // Generate location item HTML
+  function createLocationItem(city) {
+    return `
+      <div class="group p-3 hover:bg-neutral-50 cursor-pointer transition-colors active:scale-[0.98]" data-city="${city}">
+        <p class="font-medium text-primary-text group-hover:text-primary transition-colors">${city}</p>
+        <p class="text-sm text-neutral-500">Philippines</p>
+      </div>
+    `;
+  }
 
-        li.onclick = () => {
-          locationInput.value = location;
-          locationDropdown.classList.add("hidden");
-        };
+  // Filter and display locations
+  function filterLocations(searchTerm) {
+    if (!locationList) return;
+    
+    const filteredCities = cities.filter(city => 
+      city.toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
-        locationDropdown.appendChild(li);
-      });
+    locationList.innerHTML = filteredCities
+      .map(createLocationItem)
+      .join('');
+  }
 
-      // Show dropdown on focus
-      locationInput.addEventListener("focus", () => {
-        locationDropdown.classList.remove("hidden");
-      });
+  // Initialize
+  if (locationInput && locationList) {
+    // Fetch initial cities
+    await fetchCities();
 
-      // Hide dropdown on click outside
-      document.addEventListener("click", (e) => {
-        if (!locationInput.contains(e.target) && !locationDropdown.contains(e.target)) {
-          locationDropdown.classList.add("hidden");
-        }
-      });
+    // Setup input handler
+    locationInput.addEventListener('input', (e) => {
+      filterLocations(e.target.value);
     });
+
+    // Show all cities initially
+    filterLocations('');
+  }
+});

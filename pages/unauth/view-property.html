@@ -6,6 +6,7 @@
     <link rel="icon" type="image/png" href="/public/images/icon-betcha.png">
     <link rel="stylesheet" href="/src/index.css">
     <title>Betcha | Rooms</title>
+    <script type="module" src="/pages/unauth/unauthFunctions/view-property-functions.js"></script>
 </head>
 <body class="bg-background">
   <!-- NavBar -->
@@ -1450,7 +1451,7 @@
         <div class="tab-content flex-1 flex flex-col overflow-hidden mb-5 md:mb-0">
           <div class="calendar-instance h-full flex flex-col" data-calendar-id="1">
             <div class="overflow-y-auto bg-white border border-neutral-300 rounded-3xl shadow-sm custom-scroll">
-              <div class="w-full mx-auto p-4 hover:shadow-lg transition-all duration-300 ease-in-out">
+              <div class="w-full mx-auto p-4 hover:shadow-lg transition-all duration-300 ease-in-out" id="calendarContainer">
 
                 <!-- Navigation -->
                 <div class="flex justify-between items-center mb-4 px-2">

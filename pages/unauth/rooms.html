@@ -213,9 +213,9 @@
     <!-- Hero section -->
     <section class="flex flex-col justify-center items-center mt-20 px-5">
       <div class="relative m-10 w-full h-[200px] rounded-3xl overflow-hidden bg-[url('/public/images/landingPageBG.jpg')] bg-cover bg-center
-        md:w-[80%] md:h-[450px]">
+        md:w-[80%] md:h-[450px]" id="dashImg1">
         <div class="absolute inset-0 backdrop-blur-xs bg-green-950/30 z-10 pointer-events-none"></div>
-        <div class="absolute inset-0 z-20 flex items-center justify-center">
+        <div class="absolute inset-0 z-20 flex items-center justify-center" id="dashImg">
             <div class="w-fit text-secondary-text text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-playfairDisplay italic font-bold text-center flex flex-col">
             <span>Feel at Home,</span>
             <span>Every Stay.</span>
@@ -225,20 +225,16 @@
     </section>
 
     <!-- Ads Banner-->
-    <div class="relative flex flex-col justify-center items-center w-full h-[100px] md:h-[250px] md:mt-10 text-white text-center px-4 overflow-hidden">
-      <img 
-        src="/public/images/banner01.png" 
+    <div class="relative flex flex-col justify-center items-center w-full h-[100px] md:h-[250px] md:mt-10 text-center px-4 overflow-hidden">
+      <img id="imageBanner"
+        src="" 
         class="absolute inset-0 w-full h-full object-cover filter blur-xs brightness-80"
       />
 
       <!-- Content (above bg) -->
       <div class="relative z-10">
-        <h1 class="text-lg md:text-4xl font-bold tracking-wide drop-shadow-lg">
-          ☀️ Summer Splash Sale!
-        </h1>
-        <p class="text-xs md:text-lg mt-1 md:mt-4 max-w-xl drop-shadow-lg">
-          Book your stay now and enjoy up to 30% off this summer season.
-        </p>
+        <h1 class="text-lg md:text-4xl font-bold tracking-wide drop-shadow-lg" id="titleBanner"></h1>
+        <p class="text-xs md:text-lg mt-1 md:mt-4 max-w-xl drop-shadow-lg" id="contentBanner"></p>
       </div>
 
     </div>
@@ -282,120 +278,8 @@
 
       <!-- Carousel -->
       <div class="carousel-wrapper overflow-hidden">
-        <div class="carousel-track flex gap-5 overflow-x-auto scroll-smooth whitespace-nowrap custom-scroll">
+        <div class="carousel-track flex gap-5 overflow-x-auto scroll-smooth whitespace-nowrap custom-scroll" id="popularProperty">
           <!-- Cards (Repeat as needed) -->
-          <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-[url('/images/unit01.jpg')] bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110"></div>
-            <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-
-            <div class="relative z-20 h-full flex flex-col justify-end p-6">
-              <h2 class="text-2xl font-manrope mb-2 text-secondary-text">Property name</h2>
-
-              <div class="flex items-center w-full gap-2 mb-5">
-                <svg class="w-auto h-3.5 fill-secondary-text" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                </svg>
-                <p class="font-inter text-secondary-text text-sm">Barangay/City</p>
-              </div>
-
-              <div class="flex items-center w-full gap-2">
-                <p class="font-inter text-secondary-text text-sm">Learn more</p>
-                <svg class="w-5 h-5 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1108 7.36136 13.01 7.10875 13.0123 6.84653C13.0146 6.58431 13.1198 6.33352 13.3052 6.14812C13.4906 5.96272 13.7414 5.85749 14.0036 5.85521C14.2658 5.85292 14.5184 5.95373 14.707 6.13598Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-[url('/images/unit02.jpg')] bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110"></div>
-            <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-
-            <div class="relative z-20 h-full flex flex-col justify-end p-6">
-              <h2 class="text-2xl font-manrope mb-2 text-secondary-text">Property name</h2>
-
-              <div class="flex items-center w-full gap-2 mb-5">
-                <svg class="w-auto h-3.5 fill-secondary-text" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                </svg>
-                <p class="font-inter text-secondary-text text-sm">Barangay/City</p>
-              </div>
-
-              <div class="flex items-center w-full gap-2">
-                <p class="font-inter text-secondary-text text-sm">Learn more</p>
-                <svg class="w-5 h-5 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1108 7.36136 13.01 7.10875 13.0123 6.84653C13.0146 6.58431 13.1198 6.33352 13.3052 6.14812C13.4906 5.96272 13.7414 5.85749 14.0036 5.85521C14.2658 5.85292 14.5184 5.95373 14.707 6.13598Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-[url('/images/unit03.jpg')] bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110"></div>
-            <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-
-            <div class="relative z-20 h-full flex flex-col justify-end p-6">
-              <h2 class="text-2xl font-manrope mb-2 text-secondary-text">Property name</h2>
-
-              <div class="flex items-center w-full gap-2 mb-5">
-                <svg class="w-auto h-3.5 fill-secondary-text" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                </svg>
-                <p class="font-inter text-secondary-text text-sm">Barangay/City</p>
-              </div>
-
-              <div class="flex items-center w-full gap-2">
-                <p class="font-inter text-secondary-text text-sm">Learn more</p>
-                <svg class="w-5 h-5 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1108 7.36136 13.01 7.10875 13.0123 6.84653C13.0146 6.58431 13.1198 6.33352 13.3052 6.14812C13.4906 5.96272 13.7414 5.85749 14.0036 5.85521C14.2658 5.85292 14.5184 5.95373 14.707 6.13598Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-[url('/images/unit04.jpg')] bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110"></div>
-            <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-
-            <div class="relative z-20 h-full flex flex-col justify-end p-6">
-              <h2 class="text-2xl font-manrope mb-2 text-secondary-text">Property name</h2>
-
-              <div class="flex items-center w-full gap-2 mb-5">
-                <svg class="w-auto h-3.5 fill-secondary-text" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                </svg>
-                <p class="font-inter text-secondary-text text-sm">Barangay/City</p>
-              </div>
-
-              <div class="flex items-center w-full gap-2">
-                <p class="font-inter text-secondary-text text-sm">Learn more</p>
-                <svg class="w-5 h-5 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1108 7.36136 13.01 7.10875 13.0123 6.84653C13.0146 6.58431 13.1198 6.33352 13.3052 6.14812C13.4906 5.96272 13.7414 5.85749 14.0036 5.85521C14.2658 5.85292 14.5184 5.95373 14.707 6.13598Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-[url('/images/unit05.jpg')] bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110"></div>
-            <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-
-            <div class="relative z-20 h-full flex flex-col justify-end p-6">
-              <h2 class="text-2xl font-manrope mb-2 text-secondary-text">Property name</h2>
-
-              <div class="flex items-center w-full gap-2 mb-5">
-                <svg class="w-auto h-3.5 fill-secondary-text" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                </svg>
-                <p class="font-inter text-secondary-text text-sm">Barangay/City</p>
-              </div>
-
-              <div class="flex items-center w-full gap-2">
-                <p class="font-inter text-secondary-text text-sm">Learn more</p>
-                <svg class="w-5 h-5 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1108 7.36136 13.01 7.10875 13.0123 6.84653C13.0146 6.58431 13.1198 6.33352 13.3052 6.14812C13.4906 5.96272 13.7414 5.85749 14.0036 5.85521C14.2658 5.85292 14.5184 5.95373 14.707 6.13598Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
-
         </div>
       </div>
     </div>
@@ -439,119 +323,10 @@
 
       <!-- Carousel -->
       <div class="carousel-wrapper overflow-hidden">
-        <div class="carousel-track flex gap-5 overflow-x-auto scroll-smooth whitespace-nowrap custom-scroll">
+        <div class="carousel-track flex gap-5 overflow-x-auto scroll-smooth whitespace-nowrap custom-scroll" id="thisMonthContainer">
           <!-- Cards (Repeat as needed) -->
-          <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-[url('/images/unit01.jpg')] bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110"></div>
-            <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-
-            <div class="relative z-20 h-full flex flex-col justify-end p-6">
-              <h2 class="text-2xl font-manrope mb-2 text-secondary-text">Property name</h2>
-
-              <div class="flex items-center w-full gap-2 mb-5">
-                <svg class="w-auto h-3.5 fill-secondary-text" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                </svg>
-                <p class="font-inter text-secondary-text text-sm">Barangay/City</p>
-              </div>
-
-              <div class="flex items-center w-full gap-2">
-                <p class="font-inter text-secondary-text text-sm">Learn more</p>
-                <svg class="w-5 h-5 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1108 7.36136 13.01 7.10875 13.0123 6.84653C13.0146 6.58431 13.1198 6.33352 13.3052 6.14812C13.4906 5.96272 13.7414 5.85749 14.0036 5.85521C14.2658 5.85292 14.5184 5.95373 14.707 6.13598Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-[url('/images/unit02.jpg')] bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110"></div>
-            <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-
-            <div class="relative z-20 h-full flex flex-col justify-end p-6">
-              <h2 class="text-2xl font-manrope mb-2 text-secondary-text">Property name</h2>
-
-              <div class="flex items-center w-full gap-2 mb-5">
-                <svg class="w-auto h-3.5 fill-secondary-text" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                </svg>
-                <p class="font-inter text-secondary-text text-sm">Barangay/City</p>
-              </div>
-
-              <div class="flex items-center w-full gap-2">
-                <p class="font-inter text-secondary-text text-sm">Learn more</p>
-                <svg class="w-5 h-5 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1108 7.36136 13.01 7.10875 13.0123 6.84653C13.0146 6.58431 13.1198 6.33352 13.3052 6.14812C13.4906 5.96272 13.7414 5.85749 14.0036 5.85521C14.2658 5.85292 14.5184 5.95373 14.707 6.13598Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-[url('/images/unit03.jpg')] bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110"></div>
-            <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-
-            <div class="relative z-20 h-full flex flex-col justify-end p-6">
-              <h2 class="text-2xl font-manrope mb-2 text-secondary-text">Property name</h2>
-
-              <div class="flex items-center w-full gap-2 mb-5">
-                <svg class="w-auto h-3.5 fill-secondary-text" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                </svg>
-                <p class="font-inter text-secondary-text text-sm">Barangay/City</p>
-              </div>
-
-              <div class="flex items-center w-full gap-2">
-                <p class="font-inter text-secondary-text text-sm">Learn more</p>
-                <svg class="w-5 h-5 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1108 7.36136 13.01 7.10875 13.0123 6.84653C13.0146 6.58431 13.1198 6.33352 13.3052 6.14812C13.4906 5.96272 13.7414 5.85749 14.0036 5.85521C14.2658 5.85292 14.5184 5.95373 14.707 6.13598Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-[url('/images/unit04.jpg')] bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110"></div>
-            <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-
-            <div class="relative z-20 h-full flex flex-col justify-end p-6">
-              <h2 class="text-2xl font-manrope mb-2 text-secondary-text">Property name</h2>
-
-              <div class="flex items-center w-full gap-2 mb-5">
-                <svg class="w-auto h-3.5 fill-secondary-text" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                </svg>
-                <p class="font-inter text-secondary-text text-sm">Barangay/City</p>
-              </div>
-
-              <div class="flex items-center w-full gap-2">
-                <p class="font-inter text-secondary-text text-sm">Learn more</p>
-                <svg class="w-5 h-5 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1108 7.36136 13.01 7.10875 13.0123 6.84653C13.0146 6.58431 13.1198 6.33352 13.3052 6.14812C13.4906 5.96272 13.7414 5.85749 14.0036 5.85521C14.2658 5.85292 14.5184 5.95373 14.707 6.13598Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-          <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden">
-            <div class="absolute inset-0 bg-[url('/images/unit05.jpg')] bg-cover bg-center z-0 group transition-transform duration-[1000ms] ease-out group-hover:scale-110"></div>
-            <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
-
-            <div class="relative z-20 h-full flex flex-col justify-end p-6">
-              <h2 class="text-2xl font-manrope mb-2 text-secondary-text">Property name</h2>
-
-              <div class="flex items-center w-full gap-2 mb-5">
-                <svg class="w-auto h-3.5 fill-secondary-text" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                </svg>
-                <p class="font-inter text-secondary-text text-sm">Barangay/City</p>
-              </div>
-
-              <div class="flex items-center w-full gap-2">
-                <p class="font-inter text-secondary-text text-sm">Learn more</p>
-                <svg class="w-5 h-5 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1108 7.36136 13.01 7.10875 13.0123 6.84653C13.0146 6.58431 13.1198 6.33352 13.3052 6.14812C13.4906 5.96272 13.7414 5.85749 14.0036 5.85521C14.2658 5.85292 14.5184 5.95373 14.707 6.13598Z" />
-                </svg>
-              </div>
-            </div>
-          </div>
-
+          
+          <!-- End of Cards -->
         </div>
       </div>
     </div>
@@ -585,277 +360,62 @@
         <!-- Inner flex row -->
         <div class="flex md:w-full w-max gap-1 bg-neutral-100 rounded-full shadow-sm p-1 items-center md:justify-between">
           <!-- Button 1 -->
-          <button onclick="setActiveTab(0)" class="tab-btn px-4 py-2 rounded-full bg-white text-primary font-semibold shadow hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
-            <span class="text-sm md:text-base group-hover:text-primary">Category</span>
+          <button onclick="setActiveTab(0)" class="tab-btn px-4 py-2 rounded-full bg-white text-primary font-semibold shadow hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1" id="familyButton">
+            <span class="text-sm md:text-base group-hover:text-primary">Family</span>
           </button>
 
           <!-- Button 2 -->
-          <button onclick="setActiveTab(1)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
-            <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Category</span>
+          <button onclick="setActiveTab(1)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1" id="coupleButton">
+            <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Couple</span>
           </button>
 
           <!-- Button 3 -->
-          <button onclick="setActiveTab(2)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
-            <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Category</span>
+          <button onclick="setActiveTab(2)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1" id="barkadaButton">
+            <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Barkada</span>
           </button>
 
           <!-- Button 4 -->
-          <button onclick="setActiveTab(3)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
-            <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Category</span>
+          <button onclick="setActiveTab(3)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1" id="otherButton">
+            <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Others</span>
           </button>
         </div>
       </div>
 
       <div id="tab-contents-room" class="w-full">
-        <!-- Duplicate the tab-content until same amount with the category -->
-        <div class="tab-content grid [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))] gap-6 w-full mb-5">
-          <a href="view-property.html">
-            <div class="room-list">
-              <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3">
-              </div>
-              <div class="flex flex-col items-start mx-3">
-                <div class="flex justify-between items-center w-full">
-                  <p id="roomName" class="font-inter text-primary-text">Room Name</p>
-                  <div class="flex items-center gap-1">
-                    <svg class="w-auto h-3 fill-primary-text  " viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                    </svg>
-                    <span class="font-inter text-primary-text">4.5</span>
-                  </div>
-                </div>
-                <div class="flex items-center w-full gap-2 mb-2.5">
-                  <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                  </svg>
-                  <p id="roomAdress" class="font-inter text-muted text-sm">Barangay/City</p>
-                </div>
-                <p class="font-inter text-primary-text">₱ <span id="roomPrice" class="font-inter text-primary-text">00.00</span> <span class="font-inter text-muted">/ night</span></p>
-              </div>
-            </div>
-          </a>
-          <a href="view-property.html" >
-            <div class="room-list">
-              <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3">
-              </div>
-              <div class="flex flex-col items-start mx-3">
-                <div class="flex justify-between items-center w-full">
-                  <p id="roomName" class="font-inter text-primary-text">Room Name</p>
-                  <div class="flex items-center gap-1">
-                    <svg class="w-auto h-3 fill-primary-text  " viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                    </svg>
-                    <span class="font-inter text-primary-text">4.5</span>
-                  </div>
-                </div>
-                <div class="flex items-center w-full gap-2 mb-2.5">
-                  <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                  </svg>
-                  <p id="roomAdress" class="font-inter text-muted text-sm">Barangay/City</p>
-                </div>
-                <p class="font-inter text-primary-text">₱ <span id="roomPrice" class="font-inter text-primary-text">00.00</span> <span class="font-inter text-muted">/ night</span></p>
-              </div>
-            </div>
-          </a>
-          <a href="view-property.html">
-            <div class="room-list">
-              <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3">
-              </div>
-              <div class="flex flex-col items-start mx-3">
-                <div class="flex justify-between items-center w-full">
-                  <p id="roomName" class="font-inter text-primary-text">Room Name</p>
-                  <div class="flex items-center gap-1">
-                    <svg class="w-auto h-3 fill-primary-text  " viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                    </svg>
-                    <span class="font-inter text-primary-text">4.5</span>
-                  </div>
-                </div>
-                <div class="flex items-center w-full gap-2 mb-2.5">
-                  <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                  </svg>
-                  <p id="roomAdress" class="font-inter text-muted text-sm">Barangay/City</p>
-                </div>
-                <p class="font-inter text-primary-text">₱ <span id="roomPrice" class="font-inter text-primary-text">00.00</span> <span class="font-inter text-muted">/ night</span></p>
-              </div>
-            </div>
-          </a>
-          <a href="view-property.html">
-            <div class="room-list">
-              <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3">
-              </div>
-              <div class="flex flex-col items-start mx-3">
-                <div class="flex justify-between items-center w-full">
-                  <p id="roomName" class="font-inter text-primary-text">Room Name</p>
-                  <div class="flex items-center gap-1">
-                    <svg class="w-auto h-3 fill-primary-text  " viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                    </svg>
-                    <span class="font-inter text-primary-text">4.5</span>
-                  </div>
-                </div>
-                <div class="flex items-center w-full gap-2 mb-2.5">
-                  <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                  </svg>
-                  <p id="roomAdress" class="font-inter text-muted text-sm">Barangay/City</p>
-                </div>
-                <p class="font-inter text-primary-text">₱ <span id="roomPrice" class="font-inter text-primary-text">00.00</span> <span class="font-inter text-muted">/ night</span></p>
-              </div>
-            </div>
-          </a>
-          <a href="view-property.html" >
-            <div class="room-list">
-              <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3">
-              </div>
-              <div class="flex flex-col items-start mx-3">
-                <div class="flex justify-between items-center w-full">
-                  <p id="roomName" class="font-inter text-primary-text">Room Name</p>
-                  <div class="flex items-center gap-1">
-                    <svg class="w-auto h-3 fill-primary-text  " viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                    </svg>
-                    <span class="font-inter text-primary-text">4.5</span>
-                  </div>
-                </div>
-                <div class="flex items-center w-full gap-2 mb-2.5">
-                  <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                  </svg>
-                  <p id="roomAdress" class="font-inter text-muted text-sm">Barangay/City</p>
-                </div>
-                <p class="font-inter text-primary-text">₱ <span id="roomPrice" class="font-inter text-primary-text">00.00</span> <span class="font-inter text-muted">/ night</span></p>
-              </div>
-            </div>
-          </a>
-          
-
+        <!-- Family Tab Content -->
+        <div id="familyContent" class="tab-content grid [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))] gap-6 w-full mb-5">
         </div>
-        <div class="tab-content grid [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))] gap-6 w-full mb-5">
-          <a href="view-property.html" >
-            <div class="room-list">
-              <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3">
-              </div>
-              <div class="flex flex-col items-start mx-3">
-                <div class="flex justify-between items-center w-full">
-                  <p id="roomName" class="font-inter text-primary-text">Room Name</p>
-                  <div class="flex items-center gap-1">
-                    <svg class="w-auto h-3 fill-primary-text  " viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                    </svg>
-                    <span class="font-inter text-primary-text">4.5</span>
-                  </div>
-                </div>
-                <div class="flex items-center w-full gap-2 mb-2.5">
-                  <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                  </svg>
-                  <p id="roomAdress" class="font-inter text-muted text-sm">Barangay/City</p>
-                </div>
-                <p class="font-inter text-primary-text">₱ <span id="roomPrice" class="font-inter text-primary-text">00.00</span> <span class="font-inter text-muted">/ night</span></p>
-              </div>
-            </div>
-          </a>
-          <a href="view-property.html" >
-            <div class="room-list">
-              <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3">
-              </div>
-              <div class="flex flex-col items-start mx-3">
-                <div class="flex justify-between items-center w-full">
-                  <p id="roomName" class="font-inter text-primary-text">Room Name</p>
-                  <div class="flex items-center gap-1">
-                    <svg class="w-auto h-3 fill-primary-text  " viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                    </svg>
-                    <span class="font-inter text-primary-text">4.5</span>
-                  </div>
-                </div>
-                <div class="flex items-center w-full gap-2 mb-2.5">
-                  <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                  </svg>
-                  <p id="roomAdress" class="font-inter text-muted text-sm">Barangay/City</p>
-                </div>
-                <p class="font-inter text-primary-text">₱ <span id="roomPrice" class="font-inter text-primary-text">00.00</span> <span class="font-inter text-muted">/ night</span></p>
-              </div>
-            </div>
-          </a>
-          <a href="view-property.html" >
-            <div class="room-list">
-              <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3">
-              </div>
-              <div class="flex flex-col items-start mx-3">
-                <div class="flex justify-between items-center w-full">
-                  <p id="roomName" class="font-inter text-primary-text">Room Name</p>
-                  <div class="flex items-center gap-1">
-                    <svg class="w-auto h-3 fill-primary-text  " viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                    </svg>
-                    <span class="font-inter text-primary-text">4.5</span>
-                  </div>
-                </div>
-                <div class="flex items-center w-full gap-2 mb-2.5">
-                  <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                  </svg>
-                  <p id="roomAdress" class="font-inter text-muted text-sm">Barangay/City</p>
-                </div>
-                <p class="font-inter text-primary-text">₱ <span id="roomPrice" class="font-inter text-primary-text">00.00</span> <span class="font-inter text-muted">/ night</span></p>
-              </div>
-            </div>
-          </a>
-          <a href="view-property.html" >
-            <div class="room-list">
-              <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3">
-              </div>
-              <div class="flex flex-col items-start mx-3">
-                <div class="flex justify-between items-center w-full">
-                  <p id="roomName" class="font-inter text-primary-text">Room Name</p>
-                  <div class="flex items-center gap-1">
-                    <svg class="w-auto h-3 fill-primary-text  " viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                    </svg>
-                    <span class="font-inter text-primary-text">4.5</span>
-                  </div>
-                </div>
-                <div class="flex items-center w-full gap-2 mb-2.5">
-                  <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                  </svg>
-                  <p id="roomAdress" class="font-inter text-muted text-sm">Barangay/City</p>
-                </div>
-                <p class="font-inter text-primary-text">₱ <span id="roomPrice" class="font-inter text-primary-text">00.00</span> <span class="font-inter text-muted">/ night</span></p>
-              </div>
-            </div>
-          </a>
-          <a href="view-property.html">
-            <div class="room-list">
-              <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3">
-              </div>
-              <div class="flex flex-col items-start mx-3">
-                <div class="flex justify-between items-center w-full">
-                  <p id="roomName" class="font-inter text-primary-text">Room Name</p>
-                  <div class="flex items-center gap-1">
-                    <svg class="w-auto h-3 fill-primary-text  " viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
-                    </svg>
-                    <span class="font-inter text-primary-text">4.5</span>
-                  </div>
-                </div>
-                <div class="flex items-center w-full gap-2 mb-2.5">
-                  <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-                  </svg>
-                  <p id="roomAdress" class="font-inter text-muted text-sm">Barangay/City</p>
-                </div>
-                <p class="font-inter text-primary-text">₱ <span id="roomPrice" class="font-inter text-primary-text">00.00</span> <span class="font-inter text-muted">/ night</span></p>
-              </div>
-            </div>
-          </a>
-          
 
+        <!-- Couple Tab Content -->
+        <div id="coupleContent" class="tab-content hidden grid [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))] gap-6 w-full mb-5">
         </div>
+
+        <!-- Barkada Tab Content -->
+        <div id="barkadaContent" class="tab-content hidden grid [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))] gap-6 w-full mb-5">
+        </div>
+
+        <!-- Other Tab Content -->
+        <div id="otherContent" class="tab-content hidden grid [grid-template-columns:repeat(auto-fill,minmax(250px,1fr))] gap-6 w-full mb-5">
+        </div>
+
+        <!-- Skeleton Loading Template -->
+        <template id="skeletonTemplate">
+          <div class="room-list animate-pulse">
+            <div class="bg-neutral-200 w-full aspect-square rounded-3xl mb-3"></div>
+            <div class="flex flex-col items-start mx-3">
+              <div class="flex justify-between items-center w-full">
+                <div class="h-4 bg-neutral-200 rounded w-1/2"></div>
+                <div class="flex items-center gap-1">
+                  <div class="h-4 bg-neutral-200 rounded w-8"></div>
+                </div>
+              </div>
+              <div class="flex items-center w-full gap-2 mb-2.5 mt-2">
+                <div class="h-4 bg-neutral-200 rounded w-3/4"></div>
+              </div>
+              <div class="h-4 bg-neutral-200 rounded w-1/3"></div>
+            </div>
+          </div>
+        </template>
       </div>
     </div>
 
@@ -1030,43 +590,32 @@
     </div>
 
     <!-- Search -->
-    <div id="searchModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center hidden overflow-hidden z-50">
-      <div data-tab-group class="w-full bg-background rounded-t-3xl p-6 modal-animate overflow-hidden flex flex-col 
-         md:max-w-lg lg:max-w-xl xl:max-w-3xl h-[80%] sm:rounded-3xl">
-
-        <div class="flex justify-end w-full">
-            <button data-close-modal class="btn-close group">
-                <span>
-                    <svg class="h-5 w-5 fill-muted group-hover:fill-primary-text transition-all duration-500 ease-in-out" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path fill-rule="evenodd" clip-rule="evenodd" d="M12 14.1221L17.303 19.4251C17.5844 19.7065 17.966 19.8646 18.364 19.8646C18.7619 19.8646 19.1436 19.7065 19.425 19.4251C19.7064 19.1437 19.8645 18.7621 19.8645 18.3641C19.8645 17.9662 19.7064 17.5845 19.425 17.3031L14.12 12.0001L19.424 6.69711C19.5632 6.55778 19.6737 6.39238 19.749 6.21036C19.8244 6.02834 19.8631 5.83326 19.8631 5.63626C19.8631 5.43926 19.8242 5.2442 19.7488 5.06221C19.6733 4.88022 19.5628 4.71488 19.4235 4.57561C19.2841 4.43634 19.1187 4.32588 18.9367 4.25054C18.7547 4.17519 18.5596 4.13644 18.3626 4.13648C18.1656 4.13653 17.9706 4.17538 17.7886 4.25081C17.6066 4.32624 17.4412 4.43678 17.302 4.57611L12 9.87911L6.69697 4.57611C6.55867 4.43278 6.3932 4.31843 6.21024 4.23973C6.02727 4.16103 5.83046 4.11956 5.63129 4.11774C5.43212 4.11591 5.23459 4.15377 5.05021 4.22911C4.86583 4.30444 4.6983 4.41574 4.55739 4.55652C4.41649 4.69729 4.30503 4.86471 4.22952 5.04902C4.15401 5.23333 4.11597 5.43083 4.1176 5.63C4.11924 5.82917 4.16053 6.02602 4.23905 6.20906C4.31758 6.3921 4.43177 6.55767 4.57497 6.69611L9.87997 12.0001L4.57597 17.3041C4.43277 17.4425 4.31858 17.6081 4.24005 17.7912C4.16153 17.9742 4.12024 18.1711 4.1186 18.3702C4.11697 18.5694 4.15501 18.7669 4.23052 18.9512C4.30603 19.1355 4.41749 19.3029 4.55839 19.4437C4.6993 19.5845 4.86683 19.6958 5.05121 19.7711C5.23559 19.8464 5.43312 19.8843 5.63229 19.8825C5.83146 19.8807 6.02827 19.8392 6.21124 19.7605C6.3942 19.6818 6.55967 19.5674 6.69797 19.4241L12 14.1221Z"/>
-                    </svg>
-
-                </span>
-            </button>
+    <div id="searchModal" class="modal fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center hidden z-50">
+      <div data-tab-group class="w-full bg-background rounded-t-3xl sm:rounded-3xl p-6 modal-animate flex flex-col h-[95vh] sm:h-auto max-h-[95vh] sm:max-h-[90vh] md:max-w-3xl lg:max-w-4xl overflow-hidden">
+        <!-- Header with close button -->
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-manrope font-semibold text-primary-text">Search Properties</h2>
+          <button data-close-modal class="p-2 hover:bg-neutral-100 rounded-full transition-all duration-300">
+            <svg class="w-5 h-5" viewBox="0 0 24 24">
+              <path fill="currentColor" d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/>
+            </svg>
+          </button>
         </div>
         
-        <!-- Tab Scroll Wrapper -->
-        <div class="w-full h-fit overflow-x-auto custom-scroll mb-3">
-          <!-- Inner flex row -->
-          <div class="flex md:w-full w-max gap-1 bg-neutral-100 rounded-full shadow-sm p-1 items-center md:justify-between">
-            <!-- Button 1 -->
-            <button onclick="setActiveTab(0)" class="tab-btn px-4 py-2 rounded-full bg-white text-primary font-semibold shadow cursor-pointer hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
-              <span class="text-sm md:text-base group-hover:text-primary">Where</span>
+        <!-- Tab Navigation -->
+        <div class="w-full overflow-x-auto custom-scroll no-scrollbar">
+          <div class="flex gap-1 bg-neutral-100 rounded-full p-1 min-w-max sm:w-full">
+            <button onclick="setActiveTab(0)" class="tab-btn flex-1 px-4 py-2 rounded-full bg-white text-primary font-medium min-w-[80px] transition-all duration-300">
+              <span class="text-sm whitespace-nowrap">Where</span>
             </button>
-
-            <!-- Button 2 -->
-            <button onclick="setActiveTab(1)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group cursor-pointer active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
-              <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">When</span>
+            <button onclick="setActiveTab(1)" class="tab-btn flex-1 px-4 py-2 rounded-full min-w-[80px] transition-all duration-300">
+              <span class="text-sm text-neutral-500 whitespace-nowrap">When</span>
             </button>
-
-            <!-- Button 3 -->
-            <button onclick="setActiveTab(2)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group cursor-pointer active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
-              <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Who</span>
+            <button onclick="setActiveTab(2)" class="tab-btn flex-1 px-4 py-2 rounded-full min-w-[80px] transition-all duration-300">
+              <span class="text-sm text-neutral-500 whitespace-nowrap">Who</span>
             </button>
-
-            <!-- Button 4 -->
-            <button onclick="setActiveTab(3)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group cursor-pointer active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
-              <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Price</span>
+            <button onclick="setActiveTab(3)" class="tab-btn flex-1 px-4 py-2 rounded-full min-w-[80px] transition-all duration-300">
+              <span class="text-sm text-neutral-500 whitespace-nowrap">Price</span>
             </button>
           </div>
         </div>
@@ -1074,89 +623,34 @@
         <!-- Location Tab Contents -->
         <div class="tab-content flex-1 flex flex-col overflow-hidden mb-5 md:mb-0">
           <!-- Search Bar -->
-          <div class="mb-2 flex items-center gap-2 bg-white px-4 py-3 rounded-full border border-neutral-300 shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out">
-            <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
-            </svg>
+          <div class="relative mb-3">
             <input 
               type="text" 
+              data-location-input
+              id="searchCity"
               placeholder="Where are you going?" 
-              class="bg-transparent outline-none text-primary-text font-manrope placeholder:text-neutral-500 w-full"
+              class="w-full px-4 py-3 pl-10 rounded-full border border-neutral-300 focus:border-primary focus:outline-none transition-all duration-300"
             />
+            <svg class="w-4 h-4 absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M11 19a8 8 0 100-16 8 8 0 000 16z" />
+            </svg>
           </div>
 
           <!-- Scrollable Results -->
-          <div class="rounded-3xl border border-neutral-300 bg-white shadow-md overflow-hidden">
-            <div class="max-h-full overflow-y-auto divide-y divide-neutral-200">
-              <div class="group w-full px-5 py-3 bg-white font-inter cursor-pointer
-                hover:bg-primary/10 transition-all duration-300 ease-in-out">
-                <div class="group-active:scale-[0.98] transition-all duration-200 ease-in-out">
-                  <p class="text-sm font-medium text-primary-text group-hover:text-primary
-                            transition-all duration-300 ease-in-out">
-                    Quezon City, Metro Manila
-                  </p>
-                  <p class="text-xs text-neutral-500">Philippines</p>
-                </div>
-              </div>
-              <div class="group w-full px-5 py-3 bg-white font-inter cursor-pointer
-                hover:bg-primary/10 transition-all duration-300 ease-in-out">
-                <div class="group-active:scale-[0.98] transition-all duration-200 ease-in-out">
-                  <p class="text-sm font-medium text-primary-text group-hover:text-primary
-                            transition-all duration-300 ease-in-out">
-                    Quezon City, Metro Manila
-                  </p>
-                  <p class="text-xs text-neutral-500">Philippines</p>
-                </div>
-              </div>
-              <div class="group w-full px-5 py-3 bg-white font-inter cursor-pointer
-                hover:bg-primary/10 transition-all duration-300 ease-in-out">
-                <div class="group-active:scale-[0.98] transition-all duration-200 ease-in-out">
-                  <p class="text-sm font-medium text-primary-text group-hover:text-primary
-                            transition-all duration-300 ease-in-out">
-                    Quezon City, Metro Manila
-                  </p>
-                  <p class="text-xs text-neutral-500">Philippines</p>
-                </div>
-              </div>
-              <div class="group w-full px-5 py-3 bg-white font-inter cursor-pointer
-                hover:bg-primary/10 transition-all duration-300 ease-in-out">
-                <div class="group-active:scale-[0.98] transition-all duration-200 ease-in-out">
-                  <p class="text-sm font-medium text-primary-text group-hover:text-primary
-                            transition-all duration-300 ease-in-out">
-                    Quezon City, Metro Manila
-                  </p>
-                  <p class="text-xs text-neutral-500">Philippines</p>
-                </div>
-              </div>
-              <div class="group w-full px-5 py-3 bg-white font-inter cursor-pointer
-                hover:bg-primary/10 transition-all duration-300 ease-in-out">
-                <div class="group-active:scale-[0.98] transition-all duration-200 ease-in-out">
-                  <p class="text-sm font-medium text-primary-text group-hover:text-primary
-                            transition-all duration-300 ease-in-out">
-                    Quezon City, Metro Manila
-                  </p>
-                  <p class="text-xs text-neutral-500">Philippines</p>
-                </div>
-              </div>
-              <div class="group w-full px-5 py-3 bg-white font-inter cursor-pointer
-                hover:bg-primary/10 transition-all duration-300 ease-in-out">
-                <div class="group-active:scale-[0.98] transition-all duration-200 ease-in-out">
-                  <p class="text-sm font-medium text-primary-text group-hover:text-primary
-                            transition-all duration-300 ease-in-out">
-                    Quezon City, Metro Manila
-                  </p>
-                  <p class="text-xs text-neutral-500">Philippines</p>
-                </div>
-              </div>
-              
+          <div class="flex-1 overflow-y-auto rounded-2xl border border-neutral-200 bg-white">
+            <div data-location-list class="divide-y divide-neutral-100">
+              <!-- Location items will be populated by JavaScript -->
             </div>
           </div>
         </div>
+        
         <!-- Date Tab Content -->
-        <div class="tab-content flex-1 flex flex-col overflow-hidden mb-5 md:mb-0">
-          <div class="calendar-instance h-full flex flex-col" data-calendar-id="1">
-            <div class="overflow-y-auto bg-white border border-neutral-300 rounded-3xl shadow-sm custom-scroll">
+        <div class="tab-content hidden flex-1 overflow-hidden mb-5 md:mb-0">
+          <div class="calendar-instance h-full w-full flex flex-col items-center justify-center" data-calendar-id="1" id="calendarIdsearch">
+            <div class="w-full max-w-2xl overflow-y-auto bg-white border border-neutral-300 rounded-3xl shadow-sm custom-scroll">
+              <!-- Hidden inputs for storing selected dates -->
+              <input type="hidden" id="searchCheckIn" name="checkIn">
+              <input type="hidden" id="searchCheckOut" name="checkOut">
               <div class="w-full mx-auto p-4 hover:shadow-lg transition-all duration-300 ease-in-out">
 
                 <!-- Navigation -->
@@ -1167,12 +661,12 @@
                 </div>
 
                 <!-- Calendars Container -->
-                <div class="flex flex-col md:flex-row gap-4 justify-center items-start">
-                  <div class="w-full md:w-[300px] flex-shrink-0 rounded-lg p-3">
+                <div class="w-full flex flex-col md:flex-row gap-4 justify-center items-center">
+                  <div class="w-full max-w-[300px] rounded-lg p-3">
                     <p class="leftMonthLabel text-center font-semibold mb-2 text-sm text-primary-text"></p>
                     <div class="leftCalendar"></div>
                   </div>
-                  <div class="w-full md:w-[300px] flex-shrink-0 rounded-lg p-3">
+                  <div class="w-full max-w-[300px] rounded-lg p-3">
                     <p class="rightMonthLabel text-center font-semibold mb-2 text-sm text-primary-text"></p>
                     <div class="rightCalendar"></div>
                   </div>
@@ -1184,7 +678,7 @@
 
         </div>
         <!-- Guest Count Tab Content -->
-        <div class="tab-content">
+        <div class="tab-content hidden flex-1 overflow-hidden mb-5 md:mb-0">
           <div class="guest-counter w-full bg-white border border-neutral-300 rounded-3xl shadow-sm p-5 hover:shadow-md transition-all duration-200" data-max="10">
             <div class="flex justify-between items-center w-full">
               <div class="space-y-1">
@@ -1200,7 +694,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
                   </svg>
                 </button>
-                <span class="guestCount w-6 text-center text-primary-text font-medium">1</span>
+                <span id="searchGuestCount" class="guestCount w-6 text-center text-primary-text font-medium">1</span>
                 <button class="increaseGuest text-lg text-neutral-600 !p-4 rounded-full 
                   hover:bg-primary/10 hover:text-black active:bg-primary/10 active:scale-95
                   transition-all duration-300 ease-in-out" 
@@ -1214,9 +708,9 @@
           </div>
         </div>
         <!-- Price Range Tab Content -->
-        <div class="tab-content flex-1 flex flex-col overflow-hidden mb-5 md:mb-0">
-          <div class="overflow-y-auto">
-            <div class="flex justify-center">
+        <div class="tab-content hidden flex-1 overflow-hidden mb-5 md:mb-0">
+          <div class="overflow-y-auto w-full flex flex-col items-center">
+            <div class="w-full max-w-3xl">
               <!-- Price Range Box -->
               <div
                 class="w-full bg-white border border-neutral-300 rounded-3xl shadow-sm px-5 py-10 z-50">
@@ -1244,12 +738,12 @@
                 </div>
               </div>
             </div>
-            <div class="flex flex-col md:flex-row gap-6 my-10 px-5">
+            <div class="flex flex-col md:flex-row gap-6 my-10">
               <div class="flex flex-col gap-2 w-full group">
                 <label for="input-minPrice" class="font-manrope text-sm font-bold text-neutral-600 group-hover:text-primary transition-all duration-300">
                     Min price
                 </label>
-                <div class="input-style2 flex items-center justify-center gap-2 ">
+                <div class="input-style2 flex items-center justify-center gap-2">
                     <span>₱</span>
                     <input 
                     id="input-minPrice"
@@ -1260,13 +754,13 @@
                 </div>
               </div>
               <div class="flex flex-col gap-2 w-full group">
-                <label for="input-minPrice" class="font-manrope text-sm font-bold text-neutral-600 group-hover:text-primary transition-all duration-300">
+                <label for="input-maxPrice" class="font-manrope text-sm font-bold text-neutral-600 group-hover:text-primary transition-all duration-300">
                     Max price
                 </label>
-                <div class="input-style2 flex items-center justify-center gap-2 ">
+                <div class="input-style2 flex items-center justify-center gap-2">
                     <span>₱</span>
                     <input 
-                    id="input-minPrice"
+                    id="input-maxPrice"
                     type="number" 
                     placeholder="00" 
                     class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
@@ -1279,29 +773,30 @@
 
         <!-- Bottom nav -->
         <div class="mt-auto w-full space-y-3">
-          <!-- Filter grid -->
-          <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
-            <div class="flex items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700 ">
-              <span class="truncate">When</span>
-            </div>
-            <div class="flex items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700 ">
-              <span class="truncate">Where</span>
-            </div>
-            <div class="flex items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700 ">
-              <span class="truncate">Who</span>
-            </div>
-            <div class="flex items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700 ">
-              <span class="truncate">Price</span>
+            <!-- Filter Pills -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2" id="searchPills">
+              <div id="locationPill" class="hidden items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700">
+                <span class="truncate pill-text"></span>
+              </div>
+              <div id="datePill" class="hidden items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700">
+                <span class="truncate pill-text"></span>
+              </div>
+              <div id="guestPill" class="hidden items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700">
+                <span class="truncate pill-text"></span>
+              </div>
+              <div id="pricePill" class="hidden items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700">
+                <span class="truncate pill-text"></span>
+              </div>
             </div>
           </div>
 
           <!-- Buttons row -->
           <div class="flex justify-between items-center">
-            <button class="!px-1 text-sm font-medium !text-neutral-600 underline hover:!text-neutral-800 active:!text-neutral-800 cursor-pointer">
+            <button id="clearSearchBtn" class="!px-1 text-sm font-medium !text-neutral-600 underline hover:!text-neutral-800 active:!text-neutral-800 cursor-pointer">
               Clear all
             </button>
             <button type="button"
-              onclick="window.location.href='search-result.html'" 
+              id="searchSubmitBtn"
               class="flex items-center gap-2 px-4 py-2 bg-primary rounded-full shadow-sm cursor-pointer hover:shadow-md hover:scale-105 active:scale-95 transition-all duration-300">
               <svg class="w-4 h-4 stroke-secondary-text" fill="none" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1311,8 +806,6 @@
             </button>
           </div>
         </div>
-
-
       </div>
     </div>
 
@@ -1327,5 +820,6 @@
     <script defer src="../../src/multipleTabs.js"></script>
     <script defer src="../../src/modal.js"></script>
     <script defer src="../../src/notification.js"></script>
+    <script defer src="./unauthFunctions/rooms-functions.js"></script>
   </body>
 </html>

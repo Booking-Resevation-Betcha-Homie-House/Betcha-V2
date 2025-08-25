@@ -3,10 +3,117 @@ document.addEventListener("DOMContentLoaded", () => {
   let unavailableDates = [];
   let bookedDates = [];
   let maintenanceDates = [];
+  let selectedDates = new Set();
+  let tempDates = null; // Store dates temporarily while preview is active
+  let hasConfirmedDates = false; // Track if dates have been confirmed
+  const confirmButton = document.getElementById('confirmDate');
+  const calendarContainer = document.getElementById('calendarContainer');
+
+  // Function to handle preview restoration
+  const restoreMultipleSelection = () => {
+    if (!hasConfirmedDates && tempDates) {
+      selectedDates.clear();
+      tempDates.forEach(date => selectedDates.add(date));
+      tempDates = null;
+      render();
+    }
+  };
+
+  // Handle mouse leaving calendar container
+  if (calendarContainer) {
+    calendarContainer.addEventListener('mouseleave', (e) => {
+      // Only restore if not moving to the confirm button
+      if (!confirmButton.contains(e.relatedTarget)) {
+        restoreMultipleSelection();
+      }
+    });
+  }
 
   document.querySelectorAll(".calendar-instance").forEach(calendarEl => {
     let currentDate = new Date();
-    let selectedDate = null;
+
+    // Track mouse movement towards confirm button
+    calendarEl.addEventListener('mousemove', (e) => {
+      if (!confirmButton || selectedDates.size <= 1) return;
+
+      const buttonRect = confirmButton.getBoundingClientRect();
+      const mouseX = e.clientX;
+      const mouseY = e.clientY;
+      
+      // Calculate if mouse is moving towards the button
+      const isMovingTowardsButton = 
+        mouseX <= buttonRect.right + 100 && // Add some margin for detection
+        mouseX >= buttonRect.left - 100 &&
+        mouseY <= buttonRect.bottom + 50 &&
+        mouseY >= buttonRect.top - 50;
+
+      // If moving towards button and not already in preview mode
+      if (isMovingTowardsButton && !isMovingToConfirm && !tempDates) {
+        isMovingToConfirm = true;
+        // Store current selection and show preview
+        tempDates = new Set(selectedDates);
+        const lastDate = Array.from(selectedDates).pop();
+        selectedDates.clear();
+        selectedDates.add(lastDate);
+        render();
+      }
+      // If moving away from button and was in preview mode
+      else if (!isMovingTowardsButton && isMovingToConfirm) {
+        isMovingToConfirm = false;
+        // Restore multiple selection if we haven't clicked confirm
+        if (tempDates) {
+          selectedDates.clear();
+          tempDates.forEach(date => selectedDates.add(date));
+          tempDates = null;
+          render();
+        }
+      }
+    });
+
+    // Function to handle external date selection
+    window.selectDate = (date) => {
+      selectedDates.clear(); // Clear previous selections
+      selectedDates.add(date);
+      isMultiSelectEnabled = false;
+      render();
+    };
+
+    // Handle confirm button interactions
+    if (confirmButton) {
+      confirmButton.addEventListener('mouseenter', () => {
+        if (!hasConfirmedDates && selectedDates.size > 1) {
+          // Store current selection
+          tempDates = new Set(selectedDates);
+          // Show only the last selected date
+          const lastDate = Array.from(selectedDates).pop();
+          selectedDates.clear();
+          selectedDates.add(lastDate);
+          render();
+        }
+      });
+
+      // Handle click - permanently apply single selection
+      confirmButton.addEventListener('click', () => {
+        if (selectedDates.size > 0) {
+          // Mark as confirmed so preview won't be restored
+          hasConfirmedDates = true;
+          // Keep only the last date
+          const lastDate = Array.from(selectedDates).pop();
+          selectedDates.clear();
+          selectedDates.add(lastDate);
+          tempDates = null;
+          render();
+          
+          // Dispatch event with the final selected date
+          calendarEl.dispatchEvent(new CustomEvent('dateConfirmed', {
+            detail: {
+              date: lastDate
+            },
+            bubbles: true
+          }));
+        }
+      });
+    };
 
     const leftLabel = calendarEl.querySelector(".leftMonthLabel");
     const leftCal = calendarEl.querySelector(".leftCalendar");
@@ -37,7 +144,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const isBooked = bookedDates.includes(dateStr);
         const isMaintenance = maintenanceDates.includes(dateStr);
         const isUnavailable = unavailableDates.includes(dateStr);
-        const isSelected = selectedDate === dateStr;
+        const isSelected = selectedDates.has(dateStr);
 
         let classes = "w-full aspect-square text-xs flex items-center justify-center rounded cursor-pointer transition ";
         
@@ -64,7 +171,34 @@ document.addEventListener("DOMContentLoaded", () => {
     calendarEl.addEventListener("click", e => {
       const dateEl = e.target.closest("[data-date]");
       if (dateEl && !dateEl.classList.contains("cursor-not-allowed")) {
-        selectedDate = dateEl.dataset.date;
+        const clickedDate = dateEl.dataset.date;
+        
+        // Reset confirmed state when selecting new dates
+        if (!e.target.closest('#confirmDate')) {
+          hasConfirmedDates = false;
+        }
+        
+        if (hasConfirmedDates) {
+          // Single selection mode after confirmation
+          selectedDates.clear();
+          selectedDates.add(clickedDate);
+        } else {
+          // Multiple selection mode before confirmation
+          if (selectedDates.has(clickedDate)) {
+            selectedDates.delete(clickedDate);
+          } else {
+            selectedDates.add(clickedDate);
+          }
+        }
+
+        // Dispatch custom event with selected dates
+        calendarEl.dispatchEvent(new CustomEvent('datesSelected', {
+          detail: {
+            dates: Array.from(selectedDates)
+          },
+          bubbles: true
+        }));
+
         render();
       }
     });

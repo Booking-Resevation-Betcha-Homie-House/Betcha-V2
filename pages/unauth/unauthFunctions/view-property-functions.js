@@ -1,3 +1,5 @@
+import { showFullscreenLoading, hideFullscreenLoading } from '/src/fullscreenLoading.js';
+
 const amenityMapping = { 'wifi': { name: 'WiFi', iconType: '/svg/wifi.svg' }, 'ref': { name: 'Refrigerator', iconType: '/svg/refrigerator.svg' }, 'bathtub': { name: 'Bathtub', iconType: '/svg/bath.svg' }, 'washer': { name: 'Washer', iconType: '/svg/washer.svg' }, 'streaming': { name: 'Streaming Services', iconType: '/svg/tv.svg' }, 'smokeAlarm': { name: 'Smoke Alarm', iconType: '/svg/smokeAlarm.svg' }, 'freeParking': { name: 'Free Parking', iconType: '/svg/parking.svg' }, 'balcony': { name: 'Balcony', iconType: '/svg/balcony.svg' }, 'allowed': { name: 'Pets Allowed', iconType: '/svg/pets.svg' }, 'crib': { name: 'Crib', iconType: '/svg/crib.svg' }, 'aircon': { name: 'Air Conditioning', iconType: '/svg/aircon.svg' }, 'bedset': { name: 'Complete Bed', iconType: '/svg/bed.svg' }, 'hanger': { name: 'Hangers', iconType: '/svg/hanger.svg' }, 'hairDryer': { name: 'Hair Dryer', iconType: '/svg/hairDryer.svg' }, 'iron': { name: 'Iron', iconType: '/svg/iron.svg' }, 'extraPillowBlanket': { name: 'Extra Pillows & Blankets', iconType: '/svg/pillow.svg' }, 'towel': { name: 'Towel', iconType: '/svg/towel.svg' }, 'microwave': { name: 'Microwave', iconType: '/svg/microwave.svg' }, 'stove': { name: 'Stove', iconType: '/svg/stove.svg' }, 'oven': { name: 'Oven', iconType: '/svg/oven.svg' }, 'coffeeMaker': { name: 'Coffee Maker', iconType: '/svg/coffeeMaker.svg' }, 'toaster': { name: 'Toaster', iconType: '/svg/toaster.svg' }, 'PotsPans': { name: 'Pots & Pans', iconType: '/svg/pots.svg' }, 'spices': { name: 'Spices', iconType: '/svg/spices.svg' }, 'dishesCutlery': { name: 'Dishes & Cutlery', iconType: '/svg/dishes.svg' }, 'diningTable': { name: 'Dining Table', iconType: '/svg/diningtable.svg' }, 'shower': { name: 'Shower', iconType: '/svg/shower.svg' }, 'shampoo': { name: 'Shampoo', iconType: '/svg/shampoo.svg' }, 'soap': { name: 'Soap', iconType: '/svg/soap.svg' }, 'toilet': { name: 'Toilet', iconType: '/svg/toilet.svg' }, 'toiletPaper': { name: 'Toilet Paper', iconType: '/svg/toiletPaper.svg' }, 'dryer': { name: 'Dryer', iconType: '/svg/dryer.svg' }, 'dryingRack': { name: 'Drying Rack', iconType: '/svg/dryingRack.svg' }, 'ironBoard': { name: 'Iron Board', iconType: '/svg/ironBoard.svg' }, 'cleaningProduct': { name: 'Cleaning Products', iconType: '/svg/cleaning.svg' }, 'tv': { name: 'TV', iconType: '/svg/tv.svg' }, 'soundSystem': { name: 'Sound System', iconType: '/svg/speaker.svg' }, 'consoleGames': { name: 'Gaming Console', iconType: '/svg/console.svg' }, 'boardGames': { name: 'Board Games', iconType: '/svg/chess.svg' }, 'cardGames': { name: 'Card Games', iconType: '/svg/card.svg' }, 'billiard': { name: 'Billiard Table', iconType: '/svg/billiard.svg' }, 'fireExtinguisher': { name: 'Fire Extinguisher', iconType: '/svg/danger.svg' }, 'firstAidKit': { name: 'First Aid Kit', iconType: '/svg/firstAid.svg' }, 'cctv': { name: 'CCTV', iconType: '/svg/cctv.svg' }, 'smartLock': { name: 'Smart Lock', iconType: '/svg/smartLock.svg' }, 'guard': { name: 'Security Guard', iconType: '/svg/guard.svg' }, 'stairGate': { name: 'Stair Gate', iconType: '/svg/gate.svg' }, 'paidParking': { name: 'Paid Parking', iconType: '/svg/parking.svg' }, 'bike': { name: 'Bicycle', iconType: '/svg/bike.svg' }, 'garden': { name: 'Garden', iconType: '/svg/garden.svg' }, 'grill': { name: 'Grill', iconType: '/svg/grill.svg' }, 'firePit': { name: 'Fire Pit', iconType: '/svg/firePit.svg' }, 'pool': { name: 'Swimming Pool', iconType: '/svg/pool.svg' }, 'petsAllowed': { name: 'Pets Allowed', iconType: '/svg/pets.svg' }, 'petsNotAllowed': { name: 'No Pets', iconType: '/svg/pets.svg' }, 'petBowls': { name: 'Pet Bowls', iconType: '/svg/bowl.svg' }, 'petBed': { name: 'Pet Bed', iconType: '/svg/bed.svg' }, 'babyBath': { name: 'Baby Bath', iconType: '/svg/bath.svg' }, default: { name: 'Other', iconType: '/svg/plus.svg' }};
 
 function getAmenitySVGByMapping(amenity) {
@@ -55,9 +57,13 @@ function renderAmenities(apiAmenities, otherAmenities) {
 
 async function fetchAndDisplayProperty() {
     try {
+        showFullscreenLoading('Loading');
         const urlParams = new URLSearchParams(window.location.search);
         const propertyId = urlParams.get('id');
-        if (!propertyId) return;
+        if (!propertyId) {
+            hideFullscreenLoading();
+            return;
+        }
 
         const response = await fetch(`https://betcha-api.onrender.com/property/display/${propertyId}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
@@ -125,6 +131,8 @@ async function fetchAndDisplayProperty() {
 
     } catch (err) {
         console.error('Error fetching property:', err);
+    } finally {
+        hideFullscreenLoading();
     }
 }
 
