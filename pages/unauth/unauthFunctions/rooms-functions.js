@@ -1,11 +1,13 @@
 // Function to create property card HTML
 function createPropertyCard(property) {
     return `
-            <a href="view-property.html?id=${property._id}">
+            <a href="view-property.html?id=${property._id}" onmouseenter="console.log('Card hovered')" onmouseleave="console.log('Card left')">
               <div class="room-list">
-                <div class="relative bg-neutral-300 w-full aspect-square rounded-3xl mb-3 overflow-hidden group">
+                <div class="bg-neutral-300 w-full aspect-square rounded-3xl mb-3 overflow-hidden">
                   <img src="${property.photoLinks[0]}" alt="${property.name}" 
-                    class="w-full h-full object-cover rounded-3xl transition duration-500 ease-in-out transform group-hover:scale-110">
+                    onmouseenter="console.log('Image hovered')" 
+                    onmouseleave="console.log('Image left')"
+                    class="w-full h-full object-cover rounded-3xl transform transition-transform duration-500 ease-in-out hover:scale-110">
                 </div>
                 <div class="flex flex-col items-start mx-3">
                   <div class="flex justify-between items-center w-full">
@@ -32,27 +34,41 @@ function createPropertyCard(property) {
 
 // Function to fetch and display properties by category
 async function fetchAndDisplayProperties() {
+    console.log('fetchAndDisplayProperties called');
     try {
+        console.log('Fetching from API...');
         const response = await fetch('https://betcha-api.onrender.com/property/byCategory');
         const data = await response.json();
+        console.log('API response received:', data);
 
         // Get all tab content containers
-        const familyContainer = document.querySelector('#familyContent .tab-content');
-        const coupleContainer = document.querySelector('#coupleContent .tab-content');
-        const barkadaContainer = document.querySelector('#barkadaContent .tab-content');
-        const otherContainer = document.querySelector('#otherContent .tab-content');
+        const familyContainer = document.querySelector('#familyContent');
+        const coupleContainer = document.querySelector('#coupleContent');
+        const barkadaContainer = document.querySelector('#barkadaContent');
+        const otherContainer = document.querySelector('#otherContent');
+
+        console.log('Containers found:', {
+            familyContainer: !!familyContainer,
+            coupleContainer: !!coupleContainer,
+            barkadaContainer: !!barkadaContainer,
+            otherContainer: !!otherContainer
+        });
 
         // Update each category container
         if (familyContainer && data.family) {
+            console.log('Populating family container with', data.family.length, 'properties');
             familyContainer.innerHTML = data.family.map(property => createPropertyCard(property)).join('');
         }
         if (coupleContainer && data.couple) {
+            console.log('Populating couple container with', data.couple.length, 'properties');
             coupleContainer.innerHTML = data.couple.map(property => createPropertyCard(property)).join('');
         }
         if (barkadaContainer && data.barkada) {
+            console.log('Populating barkada container with', data.barkada.length, 'properties');
             barkadaContainer.innerHTML = data.barkada.map(property => createPropertyCard(property)).join('');
         }
         if (otherContainer && data.other) {
+            console.log('Populating other container with', data.other.length, 'properties');
             otherContainer.innerHTML = data.other.map(property => createPropertyCard(property)).join('');
         }
     } catch (error) {
@@ -270,6 +286,7 @@ async function populatePopularRooms() {
 
 // Initialize all functions when the page loads
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('DOMContentLoaded event fired in rooms-functions.js');
     updateAdsBanner();
     populatePopularRooms();
     fetchAndDisplayProperties();
