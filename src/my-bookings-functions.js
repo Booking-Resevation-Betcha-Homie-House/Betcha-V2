@@ -61,13 +61,13 @@ function getStatusStyle(status) {
 }
 
 // Function to create a booking card
-function createBookingCard(booking) {
+function createBookingCard(booking, propertyPhoto = null) {
     const statusStyle = getStatusStyle(booking.status);
     const checkInDate = formatDate(booking.checkIn);
     const checkOutDate = formatDate(booking.checkOut);
     
-    // Use a fallback image since photoLinks is not in the booking response
-    const roomImage = '/images/unit03.jpg';
+    // Use property photo if available, otherwise fallback
+    const roomImage = propertyPhoto || '/images/unit03.jpg';
 
     return `
         <div class="relative rounded-2xl cursor-pointer p-5 w-full h-auto md:h-[200px] flex flex-col md:flex-row gap-5 shadow-sm bg-white border border-neutral-300 group hover:shadow-lg hover:border-primary-text transition-all duration-500 ease-in-out overflow-hidden"
@@ -124,6 +124,35 @@ function createBookingCard(booking) {
     `;
 }
 
+// Function to fetch property photo
+async function fetchPropertyPhoto(propertyId) {
+    try {
+        const response = await fetch(`${API_BASE_URL}/property/display/${propertyId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            console.warn(`Failed to fetch property ${propertyId}: ${response.status}`);
+            return null;
+        }
+
+        const data = await response.json();
+        
+        // Return the first photo if available
+        if (data.photoLinks && data.photoLinks.length > 0) {
+            return data.photoLinks[0];
+        }
+        
+        return null;
+    } catch (error) {
+        console.warn(`Error fetching property ${propertyId}:`, error);
+        return null;
+    }
+}
+
 // Function to navigate to booking details
 function navigateToBooking(bookingId) {
     window.location.href = `view-booking.html?bookingId=${bookingId}`;
@@ -174,7 +203,7 @@ function setActiveBookingTab(index) {
 window.setActiveTab = setActiveBookingTab;
 
 // Function to render bookings for a specific tab
-function renderBookings(bookings, containerId) {
+async function renderBookings(bookings, containerId) {
     console.log(`renderBookings called for ${containerId} with:`, bookings);
     const container = document.getElementById(containerId);
     if (!container) {
@@ -204,7 +233,19 @@ function renderBookings(bookings, containerId) {
     }
 
     console.log(`Rendering ${bookings.length} bookings for ${containerId}`);
-    container.innerHTML = bookings.map(booking => createBookingCard(booking)).join('');
+    
+    // Fetch property photos for all bookings concurrently
+    const bookingsWithPhotos = await Promise.all(
+        bookings.map(async (booking) => {
+            const propertyPhoto = await fetchPropertyPhoto(booking.propertyId);
+            return { booking, propertyPhoto };
+        })
+    );
+    
+    // Render booking cards with photos
+    container.innerHTML = bookingsWithPhotos
+        .map(({ booking, propertyPhoto }) => createBookingCard(booking, propertyPhoto))
+        .join('');
 }
 
 // Function to show skeleton loading
@@ -276,15 +317,17 @@ async function fetchAndRenderBookings() {
 
         console.log('Categorized bookings:', categorizedBookings);
 
-        // Clear any existing content before rendering new data
-        document.getElementById('pendingContainer').innerHTML = '';
-        document.getElementById('rateContainer').innerHTML = '';
-        document.getElementById('completedContainer').innerHTML = '';
+        // Keep skeleton loading while we fetch property photos
+        // Don't clear containers yet - skeleton is still showing
+        
+        // Render bookings in their respective tabs (async) - this will replace skeleton loading
+        await Promise.all([
+            renderBookings(categorizedBookings.pending, 'pendingContainer'),
+            renderBookings(categorizedBookings.toRate, 'rateContainer'),
+            renderBookings(categorizedBookings.completed, 'completedContainer')
+        ]);
 
-        // Render bookings in their respective tabs
-        renderBookings(categorizedBookings.pending, 'pendingContainer');
-        renderBookings(categorizedBookings.toRate, 'rateContainer');
-        renderBookings(categorizedBookings.completed, 'completedContainer');
+        console.log('All bookings and property photos loaded successfully');
 
     } catch (error) {
         console.error('Error fetching bookings:', error);
