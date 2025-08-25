@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Confirm Reservation Navigation</title>
+    <link rel="stylesheet" href="/src/index.css">
+</head>
+<body class="bg-background p-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-lg p-6">
+        <h1 class="text-2xl font-bold mb-4">Test Reservation Navigation</h1>
+        <p class="mb-4">Click the button below to test navigation to confirm-reservation with sample data:</p>
+        
+        <button id="testReserveBtn" class="w-full bg-primary text-white rounded-lg py-3 px-4 hover:bg-primary/90 transition-colors">
+            Test Reserve Navigation
+        </button>
+        
+        <div class="mt-4">
+            <h3 class="font-semibold mb-2">Sample Data:</h3>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li>Property: Test Resort</li>
+                <li>Check-in: 2025-01-01</li>
+                <li>Check-out: 2025-01-03</li>
+                <li>Guests: 4</li>
+                <li>Price per day: ₱2,500</li>
+                <li>Additional guest price: ₱500</li>
+                <li>Reservation fee: ₱1,000</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('testReserveBtn').addEventListener('click', () => {
+            // Sample property data
+            const propertyData = {
+                id: 'test-property-123',
+                name: 'Test Resort',
+                address: '123 Test Street, Test City',
+                packagePrice: 2500,
+                additionalPax: 500,
+                reservationFee: 1000,
+                packageCapacity: 2,
+                images: [
+                    'https://via.placeholder.com/400x300/3B82F6/FFFFFF?text=Room+1',
+                    'https://via.placeholder.com/400x300/10B981/FFFFFF?text=Room+2',
+                    'https://via.placeholder.com/400x300/F59E0B/FFFFFF?text=Room+3'
+                ]
+            };
+
+            // Sample booking data
+            const bookingData = {
+                checkInDate: '2025-01-01',
+                checkOutDate: '2025-01-03',
+                guestCount: 4,
+                daysOfStay: 2
+            };
+
+            // Build URL parameters
+            const params = new URLSearchParams();
+            
+            // Property data
+            params.append('propertyId', propertyData.id);
+            params.append('propertyName', propertyData.name);
+            params.append('propertyAddress', propertyData.address);
+            params.append('images', encodeURIComponent(JSON.stringify(propertyData.images)));
+            
+            // Booking data
+            params.append('checkInDate', bookingData.checkInDate);
+            params.append('checkOutDate', bookingData.checkOutDate);
+            params.append('guestCount', bookingData.guestCount);
+            params.append('daysOfStay', bookingData.daysOfStay);
+            
+            // Pricing data
+            params.append('pricePerDay', propertyData.packagePrice);
+            params.append('addGuestPrice', propertyData.additionalPax);
+            params.append('reservationFee', propertyData.reservationFee);
+            params.append('packageCapacity', propertyData.packageCapacity);
+            
+            // Navigate to confirm reservation page
+            window.location.href = `./pages/auth/confirm-reservation.html?${params.toString()}`;
+        });
+    </script>
+</body>
+</html>

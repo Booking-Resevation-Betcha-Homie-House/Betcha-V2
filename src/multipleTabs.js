@@ -1,4 +1,10 @@
 document.addEventListener('DOMContentLoaded', function () {
+  // Check if we're on the my-bookings page - if so, skip this tab logic
+  if (window.location.pathname.includes('my-bookings.html')) {
+    console.log('My-bookings page detected, skipping multipleTabs.js');
+    return;
+  }
+
   // Function to create property card HTML
   function createPropertyCard(property) {
     return `

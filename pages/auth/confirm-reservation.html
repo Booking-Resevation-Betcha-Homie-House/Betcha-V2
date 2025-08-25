@@ -44,7 +44,7 @@
         <div class="">
           <div class="flex flex-col border-0 border-gray-300 bg-background rounded-3xl p-5  overflow-hidden mb-5
             md:border md:bg-white">
-            <div class="bg-neutral-300 h-50 w-full rounded-xl mb-5"></div>
+            <div id="propertyImageContainer" class="bg-neutral-300 h-50 w-full rounded-xl mb-5"></div>
             <div class="px-5">
               <p id="roomName" class="font-manrope font-semibold text-2xl mb-3">Room name </p>
               <div class="flex items-center w-full gap-2 mb-2.5 text-sm md:text-base">
@@ -312,7 +312,7 @@
 
               </span>
             </button>
-            <button type="button" onclick="window.location.href='confirm-payment.html'" 
+            <button id="confirm" type="button"
               class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden 
               transition-all duration-300 ease-in-out 
               hover:cursor-pointer active:scale-95  
@@ -434,5 +434,6 @@
     <script defer src="../../src/calendar.js"></script>
     <script defer src="../../src/modal.js"></script>
     <script defer src="../../src/termsCondition.js"></script>
+    <script type="module" src="authFunctions/confirm-reservation-functions.js"></script>
 </body>
 </html>

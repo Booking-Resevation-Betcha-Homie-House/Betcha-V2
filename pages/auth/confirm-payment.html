@@ -44,6 +44,28 @@
           <div class="p-5 md:p-0">
               <div class="flex flex-col border border-neutral-300 bg-white rounded-3xl p-5 shadow-sm  overflow-hidden md:mb-5">
                 <p class="font-manrope font-semibold text-2xl mb-3">Payment</p>
+                
+                <!-- Payment Type Indicator -->
+                <div class="w-full p-3 pb-0 md:p-5 md:pb-0">
+                  <div class="bg-primary/10 border border-primary/20 rounded-lg p-3 mb-4 md:p-4 md:mb-5">
+                    <div class="flex items-start gap-2 md:items-center md:gap-3">
+                      <div class="w-6 h-6 md:w-8 md:h-8 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 md:mt-0">
+                        <svg class="w-3 h-3 md:w-4 md:h-4 fill-secondary-text" viewBox="0 0 24 24">
+                          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 15l-5-5 1.41-1.41L11 14.17l6.59-6.58L19 9l-8 8z"/>
+                        </svg>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <p class="text-primary font-semibold font-manrope text-base md:text-lg leading-tight">
+                          You are paying: <span id="paymentType" class="text-primary block sm:inline">Reservation</span>
+                        </p>
+                        <p class="text-xs md:text-sm text-neutral-600 font-inter mt-1 leading-relaxed" id="paymentTypeDescription">
+                          Secure your booking with a reservation fee
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
                 <div class="w-full p-5">
                   <p class="text-primary-text font-bold font-manrope">Price details</p>
                   <div class="flex justify-between items-center">
@@ -83,7 +105,7 @@
                       <span class="text-primary-text font-manrope">GCash</span>
                     </div>
                     <div class="relative flex items-center">
-                      <input type="radio" name="payment" id="payment-gcash" data-qr1="/public/images/qr-gcash1.png" data-qr2="/public/images/qr-gcash2.png" class="peer h-5 w-5 appearance-none rounded-full border border-primary-text checked:border-primary transition-all" />
+                      <input type="radio" name="payment" id="payment-gcash" value="GCash" data-category="E-wallet" data-qr1="/public/images/qr-gcash1.png" data-qr2="/public/images/qr-gcash2.png" class="peer h-5 w-5 appearance-none rounded-full border border-primary-text checked:border-primary transition-all" />
                       <span class="absolute bg-primary w-3 h-3 rounded-full opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200"></span>
                     </div>
                   </label>
@@ -97,7 +119,7 @@
                       <span class="text-primary-text font-manrope">Maya</span>
                     </div>
                     <div class="relative flex items-center">
-                      <input type="radio" name="payment" id="payment-maya" data-qr="/public/images/qr-maya.png" class="peer h-5 w-5 appearance-none rounded-full border border-primary-text checked:border-primary transition-all"/>
+                      <input type="radio" name="payment" id="payment-maya" value="Maya" data-category="E-wallet" data-qr="/public/images/qr-maya.png" class="peer h-5 w-5 appearance-none rounded-full border border-primary-text checked:border-primary transition-all"/>
                       <span class="absolute bg-primary w-3 h-3 rounded-full opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200"></span>
                     </div>
                   </label>
@@ -111,7 +133,7 @@
                       <span class="text-primary-text font-manrope">GoTyme</span>
                     </div>
                     <div class="relative flex items-center">
-                      <input type="radio" name="payment" id="payment-gotyme" data-qr="/public/images/qr-gotyme.png" class="peer h-5 w-5 appearance-none rounded-full border border-primary-text checked:border-primary transition-all" />
+                      <input type="radio" name="payment" id="payment-gotyme" value="GoTyme" data-category="Bank" data-qr="/public/images/qr-gotyme.png" class="peer h-5 w-5 appearance-none rounded-full border border-primary-text checked:border-primary transition-all" />
                       <span class="absolute bg-primary w-3 h-3 rounded-full opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200"></span>
                     </div>
                   </label>
@@ -125,7 +147,7 @@
                       <span class="text-primary-text font-manrope">Union Bank</span>
                     </div>
                     <div class="relative flex items-center">
-                      <input type="radio" name="payment" id="payment-unionbank" data-qr="/public/images/qr-ub.png" class="peer h-5 w-5 appearance-none rounded-full border border-primary-text checked:border-primary transition-all" />
+                      <input type="radio" name="payment" id="payment-unionbank" value="Union Bank" data-category="Bank" data-qr="/public/images/qr-ub.png" class="peer h-5 w-5 appearance-none rounded-full border border-primary-text checked:border-primary transition-all" />
                       <span class="absolute bg-primary w-3 h-3 rounded-full opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200"></span>
                     </div>
                   </label>
@@ -139,7 +161,7 @@
                       <span class="text-primary-text font-manrope">Other</span>
                     </div>
                     <div class="relative flex items-center">
-                      <input type="radio" name="payment" id="payment-other" data-qr="" class="peer h-5 w-5 appearance-none rounded-full border border-primary-text checked:border-primary transition-all" />
+                      <input type="radio" name="payment" id="payment-other" value="Other" data-category="Other" data-qr="" class="peer h-5 w-5 appearance-none rounded-full border border-primary-text checked:border-primary transition-all" />
                       <span class="absolute bg-primary w-3 h-3 rounded-full opacity-0 peer-checked:opacity-100 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 transition-opacity duration-200"></span>
                     </div>
                   </label>
@@ -176,11 +198,13 @@
                   <!-- Preview Container -->
                   <div id="previewContainer" class="mt-4 flex flex-col gap-3"></div>
 
-                  <input type="text" placeholder="Transaction number" class="input-style w-full mb-5" />
+                  <input type="text" placeholder="Transaction number" id="transactionNumber" class="input-style w-full mb-5" />
+                  
+                  <input type="text" placeholder="Bank Account # or E-wallet #" id="bankAccountNumber" class="input-style w-full mb-5" />
                 </div>
                 
 
-                <button type="button" data-modal-target="confirmDetailsModal" 
+                <button type="button" id="confirmPaymentButton" data-modal-target="confirmDetailsModal" 
                 class="group relative w-full rounded-full bg-primary px-6 py-3 flex items-center justify-center overflow-hidden shadow-lg shadow-primary/20
                 hover:cursor-pointer active:scale-95
                 transition-all duration-500 ease-in-out 
@@ -307,10 +331,10 @@
 
                 </span>
             </button>
-            <button type="button" data-modal-target="successBookingModal" class="group relative w-full btn rounded-full bg-primary px-6 py-3 flex items-center justify-center overflow-hidden 
+            <button type="button" class="group relative w-full btn rounded-full bg-primary px-6 py-3 flex items-center justify-center overflow-hidden 
               hover:cursor-pointer active:scale-95  
               transition-all duration-300 ease-in-out 
-              lg:order-2 order-1">
+              lg:order-2 order-1" id="confirmPaymentButton1">
               <span class="text-secondary-text text-lg transition-transform duration-500 ease-in-out group-hover:-translate-x-1">Confirm</span>
               <span class="overflow-hidden max-w-[30px] lg:max-w-0 lg:group-hover:max-w-[30px] transition-all duration-500 ease-in-out">
                 <svg class="w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -341,8 +365,8 @@
         <!-- Content -->
         <div class="p-8 pt-0">
           <div class="text-center mb-10">
-            <p class="text-2xl font-semibold text-primary-text font-manrope">Booking Successful 🎉</p>
-            <p class="text-sm text-neutral-500 mt-2 font-inter">
+            <p id="modalTitle" class="text-2xl font-semibold text-primary-text font-manrope">Booking Successful 🎉</p>
+            <p id="modalMessage" class="text-sm text-neutral-500 mt-2 font-inter">
               Thank you for booking with us! A confirmation and receipt have been sent to your email.
               We look forward to hosting you.
             </p>
@@ -350,7 +374,7 @@
 
           <!-- Buttons side-by-side -->
           <div class="flex">
-            <button type="button" onclick="window.location.href='view-booking.html'" 
+            <button id="modalActionButton" type="button" onclick="window.location.href='view-booking.html'" 
             class="group relative w-full rounded-full bg-primary px-6 py-3 flex items-center justify-center overflow-hidden 
             hover:cursor-pointer active:scale-95 
             transition-all duration-300 ease-in-out">
@@ -375,5 +399,6 @@
     <script defer src="../../src/modal.js"></script>
     <script defer src="../../src/qrSelection.js"></script>
     <script defer src="../../src/imageInput.js"></script>
+    <script type="module" src="authFunctions/confirm-payment-functions.js"></script>
 </body>
 </html>
