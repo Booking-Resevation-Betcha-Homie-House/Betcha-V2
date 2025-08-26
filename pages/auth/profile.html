@@ -192,14 +192,15 @@
           <!-- Header Section -->
           <div class="flex flex-col items-center text-center p-8">
               <!-- Profile Picture -->
-              <div class="w-32 h-32 bg-primary mt-5 text-white rounded-full flex items-center justify-center text-4xl font-semibold font-manrope mb-4 uppercase">
+              <div class="w-32 h-32 bg-primary mt-5 text-white rounded-full flex items-center justify-center text-4xl font-semibold font-manrope mb-4 uppercase overflow-hidden">
+              <img id="profileAvatarImg" class="w-full h-full object-cover hidden" alt="Profile picture" />
               <span id="firstLetterName">J</span>
               </div>
 
               <!-- User Info -->
               <div>
-              <p class="text-3xl font-semibold text-primary-text font-manrope">John Doe</p>
-              <p class="text-sm text-neutral-500 font-inter">Guest</p>
+              <p id="userName" class="text-3xl font-semibold text-primary-text font-manrope">John Doe</p>
+              <p id="userRole" class="text-sm text-neutral-500 font-inter">Guest</p>
               </div>
 
               <button onclick="window.location.href='edit-profile.html'" class="group cursor-pointer mt-3 !text-sm sm:text-xs !px-5 !py-2 rounded-full bg-neutral-200 hover:bg-primary/10 active:scale-95 transition-all duration-200 ease-in-out">
@@ -223,19 +224,19 @@
             <!-- Sex -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <p class="text-sm text-neutral-500 font-inter">Sex</p>
-              <p class="text-base font-medium text-primary-text font-manrope">Male</p>
+              <p id="sexValue" class="text-base font-medium text-primary-text font-manrope">-</p>
             </div>
 
             <!-- Phone -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <p class="text-sm text-neutral-500 font-inter">Phone Number</p>
-              <p class="text-base font-medium text-primary-text font-manrope">+63 912 345 6789</p>
+              <p id="phoneValue" class="text-base font-medium text-primary-text font-manrope">-</p>
             </div>
 
             <!-- Birthday -->
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
               <p class="text-sm text-neutral-500 font-inter">Birthday</p>
-              <p class="text-base font-medium text-primary-text font-manrope">January 1, 2000</p>
+              <p id="birthdayValue" class="text-base font-medium text-primary-text font-manrope">-</p>
             </div>
 
             <!-- Email -->
@@ -243,7 +244,7 @@
               <!-- Email Row -->
               <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between">
                 <p class="text-sm text-neutral-500 font-inter">Email</p>
-                <p class="text-base font-medium text-primary-text font-manrope tracking-widest">guest@email.com</p>
+                <p id="emailValue" class="text-base font-medium text-primary-text font-manrope tracking-widest">-</p>
               </div>
               
               <!-- Link -->
@@ -262,7 +263,7 @@
               
               <!-- Link -->
               <div class="text-center mt-1 md:text-right">
-                <a href="reset-password.html" class="text-xs text-primary hover:underline font-inter">Change password</a>
+                <a id="openForgotPass" class="text-xs text-primary hover:underline font-inter cursor-pointer">Change password</a>
               </div>
             </div>
           </div>
@@ -379,7 +380,7 @@
         </div>
 
         <!-- 💾 Save Button -->
-        <button type="button" onclick="window.location.href='reset-email.html'" class="group relative w-full btn rounded-full bg-primary px-6 py-3 flex items-center justify-center overflow-hidden transition-all duration-500 ease-in-out hover:cursor-pointer active:scale-95">
+        <button type="button" id="confirmVerifyBtn" class="group relative w-full btn rounded-full bg-primary px-6 py-3 flex items-center justify-center overflow-hidden transition-all duration-500 ease-in-out hover:cursor-pointer active:scale-95">
           <span class="text-secondary-text text-sm
             group-hover:-translate-x-1
             transition-transform duration-500 ease-in-out
@@ -511,6 +512,9 @@
   <script defer src="../../src/passwordToggle.js"></script>
   <script defer src="../../src/navbar.js"></script>
   <script defer src="../../src/notification.js"></script>
+  <script defer src="authFunctions/profile-functions.js"></script>
+  <script defer src="authFunctions/profile-verify.js"></script>
+  <script defer src="authFunctions/profile-forgot-password.js"></script>
 
 </body>
 </html>
