@@ -5,9 +5,30 @@ document.addEventListener('DOMContentLoaded', function() {
     const city = urlParams.get('city') || 'Quezon';
     const checkIn = urlParams.get('checkIn') || '2025-09-03';
     const checkOut = urlParams.get('checkOut') || '2025-09-06';
-    const priceStart = urlParams.get('priceStart') || 1000;
-    const priceEnd = urlParams.get('priceEnd') || 10000;
+    const priceStart = urlParams.get('priceStartrange') || urlParams.get('priceStart') || 1000;
+    const priceEnd = urlParams.get('priceEndrange') || urlParams.get('priceEnd') || 10000;
     const people = urlParams.get('people') || 4;
+
+    // Console log all URL parameters for debugging
+    console.log('=== SEARCH PARAMETERS DEBUG ===');
+    console.log('URL Search Params:', window.location.search);
+    console.log('Raw URL Parameters:');
+    console.log('- city (raw):', urlParams.get('city'));
+    console.log('- checkIn (raw):', urlParams.get('checkIn'));
+    console.log('- checkOut (raw):', urlParams.get('checkOut'));
+    console.log('- priceStart (raw):', urlParams.get('priceStart'));
+    console.log('- priceEnd (raw):', urlParams.get('priceEnd'));
+    console.log('- priceStartrange (raw):', urlParams.get('priceStartrange'));
+    console.log('- priceEndrange (raw):', urlParams.get('priceEndrange'));
+    console.log('- people (raw):', urlParams.get('people'));
+    console.log('Final processed parameters:');
+    console.log('- city:', city);
+    console.log('- checkIn:', checkIn);
+    console.log('- checkOut:', checkOut);
+    console.log('- priceStart:', priceStart, 'Type:', typeof priceStart);
+    console.log('- priceEnd:', priceEnd, 'Type:', typeof priceEnd);
+    console.log('- people:', people, 'Type:', typeof people);
+    console.log('================================');
 
     // Update the filter pills
     const whereEl = document.getElementById('wherePill');
@@ -26,30 +47,78 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to fetch properties
     async function fetchProperties() {
+        // Ensure all values are properly formatted and valid
+        const requestBody = {
+            city: city && city.trim() ? city.trim() : 'Manila',
+            CheckIn: checkIn || '2025-09-03',
+            CheckOut: checkOut || '2025-09-06',
+            priceStartrange: Math.max(parseInt(priceStart) || 1, 1),
+            priceEndrange: Math.max(parseInt(priceEnd) || 10000, 100),
+            people: Math.max(parseInt(people) || 1, 1)
+        };
+
+        console.log('=== API REQUEST DEBUG ===');
+        console.log('API Endpoint:', 'https://betcha-api.onrender.com/property/searchGuest');
+        console.log('Request Method:', 'POST');
+        console.log('Request Headers:', {
+            'Content-Type': 'application/json',
+        });
+        console.log('Request Body:', requestBody);
+        console.log('Request Body (JSON):', JSON.stringify(requestBody, null, 2));
+        console.log('========================');
+
         try {
+            console.log('Making API request...');
             const response = await fetch('https://betcha-api.onrender.com/property/searchGuest', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({
-                    city: city,
-                    CheckIn: checkIn,
-                    CheckOut: checkOut,
-                    priceStartrange: parseInt(priceStart),
-                    priceEndrange: parseInt(priceEnd),
-                    people: parseInt(people)
-                })
+                body: JSON.stringify(requestBody)
             });
 
+            console.log('=== API RESPONSE DEBUG ===');
+            console.log('Response Status:', response.status);
+            console.log('Response Status Text:', response.statusText);
+            console.log('Response OK:', response.ok);
+            console.log('Response Headers:', response.headers);
+            console.log('=========================');
+
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                console.error('API Error - Response not OK');
+                console.error('Status:', response.status, response.statusText);
+                const errorText = await response.text();
+                console.error('Error Response Body:', errorText);
+                throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
             }
 
             const data = await response.json();
+            console.log('=== API RESPONSE DATA ===');
+            console.log('Full Response:', data);
+            console.log('Data Structure:', {
+                hasData: !!data.data,
+                dataType: typeof data.data,
+                dataLength: Array.isArray(data.data) ? data.data.length : 'Not an array',
+                dataKeys: data.data ? Object.keys(data.data) : 'No data property'
+            });
+            
+            if (data.data && Array.isArray(data.data)) {
+                console.log('Properties Found:', data.data.length);
+                if (data.data.length > 0) {
+                    console.log('First Property Sample:', data.data[0]);
+                }
+            } else {
+                console.log('No properties array found in response');
+            }
+            console.log('========================');
+            
             return data.data;
         } catch (error) {
-            console.error('Error fetching properties:', error);
+            console.error('=== API ERROR DEBUG ===');
+            console.error('Error Type:', error.constructor.name);
+            console.error('Error Message:', error.message);
+            console.error('Error Stack:', error.stack);
+            console.error('======================');
             return [];
         }
     }
@@ -111,22 +180,33 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Function to populate room listings
     async function populateRoomListings() {
+        console.log('=== POPULATE ROOMS DEBUG ===');
         const roomListingsContainer = document.getElementById('roomListingsContainer');
+        console.log('Room container found:', !!roomListingsContainer);
+        
         if (!roomListingsContainer) {
             console.error('Room listings container not found');
             return;
         }
 
+        console.log('Showing skeleton loading...');
         // Show skeleton loading
         roomListingsContainer.innerHTML = Array(8).fill(createSkeletonCard()).join('');
 
+        console.log('Fetching properties...');
         // Fetch the actual properties
         const properties = await fetchProperties();
+        
+        console.log('Properties result:', properties);
+        console.log('Properties type:', typeof properties);
+        console.log('Properties is array:', Array.isArray(properties));
+        console.log('Properties length:', properties ? properties.length : 'null/undefined');
         
         // Small delay to ensure skeleton is visible
         await new Promise(resolve => setTimeout(resolve, 500));
 
         if (!properties || properties.length === 0) {
+            console.log('No properties found - showing no results message');
             roomListingsContainer.innerHTML = `
                 <div class="col-span-full flex flex-col items-center justify-center py-16 px-4">
                     <svg class="w-16 h-16 mb-4 fill-neutral-300" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -146,10 +226,14 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        console.log('Rendering', properties.length, 'properties...');
         roomListingsContainer.innerHTML = '';
-        properties.forEach(property => {
+        properties.forEach((property, index) => {
+            console.log(`Rendering property ${index + 1}:`, property.name, property._id);
             roomListingsContainer.innerHTML += createRoomCard(property);
         });
+        console.log('Room rendering complete');
+        console.log('===========================');
     }
 
     // Call populateRoomListings after ensuring DOM is loaded

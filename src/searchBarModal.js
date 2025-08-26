@@ -5,12 +5,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Search state object
     const searchState = {
-      city: '',
-      checkIn: '',
-      checkOut: '',
-      guests: 1,
-      priceStart: 1000,
-      priceEnd: 20000
+  city: '',
+  checkIn: '',
+  checkOut: '',
+  guests: 1,
+  priceStart: 0,
+  priceEnd: 100000
     };
 
     const tabs = searchModal.querySelectorAll('.tab-btn');
@@ -77,34 +77,19 @@ document.addEventListener("DOMContentLoaded", () => {
       });
     }
 
-    // Initialize pill remove handlers
-    function setupPillRemoveHandlers() {
-      const pills = [locationPill, datePill, guestPill, pricePill];
-      pills.forEach(pill => {
-        const removeBtn = pill.querySelector('.pill-remove');
-        if (removeBtn) {
-          removeBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            if (pill === locationPill) {
-              searchState.city = '';
-              if (locationInput) locationInput.value = '';
-            } else if (pill === datePill) {
-              searchState.checkIn = '';
-              searchState.checkOut = '';
-              if (checkInInput) checkInInput.value = '';
-              if (checkOutInput) checkOutInput.value = '';
-            } else if (pill === guestPill) {
-              searchState.guests = 1;
-              if (guestCount) guestCount.textContent = '1';
-            } else if (pill === pricePill) {
-              searchState.priceStart = 1000;
-              searchState.priceEnd = 20000;
-              if (minPrice) minPrice.value = '1000';
-              if (maxPrice) maxPrice.value = '20000';
-              if (minRange) minRange.value = '1000';
-              if (maxRange) maxRange.value = '20000';
-            }
-            updatePills();
+    // Pills click handlers for direct editing
+    function setupPillClickHandlers() {
+      const pills = [
+        { element: locationPill, tabIndex: 0 }, // Where -> Location tab (first)
+        { element: datePill, tabIndex: 1 },     // When -> Date tab (second)
+        { element: guestPill, tabIndex: 2 },    // Who -> Guest tab (third)
+        { element: pricePill, tabIndex: 3 }     // Price -> Price tab (fourth)
+      ];
+      
+      pills.forEach(({ element, tabIndex }) => {
+        if (element) {
+          element.addEventListener('click', () => {
+            setActiveTab(tabIndex);
           });
         }
       });
@@ -112,58 +97,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initialize search state handlers
     function updatePills() {
-      // Location pill
-      if (searchState.city) {
-        locationPill.classList.remove('hidden');
-        locationPill.classList.add('flex');
-        locationPill.querySelector('.pill-text').textContent = searchState.city;
-      } else {
-        locationPill.classList.add('hidden');
-        locationPill.classList.remove('flex');
+      // Helper to set pill label and value
+      function setPill(pill, label, valueHtml) {
+        pill.querySelector('.pill-text').innerHTML = `<span class="font-semibold">${label}</span>` + (valueHtml ? ` <span class="text-xs text-neutral-500 ml-1">${valueHtml}</span>` : '');
       }
+
+      // Location pill
+      setPill(locationPill, 'Where', searchState.city ? searchState.city : '');
 
       // Date pill
-      if (searchState.checkIn || searchState.checkOut) {
-        const options = { day: '2-digit', month: '2-digit', year: '2-digit' };
-        datePill.classList.remove('hidden');
-        datePill.classList.add('flex');
-        
-        if (searchState.checkIn && searchState.checkOut) {
-          const checkInDate = new Date(searchState.checkIn);
-          const checkOutDate = new Date(searchState.checkOut);
-          datePill.querySelector('.pill-text').textContent = 
-            `${checkInDate.toLocaleDateString('en-US', options)} to ${checkOutDate.toLocaleDateString('en-US', options)}`;
-        } else if (searchState.checkIn) {
-          const checkInDate = new Date(searchState.checkIn);
-          datePill.querySelector('.pill-text').textContent = 
-            `${checkInDate.toLocaleDateString('en-US', options)} - Select checkout`;
+      let dateValue = '';
+      if (searchState.checkIn && searchState.checkOut) {
+        // Format: Sept 2, 25 - Sept 4, 25
+        function formatDate(dateStr) {
+          const d = new Date(dateStr);
+          const month = d.toLocaleString('en-US', { month: 'short' });
+          const day = d.getDate();
+          const year = String(d.getFullYear()).slice(-2);
+          return `${month} ${day}, ${year}`;
         }
-      } else {
-        datePill.classList.add('hidden');
-        datePill.classList.remove('flex');
+        dateValue = `${formatDate(searchState.checkIn)} - ${formatDate(searchState.checkOut)}`;
+      } else if (searchState.checkIn) {
+        function formatDate(dateStr) {
+          const d = new Date(dateStr);
+          const month = d.toLocaleString('en-US', { month: 'short' });
+          const day = d.getDate();
+          const year = String(d.getFullYear()).slice(-2);
+          return `${month} ${day}, ${year}`;
+        }
+        dateValue = `${formatDate(searchState.checkIn)} - Select checkout`;
       }
+      setPill(datePill, 'When', dateValue);
 
       // Guest pill
+      let guestValue = '';
       if (searchState.guests > 0) {
-        guestPill.classList.remove('hidden');
-        guestPill.classList.add('flex');
-        guestPill.querySelector('.pill-text').textContent = 
-          `${searchState.guests} ${searchState.guests === 1 ? 'guest' : 'guests'}`;
-      } else {
-        guestPill.classList.add('hidden');
-        guestPill.classList.remove('flex');
+        guestValue = `${searchState.guests} ${searchState.guests === 1 ? 'guest' : 'guests'}`;
       }
+      setPill(guestPill, 'Who', guestValue);
 
       // Price pill
+      let priceValue = '';
       if (searchState.priceStart || searchState.priceEnd) {
-        pricePill.classList.remove('hidden');
-        pricePill.classList.add('flex');
-        pricePill.querySelector('.pill-text').textContent = 
-          `PHP ${searchState.priceStart.toLocaleString()} - ${searchState.priceEnd.toLocaleString()}`;
-      } else {
-        pricePill.classList.add('hidden');
-        pricePill.classList.remove('flex');
+        priceValue = `PHP ${searchState.priceStart.toLocaleString()} - ${searchState.priceEnd.toLocaleString()}`;
       }
+      setPill(pricePill, 'Price', priceValue);
     }
 
     // Location selection handler
@@ -238,18 +216,18 @@ document.addEventListener("DOMContentLoaded", () => {
         searchState.checkIn = '';
         searchState.checkOut = '';
         searchState.guests = 1;
-        searchState.priceStart = 1000;
-        searchState.priceEnd = 20000;
+        searchState.priceStart = 0;
+        searchState.priceEnd = 100000;
 
         // Reset inputs
         if (locationInput) locationInput.value = '';
         document.getElementById('searchCheckIn').value = '';
         document.getElementById('searchCheckOut').value = '';
         if (guestCount) guestCount.textContent = '1';
-        if (minPrice) minPrice.value = '1000';
-        if (maxPrice) maxPrice.value = '20000';
-        if (minRange) minRange.value = '1000';
-        if (maxRange) maxRange.value = '20000';
+        if (minPrice) minPrice.value = '0';
+        if (maxPrice) maxPrice.value = '100000';
+        if (minRange) minRange.value = '0';
+        if (maxRange) maxRange.value = '100000';
 
         updatePills();
       });
@@ -258,11 +236,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // Make setActiveTab available globally
     window.setActiveTab = setActiveTab;
 
-    // Setup pill remove handlers
-    setupPillRemoveHandlers();
+    // Setup pill click handlers
+    setupPillClickHandlers();
 
     // Initial pills update
-    updatePills();
+  // Set initial price range inputs
+  if (minPrice) minPrice.value = '0';
+  if (maxPrice) maxPrice.value = '100000';
+  if (minRange) minRange.value = '0';
+  if (maxRange) maxRange.value = '100000';
+  updatePills();
   }
 
   // Initialize

@@ -19,9 +19,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Generate location item HTML
   function createLocationItem(city) {
     return `
-      <div class="group p-3 hover:bg-neutral-50 cursor-pointer transition-colors active:scale-[0.98]" data-city="${city}">
-        <p class="font-medium text-primary-text group-hover:text-primary transition-colors">${city}</p>
-        <p class="text-sm text-neutral-500">Philippines</p>
+      <div class="group w-full px-5 py-3 bg-white font-inter cursor-pointer hover:bg-primary/10 transition-all duration-300 ease-in-out" data-city="${city}">
+        <div class="group-active:scale-[0.98] transition-all duration-200 ease-in-out">
+          <p class="text-sm font-medium text-primary-text group-hover:text-primary transition-all duration-300 ease-in-out">${city}</p>
+          <p class="text-xs text-neutral-500">Philippines</p>
+        </div>
       </div>
     `;
   }

@@ -10,6 +10,11 @@ document.addEventListener('DOMContentLoaded', () => {
   const minPriceInput = document.querySelector('#input-minPrice');
   const maxPriceInput = document.querySelector('#input-maxPrice');
 
+  // Exit early if essential elements don't exist (e.g., on pages without price slider)
+  if (!minRange || !maxRange) {
+    return;
+  }
+
   // Set initial values for number inputs
   if (minPriceInput) minPriceInput.value = minRange.value;
   if (maxPriceInput) maxPriceInput.value = maxRange.value;
@@ -44,15 +49,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Update the price display text
-    minPriceText.textContent = min;
-    maxPriceText.textContent = max;
+    if (minPriceText) minPriceText.textContent = min;
+    if (maxPriceText) maxPriceText.textContent = max;
 
     // Update highlight bar
-    const rangeWidth = minRange.max - minRange.min;
-    const left = ((min - minRange.min) / rangeWidth) * 100;
-    const right = ((max - minRange.min) / rangeWidth) * 100;
-    highlight.style.left = `${left}%`;
-    highlight.style.width = `${right - left}%`;
+    if (highlight) {
+      const rangeWidth = minRange.max - minRange.min;
+      const left = ((min - minRange.min) / rangeWidth) * 100;
+      const right = ((max - minRange.min) / rangeWidth) * 100;
+      highlight.style.left = `${left}%`;
+      highlight.style.width = `${right - left}%`;
+    }
 
     // Dispatch change event for search state updates
     minRange.dispatchEvent(new Event('change'));
