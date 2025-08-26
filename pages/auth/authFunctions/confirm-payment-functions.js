@@ -617,10 +617,48 @@ function populatePaymentData(booking, paymentType) {
             paymentType
         });
         
+        // Ensure input fields are visible after data population
+        ensureInputFieldsVisible();
+        
     } catch (error) {
         console.error('Error populating payment data:', error);
         showToastError('error', 'Data Error', 'Error displaying payment information.');
     }
+}
+
+// Function to ensure input fields are visible
+function ensureInputFieldsVisible() {
+    console.log('🔧 Ensuring input fields are visible...');
+    
+    const inputIds = ['transactionNumber', 'bankAccountNumber'];
+    inputIds.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            // Remove any display: none styling
+            input.style.display = '';
+            
+            // Check if it's still hidden by computed styles
+            const computedStyle = window.getComputedStyle(input);
+            if (computedStyle.display === 'none') {
+                input.style.display = 'block';
+                console.log(`🔧 Force displayed ${inputId} as block`);
+            }
+            
+            // Make sure it's not hidden by visibility
+            if (computedStyle.visibility === 'hidden') {
+                input.style.visibility = 'visible';
+                console.log(`🔧 Force set visibility for ${inputId}`);
+            }
+            
+            console.log(`✅ ${inputId} final state:`, {
+                display: input.style.display,
+                computedDisplay: computedStyle.display,
+                visible: input.offsetParent !== null
+            });
+        } else {
+            console.warn(`❌ Input field not found: ${inputId}`);
+        }
+    });
 }
 
 // Helper function to populate an element safely
@@ -878,15 +916,45 @@ function showSkeletonLoading() {
 function hideSkeletonLoading() {
     console.log('✅ Hiding skeleton loading...');
     
+    // Debug: Check current state of input fields before restoration
+    const transactionInput = document.getElementById('transactionNumber');
+    const bankAccountInput = document.getElementById('bankAccountNumber');
+    console.log('🔍 Input fields before restoration:', {
+        transactionNumber: {
+            found: !!transactionInput,
+            display: transactionInput?.style.display,
+            visible: transactionInput?.offsetParent !== null
+        },
+        bankAccountNumber: {
+            found: !!bankAccountInput,
+            display: bankAccountInput?.style.display,
+            visible: bankAccountInput?.offsetParent !== null
+        }
+    });
+    
     // Remove skeleton classes and restore original content
     document.querySelectorAll('.skeleton').forEach(element => {
         if (element.classList.contains('payment-method-skeleton') || 
-            element.classList.contains('confirm-button-skeleton')) {
+            element.classList.contains('confirm-button-skeleton') ||
+            element.classList.contains('input-skeleton')) {
             element.remove();
+            console.log('🗑️ Removed skeleton element:', element.className);
         } else {
             element.classList.remove('skeleton', 'skeleton-text', 'skeleton-text-lg', 'skeleton-input');
             element.style.width = '';
             element.style.height = '';
+        }
+    });
+    
+    // Restore input fields visibility
+    const inputIds = ['transactionNumber', 'bankAccountNumber'];
+    inputIds.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.style.display = '';
+            console.log(`✅ Restored visibility for input: ${inputId}, new display: ${input.style.display}`);
+        } else {
+            console.warn(`❌ Input not found: ${inputId}`);
         }
     });
     
@@ -912,6 +980,39 @@ function hideSkeletonLoading() {
     document.querySelectorAll('.confirm-button-skeleton').forEach(skeleton => {
         skeleton.remove();
     });
+    
+    // Final check: Verify input fields are visible
+    setTimeout(() => {
+        const transactionInput = document.getElementById('transactionNumber');
+        const bankAccountInput = document.getElementById('bankAccountNumber');
+        console.log('🔍 Final input fields state:', {
+            transactionNumber: {
+                found: !!transactionInput,
+                display: transactionInput?.style.display,
+                visible: transactionInput?.offsetParent !== null,
+                computedDisplay: transactionInput ? window.getComputedStyle(transactionInput).display : 'N/A'
+            },
+            bankAccountNumber: {
+                found: !!bankAccountInput,
+                display: bankAccountInput?.style.display,
+                visible: bankAccountInput?.offsetParent !== null,
+                computedDisplay: bankAccountInput ? window.getComputedStyle(bankAccountInput).display : 'N/A'
+            }
+        });
+        
+        // Force show if they're still hidden
+        if (transactionInput && window.getComputedStyle(transactionInput).display === 'none') {
+            transactionInput.style.display = 'block';
+            console.log('🔧 Force showed transactionNumber input');
+        }
+        if (bankAccountInput && window.getComputedStyle(bankAccountInput).display === 'none') {
+            bankAccountInput.style.display = 'block';
+            console.log('🔧 Force showed bankAccountNumber input');
+        }
+        
+        // Call the dedicated function to ensure input fields are visible
+        ensureInputFieldsVisible();
+    }, 100);
 }
 
 function addSkeletonToElement(elementId, skeletonClass, width = '100%') {
@@ -925,12 +1026,22 @@ function addSkeletonToElement(elementId, skeletonClass, width = '100%') {
 
 function addSkeletonToInput(elementId) {
     const element = document.getElementById(elementId);
+    console.log(`🔧 Adding skeleton to input: ${elementId}`, {
+        found: !!element,
+        currentDisplay: element?.style.display,
+        parentNode: !!element?.parentNode
+    });
+    
     if (element) {
         element.style.display = 'none';
         const skeletonInput = document.createElement('div');
         skeletonInput.className = 'skeleton skeleton-input input-skeleton';
         skeletonInput.style.width = '100%';
+        skeletonInput.setAttribute('data-original-input', elementId); // Add identifier for debugging
         element.parentNode.insertBefore(skeletonInput, element);
+        console.log(`✅ Skeleton added for ${elementId}, original input hidden`);
+    } else {
+        console.warn(`❌ Input element not found: ${elementId}`);
     }
 }
 
