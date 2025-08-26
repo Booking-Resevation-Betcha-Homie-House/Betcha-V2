@@ -478,20 +478,21 @@ function createImageCarousel(images) {
         
         // Create carousel HTML
         const carouselHTML = `
-            <div class="relative w-full h-full">
+            <div class="relative w-full h-full overflow-hidden">
                 <div id="imageCarousel" class="w-full h-full overflow-hidden">
-                    ${images.map((image, index) => `
-                        <div class="carousel-slide w-full h-full bg-cover bg-center transition-all duration-500 ease-in-out group-hover:scale-110 ${index === 0 ? 'active' : ''}" 
-                             style="background-image: url('${image}'); display: ${index === 0 ? 'block' : 'none'};">
-                        </div>
-                    `).join('')}
+                    <div class="flex h-full transition-transform duration-500 ease-in-out carousel-track">
+                        ${images.map((image, index) => `
+                            <div class="w-full h-full flex-shrink-0 overflow-hidden">
+                                <img src="${image}" class="carousel-image w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" />
+                            </div>
+                        `).join('')}
+                    </div>
                 </div>
                 
-                <!-- Carousel indicators -->
-                <div class="absolute bottom-3 left-1/2 transform -translate-x-1/2 flex space-x-2">
+                <!-- Circular Navigation Dots -->
+                <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                     ${images.map((_, index) => `
-                        <button class="carousel-indicator w-2 h-2 rounded-full bg-white/50 hover:bg-white/80 transition-all ${index === 0 ? 'bg-white' : ''}" 
-                                data-slide="${index}"></button>
+                        <div class="dot ${index === 0 ? 'active' : ''}" data-slide="${index}"></div>
                     `).join('')}
                 </div>
             </div>
@@ -514,15 +515,33 @@ function createImageCarousel(images) {
 // Function to setup carousel controls
 function setupCarouselControls(imageCount) {
     try {
-        const indicators = document.querySelectorAll('.carousel-indicator');
+        const track = document.querySelector('.carousel-track');
+        const dots = document.querySelectorAll('.dot');
         
-        // Indicator click handlers
-        indicators.forEach((indicator, index) => {
-            indicator.addEventListener('click', () => {
-                showSlide(index);
+        function updateDots(activeIndex) {
+            dots.forEach(dot => dot.classList.remove('active'));
+            if (dots[activeIndex]) {
+                dots[activeIndex].classList.add('active');
+            }
+        }
+        
+        function goToSlide(index) {
+            track.style.transform = `translateX(-${index * 100}%)`;
+            updateDots(index);
+            window.carouselCurrentIndex = index;
+        }
+        
+        // Dot click handlers
+        dots.forEach((dot, index) => {
+            dot.addEventListener('click', () => {
+                goToSlide(index);
                 resetAutoCarousel(imageCount);
             });
         });
+        
+        // Store the goToSlide function globally so auto carousel can use it
+        window.carouselGoToSlide = goToSlide;
+        window.carouselCurrentIndex = 0;
         
     } catch (error) {
         console.error('Error setting up carousel controls:', error);
@@ -531,53 +550,15 @@ function setupCarouselControls(imageCount) {
 
 // Function to show specific slide
 function showSlide(index) {
-    try {
-        const slides = document.querySelectorAll('.carousel-slide');
-        const indicators = document.querySelectorAll('.carousel-indicator');
-        
-        // Hide all slides
-        slides.forEach(slide => {
-            slide.style.display = 'none';
-            slide.classList.remove('active');
-        });
-        
-        // Remove active class from all indicators
-        indicators.forEach(indicator => {
-            indicator.classList.remove('bg-white');
-            indicator.classList.add('bg-white/50');
-        });
-        
-        // Show current slide
-        if (slides[index]) {
-            slides[index].style.display = 'block';
-            slides[index].classList.add('active');
-        }
-        
-        // Highlight current indicator
-        if (indicators[index]) {
-            indicators[index].classList.remove('bg-white/50');
-            indicators[index].classList.add('bg-white');
-        }
-        
-    } catch (error) {
-        console.error('Error showing slide:', error);
+    if (window.carouselGoToSlide) {
+        window.carouselGoToSlide(index);
+        window.carouselCurrentIndex = index;
     }
 }
 
 // Function to get current slide index
 function getCurrentSlideIndex() {
-    try {
-        const slides = document.querySelectorAll('.carousel-slide');
-        for (let i = 0; i < slides.length; i++) {
-            if (slides[i].classList.contains('active')) {
-                return i;
-            }
-        }
-        return 0;
-    } catch (error) {
-        console.error('Error getting current slide index:', error);
-        return 0;
-    }
+    return window.carouselCurrentIndex || 0;
 }
 
 // Function to start auto carousel

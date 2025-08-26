@@ -295,20 +295,19 @@ function setupCarouselWithImages(container, images) {
     container.className = 'h-50 w-full rounded-xl mb-5 relative overflow-hidden';
     
     const carouselHTML = `
-        <div class="carousel-container relative w-full h-full">
-            <div class="carousel-track flex transition-transform duration-500 ease-in-out h-full" style="width: ${images.length * 100}%">
+        <div class="carousel-container relative w-full h-full overflow-hidden">
+            <div class="carousel-track flex transition-transform duration-500 ease-in-out h-full">
                 ${images.map((image, index) => `
-                    <div class="carousel-slide flex-shrink-0 w-full h-full relative" style="width: ${100 / images.length}%">
+                    <div class="w-full h-full flex-shrink-0 overflow-hidden">
                         <img src="${image}" alt="Room Image ${index + 1}" 
-                             class="w-full h-full object-cover">
+                             class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
                     </div>
                 `).join('')}
             </div>
-            <!-- Navigation dots -->
-            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
+            <!-- Circular Navigation Dots -->
+            <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                 ${images.map((_, index) => `
-                    <button class="carousel-dot w-2 h-2 rounded-full bg-white/50 hover:bg-white/80 transition-colors duration-200 ${index === 0 ? 'bg-white' : ''}" 
-                            data-slide="${index}"></button>
+                    <div class="dot ${index === 0 ? 'active' : ''}" data-slide="${index}"></div>
                 `).join('')}
             </div>
         </div>
@@ -325,43 +324,40 @@ function setupCarouselAutoScroll(container, imageCount) {
     if (imageCount <= 1) return;
     
     const track = container.querySelector('.carousel-track');
-    const dots = container.querySelectorAll('.carousel-dot');
+    const dots = container.querySelectorAll('.dot');
     let currentSlide = 0;
     
-    // Auto-scroll interval (5 seconds)
-    const autoScrollInterval = setInterval(() => {
+    function updateDots(activeIndex) {
+        dots.forEach(dot => dot.classList.remove('active'));
+        if (dots[activeIndex]) {
+            dots[activeIndex].classList.add('active');
+        }
+    }
+    
+    function goToSlide(index) {
+        currentSlide = index;
+        track.style.transform = `translateX(-${index * 100}%)`;
+        updateDots(index);
+    }
+    
+    // Auto-scroll interval (4 seconds to match other carousels)
+    let autoScrollInterval = setInterval(() => {
         currentSlide = (currentSlide + 1) % imageCount;
-        updateCarousel();
-    }, 5000);
+        goToSlide(currentSlide);
+    }, 4000);
     
     // Dot navigation
     dots.forEach((dot, index) => {
         dot.addEventListener('click', () => {
-            currentSlide = index;
-            updateCarousel();
+            goToSlide(index);
             // Reset auto-scroll
             clearInterval(autoScrollInterval);
-            setTimeout(() => {
-                setupCarouselAutoScroll(container, imageCount);
-            }, 1000);
+            autoScrollInterval = setInterval(() => {
+                currentSlide = (currentSlide + 1) % imageCount;
+                goToSlide(currentSlide);
+            }, 4000);
         });
     });
-    
-    function updateCarousel() {
-        const translateX = -(currentSlide * (100 / imageCount));
-        track.style.transform = `translateX(${translateX}%)`;
-        
-        // Update dots
-        dots.forEach((dot, index) => {
-            if (index === currentSlide) {
-                dot.classList.add('bg-white');
-                dot.classList.remove('bg-white/50');
-            } else {
-                dot.classList.remove('bg-white');
-                dot.classList.add('bg-white/50');
-            }
-        });
-    }
 }
 
 // Function to setup placeholder image

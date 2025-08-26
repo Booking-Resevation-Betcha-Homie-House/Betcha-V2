@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/src/index.css">
+    <title>Circular Carousel Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Ensure the carousel styles are loaded */
+        .carousel-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+            flex-shrink: 0;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .dot.active {
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .dot:hover {
+            background: rgba(255, 255, 255, 0.6);
+        }
+
+        .carousel-track {
+            transition: transform 0.5s ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-center mb-8">Circular Carousel with Navigation Dots</h1>
+        
+        <!-- Carousel Container -->
+        <div class="w-full h-[400px] rounded-3xl overflow-hidden group relative">
+            <div id="imageCarousel" class="w-full h-full overflow-hidden">
+                <div class="flex h-full transition-transform duration-500 ease-in-out carousel-track">
+                    <img src="/public/images/unit01.jpg" class="carousel-image" />
+                    <img src="/public/images/unit02.jpg" class="carousel-image" />
+                    <img src="/public/images/unit03.jpg" class="carousel-image" />
+                    <img src="/public/images/unit04.jpg" class="carousel-image" />
+                    <img src="/public/images/unit05.jpg" class="carousel-image" />
+                </div>
+            </div>
+            
+            <!-- Circular Navigation Dots -->
+            <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                <div class="dot active" data-slide="0"></div>
+                <div class="dot" data-slide="1"></div>
+                <div class="dot" data-slide="2"></div>
+                <div class="dot" data-slide="3"></div>
+                <div class="dot" data-slide="4"></div>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="flex justify-center gap-4 mt-8">
+            <button id="prevBtn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Previous</button>
+            <button id="nextBtn" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">Next</button>
+            <button id="autoplayBtn" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">Toggle Autoplay</button>
+        </div>
+
+        <!-- Information -->
+        <div class="mt-8 p-4 bg-white rounded-lg shadow">
+            <h2 class="text-xl font-semibold mb-4">Features:</h2>
+            <ul class="list-disc list-inside space-y-2">
+                <li>Circular navigation dots at the bottom</li>
+                <li>Smooth transitions between slides</li>
+                <li>Click dots to jump to specific slides</li>
+                <li>Auto-play functionality (4-second intervals)</li>
+                <li>Manual navigation with Previous/Next buttons</li>
+                <li>Hover effects on images and dots</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const track = document.querySelector('.carousel-track');
+            const dots = document.querySelectorAll('.dot');
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const autoplayBtn = document.getElementById('autoplayBtn');
+            
+            let currentIndex = 0;
+            let autoplayInterval = null;
+            let isAutoplay = true;
+            const totalSlides = dots.length;
+
+            function updateDots(activeIndex) {
+                dots.forEach(dot => dot.classList.remove('active'));
+                if (dots[activeIndex]) {
+                    dots[activeIndex].classList.add('active');
+                }
+            }
+
+            function goToSlide(index) {
+                currentIndex = index;
+                track.style.transform = `translateX(-${index * 100}%)`;
+                updateDots(index);
+            }
+
+            function nextSlide() {
+                currentIndex = (currentIndex + 1) % totalSlides;
+                goToSlide(currentIndex);
+            }
+
+            function prevSlide() {
+                currentIndex = (currentIndex - 1 + totalSlides) % totalSlides;
+                goToSlide(currentIndex);
+            }
+
+            function startAutoplay() {
+                if (autoplayInterval) clearInterval(autoplayInterval);
+                autoplayInterval = setInterval(nextSlide, 4000);
+                isAutoplay = true;
+                autoplayBtn.textContent = 'Stop Autoplay';
+                autoplayBtn.className = 'px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600';
+            }
+
+            function stopAutoplay() {
+                if (autoplayInterval) clearInterval(autoplayInterval);
+                autoplayInterval = null;
+                isAutoplay = false;
+                autoplayBtn.textContent = 'Start Autoplay';
+                autoplayBtn.className = 'px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600';
+            }
+
+            function resetAutoplay() {
+                if (isAutoplay) {
+                    stopAutoplay();
+                    startAutoplay();
+                }
+            }
+
+            // Dot click handlers
+            dots.forEach((dot, index) => {
+                dot.addEventListener('click', () => {
+                    goToSlide(index);
+                    resetAutoplay();
+                });
+            });
+
+            // Button handlers
+            prevBtn.addEventListener('click', () => {
+                prevSlide();
+                resetAutoplay();
+            });
+
+            nextBtn.addEventListener('click', () => {
+                nextSlide();
+                resetAutoplay();
+            });
+
+            autoplayBtn.addEventListener('click', () => {
+                if (isAutoplay) {
+                    stopAutoplay();
+                } else {
+                    startAutoplay();
+                }
+            });
+
+            // Initialize
+            goToSlide(0);
+            startAutoplay();
+        });
+    </script>
+</body>
+</html>
