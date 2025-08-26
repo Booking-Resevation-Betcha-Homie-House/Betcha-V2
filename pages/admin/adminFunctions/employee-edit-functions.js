@@ -97,6 +97,22 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     });
+
+    // Attach live preview for profile picture inputs
+    const pfpInputs = document.querySelectorAll('.pfp-input');
+    pfpInputs.forEach(input => {
+        input.addEventListener('change', function(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            const avatarElement = document.getElementById('employee-avatar');
+            if (!avatarElement) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                avatarElement.innerHTML = `<img src="${e.target.result}" alt="Profile Picture" class="w-full h-full rounded-full object-cover">`;
+            };
+            reader.readAsDataURL(file);
+        });
+    });
 });
 
 // Function to handle discarding changes and returning to employee view
@@ -152,6 +168,7 @@ async function populateEmployeeEditForm(employeeId) {
 
         // Populate form sections
         populateBasicFields(employee);
+        setInitialAvatar(employee);
         await populateRoles(employee);
         await populateAssignedProperties(employee);
         
@@ -178,6 +195,18 @@ function populateBasicFields(employee) {
     const emailInput = document.querySelector('#empEmail input');
     if (emailInput && employee.email) {
         emailInput.value = employee.email;
+    }
+}
+
+// Initialize the avatar with existing profile picture or initials
+function setInitialAvatar(employee) {
+    const avatarElement = document.getElementById('employee-avatar');
+    if (!avatarElement) return;
+    if (employee.pfplink) {
+        avatarElement.innerHTML = `<img src="${employee.pfplink}" alt="Profile Picture" class="w-full h-full rounded-full object-cover">`;
+    } else {
+        const firstLetter = employee.firstname ? employee.firstname.charAt(0).toUpperCase() : '?';
+        avatarElement.textContent = firstLetter;
     }
 }
 
@@ -470,9 +499,9 @@ async function submitEmployeeUpdate() {
             email: formData.email
         };
         
-        // Add role data - the API seems to expect a comma-separated string of role IDs
+        // Add role data - send as array of role IDs
         if (formData.roles && formData.roles.length > 0) {
-            updateData.role = formData.roles.join(','); // Send as comma-separated string
+            updateData.role = formData.roles; // Send as array of IDs
         }
         
         // Add properties if any are selected - the API expects comma-separated string
@@ -537,7 +566,7 @@ async function submitEmployeeUpdate() {
 
 // Function to handle profile picture update
 async function handleProfilePictureUpdate(employeeId) {
-    const profilePictureInput = document.querySelector('input[type="file"]');
+    const profilePictureInput = document.querySelector('.pfp-input');
     
     if (!profilePictureInput || !profilePictureInput.files[0]) {
         console.log('No new profile picture selected');

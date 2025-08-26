@@ -125,7 +125,7 @@ function populateFormFields(paymentData) {
         customNameInput.value = paymentData.paymentName || '';
     }
     
-    // Set QR image if available
+    // Set QR image if available (keep overlay visible for guidance)
     if (paymentData.qrPhotoLink && paymentData.qrPhotoLink.trim() !== '') {
         const preview = document.getElementById('qr-preview');
         const placeholder = document.getElementById('qr-placeholder');
@@ -133,7 +133,8 @@ function populateFormFields(paymentData) {
         if (preview && placeholder) {
             preview.src = paymentData.qrPhotoLink;
             preview.style.display = 'block';
-            placeholder.style.display = 'none';
+            // Keep placeholder visible but allow click-through via input on top
+            placeholder.style.display = 'flex';
         }
     }
 }
@@ -233,7 +234,8 @@ function initializeFileUpload() {
                     if (preview && placeholder) {
                         preview.src = e.target.result;
                         preview.style.display = 'block';
-                        placeholder.style.display = 'none';
+                        // Keep overlay for instruction visibility
+                        placeholder.style.display = 'flex';
                     }
                 };
                 
