@@ -19,7 +19,10 @@ function renderAmenities(apiAmenities, otherAmenities) {
     const modal = document.getElementById('ammenitiesModal');
     if (!modal) return;
 
+    // Process each section and track if they have visible items
     modal.querySelectorAll('.px-3.mb-5').forEach(section => {
+        let hasVisibleItems = false;
+        
         section.querySelectorAll('li[id]').forEach(li => {
             const [, ...parts] = li.id.split("-");
             const amenityId = parts.join("-");
@@ -31,11 +34,19 @@ function renderAmenities(apiAmenities, otherAmenities) {
             if (normalizedSet.has(normalizedId)) {
                 li.classList.remove('hidden');
                 if (amenityDiv) amenityDiv.classList.remove('hidden');
+                hasVisibleItems = true; // Mark section as having visible items
             } else {
                 li.classList.add('hidden');
                 if (amenityDiv) amenityDiv.classList.add('hidden');
             }
         });
+        
+        // Hide or show the entire section based on whether it has visible items
+        if (hasVisibleItems) {
+            section.classList.remove('hidden');
+        } else {
+            section.classList.add('hidden');
+        }
     });
 
     const othersSection = document.querySelector('#ammenitiesModal .px-3.mb-5:last-child');
@@ -49,10 +60,18 @@ function renderAmenities(apiAmenities, otherAmenities) {
     if (otherAmenities && otherAmenities.length > 0) {
         otherAmenities.forEach(item => {
             const li = document.createElement('li');
-            li.className = 'p-2';
-            li.innerHTML = `<span class="font-inter text-primary-text">${item}</span>`;
+            li.className = 'flex items-center gap-2';
+            li.innerHTML = `
+                <span class="w-6 h-6 flex items-center justify-center">
+                    <span class="w-2 h-2 bg-black rounded-full"></span>
+                </span>
+                <span class="font-inter text-primary-text">${item}</span>
+            `;
             list.appendChild(li);
         });
+        // Remove grid layout for stacked items
+        list.classList.remove('grid');
+        list.classList.add('flex', 'flex-col', 'gap-1');
         othersSection.classList.remove('hidden');
     } else {
         othersSection.classList.add('hidden');
@@ -76,18 +95,52 @@ async function fetchAndDisplayProperty() {
         ['photo1','photo2','photo3'].forEach((id, idx) => {
             const el = document.getElementById(id);
             if(el && data.photoLinks[idx]) {
-                el.innerHTML = `<img src="${data.photoLinks[idx]}" class="w-full h-full object-cover rounded-2xl" alt="Property Photo">`;
+                // Clear existing content and add overflow hidden to container
+                el.innerHTML = '';
+                el.classList.add('overflow-hidden');
+                
+                // Create inner div for the background image that will scale
+                const photoDiv = document.createElement('div');
+                photoDiv.className = 'w-full h-full transition-transform duration-300 ease-in-out hover:scale-110';
+                photoDiv.style.backgroundImage = `url('${data.photoLinks[idx]}')`;
+                photoDiv.style.backgroundSize = 'cover';
+                photoDiv.style.backgroundPosition = 'center';
+                photoDiv.style.backgroundRepeat = 'no-repeat';
+                
+                // Add the photo div inside the container
+                el.appendChild(photoDiv);
             }
         });
 
         const allPhotoContainer = document.getElementById('allPhoto');
         if (allPhotoContainer && data.photoLinks) {
             allPhotoContainer.innerHTML = '';
-            data.photoLinks.forEach(link => {
-                const img = document.createElement('img');
-                img.src = link;
-                img.className = 'w-full h-full object-cover';
-                allPhotoContainer.appendChild(img);
+            data.photoLinks.forEach((link, index) => {
+                // Create container div that maintains size
+                const containerDiv = document.createElement('div');
+                containerDiv.className = 'rounded-xl w-full h-100 cursor-pointer overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out';
+                
+                // Create inner div for the background image that will scale
+                const photoDiv = document.createElement('div');
+                photoDiv.className = 'w-full h-full transition-transform duration-300 ease-in-out hover:scale-110';
+                photoDiv.style.backgroundImage = `url('${link}')`;
+                photoDiv.style.backgroundSize = 'cover';
+                photoDiv.style.backgroundPosition = 'center';
+                photoDiv.style.backgroundRepeat = 'no-repeat';
+                
+                // Add the photo div inside the container
+                containerDiv.appendChild(photoDiv);
+                
+                containerDiv.setAttribute('alt', `Room view ${index + 1}`);
+                containerDiv.setAttribute('data-image-index', index);
+                
+                // Optional: Add click handler for image viewing
+                containerDiv.addEventListener('click', () => {
+                    console.log(`Clicked on image ${index + 1}:`, link);
+                    // You can add modal or lightbox functionality here
+                });
+                
+                allPhotoContainer.appendChild(containerDiv);
             });
         }
 
@@ -99,7 +152,8 @@ async function fetchAndDisplayProperty() {
             packageCapacity: data.packageCapacity || '0',
             rate: data.rating || '0',
             roomDescription: data.description,
-            roomPrice: data.packagePrice ? `₱${data.packagePrice.toLocaleString()}` : '₱0'
+            roomPrice: data.packagePrice ? `₱${data.packagePrice.toLocaleString()}` : '₱0',
+            numOfImg: data.photoLinks ? `${data.photoLinks.length}+` : '0+'
         };
         Object.entries(infoMap).forEach(([id, value]) => {
             const el = document.getElementById(id);
@@ -119,10 +173,26 @@ async function fetchAndDisplayProperty() {
                 const { name, iconType } = getAmenitySVGByMapping(amenity);
                 const div = document.createElement('div');
                 div.className = 'flex items-center gap-2';
-                div.innerHTML = `
-                    <img src="${iconType}" alt="${name}" class="w-6 h-6">
-                    <span class="font-roboto text-base text-primary-text">${name}</span>
-                `;
+                
+                // Check if we have a proper icon or should use bullet
+                const hasProperIcon = iconType && iconType !== '/svg/plus.svg';
+                
+                if (hasProperIcon) {
+                    // Use the icon image
+                    div.innerHTML = `
+                        <img src="${iconType}" alt="${name}" class="w-6 h-6">
+                        <span class="font-roboto text-base text-primary-text">${name}</span>
+                    `;
+                } else {
+                    // Use bullet point
+                    div.innerHTML = `
+                        <span class="w-6 h-6 flex items-center justify-center">
+                            <span class="w-2 h-2 bg-black rounded-full"></span>
+                        </span>
+                        <span class="font-roboto text-base text-primary-text">${name}</span>
+                    `;
+                }
+                
                 amenityList.appendChild(div);
             });
         }
