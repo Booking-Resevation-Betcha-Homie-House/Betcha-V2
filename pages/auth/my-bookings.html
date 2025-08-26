@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="/public/images/icon-betcha.png">
     <title>Betcha | My bookings</title>
 </head>
-<body class="bg-background">
+<body class="bg-background min-h-screen flex flex-col">
   <!-- NavBar -->
   <nav id="navbar" class="w-full flex flex-col items-center shadow-sm bg-white top-0 left-0 z-50">
     <div class="w-full flex items-center justify-between py-4 px-4 md:px-10">
@@ -184,9 +184,11 @@
     </div>
   </nav>
     
+    <!-- Main Content -->
+    <main class="flex-1 flex flex-col">
     <!-- My bookings -->
-    <div class="w-full flex justify-center mt-10 px-5 md:mt-20 md:px-0">
-      <div data-tab-group class="w-full max-w-5xl flex flex-col items-center text-center">
+    <div class="w-full flex justify-center mt-10 px-5 md:mt-20 md:px-0 flex-1">
+      <div data-tab-group class="w-full max-w-5xl flex flex-col items-center text-center h-full">
           <div class="mb-10">
           <p class="font-manrope text-2xl ">My bookings</p>  
           </div>
@@ -215,19 +217,19 @@
             </div>
           </div>
 
-          <div id="tab-contents" class="w-full">
+          <div id="tab-contents" class="w-full flex-1 flex">
             <!-- Pending Bookings Tab -->
-            <div class="tab-content hidden space-y-3" id="pendingContainer">
+            <div class="tab-content hidden space-y-3 w-full" id="pendingContainer">
               <!-- Booking cards will be dynamically generated here -->
             </div>
             
             <!-- To Rate Bookings Tab -->
-            <div class="tab-content hidden space-y-3" id="rateContainer">
+            <div class="tab-content hidden space-y-3 w-full" id="rateContainer">
               <!-- Booking cards will be dynamically generated here -->
             </div>
             
             <!-- Completed Bookings Tab -->
-            <div class="tab-content hidden space-y-3" id="completedContainer">
+            <div class="tab-content hidden space-y-3 w-full" id="completedContainer">
               <!-- Booking cards will be dynamically generated here -->
             </div>
             
@@ -235,6 +237,7 @@
 
       </div>
     </div>
+    </main>
 
     <!-- Footer -->
     <footer class="bg-primary text-secondary-text mt-10 md:mt-36">

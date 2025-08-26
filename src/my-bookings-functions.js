@@ -189,9 +189,11 @@ function setActiveBookingTab(index) {
                 console.log(`Showing container: ${containerId}`);
                 console.log(`Container content:`, content.innerHTML);
                 content.classList.remove('hidden');
+                content.classList.add('flex', 'flex-col', 'flex-1');
             } else {
                 console.log(`Hiding container: ${containerId}`);
                 content.classList.add('hidden');
+                content.classList.remove('flex', 'flex-col', 'flex-1');
             }
         } else {
             console.error(`Container ${containerId} not found!`);
@@ -225,8 +227,10 @@ async function renderBookings(bookings, containerId) {
         }
         
         container.innerHTML = `
-            <div class="text-center py-10">
-                <p class="text-neutral-500 text-lg">${emptyMessage}</p>
+            <div class="flex-1 flex items-center justify-center">
+                <div class="text-center py-10">
+                    <p class="text-neutral-500 text-lg">${emptyMessage}</p>
+                </div>
             </div>
         `;
         return;
