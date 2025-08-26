@@ -343,6 +343,22 @@
               </div>
 
               <div class="mb-5 space-y-3">
+                <!-- Payment Name -->
+                <div class="flex flex-col gap-2 w-full group">
+                    <label for="input-payment-name" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                        Payment Name:
+                    </label>
+                    <div class="input-style3 flex items-center justify-center gap-3 ">
+                        <input 
+                            id="input-payment-name"
+                            type="text" 
+                            placeholder="Enter payment name" 
+                            class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
+                        />
+                    </div>
+                </div>
+
+                <!-- Payment Method -->
                 <div class="flex flex-col gap-2 w-full group">
                     <label for="paymentDropdownBtn" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
                         Payment method:
@@ -360,19 +376,6 @@
                         </ul>
                     </div>
 
-                </div>
-                <div id="paymentNameDiv" class="flex flex-col gap-2 w-full group hidden">
-                    <label for="input-payment-name" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                        Payment platform name
-                    </label>
-                    <div class="input-style3 flex items-center justify-center gap-3 ">
-                        <input 
-                            id="input-payment-name"
-                            type="text" 
-                            placeholder="Payment platform name" 
-                            class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
-                        />
-                    </div>
                 </div>
                   
               </div>

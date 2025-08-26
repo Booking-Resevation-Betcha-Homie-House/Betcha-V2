@@ -29,7 +29,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupPaymentMethodIntegration() {
     // Monitor for dropdown selections made by paymentMethodOption.js
     const selectedMethodElement = document.getElementById('selectedPaymentMethod');
-    const customNameDiv = document.getElementById('paymentNameDiv');
+    // Payment Name is now always visible; no toggle container required
     
     // Create a MutationObserver to watch for changes to the selected payment method
     const observer = new MutationObserver(function(mutations) {
@@ -40,18 +40,6 @@ function setupPaymentMethodIntegration() {
                 // Store the selected method for form submission (if not default placeholder)
                 if (selectedText !== 'Select Payment') {
                     selectedMethodElement.setAttribute('data-value', selectedText);
-                }
-                
-                // Show/hide custom name input based on selection
-                if (selectedText === 'Other') {
-                    customNameDiv.classList.remove('hidden');
-                } else {
-                    customNameDiv.classList.add('hidden');
-                    // Clear custom name input when not "Other"
-                    const customNameInput = document.getElementById('input-payment-name');
-                    if (customNameInput) {
-                        customNameInput.value = '';
-                    }
                 }
             }
         });
@@ -175,7 +163,7 @@ async function validateAndSubmitForm() {
 
     // Get form data
     const selectedCategory = selectedMethod.getAttribute('data-value');
-    const paymentName = selectedCategory === 'Other' ? customNameInput.value.trim() : selectedCategory;
+    const paymentName = customNameInput.value.trim() || selectedCategory || '';
 
     // Validate required fields
     if (!selectedCategory) {
@@ -183,8 +171,8 @@ async function validateAndSubmitForm() {
         return;
     }
 
-    if (selectedCategory === 'Other' && !paymentName) {
-        showError('Please enter a payment platform name.');
+    if (!paymentName) {
+        showError('Please enter a payment name.');
         customNameInput.focus();
         return;
     }
@@ -202,10 +190,17 @@ async function validateAndSubmitForm() {
         let qrPhotoLink = '';
         
         if (fileInput.files[0]) {
-            // For now, we'll create the payment without the image link
-            // In a production environment, you would upload the image to a cloud storage service
-            // and get back a URL to store in qrPhotoLink
-            qrPhotoLink = ''; // Will be empty for now
+            // Encode selected image as base64 data URL so API receives an image on create
+            qrPhotoLink = await new Promise((resolve, reject) => {
+                try {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result || '');
+                    reader.onerror = (err) => reject(err);
+                    reader.readAsDataURL(fileInput.files[0]);
+                } catch (err) {
+                    reject(err);
+                }
+            });
         }
 
         // Create payment data
@@ -232,7 +227,45 @@ async function validateAndSubmitForm() {
         }
 
         const result = await response.json();
-        console.log('Payment created successfully:', result);
+        console.log('Payment created successfully (raw):', result);
+        const created = result?.newPayment || result?.data || result?.payment || result?.paymentPlatform || result;
+        console.log('Created payment record:', created);
+        console.log('Created payment debug fields:', {
+            id: created?._id || created?.id,
+            paymentName: created?.paymentName,
+            category: created?.category,
+            qrPhotoLink: created?.qrPhotoLink,
+            createdAt: created?.createdAt
+        });
+        // If the API did not persist the image on create, attempt an immediate follow-up update
+        const createdId = created?._id || created?.id;
+        if (createdId && !created?.qrPhotoLink && qrPhotoLink) {
+            try {
+                console.log('Attempting follow-up image update for created payment:', createdId);
+                const updatePayload = {
+                    paymentName: paymentName,
+                    category: selectedCategory,
+                    qrPhotoLink: qrPhotoLink
+                };
+                console.log('➡️ PUT URL:', `${API_BASE_URL}/payments/update/${createdId}`);
+                console.log('➡️ Update payload:', updatePayload);
+                const updateResp = await fetch(`${API_BASE_URL}/payments/update/${createdId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updatePayload)
+                });
+                const updateResult = await updateResp.json().catch(() => ({}));
+                if (!updateResp.ok) {
+                    console.warn('Follow-up image update failed:', updateResult);
+                } else {
+                    console.log('✅ Follow-up image update succeeded:', updateResult);
+                }
+            } catch (followErr) {
+                console.warn('Error during follow-up image update:', followErr);
+            }
+        } else if (!created?.qrPhotoLink) {
+            console.warn('No qrPhotoLink returned on create. The list may render a fallback image until an image is uploaded/saved.');
+        }
         
         // Close the confirmation modal
         const modal = document.getElementById('confirmDetailsModal');
@@ -356,7 +389,6 @@ function clearForm() {
     const fileInput = document.getElementById('qr-upload');
     const preview = document.getElementById('qr-preview');
     const placeholder = document.getElementById('qr-placeholder');
-    const paymentNameDiv = document.getElementById('paymentNameDiv');
 
     // Reset form fields
     selectedPaymentMethod.textContent = 'Select Payment';
@@ -369,8 +401,7 @@ function clearForm() {
     preview.style.display = 'none';
     placeholder.style.display = 'flex';
     
-    // Hide custom name input
-    paymentNameDiv.classList.add('hidden');
+    // No toggle for payment name; keep visible
 }
 
 // Handle form cancellation

@@ -61,6 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
        wrapper.dataset.id = n._id;
      }
     wrapper.dataset.sender = n.from?.name || 'Unknown';
+    wrapper.dataset.fromId = n.from?.fromId || '';
+    wrapper.dataset.fromRole = n.from?.role || '';
     wrapper.dataset.datetime = formatDateTime(n);
     wrapper.dataset.message = n.message || '';
     wrapper.dataset.category = n.category || '';
@@ -68,6 +70,24 @@ document.addEventListener("DOMContentLoaded", () => {
     wrapper.dataset.amountRefund = n.amountRefund != null ? String(n.amountRefund) : '';
     wrapper.dataset.mode = n.modeOfRefund || n.mode || '';
     wrapper.dataset.number = n.numberEwalletBank || n.number || '';
+    // Normalize bookingId to a plain string id
+    (function() {
+      try {
+        let bid = '';
+        if (n && Object.prototype.hasOwnProperty.call(n, 'bookingId')) {
+          if (typeof n.bookingId === 'string') {
+            bid = n.bookingId;
+          } else if (n.bookingId && typeof n.bookingId === 'object') {
+            bid = n.bookingId._id || n.bookingId.id || '';
+          } else if (n.bookingId != null) {
+            bid = String(n.bookingId);
+          }
+        }
+        wrapper.dataset.bookingId = bid || '';
+      } catch (e) {
+        wrapper.dataset.bookingId = '';
+      }
+    })();
 
     const isUnread = !n.seen;
     wrapper.innerHTML = `
@@ -85,28 +105,76 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    // Fill detailed modal on click (before modal.js opens it)
-    wrapper.addEventListener('click', () => {
-      suppressDropdownCloseOnce = true;
-      const category = (wrapper.dataset.category || '').toLowerCase();
-      if (category === 'cancellation request') {
-        const cModal = document.getElementById('cancelModal');
-        if (cModal) {
-          const sender = cModal.querySelector('#notifSender');
-          const date = cModal.querySelector('#notifDate');
-          const msg = cModal.querySelector('#notifMessage');
-          // Try explicit ids first
-          const trans = cModal.querySelector('#cancel-transNo, #transNo');
-          const amount = cModal.querySelector('#cancel-amountRefund');
-          const mode = cModal.querySelector('#cancel-mode');
-          const number = cModal.querySelector('#cancel-number');
-          if (sender) sender.textContent = wrapper.dataset.sender || '';
-          if (date) date.textContent = wrapper.dataset.datetime || '';
-          if (msg) msg.textContent = wrapper.dataset.message || '';
-          if (trans) trans.textContent = wrapper.dataset.transNo || '';
-          if (amount) amount.textContent = wrapper.dataset.amountRefund || '';
-          if (mode) mode.textContent = wrapper.dataset.mode || '';
-          if (number) number.textContent = wrapper.dataset.number || '';
+          // Fill detailed modal on click (before modal.js opens it)
+      wrapper.addEventListener('click', () => {
+        suppressDropdownCloseOnce = true;
+        const category = (wrapper.dataset.category || '').toLowerCase();
+        if (category === 'cancellation request') {
+          const cModal = document.getElementById('cancelModal');
+          if (cModal) {
+            // Store notification and booking IDs in modal data attributes
+            cModal.dataset.notificationId = wrapper.dataset.id || '';
+            cModal.dataset.bookingId = wrapper.dataset.bookingId || '';
+            cModal.dataset.fromId = wrapper.dataset.fromId || '';
+            
+            console.log('Modal data stored:', {
+              notificationId: wrapper.dataset.id,
+              bookingId: wrapper.dataset.bookingId
+            });
+            
+            // Fetch and log booking details when modal opens
+            const bookingId = wrapper.dataset.bookingId;
+            if (bookingId) {
+              console.log('📋 Fetching booking details when modal opens...');
+              fetch(`${API_BASE}/booking/${bookingId}`)
+                .then(response => response.json())
+                .then(bookingData => {
+                  if (bookingData.success && bookingData.booking) {
+                    const booking = bookingData.booking;
+                    console.log('📊 BOOKING DETAILS WHEN MODAL OPENS:', {
+                      bookingId: booking._id,
+                      transNo: booking.transNo,
+                      guestName: booking.guestName,
+                      propertyName: booking.propertyName,
+                      currentStatus: booking.status,
+                      checkIn: booking.checkIn,
+                      checkOut: booking.checkOut,
+                      totalFee: booking.totalFee,
+                      paymentCategory: booking.paymentCategory,
+                      reservationFee: booking.reservationFee,
+                      packageFee: booking.packageFee,
+                      modeOfPayment: booking.reservation?.modeOfPayment || booking.package?.modeOfPayment,
+                      paymentNo: booking.reservation?.paymentNo || booking.package?.paymentNo,
+                      numberEwalletBank: booking.reservation?.numberBankEwallets || booking.package?.numberBankEwallets,
+                      createdAt: booking.createdAt,
+                      updatedAt: booking.updatedAt
+                    });
+                  } else {
+                    console.warn('⚠️ Could not fetch booking details when modal opens:', bookingData);
+                  }
+                })
+                .catch(fetchError => {
+                  console.error('❌ Error fetching booking details when modal opens:', fetchError);
+                });
+            } else {
+              console.log('⚠️ No booking ID available when modal opens - cannot fetch booking details');
+            }
+            
+            const sender = cModal.querySelector('#notifSender');
+            const date = cModal.querySelector('#notifDate');
+            const msg = cModal.querySelector('#notifMessage');
+            // Try explicit ids first
+            const trans = cModal.querySelector('#cancel-transNo, #transNo');
+            const amount = cModal.querySelector('#cancel-amountRefund');
+            const mode = cModal.querySelector('#cancel-mode');
+            const number = cModal.querySelector('#cancel-number');
+            if (sender) sender.textContent = wrapper.dataset.sender || '';
+            if (date) date.textContent = wrapper.dataset.datetime || '';
+            if (msg) msg.textContent = wrapper.dataset.message || '';
+            if (trans) trans.textContent = wrapper.dataset.transNo || '';
+            if (amount) amount.textContent = wrapper.dataset.amountRefund || '';
+            if (mode) mode.textContent = wrapper.dataset.mode || '';
+            if (number) number.textContent = wrapper.dataset.number || '';
 
           // Fallbacks for templates without explicit ids
           // 1) Transaction no. title line
@@ -200,13 +268,17 @@ document.addEventListener("DOMContentLoaded", () => {
     cancelContainers.forEach((c) => {
       c.innerHTML = '';
       const items = list
-        .filter((n) => (n.category || '').toLowerCase() === 'cancellation request')
+        .filter((n) => {
+          const isCancellationRequest = (n.category || '').toLowerCase() === 'cancellation request';
+          const isNotProcessed = !n.statusRejection || n.statusRejection === 'Pending';
+          return isCancellationRequest && isNotProcessed;
+        })
         .map((n) => ({ ...n, seen: n.seen || readCache.has(n._id) }));
       if (items.length === 0) {
         c.innerHTML = `
           <div class="col-span-full flex items-center justify-center py-6">
             <div class="text-center">
-              <p class="text-neutral-500 text-sm">No cancellation requests</p>
+              <p class="text-neutral-500 text-sm">No pending cancellation requests</p>
             </div>
           </div>
         `;
@@ -217,7 +289,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Update badge with unread count (cap at 99+)
     if (notifBadge) {
-      const unread = list.filter((n) => !n.seen && !readCache.has(n._id)).length;
+      const unread = list.filter((n) => {
+        const isUnread = !n.seen && !readCache.has(n._id);
+        const isCancellationRequest = (n.category || '').toLowerCase() === 'cancellation request';
+        const isProcessedCancellation = isCancellationRequest && n.statusRejection && n.statusRejection !== 'Pending';
+        
+        // Count as unread only if it's unread AND not a processed cancellation request
+        return isUnread && !isProcessedCancellation;
+      }).length;
       notifBadge.textContent = unread > 99 ? '99+' : String(unread);
       notifBadge.style.display = unread > 0 ? '' : 'none';
     }
@@ -280,6 +359,9 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchNotifications();
   // Initialize scoped tabs for all notification tab groups (desktop + small modal)
   initializeAllNotificationTabs();
+  
+  // Make fetchNotifications globally accessible for other scripts
+  window.fetchNotifications = fetchNotifications;
 });
 
 // Initialize tabs within a specific notification container

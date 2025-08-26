@@ -1,74 +1,124 @@
+// Grid layout update function
+function updateGridLayout() {
+  const grids = document.querySelectorAll('.my-grid');
+
+  grids.forEach(grid => {
+    const visibleCards = [...grid.children].filter(el => !el.classList.contains('hidden'));
+    
+    // reset all spans first
+    visibleCards.forEach(el => el.classList.remove('md:col-span-2'));
+
+    // if only 1 visible card, make it full width
+    if (visibleCards.length === 1) {
+      visibleCards[0].classList.add('md:col-span-2');
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-  // Initialize dashboard features
+  checkRolePrivileges();
   initializeDashboardFeatures();
-  
-  function updateGridLayout() {
-    const grids = document.querySelectorAll('.my-grid');
-
-    grids.forEach(grid => {
-      const visibleCards = [...grid.children].filter(el => !el.classList.contains('hidden'));
-      
-      // reset all spans first
-      visibleCards.forEach(el => el.classList.remove('md:col-span-2'));
-
-      // if only 1 visible card, make it full width
-      if (visibleCards.length === 1) {
-        visibleCards[0].classList.add('md:col-span-2');
-      }
-    });
-  }
-
-  // Run on page load
   updateGridLayout();
-
-  // Example: when you manually toggle
-  document.querySelector('#card2')?.classList.toggle('hidden');
-  updateGridLayout();
+  loadDashboardMetrics();
 });
 
 // Initialize dashboard features
 function initializeDashboardFeatures() {
-  // Load tickets if tickets container exists
   const ticketsContainer = document.querySelector('#tickets .space-y-4');
   if (ticketsContainer) {
-    console.log('Tickets container found, initializing ticket loading...');
     loadAndPopulateTickets();
   } else {
-    console.warn('Tickets container not found');
+    
   }
 
-  // Load transactions if transactions container exists
   const transactionsContainer = document.querySelector('#transactions .space-y-4');
   if (transactionsContainer) {
-    console.log('Transactions container found, initializing transaction loading...');
     loadAndPopulateTransactions();
   } else {
-    console.warn('Transactions container not found');
+    
   }
 
-  // Load today's check-ins if PM container exists
   const pmContainer = document.querySelector('#PM .space-y-4');
   if (pmContainer) {
-    console.log('PM container found, initializing today\'s check-ins loading...');
     loadAndPopulateTodayCheckins();
   } else {
-    console.warn('PM container not found');
+    
   }
+}
+
+// Minimal metrics load (copied from PSR usage)
+async function loadDashboardMetrics() {
+  try {
+    const [summaryData, peakBookingData] = await Promise.all([
+      fetchAdminSummary(),
+      fetchPeakBookingDay()
+    ]);
+    populateEarningsData(summaryData);
+    populatePeakBookingData(peakBookingData);
+  } catch (_) {}
+}
+
+async function fetchAdminSummary() {
+  try {
+    const response = await fetch('https://betcha-api.onrender.com/dashboard/admin/summary');
+    return await response.json();
+  } catch (_) { return null; }
+}
+
+async function fetchPeakBookingDay() {
+  try {
+    const response = await fetch('https://betcha-api.onrender.com/psr/peakBookingDay');
+    return await response.json();
+  } catch (_) { return null; }
+}
+
+function populateEarningsData(summaryData) {
+  if (!summaryData || !summaryData.summary) return;
+  const { TotalEarningsThisWeek, TotalEarningsThisMonth, TotalEarningsThisYear } = summaryData.summary;
+  const formatCurrency = (amount) => new Intl.NumberFormat('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(amount || 0);
+  const yearEarningElement = document.getElementById('totalYearEarning');
+  const monthEarningElement = document.getElementById('totalMonthEarning');
+  const weekEarningElement = document.getElementById('totalWeekEarning');
+  if (yearEarningElement) yearEarningElement.textContent = formatCurrency(TotalEarningsThisYear);
+  if (monthEarningElement) monthEarningElement.textContent = formatCurrency(TotalEarningsThisMonth);
+  if (weekEarningElement) weekEarningElement.textContent = formatCurrency(TotalEarningsThisWeek);
+}
+
+function populatePeakBookingData(peakData) {
+  if (!peakData) return;
+  const formatDate = (dateString) => {
+    if (!dateString || (typeof dateString === 'string' && dateString.includes('No bookings'))) return 'No bookings';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+  const cards = document.querySelectorAll('.bg-white.rounded-xl.border.border-neutral-200');
+  cards.forEach(card => {
+    const titleElement = card.querySelector('span.text-lg, span.text-lg.font-manrope, span.text-lg.font-semibold, span.text-lg.font-manrope.font-semibold, span.text-lg.font-semibold.font-manrope');
+    const fallbackTitleElement = card.querySelector('span');
+    const header = titleElement?.textContent?.trim() || fallbackTitleElement?.textContent?.trim();
+    const dateElement = card.querySelector('p.text-xl.font-bold, p.text-xl.font-bold.text-neutral-900.font-manrope');
+    const infoElement = card.querySelector('p.text-sm.text-neutral-500:last-child');
+    if (header === 'Year' && peakData.year) {
+      if (dateElement) dateElement.textContent = formatDate(peakData.year.peakDay);
+      if (infoElement) infoElement.textContent = (peakData.year.peakDay && !String(peakData.year.peakDay).includes('No bookings')) ? 'Peak day this year' : 'No bookings';
+    } else if (header === 'Month' && peakData.month) {
+      if (dateElement) dateElement.textContent = formatDate(peakData.month.peakDay);
+      if (infoElement) infoElement.textContent = (peakData.month.peakDay && !String(peakData.month.peakDay).includes('No bookings')) ? 'Peak day this month' : 'No bookings';
+    } else if (header === 'Week' && peakData.week) {
+      if (dateElement) dateElement.textContent = formatDate(peakData.week.peakDay);
+      if (infoElement) infoElement.textContent = (peakData.week.peakDay && !String(peakData.week.peakDay).includes('No bookings')) ? 'Peak day this week' : 'No bookings this week';
+    }
+  });
 }
 
 // Load and populate tickets from API
 async function loadAndPopulateTickets() {
   try {
-    // Get user ID from localStorage
     const userId = localStorage.getItem('userId') || localStorage.getItem('userID');
     if (!userId) {
-      console.warn('User ID not found, cannot load tickets');
       return;
     }
-
-    console.log('Loading tickets for user:', userId);
     
-    // Fetch tickets from API
     const response = await fetch(`https://betcha-api.onrender.com/tk/customer-service/${userId}`);
     
     if (!response.ok) {
@@ -76,17 +126,14 @@ async function loadAndPopulateTickets() {
     }
     
     const data = await response.json();
-    console.log('Tickets data received:', data);
     
     if (data.tickets && Array.isArray(data.tickets)) {
       populateTickets(data.tickets);
     } else {
-      console.warn('No tickets data or invalid format');
       showNoTicketsMessage();
     }
     
   } catch (error) {
-    console.error('Error loading tickets:', error);
     showTicketsError();
   }
 }
@@ -99,7 +146,6 @@ function populateTickets(tickets) {
     return;
   }
   
-  // Clear existing content
   ticketsContainer.innerHTML = '';
   
   if (tickets.length === 0) {
@@ -107,16 +153,12 @@ function populateTickets(tickets) {
     return;
   }
   
-  // Sort tickets by creation date (newest first)
   const sortedTickets = tickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   
-  // Create ticket elements
   sortedTickets.forEach(ticket => {
     const ticketElement = createTicketElement(ticket);
     ticketsContainer.appendChild(ticketElement);
   });
-  
-  console.log(`Populated ${tickets.length} tickets`);
 }
 
 // Create individual ticket element matching the existing HTML structure
@@ -124,22 +166,18 @@ function createTicketElement(ticket) {
   const ticketDiv = document.createElement('div');
   ticketDiv.className = 'flex items-center justify-between bg-neutral-50 p-4 border cursor-pointer border-neutral-200 rounded-xl group hover:bg-neutral-100 transition-all duration-300 ease-in-out';
   
-  // Get the latest message for preview
   const latestMessage = ticket.messages && ticket.messages.length > 0 
     ? ticket.messages[ticket.messages.length - 1] 
     : null;
   
-  // Get sender name from the latest message or use a default
   const senderName = latestMessage ? latestMessage.userName : 'Guest User';
   
-  // Get the first message content for the concern description
   const firstMessage = ticket.messages && ticket.messages.length > 0 
     ? ticket.messages[0] 
     : null;
   
   const concernText = firstMessage ? firstMessage.message : 'General Inquiry';
   
-  // Truncate concern text if too long
   const truncatedConcern = concernText.length > 30 ? concernText.substring(0, 30) + '...' : concernText;
   
   ticketDiv.innerHTML = `
@@ -153,13 +191,9 @@ function createTicketElement(ticket) {
     </svg>
   `;
   
-  // Make ticket clickable - redirect to tk.html
   ticketDiv.addEventListener('click', () => {
-    // Store ticket data in localStorage for tk.html to access
     localStorage.setItem('selectedTicket', JSON.stringify(ticket));
     localStorage.setItem('redirectFromDashboard', 'true');
-    
-    // Redirect to tk.html
     window.location.href = 'tk.html';
   });
   
@@ -222,7 +256,7 @@ async function loadAndPopulateTransactions() {
       return;
     }
 
-    console.log('Loading transactions for properties:', propertyIds);
+    
     
     // Fetch transactions from API
     const response = await fetch('https://betcha-api.onrender.com/ts/transactionsByProperties', {
@@ -240,7 +274,6 @@ async function loadAndPopulateTransactions() {
     }
     
     const data = await response.json();
-    console.log('Transactions data received:', data);
     
     // Handle the actual API response structure with 'pending' and 'completed' arrays
     if (data.pending || data.completed) {
@@ -275,7 +308,6 @@ function populateTransactions(transactions) {
     return;
   }
   
-  // Clear existing content
   transactionsContainer.innerHTML = '';
   
   if (transactions.length === 0) {
@@ -283,19 +315,14 @@ function populateTransactions(transactions) {
     return;
   }
   
-  // Sort transactions by check-in date (newest first)
   const sortedTransactions = transactions.sort((a, b) => new Date(b.checkIn) - new Date(a.checkIn));
   
-  // Limit to 5 transactions for dashboard display
   const limitedTransactions = sortedTransactions.slice(0, 5);
   
-  // Create transaction elements
   limitedTransactions.forEach(transaction => {
     const transactionElement = createTransactionElement(transaction);
     transactionsContainer.appendChild(transactionElement);
   });
-  
-  console.log(`Populated ${limitedTransactions.length} transactions`);
 }
 
 // Create individual transaction element matching the existing HTML structure
@@ -303,16 +330,12 @@ function createTransactionElement(transaction) {
   const transactionDiv = document.createElement('div');
   transactionDiv.className = 'grid grid-cols-2 md:grid-cols-4 gap-5 p-4 bg-neutral-50 rounded-xl border border-neutral-200 hover:bg-neutral-100 transition-all duration-300 ease-in-out';
   
-  // Format the transaction number using the correct field name
   const transactionNumber = transaction.transNo || transaction.transactionId || transaction._id || 'N/A';
   
-  // Get guest name using the correct field name
   const guestName = transaction.nameOfGuest || transaction.guestName || transaction.customerName || 'Guest User';
   
-  // Get property name using the correct field name
   const propertyName = transaction.propertyName || 'Property';
   
-  // Format check-in date using the correct field name
   let checkInDate = 'N/A';
   if (transaction.checkIn) {
     try {
@@ -346,14 +369,10 @@ function createTransactionElement(transaction) {
     </div>
   `;
   
-  // Make transaction clickable - redirect to ts.html
   transactionDiv.addEventListener('click', () => {
-    // Store transaction data in localStorage for ts.html to access
     localStorage.setItem('selectedTransaction', JSON.stringify(transaction));
     localStorage.setItem('redirectFromDashboard', 'true');
     localStorage.setItem('openTransactionModal', 'true');
-    
-    // Redirect to ts.html
     window.location.href = 'ts.html';
   });
   
@@ -416,7 +435,7 @@ async function loadAndPopulateTodayCheckins() {
       return;
     }
 
-    console.log('Loading today\'s check-ins for properties:', propertyIds);
+    
     
     // Fetch today's check-ins from API
     const response = await fetch('https://betcha-api.onrender.com/pm/bookings/checkinToday', {
@@ -434,21 +453,9 @@ async function loadAndPopulateTodayCheckins() {
     }
     
     const data = await response.json();
-    console.log('Today\'s check-ins data received:', data);
     
     // Debug: Log the raw data structure
-    if (Array.isArray(data)) {
-      console.log('Dashboard: API returned array with', data.length, 'items');
-      data.forEach((item, index) => {
-        console.log(`Dashboard: Item ${index}:`, {
-          hasBookingId: !!item.bookingId,
-          hasPropertyId: !!item.propertyId,
-          status: item.status,
-          guestName: item.nameOfGuest || item.guestName,
-          propertyName: item.nameOfProperty || item.propertyName
-        });
-      });
-    }
+    if (Array.isArray(data)) {}
     
     // Handle the actual API response structure - it's an array with message and booking objects
     if (Array.isArray(data)) {
@@ -478,7 +485,7 @@ async function loadAndPopulateTodayCheckins() {
             statusLower.includes('complete') ||
             statusLower.includes('finished') ||
             statusLower.includes('ended')) {
-          console.log('Excluding booking with status:', booking.status, 'for guest:', booking.nameOfGuest || booking.guestName);
+          
           return false;
         }
         
@@ -486,7 +493,7 @@ async function loadAndPopulateTodayCheckins() {
         return true;
       });
       
-      console.log(`Filtered ${allBookings.length} total bookings down to ${validBookings.length} valid check-ins`);
+      
       
       if (validBookings.length > 0) {
         populateTodayCheckins(validBookings);
@@ -542,7 +549,7 @@ function populateTodayCheckins(checkins) {
     pmContainer.appendChild(checkinElement);
   });
   
-  console.log(`Populated ${sortedCheckins.length} today's check-ins`);
+  
 }
 
 // Create individual check-in element matching the existing HTML structure
@@ -589,7 +596,6 @@ function createCheckinElement(checkin) {
         day: 'numeric',
         year: 'numeric'
       });
-      // Use timeOut from API if available, otherwise format from date
       checkOutTime = checkin.timeOut || date.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
@@ -644,14 +650,10 @@ function createCheckinElement(checkin) {
     </div>
   `;
   
-  // Make booking clickable - redirect to pm.html
   checkinDiv.addEventListener('click', () => {
-    // Store booking data in localStorage for pm.html to access
     localStorage.setItem('selectedBooking', JSON.stringify(checkin));
     localStorage.setItem('redirectFromDashboard', 'true');
     localStorage.setItem('openBookingModal', 'true');
-    
-    // Redirect to pm.html
     window.location.href = 'pm.html';
   });
   
@@ -689,4 +691,131 @@ function showCheckinsError() {
       <button onclick="loadAndPopulateTodayCheckins()" class="text-primary hover:underline text-sm">Try again</button>
     </div>
   `;
+}
+
+// Role Privilege Checking Functions for Dashboard
+async function checkRolePrivileges() {
+    try {
+        const roleID = localStorage.getItem('roleID');
+        if (!roleID) {
+            console.warn('Dashboard - No roleID found in localStorage');
+            return;
+        }
+
+        console.log('Dashboard - Checking privileges for roleID:', roleID);
+        
+        // Fetch role privileges from API
+        const roleData = await fetchRolePrivileges(roleID);
+        
+        if (roleData && roleData.privileges) {
+            console.log('Dashboard - Role privileges:', roleData.privileges);
+            
+            // Filter dashboard sections based on privileges
+            filterDashboardSections(roleData.privileges);
+        } else {
+            console.error('Dashboard - No privileges found in role data');
+        }
+    } catch (error) {
+        console.error('Dashboard - Error checking role privileges:', error);
+    }
+}
+
+async function fetchRolePrivileges(roleID) {
+    try {
+        const response = await fetch(`https://betcha-api.onrender.com/roles/display/${roleID}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            console.log('Dashboard - Role data received:', data);
+            return data;
+        } else {
+            console.error('Dashboard - Failed to fetch role privileges:', response.status);
+            return null;
+        }
+    } catch (error) {
+        console.error('Dashboard - Error fetching role privileges:', error);
+        return null;
+    }
+}
+
+function filterDashboardSections(privileges) {
+    console.log('Dashboard - Filtering sections and sidebar based on privileges:', privileges);
+    
+    // Define content sections that should be hidden based on privileges
+    const sectionPrivilegeMap = {
+        'PSR-summary': ['PSR'], // PSR Summary section requires PSR privilege
+        'tickets': ['TK'], // Tickets section requires TK privilege  
+        'PM': ['PM'], // Property Monitoring section requires PM privilege
+        'transactions': ['TS'] // Transactions section requires TS privilege
+    };
+    
+    // Define sidebar navigation items that should be hidden based on privileges
+    const sidebarPrivilegeMap = {
+        'sidebar-psr': ['PSR'], // PSR link requires PSR privilege
+        'sidebar-tk': ['TK'], // TK link requires TK privilege  
+        'sidebar-pm': ['PM'], // PM link requires PM privilege
+        'sidebar-ts': ['TS'] // TS link requires TS privilege
+    };
+    
+    // Filter content sections
+    Object.keys(sectionPrivilegeMap).forEach(sectionId => {
+        const section = document.getElementById(sectionId);
+        if (!section) {
+            console.log(`Dashboard - Section not found: ${sectionId}`);
+            return;
+        }
+        
+        const requiredPrivileges = sectionPrivilegeMap[sectionId];
+        let hasAccess = false;
+        
+        // Check if user has any of the required privileges for this section
+        privileges.forEach(privilege => {
+            if (requiredPrivileges.includes(privilege)) {
+                hasAccess = true;
+            }
+        });
+        
+        if (!hasAccess) {
+            console.log(`Dashboard - Hiding section: ${sectionId} (no access with privileges: ${privileges.join(', ')})`);
+            section.style.display = 'none';
+        } else {
+            console.log(`Dashboard - Showing section: ${sectionId} (access granted with privileges: ${privileges.join(', ')})`);
+            section.style.display = 'block';
+        }
+    });
+    
+    // Filter sidebar navigation items
+    Object.keys(sidebarPrivilegeMap).forEach(sidebarId => {
+        const sidebarItem = document.getElementById(sidebarId);
+        if (!sidebarItem) {
+            console.log(`Dashboard - Sidebar item not found: ${sidebarId}`);
+            return;
+        }
+        
+        const requiredPrivileges = sidebarPrivilegeMap[sidebarId];
+        let hasAccess = false;
+        
+        // Check if user has any of the required privileges for this sidebar item
+        privileges.forEach(privilege => {
+            if (requiredPrivileges.includes(privilege)) {
+                hasAccess = true;
+            }
+        });
+        
+        if (!hasAccess) {
+            console.log(`Dashboard - Hiding sidebar item: ${sidebarId} (no access with privileges: ${privileges.join(', ')})`);
+            sidebarItem.style.display = 'none';
+        } else {
+            console.log(`Dashboard - Showing sidebar item: ${sidebarId} (access granted with privileges: ${privileges.join(', ')})`);
+            sidebarItem.style.display = 'flex';
+        }
+    });
+    
+    // Update grid layout after filtering
+    updateGridLayout();
 }

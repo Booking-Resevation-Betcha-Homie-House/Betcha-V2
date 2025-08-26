@@ -26,7 +26,7 @@
             </svg>
         </div> 
         <nav class="mt-10 font-manrope">
-            <a href="dashboard.html" 
+            <a href="dashboard.html" id="sidebar-dashboard"
                 class="flex gap-3 items-center rounded-xl p-3 group
                 transition-all duration-300 ease-in-out
                 hover:bg-primary/10">
@@ -38,7 +38,7 @@
             <hr class="my-4 border-t- border-neutral-300">
             <p class="font-semibold mb-3">Management</p>
             <div class="mb-3">
-                <a href="psr.html" 
+                <a href="psr.html" id="sidebar-psr"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -49,7 +49,7 @@
 
                     <span class="text-neutral-500 group-hover:text-primary">Property Summary Report</span>
                 </a>
-                <a href="ts.html" 
+                <a href="ts.html" id="sidebar-ts"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -59,7 +59,7 @@
 
                     <span class="text-neutral-500 group-hover:text-primary">Transactions</span>
                 </a>
-                <a href="tk.html" 
+                <a href="tk.html" id="sidebar-tk"
                     class="flex gap-3 items-center rounded-xl p-3 bg-primary shadow-lg shadow-primary/25
                     transition-all duration-300 ease-in-out">
                     <svg class="h-5 stroke-white" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -68,7 +68,7 @@
 
                     <span class="text-white">Ticketing</span>
                 </a>
-                <a href="pm.html" 
+                <a href="pm.html" id="sidebar-pm"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -527,6 +527,8 @@
   <script defer src="../../src/navbar.js"></script>
   <script defer src="../../src/modal.js"></script>
   <script defer src="../admin/adminFunctions/logout-functions.js"></script>
+  <script defer src="../../src/employee-sidebar-filter.js"></script>
+  <script defer src="../../src/skeleton.js"></script>
   <script defer src="../../src/supportTicketLayout.js"></script>
   <script defer src="employeeFunctions/tk-functions.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>

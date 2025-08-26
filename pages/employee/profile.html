@@ -26,7 +26,7 @@
             </svg>
         </div> 
         <nav class="mt-10 font-manrope">
-            <a href="dashboard.html" 
+            <a href="dashboard.html" id="sidebar-dashboard"
                 class="flex gap-3 items-center rounded-xl p-3 group
                 transition-all duration-300 ease-in-out
                 hover:bg-primary/10">
@@ -38,7 +38,7 @@
             <hr class="my-4 border-t- border-neutral-300">
             <p class="font-semibold mb-3">Management</p>
             <div class="mb-3">
-                <a href="psr.html" 
+                <a href="psr.html" id="sidebar-psr"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -49,7 +49,7 @@
 
                     <span class="text-neutral-500 group-hover:text-primary">Property Summary Report</span>
                 </a>
-                <a href="ts.html" 
+                <a href="ts.html" id="sidebar-ts"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -59,7 +59,7 @@
 
                     <span class="text-neutral-500 group-hover:text-primary">Transactions</span>
                 </a>
-                <a href="tk.html" 
+                <a href="tk.html" id="sidebar-tk"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -69,7 +69,7 @@
 
                     <span class="text-neutral-500 group-hover:text-primary">Ticketing</span>
                 </a>
-                <a href="pm.html" 
+                <a href="pm.html" id="sidebar-pm"
                     class="flex gap-3 items-center rounded-xl p-3 group
                     transition-all duration-300 ease-in-out
                     hover:bg-primary/10">
@@ -429,6 +429,8 @@
   <script defer src="../../src/navbar.js"></script>
   <script defer src="../../src/modal.js"></script>
   <script defer src="../admin/adminFunctions/logout-functions.js"></script>
+  <script defer src="../../src/employee-sidebar-filter.js"></script>
+  <script defer src="../../src/skeleton.js"></script>
   <script defer src="../../src/multipleTabs.js"></script>
   
 
@@ -448,12 +450,14 @@
         const lastName = localStorage.getItem('lastName') || '';
         const roleID = localStorage.getItem('roleID') || '';
         const userData = localStorage.getItem('userData');
+        const directEmail = localStorage.getItem('email') || '';
         
         console.log('LocalStorage data found:', {
           firstName,
           lastName,
           roleID,
-          hasUserData: !!userData
+          hasUserData: !!userData,
+          hasDirectEmail: !!directEmail
         });
 
         // 1. Populate Profile Picture (First Letter)
@@ -476,7 +480,7 @@
 
         // 3. Parse userData for additional information
         let roleName = 'Employee';
-        let privileges = 'Standard Access';
+        let privileges = 'Employee Access';
         let email = 'No email available';
 
         if (userData) {
@@ -494,12 +498,17 @@
               privileges = parsed.privileges;
             }
             
-            // Extract email
-            email = parsed.email || parsed.emailAddress || parsed.employeeEmail || 'No email available';
+            // Extract email (with fallback to direct localStorage email)
+            email = parsed.email || parsed.emailAddress || parsed.employeeEmail || directEmail || 'No email available';
             
           } catch (parseError) {
             console.warn('Could not parse userData:', parseError);
           }
+        }
+
+        // If userData is missing or lacked email, use direct localStorage email as final fallback
+        if ((!userData || email === 'No email available') && directEmail) {
+          email = directEmail;
         }
 
         // 4. Update Role Display (under profile picture)
@@ -552,7 +561,7 @@
         // Fallback: Show default values
         const fallbackName = 'Employee Name';
         const fallbackRole = 'Employee';
-        const fallbackPrivileges = 'Standard Access';
+        const fallbackPrivileges = 'Employee Access';
         const fallbackEmail = 'No email available';
         
         // Update elements with fallback values
