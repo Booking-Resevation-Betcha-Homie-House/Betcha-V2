@@ -8,6 +8,9 @@ import { showFullscreenLoading, hideFullscreenLoading } from '/src/fullscreenLoa
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Confirm Payment page loaded');
     
+    // Show skeleton loading immediately
+    showSkeletonLoading();
+    
     // Get booking ID and payment type from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const bookingId = urlParams.get('bookingId');
@@ -17,6 +20,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (!bookingId) {
         console.error('No booking ID found in URL');
+        hideSkeletonLoading();
         showToastError('error', 'Missing Booking ID', 'No booking ID found. Please go back and try again.');
         return;
     }
@@ -164,6 +168,7 @@ function populatePaymentMethods(paymentMethods) {
                                     type="radio" 
                                     name="payment" 
                                     id="payment-${methodId}" 
+                                    value="${methodName}"
                                     data-qr="${method.qrPhotoLink}"
                                     data-payment-id="${method._id}"
                                     data-payment-name="${method.paymentName}"
@@ -203,8 +208,12 @@ function populatePaymentMethods(paymentMethods) {
         // Store payment methods globally for use in other functions
         window.currentPaymentMethods = groupedMethods;
         
+        // Hide skeleton loading for payment methods after they're populated
+        hidePaymentMethodsSkeleton();
+        
     } catch (error) {
         console.error('Error populating payment methods:', error);
+        hidePaymentMethodsSkeleton();
     }
 }
 
@@ -365,19 +374,121 @@ async function fetchBookingData(bookingId) {
     }
 }
 
+// Function to check if a specific payment type has already been made
+function checkIfPaymentAlreadyMade(booking, paymentType) {
+    try {
+        console.log('🔍 Checking payment status for:', paymentType);
+        console.log('📊 Full booking data structure:', JSON.stringify(booking, null, 2));
+        console.log('📋 Booking payment data:', {
+            reservation: booking.reservation,
+            package: booking.package,
+            paymentCategory: booking.paymentCategory,
+            bookingStatus: booking.status
+        });
+        
+        if (paymentType === 'Reservation') {
+            // Check if reservation payment is made
+            // Payment is made if modeOfPayment is NOT "Pending" (means payment method was used)
+            const reservationPaid = booking.reservation && 
+                                  booking.reservation.modeOfPayment && 
+                                  booking.reservation.modeOfPayment !== 'Pending';
+            
+            console.log('💰 Reservation payment check:', {
+                modeOfPayment: booking.reservation?.modeOfPayment,
+                status: booking.reservation?.status,
+                isPaid: reservationPaid
+            });
+            
+            return reservationPaid;
+            
+        } else if (paymentType === 'Package') {
+            // Check if package payment is made
+            // Payment is made if modeOfPayment is NOT "Pending" (means payment method was used)
+            const packagePaid = booking.package && 
+                              booking.package.modeOfPayment && 
+                              booking.package.modeOfPayment !== 'Pending';
+            
+            console.log('📦 Package payment check:', {
+                modeOfPayment: booking.package?.modeOfPayment,
+                status: booking.package?.status,
+                isPaid: packagePaid
+            });
+            
+            return packagePaid;
+            
+        } else if (paymentType === 'Full-Payment') {
+            // For full payment, check if both reservation and package payments are made
+            const reservationPaid = booking.reservation && 
+                                  booking.reservation.modeOfPayment && 
+                                  booking.reservation.modeOfPayment !== 'Pending';
+            
+            const packagePaid = booking.package && 
+                              booking.package.modeOfPayment && 
+                              booking.package.modeOfPayment !== 'Pending';
+            
+            const fullPaymentPaid = reservationPaid && packagePaid;
+            
+            console.log('💳 Full payment check:', {
+                reservationPaid,
+                packagePaid,
+                fullPaymentPaid,
+                reservationModeOfPayment: booking.reservation?.modeOfPayment,
+                packageModeOfPayment: booking.package?.modeOfPayment
+            });
+            
+            return fullPaymentPaid;
+        }
+        
+        return false;
+    } catch (error) {
+        console.error('❌ Error checking payment status:', error);
+        return false;
+    }
+}
+
 // Function to fetch and populate booking data
 async function fetchAndPopulateBookingData(bookingId, paymentType) {
     try {
         const result = await fetchBookingData(bookingId);
         
         if (result.success) {
+            console.log('✅ Booking data loaded successfully');
+            console.log('🔍 Full booking object received:', JSON.stringify(result.booking, null, 2));
+            
+            // Check if the requested payment type is already paid
+            const isAlreadyPaid = checkIfPaymentAlreadyMade(result.booking, paymentType);
+            
+            console.log(`💳 Payment check result for ${paymentType}:`, isAlreadyPaid);
+            
+            if (isAlreadyPaid) {
+                console.log(`🚫 ${paymentType} payment already made, redirecting to view-booking`);
+                console.log('📍 Redirect URL:', `view-booking.html?bookingId=${bookingId}`);
+                
+                showToastError('success', 'Already Paid!', `${paymentType} has already been paid for this booking. Redirecting to booking details...`);
+                
+                // Redirect back to view-booking after a short delay to show the toast
+                console.log('🔄 Initiating redirect...');
+                setTimeout(() => {
+                    window.location.href = `view-booking.html?bookingId=${bookingId}`;
+                }, 1500);
+                return;
+            }
+            
+            console.log('✅ Payment not yet made, proceeding to populate payment form');
             populatePaymentData(result.booking, paymentType);
+            
+            // Hide skeleton loading after data is populated
+            setTimeout(() => {
+                hideSkeletonLoading();
+            }, 500); // Small delay to ensure smooth transition
         } else {
-            console.error('Failed to load booking data:', result.message);
+            console.error('❌ Failed to load booking data:', result.message);
+            hideSkeletonLoading();
             showToastError('error', 'Booking Error', result.message || 'Failed to load booking details.');
         }
     } catch (error) {
         console.error('Error in fetchAndPopulateBookingData:', error);
+        hideSkeletonLoading();
         showToastError('error', 'Error', 'An unexpected error occurred while loading booking data.');
     }
 }
@@ -400,6 +511,7 @@ function populatePaymentData(booking, paymentType) {
         const additionalPax = booking.additionalPax || 0;
         const numOfDays = booking.numOfDays || 1;
         const totalFee = booking.totalFee || 0;
+        const discount = booking.discount || 0;
         
         console.log('Extracted values:', {
             packageFee: `${packageFee} (from booking.packageFee)`,
@@ -407,11 +519,29 @@ function populatePaymentData(booking, paymentType) {
             additionalPaxPrice: `${additionalPaxPrice} (from booking.additionalPaxPrice)`,
             additionalPax: `${additionalPax} (from booking.additionalPax)`,
             numOfDays: `${numOfDays} (from booking.numOfDays)`,
-            totalFee: `${totalFee} (from booking.totalFee)`
+            totalFee: `${totalFee} (from booking.totalFee)`,
+            discount: `${discount} (from booking.discount)`
+        });
+        
+        console.log('🔍 Full booking object for discount check:', {
+            hasDiscountField: 'discount' in booking,
+            discountValue: booking.discount,
+            discountType: typeof booking.discount,
+            bookingKeys: Object.keys(booking)
+        });
+        
+        console.log('🔍 Discount processing:', {
+            hasDiscount: discount > 0,
+            discountValue: discount,
+            discountPercentage: calculateDiscountPercentage(booking)
         });
         
         // Determine the amount to pay based on payment type
         const amountToPay = getPaymentAmount(booking, paymentType);
+        
+        // Calculate discount percentage if discount exists
+        const discountPercentage = calculateDiscountPercentage(booking);
+        const discountAmount = calculateDiscountAmount(booking);
         
         // Update payment type indicator
         updatePaymentTypeIndicator(paymentType, amountToPay);
@@ -426,6 +556,51 @@ function populatePaymentData(booking, paymentType) {
         populateElement('totalAddGuest', (additionalPaxPrice * additionalPax).toLocaleString());
         
         populateElement('reservationFee', reservationFee.toLocaleString());
+        
+        // Handle discount display
+        console.log('🎨 Processing discount display:', { 
+            originalDiscount: discount, 
+            discountPercentage, 
+            discountAmount 
+        });
+        
+        const discountSection = document.getElementById('discountSection');
+        console.log('🔍 Discount section element found:', !!discountSection);
+        
+        // FOR TESTING: Always show discount with mock data if no real discount exists
+        const DEVELOPMENT_MODE = false; // Set to false in production
+        const mockDiscount = 50;
+        const mockDiscountPercentage = 10.5;
+        
+        if (discount > 0) {
+            console.log('✅ Discount found, showing discount section');
+            populateElement('discount', discountAmount.toLocaleString());
+            populateElement('discountPercentage', `${discountPercentage}%`);
+            
+            // Show discount section
+            if (discountSection) {
+                discountSection.style.display = 'flex';
+                console.log('✅ Discount section made visible');
+            }
+        } else if (DEVELOPMENT_MODE && discount === 0) {
+            console.log('🔧 Development mode: showing mock discount');
+            populateElement('discount', mockDiscount.toLocaleString());
+            populateElement('discountPercentage', `${mockDiscountPercentage}%`);
+            
+            // Show discount section with mock data
+            if (discountSection) {
+                discountSection.style.display = 'flex';
+                console.log('✅ Mock discount section made visible');
+            }
+        } else {
+            console.log('❌ No discount found, hiding discount section');
+            // Hide discount section if no discount
+            if (discountSection) {
+                discountSection.style.display = 'none';
+                console.log('✅ Discount section hidden');
+            }
+        }
+        
         populateElement('totalPrice', amountToPay.toLocaleString());
         
         console.log('Payment data populated successfully');
@@ -435,6 +610,9 @@ function populatePaymentData(booking, paymentType) {
             additionalPaxPrice, 
             additionalPax,
             reservationFee,
+            discount,
+            discountAmount,
+            discountPercentage,
             amountToPay,
             paymentType
         });
@@ -466,6 +644,9 @@ function updatePaymentTypeIndicator(paymentType, amountToPay) {
             if (paymentType === 'Reservation') {
                 paymentTypeElement.textContent = 'Reservation Fee';
                 paymentTypeDescElement.textContent = 'Secure your booking with a reservation fee - pay the remaining balance later';
+            } else if (paymentType === 'Package') {
+                paymentTypeElement.textContent = 'Package Payment';
+                paymentTypeDescElement.textContent = 'Pay for your package - complete your booking experience';
             } else {
                 paymentTypeElement.textContent = 'Full Payment';
                 paymentTypeDescElement.textContent = 'Complete payment for your entire booking';
@@ -484,9 +665,107 @@ function updatePaymentTypeIndicator(paymentType, amountToPay) {
 function getPaymentAmount(booking, paymentType) {
     if (paymentType === 'Reservation') {
         return booking.reservationFee || 0;
+    } else if (paymentType === 'Package') {
+        // Package amount = (packageFee × days) + (additionalPaxPrice × additionalPax)
+        const packageFee = booking.packageFee || 0;
+        const numOfDays = booking.numOfDays || 1;
+        const additionalPaxPrice = booking.additionalPaxPrice || 0;
+        const additionalPax = booking.additionalPax || 0;
+        
+        const packageTotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax);
+        console.log('Package payment calculation:', {
+            packageFee,
+            numOfDays,
+            additionalPaxPrice,
+            additionalPax,
+            packageTotal: packageTotal
+        });
+        
+        return packageTotal;
     } else {
         // For full payment, use totalFee
         return booking.totalFee || 0;
+    }
+}
+
+// Function to calculate discount percentage
+function calculateDiscountPercentage(booking) {
+    try {
+        const discount = booking.discount || 0;
+        const totalFee = booking.totalFee || 0;
+        
+        if (discount === 0 || totalFee === 0) {
+            return 0;
+        }
+        
+        // Check if discount is already a percentage (typically less than 100)
+        // or if it's an absolute amount (typically larger than 100)
+        if (discount <= 100) {
+            // Discount is likely already a percentage
+            console.log('Discount appears to be a percentage:', discount);
+            return discount;
+        } else {
+            // Discount is an absolute amount, calculate percentage
+            console.log('Discount appears to be an absolute amount:', discount);
+            
+            // Calculate the original total before discount
+            const originalTotal = totalFee + discount;
+            
+            // Calculate percentage: (discount / originalTotal) * 100
+            const percentage = (discount / originalTotal) * 100;
+            
+            // Round to 1 decimal place
+            const roundedPercentage = Math.round(percentage * 10) / 10;
+            
+            console.log('Discount percentage calculation (absolute):', {
+                discount,
+                totalFee,
+                originalTotal,
+                percentage,
+                roundedPercentage
+            });
+            
+            return roundedPercentage;
+        }
+    } catch (error) {
+        console.error('Error calculating discount percentage:', error);
+        return 0;
+    }
+}
+
+// Function to calculate discount amount from percentage
+function calculateDiscountAmount(booking) {
+    try {
+        const discount = booking.discount || 0;
+        const totalFee = booking.totalFee || 0;
+        
+        if (discount === 0 || totalFee === 0) {
+            return 0;
+        }
+        
+        // Check if discount is already a percentage or absolute amount
+        if (discount <= 100) {
+            // Discount is a percentage, calculate the amount
+            // We need to calculate based on the original total before discount
+            // If totalFee is after discount: originalTotal = totalFee / (1 - discount/100)
+            // But it's safer to calculate: discountAmount = totalFee * (discount / (100 - discount))
+            const discountAmount = totalFee * (discount / (100 - discount));
+            
+            console.log('Discount amount calculation (from percentage):', {
+                discountPercentage: discount,
+                totalFee,
+                calculatedDiscountAmount: discountAmount
+            });
+            
+            return Math.round(discountAmount);
+        } else {
+            // Discount is already an absolute amount
+            console.log('Discount is already an absolute amount:', discount);
+            return discount;
+        }
+    } catch (error) {
+        console.error('Error calculating discount amount:', error);
+        return 0;
     }
 }
 
@@ -497,6 +776,179 @@ window.getPaymentAmount = getPaymentAmount;
 window.fetchPaymentMethods = fetchPaymentMethods;
 window.populatePaymentMethods = populatePaymentMethods;
 window.showQRCode = showQRCode;
+window.checkIfPaymentAlreadyMade = checkIfPaymentAlreadyMade;
+
+// Skeleton loading functions
+function showSkeletonLoading() {
+    console.log('🔄 Showing skeleton loading...');
+    
+    // Create skeleton loading styles if not already present
+    if (!document.getElementById('skeleton-styles')) {
+        const style = document.createElement('style');
+        style.id = 'skeleton-styles';
+        style.textContent = `
+            .skeleton {
+                background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+                background-size: 200% 100%;
+                animation: skeleton-loading 1.5s infinite;
+            }
+            
+            @keyframes skeleton-loading {
+                0% { background-position: 200% 0; }
+                100% { background-position: -200% 0; }
+            }
+            
+            .skeleton-text {
+                height: 1rem;
+                border-radius: 4px;
+                margin-bottom: 0.5rem;
+            }
+            
+            .skeleton-text-lg {
+                height: 1.5rem;
+                border-radius: 4px;
+                margin-bottom: 0.75rem;
+            }
+            
+            .skeleton-button {
+                height: 2.5rem;
+                border-radius: 6px;
+                margin-bottom: 1rem;
+            }
+            
+            .skeleton-input {
+                height: 2.25rem;
+                border-radius: 4px;
+                margin-bottom: 1rem;
+            }
+            
+            .skeleton-card {
+                height: 4rem;
+                border-radius: 8px;
+                margin-bottom: 0.75rem;
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    // Add skeleton loading to payment type section
+    addSkeletonToElement('paymentType', 'skeleton-text-lg', '60%');
+    addSkeletonToElement('paymentTypeDescription', 'skeleton-text', '80%');
+    
+    // Add skeleton loading to price elements
+    const priceElements = [
+        'pricePerDay', 'daysOfStay', 'totalPriceDay',
+        'addGuestPrice', 'addGuestCount', 'totalAddGuest',
+        'reservationFee', 'discount', 'discountPercentage', 'totalPrice'
+    ];
+    
+    priceElements.forEach(elementId => {
+        addSkeletonToElement(elementId, 'skeleton-text', '50%');
+    });
+    
+    // Add skeleton loading to payment methods container
+    const paymentContainer = document.querySelector('.flex.flex-col.p-5');
+    if (paymentContainer) {
+        const existingPaymentMethods = paymentContainer.querySelectorAll('label[for^="payment-"]');
+        existingPaymentMethods.forEach(method => method.style.display = 'none');
+        
+        // Add skeleton payment method cards
+        for (let i = 0; i < 5; i++) {
+            const skeletonCard = document.createElement('div');
+            skeletonCard.className = 'skeleton skeleton-card payment-method-skeleton';
+            paymentContainer.appendChild(skeletonCard);
+        }
+    }
+    
+    // Add skeleton loading to form inputs
+    addSkeletonToInput('transactionNumber');
+    addSkeletonToInput('bankAccountNumber');
+    
+    // Add skeleton loading to confirm button
+    const confirmButton = document.getElementById('confirmPaymentButton1');
+    if (confirmButton) {
+        confirmButton.style.display = 'none';
+        const skeletonButton = document.createElement('div');
+        skeletonButton.className = 'skeleton skeleton-button confirm-button-skeleton';
+        skeletonButton.style.width = '100%';
+        confirmButton.parentNode.insertBefore(skeletonButton, confirmButton);
+    }
+}
+
+function hideSkeletonLoading() {
+    console.log('✅ Hiding skeleton loading...');
+    
+    // Remove skeleton classes and restore original content
+    document.querySelectorAll('.skeleton').forEach(element => {
+        if (element.classList.contains('payment-method-skeleton') || 
+            element.classList.contains('confirm-button-skeleton')) {
+            element.remove();
+        } else {
+            element.classList.remove('skeleton', 'skeleton-text', 'skeleton-text-lg', 'skeleton-input');
+            element.style.width = '';
+            element.style.height = '';
+        }
+    });
+    
+    // Restore payment methods visibility
+    const paymentContainer = document.querySelector('.flex.flex-col.p-5');
+    if (paymentContainer) {
+        const existingPaymentMethods = paymentContainer.querySelectorAll('label[for^="payment-"]');
+        existingPaymentMethods.forEach(method => method.style.display = '');
+    }
+    
+    // Restore confirm button
+    const confirmButton = document.getElementById('confirmPaymentButton1');
+    if (confirmButton) {
+        confirmButton.style.display = '';
+    }
+    
+    // Remove skeleton payment method cards
+    document.querySelectorAll('.payment-method-skeleton').forEach(skeleton => {
+        skeleton.remove();
+    });
+    
+    // Remove skeleton button
+    document.querySelectorAll('.confirm-button-skeleton').forEach(skeleton => {
+        skeleton.remove();
+    });
+}
+
+function addSkeletonToElement(elementId, skeletonClass, width = '100%') {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.classList.add('skeleton', skeletonClass);
+        element.style.width = width;
+        element.textContent = '';
+    }
+}
+
+function addSkeletonToInput(elementId) {
+    const element = document.getElementById(elementId);
+    if (element) {
+        element.style.display = 'none';
+        const skeletonInput = document.createElement('div');
+        skeletonInput.className = 'skeleton skeleton-input input-skeleton';
+        skeletonInput.style.width = '100%';
+        element.parentNode.insertBefore(skeletonInput, element);
+    }
+}
+
+function hidePaymentMethodsSkeleton() {
+    console.log('✅ Hiding payment methods skeleton...');
+    
+    // Remove skeleton payment method cards
+    document.querySelectorAll('.payment-method-skeleton').forEach(skeleton => {
+        skeleton.remove();
+    });
+    
+    // Restore payment methods visibility
+    const paymentContainer = document.querySelector('.flex.flex-col.p-5');
+    if (paymentContainer) {
+        const existingPaymentMethods = paymentContainer.querySelectorAll('label[for^="payment-"]');
+        existingPaymentMethods.forEach(method => method.style.display = '');
+    }
+}
 
 function setupFileDropOCR() {
     console.log('🔧 setupFileDropOCR called');
@@ -1009,7 +1461,7 @@ function getPaymentFormData() {
     const selectedPaymentMethod = document.querySelector('input[name="payment"]:checked');
     
     const formData = {
-        modeOfPayment: selectedPaymentMethod?.value || '',
+        modeOfPayment: selectedPaymentMethod?.dataset?.category || '',
         paymentNo: transactionNumber,
         numberBankEwallets: bankAccountNumber,
         category: selectedPaymentMethod?.dataset?.category || ''
@@ -1055,10 +1507,12 @@ function validatePaymentForm(formData) {
 function getPaymentApiEndpoint(paymentType, bookingId) {
     const baseURL = 'https://betcha-api.onrender.com';
     
-    if (paymentType === 'reservation') {
+    if (paymentType === 'Reservation') {
         return `${baseURL}/booking/payment/reservation/${bookingId}`;
-    } else if (paymentType === 'full-payment') {
+    } else if (paymentType === 'Full-Payment') {
         return `${baseURL}/booking/payment/full/${bookingId}`;
+    } else if (paymentType === 'Package') {
+        return `${baseURL}/booking/payment/package/${bookingId}`;
     } else {
         console.warn('⚠️ Unknown payment type, defaulting to reservation:', paymentType);
         return `${baseURL}/booking/payment/reservation/${bookingId}`;

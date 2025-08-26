@@ -6,6 +6,28 @@
     <link rel="stylesheet" href="/src/index.css">
     <link rel="icon" type="image/png" href="/public/images/icon-betcha.png">
     <title>Betcha | Bookings details</title>
+    <style>
+        /* Calendar disabled state styling */
+        .calendar-disabled {
+            position: relative;
+        }
+        
+        .calendar-disabled::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            border-radius: 12px;
+        }
+        
+        .calendar-disabled * {
+            cursor: not-allowed !important;
+        }
+    </style>
 </head>
 <body class="bg-background">
   <!-- NavBar -->
@@ -322,7 +344,7 @@
                 </div>
 
                 <div class="flex justify-between items-center">
-                  <button onclick="window.location.href='../auth/confirm-payment.html'"  
+                  <button id="paymentButton"  
                   class="group w-full relative rounded-full bg-primary z-50 flex items-center justify-center overflow-hidden shadow-lg shadow-primary/20
                   disabled:cursor-not-allowed disabled:border-neutral-500 disabled:hover:bg-neutral-300 disabled:active:scale-none disabled:bg-neutral-300
                   transition-all duration-300 ease-in-out hover:cursor-pointer active:scale-95">
@@ -442,7 +464,7 @@
           </div>
 
 
-          <div class="flex items-center px-4 py-3 gap-2 w-full border border-neutral-300 rounded-xl mb-5">
+          <div class="flex items-center px-4 py-3 gap-2 w-full border border-neutral-300 rounded-xl mb-3">
             <svg class="h-4 w-auto stroke-primary-text stroke-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M8 2V6M16 2V6" stroke-linecap="round" stroke-linejoin="round"/>
               <path d="M19 4H5C3.89543 4 3 4.89543 3 6V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V6C21 4.89543 20.1046 4 19 4Z" stroke-linecap="round" stroke-linejoin="round"/>
@@ -454,11 +476,21 @@
             </div>
           </div>
           
+          <div class="text-center mb-5">
+            <p id="rescheduleHelperText" class="text-xs text-gray-500 font-roboto">
+              💡 Select check-in and check-out dates to reschedule your booking
+            </p>
+            <button id="clearSelectionBtn" class="text-xs text-blue-500 hover:text-blue-700 underline mt-1 hidden" onclick="clearRescheduleSelection()">
+              Clear Selection
+            </button>
+          </div>
           
-          <!-- Calendar -->
-          <div class="calendar-instance flex flex-col" data-calendar-id="1">
-            <div class=" bg-white border border-neutral-300 rounded-xl shadow-sm">
-              <div class="w-full mx-auto p-4 hover:shadow-lg transition-all duration-300 ease-in-out">
+          <!-- Calendar Wrapper with tab-content styling -->
+          <div class="tab-content flex-1 flex flex-col overflow-hidden mb-5 md:mb-0">
+            <!-- Calendar -->
+            <div class="calendar-instance h-full flex flex-col" data-calendar-id="1">
+              <div class="overflow-y-auto bg-white border border-neutral-300 rounded-3xl shadow-sm custom-scroll">
+                <div class="w-full mx-auto p-4 hover:shadow-lg transition-all duration-300 ease-in-out" id="calendarContainer">
 
                 <!-- Navigation -->
                 <div class="flex justify-between items-center mb-4 px-2">
@@ -483,7 +515,6 @@
             </div>
           </div>
           
-          
         </div>
         <!-- Buttons -->
           <div class="flex gap-5 p-5">
@@ -493,6 +524,7 @@
               <span class="text-primary-text text-lg active:scale-95 transition-all duration-100 ease-in-out">Cancel</span>
             </button>
             <button 
+            id="rescheduleSubmitBtn"
             class="group w-full relative rounded-full bg-primary z-50 flex items-center justify-center overflow-hidden 
             disabled:cursor-not-allowed disabled:border-neutral-500 disabled:hover:bg-neutral-300 disabled:active:scale-none disabled:bg-neutral-300
             transition-all duration-300 ease-in-out hover:cursor-pointer active:scale-95">
@@ -632,7 +664,6 @@
 
     <script defer src="../../src/navbar.js"></script>
     <script defer src="../../src/modal.js"></script>
-    <script defer src="../../src/calendar.js"></script>
     <script defer src="../../src/notification.js"></script>
     <script type="module" src="authFunctions/view-booking-functions.js"></script>
 </body>

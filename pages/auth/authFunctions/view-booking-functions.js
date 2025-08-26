@@ -1,6 +1,119 @@
 // View Booking Functions
 // This file handles fetching and populating booking data for the view-booking page
 
+// Local toast notification function
+function showToast(type, title, message, duration = 5000) {
+    // Create toast container if it doesn't exist
+    let container = document.getElementById('toastContainer');
+    if (!container) {
+        const containerHTML = `
+            <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+                <!-- Toasts will be inserted here -->
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', containerHTML);
+        container = document.getElementById('toastContainer');
+    }
+
+    const toastId = 'toast-' + Date.now();
+    
+    // Set colors and icons based on type
+    let bgColor = '';
+    let borderColor = '';
+    let iconHTML = '';
+    let titleColor = '';
+
+    switch (type) {
+        case 'error':
+            bgColor = 'bg-red-50';
+            borderColor = 'border-red-200';
+            titleColor = 'text-red-800';
+            iconHTML = `
+                <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.982 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            `;
+            break;
+        case 'warning':
+            bgColor = 'bg-yellow-50';
+            borderColor = 'border-yellow-200';
+            titleColor = 'text-yellow-800';
+            iconHTML = `
+                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.982 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                </svg>
+            `;
+            break;
+        case 'success':
+            bgColor = 'bg-green-50';
+            borderColor = 'border-green-200';
+            titleColor = 'text-green-800';
+            iconHTML = `
+                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            `;
+            break;
+        default:
+            bgColor = 'bg-gray-50';
+            borderColor = 'border-gray-200';
+            titleColor = 'text-gray-800';
+            iconHTML = `
+                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            `;
+    }
+
+    const toastHTML = `
+        <div id="${toastId}" class="toast-animation ${bgColor} ${borderColor} border rounded-lg shadow-lg p-4 relative transform transition-all duration-300 ease-in-out translate-x-full opacity-0">
+            <div class="flex items-start">
+                <div class="flex-shrink-0">
+                    ${iconHTML}
+                </div>
+                <div class="ml-3 flex-1">
+                    <p class="text-sm font-medium ${titleColor}">
+                        ${title}
+                    </p>
+                    <p class="mt-1 text-sm text-gray-600">
+                        ${message}
+                    </p>
+                </div>
+                <div class="ml-4 flex-shrink-0 flex">
+                    <button onclick="this.closest('.toast-animation').remove()" class="rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    container.insertAdjacentHTML('beforeend', toastHTML);
+    
+    // Trigger animation
+    const toastElement = document.getElementById(toastId);
+    setTimeout(() => {
+        toastElement.classList.remove('translate-x-full', 'opacity-0');
+        toastElement.classList.add('translate-x-0', 'opacity-100');
+    }, 10);
+
+    // Auto-remove after specified duration
+    if (duration > 0) {
+        setTimeout(() => {
+            if (toastElement && toastElement.parentNode) {
+                toastElement.classList.add('translate-x-full', 'opacity-0');
+                setTimeout(() => {
+                    toastElement.remove();
+                }, 300);
+            }
+        }, duration);
+    }
+
+    return toastId;
+}
+
 // Guard to prevent double execution
 let isInitialized = false;
 
@@ -147,6 +260,18 @@ function populateBookingData(booking) {
         // Payment details
         displayPaymentDetails();
         
+        // Store booking data globally for reschedule functionality
+        currentBookingData = booking;
+        
+        // Update reschedule helper text with booking duration
+        updateRescheduleHelperText();
+        
+        // Check reschedule eligibility and manage calendar state
+        checkRescheduleEligibility(booking);
+        
+        // Set up reschedule functionality if eligible
+        setupRescheduleModal();
+        
         console.log('Booking data populated successfully');
         
     } catch (error) {
@@ -161,6 +286,8 @@ function calculateAndDisplayPaymentStatus(booking) {
         let amountPaid = 0;
         let pendingPayments = [];
         let remainingBalance = booking.totalFee || 0;
+        let unpaidReservation = false;
+        let unpaidPackage = false;
         
         // Check reservation payment status
         if (booking.reservation) {
@@ -171,6 +298,10 @@ function calculateAndDisplayPaymentStatus(booking) {
                        booking.reservation.modeOfPayment !== 'Pending') {
                 amountPaid += booking.reservationFee || 0;
                 pendingPayments.push('Reservation');
+            } else if (booking.reservation.modeOfPayment === 'Pending' || 
+                       booking.reservation.modeOfPayment === 'on' ||
+                       !booking.reservation.modeOfPayment) {
+                unpaidReservation = true;
             }
         }
         
@@ -184,6 +315,9 @@ function calculateAndDisplayPaymentStatus(booking) {
                        booking.package.modeOfPayment !== 'Pending') {
                 amountPaid += packageAmount;
                 pendingPayments.push('Package');
+            } else if (booking.package.modeOfPayment === 'Pending' ||
+                       !booking.package.modeOfPayment) {
+                unpaidPackage = true;
             }
         }
         
@@ -203,10 +337,54 @@ function calculateAndDisplayPaymentStatus(booking) {
         
         populateElement('remainingBal', Math.max(0, remainingBalance).toLocaleString());
         
+        // Handle payment button visibility and functionality
+        handlePaymentButton(booking, remainingBalance, unpaidReservation, unpaidPackage);
+        
     } catch (error) {
         console.error('Error calculating payment status:', error);
         populateElement('amountPaid', '0');
         populateElement('remainingBal', booking.totalFee?.toLocaleString() || '0');
+    }
+}
+
+// Function to handle payment button visibility and functionality
+function handlePaymentButton(booking, remainingBalance, unpaidReservation, unpaidPackage) {
+    const paymentButton = document.getElementById('paymentButton');
+    if (!paymentButton) return;
+    
+    // Show button only if there's remaining balance AND unpaid items
+    if (remainingBalance > 0 && (unpaidReservation || unpaidPackage)) {
+        paymentButton.style.display = 'flex';
+        
+        // Determine payment type and update button text
+        let paymentType = '';
+        let buttonText = 'Pay balance';
+        
+        if (unpaidReservation) {
+            paymentType = 'Reservation';
+            buttonText = 'Pay Reservation';
+        } else if (unpaidPackage) {
+            paymentType = 'Package';
+            buttonText = 'Pay Package';
+        }
+        
+        // Update button text
+        const buttonSpan = paymentButton.querySelector('span');
+        if (buttonSpan) {
+            buttonSpan.textContent = buttonText;
+        }
+        
+        // Update onclick to pass correct parameters
+        paymentButton.onclick = () => {
+            window.location.href = `../auth/confirm-payment.html?paymentType=${paymentType}&bookingId=${booking._id}`;
+        };
+        
+        console.log('Payment button configured:', { paymentType, buttonText, bookingId: booking._id });
+        
+    } else {
+        // Hide button when no payment needed
+        paymentButton.style.display = 'none';
+        console.log('Payment button hidden - no payment needed');
     }
 }
 
@@ -434,10 +612,18 @@ function populateElement(elementId, value) {
 // Utility function to format date
 function formatDate(date) {
     try {
-        return date.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
+        // Handle both Date objects and date strings
+        let dateObj;
+        if (typeof date === 'string') {
+            // Add time to avoid timezone issues
+            dateObj = new Date(date + 'T12:00:00');
+        } else {
+            dateObj = date;
+        }
+        return dateObj.toLocaleDateString('en-GB', { 
+            day: 'numeric',
+            month: 'long', 
+            year: 'numeric'
         });
     } catch (error) {
         console.error('Error formatting date:', error);
@@ -548,8 +734,625 @@ function showLoading(show) {
     }
 }
 
-// Utility function to show error message
 function showError(message) {
     console.error('Error:', message);
-    alert(message); // Simple fallback
+    showToast('error', 'Error', message);
+}
+
+// Function to setup reschedule modal functionality
+function setupRescheduleModal() {
+    try {
+        console.log('Setting up reschedule modal...');
+        
+        // Set up modal open event listener
+        const rescheduleButton = document.querySelector('[data-modal-target="reschedModal"]');
+        if (rescheduleButton && !rescheduleButton.disabled) {
+            rescheduleButton.addEventListener('click', function() {
+                // Initialize calendar when modal opens
+                setTimeout(() => {
+                    initializeRescheduleCalendar();
+                }, 100);
+            });
+        }
+
+        // Set up reschedule button in modal
+        const modalRescheduleBtn = document.getElementById('rescheduleSubmitBtn');
+        if (modalRescheduleBtn) {
+            // Remove any existing event listeners
+            const newBtn = modalRescheduleBtn.cloneNode(true);
+            modalRescheduleBtn.parentNode.replaceChild(newBtn, modalRescheduleBtn);
+            
+            // Add new event listener
+            newBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                handleReschedule();
+            });
+        }
+
+        console.log('Reschedule modal setup complete');
+    } catch (error) {
+        console.error('Error setting up reschedule modal:', error);
+    }
+}
+
+// ==========================================
+// STANDALONE RESCHEDULE CALENDAR IMPLEMENTATION
+// This is completely independent from calendar.js/calendar2.js
+// ==========================================
+
+// Calendar state variables
+let rescheduleCalendarCurrentDate = new Date();
+let rescheduleSelectedStartDate = null;
+let rescheduleSelectedEndDate = null;
+let currentBookingData = null;
+
+// Function to calculate booking duration
+function calculateBookingDuration() {
+    if (!currentBookingData || !currentBookingData.numOfDays) {
+        console.warn('No booking data or daysOfStay available for duration calculation');
+        return 7; // Default fallback
+    }
+    
+    const duration = parseInt(currentBookingData.numOfDays, 10);
+    
+    console.log('Current booking duration from daysOfStay:', duration, 'days');
+    return duration;
+}
+
+// Function to update reschedule helper text with booking duration
+function updateRescheduleHelperText() {
+    const helperText = document.getElementById('rescheduleHelperText');
+    if (helperText) {
+        const duration = calculateBookingDuration();
+        helperText.textContent = `💡 Select check-in and check-out dates to reschedule your booking (${duration} days max)`;
+    }
+}
+
+// Function to initialize reschedule calendar
+function initializeRescheduleCalendar() {
+    try {
+        console.log('Initializing standalone reschedule calendar...');
+        
+        const calendarInstance = document.querySelector('#reschedModal .calendar-instance');
+        if (!calendarInstance) {
+            console.error('Reschedule calendar instance not found');
+            return;
+        }
+
+        const leftCalendar = calendarInstance.querySelector('.leftCalendar');
+        const rightCalendar = calendarInstance.querySelector('.rightCalendar');
+        const leftLabel = calendarInstance.querySelector('.leftMonthLabel');
+        const rightLabel = calendarInstance.querySelector('.rightMonthLabel');
+        const prevBtn = calendarInstance.querySelector('.prevMonth');
+        const nextBtn = calendarInstance.querySelector('.nextMonth');
+
+        if (!leftCalendar || !rightCalendar) {
+            console.error('Calendar containers not found');
+            return;
+        }
+
+        // Reset selection state
+        rescheduleSelectedStartDate = null;
+        rescheduleSelectedEndDate = null;
+
+        function updateRescheduleCalendars() {
+            // Left calendar (current month)
+            const leftMonth = new Date(rescheduleCalendarCurrentDate);
+            buildRescheduleCalendar(leftCalendar, leftMonth, leftLabel);
+
+            // Right calendar (next month) 
+            const rightMonth = new Date(rescheduleCalendarCurrentDate);
+            rightMonth.setMonth(rightMonth.getMonth() + 1);
+            buildRescheduleCalendar(rightCalendar, rightMonth, rightLabel);
+        }
+
+        // Navigation event listeners
+        if (prevBtn) {
+            prevBtn.addEventListener('click', () => {
+                rescheduleCalendarCurrentDate.setMonth(rescheduleCalendarCurrentDate.getMonth() - 1);
+                updateRescheduleCalendars();
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', () => {
+                rescheduleCalendarCurrentDate.setMonth(rescheduleCalendarCurrentDate.getMonth() + 1);
+                updateRescheduleCalendars();
+            });
+        }
+
+        // Initial render
+        updateRescheduleCalendars();
+        updateRescheduleSelectedDateDisplay();
+
+    } catch (error) {
+        console.error('Error initializing reschedule calendar:', error);
+    }
+}
+
+function buildRescheduleCalendar(container, date, labelEl) {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    
+    // Update month label
+    labelEl.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+    // Get first day of month and total days
+    const firstDay = new Date(year, month, 1).getDay();
+    const totalDays = new Date(year, month + 1, 0).getDate();
+
+    // Create calendar HTML - matching calendar.js exactly
+    let html = `
+      <div class="grid grid-cols-7 gap-1 text-center font-manrope font-semibold border-b border-neutral-300 pb-1 mb-2">
+        <div class="w-full aspect-square flex items-center justify-center text-xs">S</div>
+        <div class="w-full aspect-square flex items-center justify-center text-xs">M</div>
+        <div class="w-full aspect-square flex items-center justify-center text-xs">T</div>
+        <div class="w-full aspect-square flex items-center justify-center text-xs">W</div>
+        <div class="w-full aspect-square flex items-center justify-center text-xs">T</div>
+        <div class="w-full aspect-square flex items-center justify-center text-xs">F</div>
+        <div class="w-full aspect-square flex items-center justify-center text-xs">S</div>
+      </div>
+      <div class="grid grid-cols-7 gap-1 text-center">
+    `;
+
+    // Add empty cells for days before the first of the month
+    for (let i = 0; i < firstDay; i++) {
+      html += '<div></div>';
+    }
+
+    // Add days
+    for (let day = 1; day <= totalDays; day++) {
+      // Create date string directly to avoid timezone issues
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+      const currentDateObj = new Date(dateStr + 'T12:00:00'); // Use noon to avoid timezone issues
+      const isDisabled = currentDateObj < new Date().setHours(0,0,0,0);
+      
+      console.log(`Day ${day} -> dateStr: ${dateStr}, currentDateObj: ${currentDateObj.toISOString()}`);
+      
+      const isSelected = (rescheduleSelectedStartDate && dateStr === rescheduleSelectedStartDate) ||
+                        (rescheduleSelectedEndDate && dateStr === rescheduleSelectedEndDate);
+      const isInRange = rescheduleSelectedStartDate && rescheduleSelectedEndDate &&
+                       dateStr > rescheduleSelectedStartDate && dateStr < rescheduleSelectedEndDate;
+
+      // Calculate if this date would exceed the current booking duration limit
+      let isOverLimit = false;
+      if (rescheduleSelectedStartDate && !rescheduleSelectedEndDate) {
+        const startDate = new Date(rescheduleSelectedStartDate + 'T12:00:00');
+        const daysDiff = Math.abs((currentDateObj - startDate) / (1000 * 60 * 60 * 24));
+        const maxDays = calculateBookingDuration();
+        isOverLimit = daysDiff > maxDays;
+      }
+
+      let classes = 'w-full aspect-square text-xs flex items-center justify-center rounded cursor-pointer transition ';
+      
+      if (isDisabled) {
+        classes += 'bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-50';
+      } else if (isSelected) {
+        classes += 'bg-primary text-white font-bold';
+      } else if (isInRange) {
+        classes += 'bg-primary text-white font-bold';
+      } else if (isOverLimit) {
+        classes += 'bg-neutral-200 text-neutral-600 cursor-not-allowed opacity-50';
+      } else {
+        classes += 'bg-background text-black hover:bg-secondary';
+      }
+
+      const tooltipText = isOverLimit ? `Exceeds booking duration of ${calculateBookingDuration()} days` : '';
+      html += `<div class="${classes}" data-reschedule-date="${dateStr}" ${isDisabled || isOverLimit ? 'style="pointer-events: none;"' : ''} ${tooltipText ? `title="${tooltipText}"` : ''}>${day}</div>`;
+    }
+
+    html += '</div>';
+    container.innerHTML = html;
+
+    // Add click handlers to date buttons
+    container.querySelectorAll('div[data-reschedule-date]').forEach(dateEl => {
+      if (!dateEl.style.pointerEvents) {
+        dateEl.addEventListener('click', () => handleRescheduleDateClick({ target: dateEl }));
+      }
+    });
+}
+
+function handleRescheduleDateClick(event) {
+    const dateStr = event.target.dataset.rescheduleDate;
+    
+    // If clicking on the same start date when no end date selected, clear selection
+    if (rescheduleSelectedStartDate === dateStr && !rescheduleSelectedEndDate) {
+        rescheduleSelectedStartDate = null;
+        rescheduleSelectedEndDate = null;
+        updateRescheduleSelectedDateDisplay();
+        refreshRescheduleCalendars();
+        return;
+    }
+    
+    // If clicking on the same end date, clear just the end date
+    if (rescheduleSelectedEndDate === dateStr) {
+        rescheduleSelectedEndDate = null;
+        updateRescheduleSelectedDateDisplay();
+        refreshRescheduleCalendars();
+        return;
+    }
+    
+    if (!rescheduleSelectedStartDate || (rescheduleSelectedStartDate && rescheduleSelectedEndDate)) {
+        // Start new selection (clear any existing selection)
+        rescheduleSelectedStartDate = dateStr;
+        rescheduleSelectedEndDate = null;
+        updateRescheduleSelectedDateDisplay();
+    } else if (dateStr < rescheduleSelectedStartDate) {
+        // If clicked date is before start date, make it the new start date
+        rescheduleSelectedStartDate = dateStr;
+        rescheduleSelectedEndDate = null;
+        updateRescheduleSelectedDateDisplay();
+    } else {
+        // Complete the selection (clicked date is after start date)
+        const startDate = new Date(rescheduleSelectedStartDate + 'T12:00:00');
+        const endDate = new Date(dateStr + 'T12:00:00');
+        const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
+        const maxDays = calculateBookingDuration();
+        
+        // Check if the selection exceeds the current booking duration
+        if (daysDiff > maxDays) {
+            showToast('warning', 'Selection Limit', `You can only reschedule for ${maxDays} days (same as your current booking). Please select a shorter range.`);
+            return;
+        }
+        
+        // Minimum stay validation (at least 1 night)
+        if (daysDiff < 1) {
+            showToast('warning', 'Invalid Selection', 'Check-out date must be after check-in date.');
+            return;
+        }
+        
+        rescheduleSelectedEndDate = dateStr;
+        updateRescheduleSelectedDateDisplay();
+    }
+    
+    // Log current selection state
+    console.log('Reschedule Date Selection:', { 
+        start: rescheduleSelectedStartDate, 
+        end: rescheduleSelectedEndDate,
+        days: rescheduleSelectedStartDate && rescheduleSelectedEndDate ? 
+            Math.ceil((new Date(rescheduleSelectedEndDate + 'T12:00:00') - new Date(rescheduleSelectedStartDate + 'T12:00:00')) / (1000 * 60 * 60 * 24)) + 1 : 0
+    });
+    
+    refreshRescheduleCalendars();
+}
+
+function refreshRescheduleCalendars() {
+    const calendarInstance = document.querySelector('#reschedModal .calendar-instance');
+    if (!calendarInstance) return;
+
+    const leftCalendar = calendarInstance.querySelector('.leftCalendar');
+    const rightCalendar = calendarInstance.querySelector('.rightCalendar');
+    const leftLabel = calendarInstance.querySelector('.leftMonthLabel');
+    const rightLabel = calendarInstance.querySelector('.rightMonthLabel');
+
+    if (leftCalendar && rightCalendar) {
+        // Left calendar (current month)
+        const leftMonth = new Date(rescheduleCalendarCurrentDate);
+        buildRescheduleCalendar(leftCalendar, leftMonth, leftLabel);
+
+        // Right calendar (next month) 
+        const rightMonth = new Date(rescheduleCalendarCurrentDate);
+        rightMonth.setMonth(rightMonth.getMonth() + 1);
+        buildRescheduleCalendar(rightCalendar, rightMonth, rightLabel);
+    }
+}
+
+function updateRescheduleSelectedDateDisplay() {
+    const selectedStaticDate = document.getElementById('selectedStaticDate');
+    const clearBtn = document.getElementById('clearSelectionBtn');
+    
+    if (selectedStaticDate) {
+        if (rescheduleSelectedStartDate && rescheduleSelectedEndDate) {
+            const startDate = new Date(rescheduleSelectedStartDate);
+            const endDate = new Date(rescheduleSelectedEndDate);
+            selectedStaticDate.textContent = `${formatDate(startDate)} to ${formatDate(endDate)}`;
+            if (clearBtn) clearBtn.classList.remove('hidden');
+        } else if (rescheduleSelectedStartDate) {
+            const startDate = new Date(rescheduleSelectedStartDate);
+            selectedStaticDate.textContent = `Check-in: ${formatDate(startDate)}`;
+            if (clearBtn) clearBtn.classList.remove('hidden');
+        } else {
+            selectedStaticDate.textContent = 'None';
+            if (clearBtn) clearBtn.classList.add('hidden');
+        }
+    }
+}
+
+// Clear selection function
+function clearRescheduleSelection() {
+    rescheduleSelectedStartDate = null;
+    rescheduleSelectedEndDate = null;
+    updateRescheduleSelectedDateDisplay();
+    refreshRescheduleCalendars();
+}
+
+// Make clear function globally accessible
+window.clearRescheduleSelection = clearRescheduleSelection;
+
+// Function to handle reschedule API call
+async function handleReschedule() {
+    try {
+        console.log('Handling reschedule...');
+
+        // Validate that dates are selected
+        if (!rescheduleSelectedStartDate || !rescheduleSelectedEndDate) {
+            showToast('warning', 'Select Dates', 'Please select both check-in and check-out dates for reschedule.');
+            return;
+        }
+
+        // Validate that we have booking data
+        if (!currentBookingData || !currentBookingData._id) {
+            showToast('error', 'Error', 'Booking information not available. Please refresh the page.');
+            return;
+        }
+
+        // Generate array of dates from start to end
+        const newBookingDates = generateDateRange(rescheduleSelectedStartDate, rescheduleSelectedEndDate);
+        
+        console.log('Reschedule submit data:', {
+            selectedStartDate: rescheduleSelectedStartDate,
+            selectedEndDate: rescheduleSelectedEndDate,
+            bookingId: currentBookingData._id,
+            newBookingDates: newBookingDates
+        });
+
+        // Show loading state
+        const rescheduleBtn = document.getElementById('rescheduleSubmitBtn');
+        rescheduleBtn.disabled = true;
+        rescheduleBtn.querySelector('span').textContent = 'Rescheduling...';
+
+        // Make API call
+        const response = await fetch(`https://betcha-api.onrender.com/booking/update-dates/${currentBookingData._id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                newBookingDates: newBookingDates
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            // Success
+            showToast('success', 'Reschedule Successful', 'Your booking has been rescheduled successfully.');
+            
+            // Close modal
+            const closeBtn = document.querySelector('#reschedModal [data-close-modal]');
+            if (closeBtn) closeBtn.click();
+            
+            // Refresh booking data
+            const urlParams = new URLSearchParams(window.location.search);
+            const bookingId = urlParams.get('bookingId');
+            if (bookingId) {
+                setTimeout(() => {
+                    fetchAndPopulateBookingData(bookingId);
+                }, 1000);
+            }
+            
+        } else {
+            // Error
+            showToast('error', 'Reschedule Failed', result.message || 'Failed to reschedule booking. Please try again.');
+        }
+
+    } catch (error) {
+        console.error('Error during reschedule:', error);
+        showToast('error', 'Network Error', 'Failed to connect to server. Please check your connection and try again.');
+    } finally {
+        // Reset button state
+        const rescheduleBtn = document.getElementById('rescheduleSubmitBtn');
+        if (rescheduleBtn) {
+            rescheduleBtn.disabled = false;
+            rescheduleBtn.querySelector('span').textContent = 'Reschedule';
+        }
+    }
+}
+
+// Helper function to generate date range array
+function generateDateRange(startDate, endDate) {
+    console.log('generateDateRange called with:', { startDate, endDate });
+    const dates = [];
+    
+    // Create dates at noon to avoid timezone issues
+    const currentDate = new Date(startDate + 'T12:00:00');
+    const end = new Date(endDate + 'T12:00:00');
+    
+    console.log('Date objects created:', { 
+        currentDate: currentDate.toISOString(), 
+        end: end.toISOString() 
+    });
+    
+    // Include both start and end dates
+    while (currentDate <= end) {
+        const dateStr = currentDate.toISOString().split('T')[0];
+        dates.push(dateStr);
+        console.log('Added date:', dateStr);
+        currentDate.setDate(currentDate.getDate() + 1);
+    }
+    
+    console.log('Generated date range:', dates);
+    return dates;
+}
+
+// Function to check reschedule eligibility and manage calendar state
+function checkRescheduleEligibility(booking) {
+    try {
+        const currentDate = new Date();
+        const createdDate = new Date(booking.createdAt);
+        const checkInDate = new Date(booking.checkIn);
+        
+        // Calculate days difference for both dates
+        const daysSinceCreated = Math.floor((currentDate - createdDate) / (1000 * 60 * 60 * 24));
+        const daysSinceCheckIn = Math.floor((currentDate - checkInDate) / (1000 * 60 * 60 * 24));
+        
+        console.log('Reschedule eligibility check:', {
+            createdDate: createdDate,
+            checkInDate: checkInDate,
+            currentDate: currentDate,
+            daysSinceCreated: daysSinceCreated,
+            daysSinceCheckIn: daysSinceCheckIn
+        });
+        
+        // Check if either the booking was created more than 5 days ago OR the check-in date is more than 5 days old
+        const isEligible = daysSinceCreated <= 5 && daysSinceCheckIn <= 5;
+        
+        // Get reschedule button
+        const rescheduleButton = document.querySelector('[data-modal-target="reschedModal"]');
+        
+        if (isEligible) {
+            console.log('Booking is eligible for reschedule');
+            if (rescheduleButton) {
+                // Reset button to enabled state
+                rescheduleButton.disabled = false;
+                rescheduleButton.classList.remove('cursor-not-allowed', 'bg-neutral-200', 'border-neutral-300');
+                rescheduleButton.classList.add('hover:bg-primary/10', 'hover:border-primary', 'active:bg-primary/10', 'active:border-primary');
+                
+                // Restore original button text and styling
+                const buttonText = rescheduleButton.querySelector('span');
+                if (buttonText) {
+                    buttonText.textContent = 'Reschedule';
+                    buttonText.classList.remove('text-neutral-500');
+                    buttonText.classList.add('group-hover:text-primary', 'group-active:text-primary');
+                }
+                
+                // Restore modal target attribute
+                rescheduleButton.setAttribute('data-modal-target', 'reschedModal');
+            }
+            enableCalendarInputs();
+        } else {
+            console.log('Booking is NOT eligible for reschedule - too old');
+            if (rescheduleButton) {
+                // Don't set disabled=true as it prevents click events
+                // Instead, style it to look disabled but keep it clickable
+                rescheduleButton.classList.add('cursor-not-allowed', 'bg-neutral-200', 'border-neutral-300');
+                rescheduleButton.classList.remove('hover:bg-primary/10', 'hover:border-primary', 'active:bg-primary/10', 'active:border-primary');
+                
+                // Update button text to indicate why it's disabled
+                const buttonText = rescheduleButton.querySelector('span');
+                if (buttonText) {
+                    buttonText.textContent = 'Reschedule Unavailable';
+                    buttonText.classList.add('text-neutral-500');
+                    buttonText.classList.remove('group-hover:text-primary', 'group-active:text-primary');
+                }
+                
+                // Remove modal target attribute to prevent modal from opening
+                rescheduleButton.removeAttribute('data-modal-target');
+                
+                // Add click handler to show toast instead of opening modal
+                rescheduleButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    console.log('Reschedule button clicked - showing toast');
+                    
+                    // Show toast notification
+                    showToast('warning', 'Reschedule Unavailable', 'This booking is more than 5 days old and cannot be rescheduled.');
+                });
+            }
+            disableCalendarInputs();
+        }
+        
+        return isEligible;
+        
+    } catch (error) {
+        console.error('Error checking reschedule eligibility:', error);
+        return false;
+    }
+}
+
+// Function to disable calendar inputs and interactions
+function disableCalendarInputs() {
+    try {
+        // Wait for DOM to be fully loaded before manipulating calendar
+        setTimeout(() => {
+            const calendarInstances = document.querySelectorAll('.calendar-instance');
+            
+            calendarInstances.forEach(instance => {
+                // Disable calendar container
+                instance.style.pointerEvents = 'none';
+                instance.style.opacity = '0.5';
+                
+                // Add disabled state styling
+                instance.classList.add('calendar-disabled');
+                
+                // Disable all buttons within the calendar
+                const buttons = instance.querySelectorAll('button');
+                buttons.forEach(button => {
+                    button.disabled = true;
+                    button.style.cursor = 'not-allowed';
+                });
+                
+                // Disable calendar cells if they exist
+                const calendarCells = instance.querySelectorAll('.calendar-day, .day, [data-day]');
+                calendarCells.forEach(cell => {
+                    cell.style.pointerEvents = 'none';
+                    cell.style.cursor = 'not-allowed';
+                    cell.onclick = null; // Remove any existing click handlers
+                });
+            });
+            
+            // Show message in the reschedule modal if it exists
+            const reschedModal = document.getElementById('reschedModal');
+            if (reschedModal) {
+                const messageElement = reschedModal.querySelector('.text-muted');
+                if (messageElement) {
+                    messageElement.textContent = 'This booking is more than 5 days old and cannot be rescheduled.';
+                    messageElement.classList.add('text-red-500');
+                }
+            }
+            
+            console.log('Calendar inputs disabled due to booking age');
+        }, 100);
+        
+    } catch (error) {
+        console.error('Error disabling calendar inputs:', error);
+    }
+}
+
+// Function to enable calendar inputs and interactions
+function enableCalendarInputs() {
+    try {
+        // Wait for DOM to be fully loaded before manipulating calendar
+        setTimeout(() => {
+            const calendarInstances = document.querySelectorAll('.calendar-instance');
+            
+            calendarInstances.forEach(instance => {
+                // Enable calendar container
+                instance.style.pointerEvents = 'auto';
+                instance.style.opacity = '1';
+                
+                // Remove disabled state styling
+                instance.classList.remove('calendar-disabled');
+                
+                // Enable all buttons within the calendar
+                const buttons = instance.querySelectorAll('button');
+                buttons.forEach(button => {
+                    button.disabled = false;
+                    button.style.cursor = 'pointer';
+                });
+                
+                // Enable calendar cells if they exist
+                const calendarCells = instance.querySelectorAll('.calendar-day, .day, [data-day]');
+                calendarCells.forEach(cell => {
+                    cell.style.pointerEvents = 'auto';
+                    cell.style.cursor = 'pointer';
+                });
+            });
+            
+            // Reset message in the reschedule modal if it exists
+            const reschedModal = document.getElementById('reschedModal');
+            if (reschedModal) {
+                const messageElement = reschedModal.querySelector('.text-muted');
+                if (messageElement) {
+                    messageElement.textContent = 'The Reschedule Feature is only available for bookings made within the last 5 days.';
+                    messageElement.classList.remove('text-red-500');
+                }
+            }
+            
+            console.log('Calendar inputs enabled');
+        }, 100);
+        
+    } catch (error) {
+        console.error('Error enabling calendar inputs:', error);
+    }
 }
