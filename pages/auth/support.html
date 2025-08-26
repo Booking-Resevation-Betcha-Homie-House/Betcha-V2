@@ -33,39 +33,8 @@
           </button>
         </div>
 
-        <div class="flex-1 overflow-y-auto divide-y divide-neutral-200">
-
-          <!-- Ticket Item -->
-          <div class="ticket-item w-full px-10 py-4 hover:bg-primary/10 cursor-pointer transition group" data-ticket-id="#TKT-1021">
-            <div class="flex items-center justify-between">
-              <p class="text-base font-bold text-gray-900 font-manrope tracking-wide group-hover:text-primary transition">
-                #TKT-1021
-              </p>
-              <span class="ticket-status in-queue">In Queue</span>
-            </div>
-            <div class="flex items-center justify-between mt-1">
-              <p class="text-xs text-gray-500 font-inter">
-                CSR: <span class="text-sm text-gray-700 font-medium">@Name</span>
-              </p>
-              <span class="text-xs text-gray-400">2h ago</span>
-            </div>
-          </div>
-          <!-- Ticket Item -->
-          <div class="ticket-active w-full px-10 py-4 hover:bg-gray-100 cursor-pointer transition group">
-            <div class="flex items-center justify-between">
-              <p class="text-base font-bold text-gray-900 font-manrope tracking-wide group-hover:text-primary transition">
-                #TKT-1021
-              </p>
-              <span class="ticket-status in-queue">In Queue</span>
-            </div>
-            <div class="flex items-center justify-between mt-1">
-              <p class="text-xs text-gray-500 font-inter">
-                CSR: <span class="text-sm text-gray-700 font-medium">@Name</span>
-              </p>
-              <span class="text-xs text-gray-400">2h ago</span>
-            </div>
-          </div>
-          
+        <div class="flex-1 overflow-y-auto divide-y divide-neutral-200" id="ticketCardContainer">
+          <!-- Tickets will be populated dynamically by support-tickets.js -->
         </div>
       </aside>
 
@@ -89,35 +58,28 @@
               </span>
             </button>
             <div>
-              <h3 class="text-lg font-semibold text-gray-800">Ticket: <span class="text-primary">#TKT-1021</span></h3>
-              <p class="text-sm text-gray-500">Assigned to <span class="font-medium text-gray-700">@Name</span></p>
+              <h3 class="text-lg font-semibold text-gray-800">Ticket: <span class="text-primary" id="ticketNo1">#TKT-1021</span></h3>
+              <p class="text-sm text-gray-500">Assigned to <span class="font-medium text-gray-700" id="customerServiceName">@Name</span></p>
             </div>
           </div>
           
-          <span class="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium">Open</span>
+          <span class="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium" id="status">Open</span>
         </div>
 
         <!-- Messages Area -->
-        <div class="flex-1 overflow-y-auto px-10 py-6 space-y-6">
+        <div class="flex-1 overflow-y-auto px-10 py-6 space-y-6" id="messageContainer">
           
           <!-- Guest Message -->
-          <div class="message-guest">
-            <div class="message-bubble">
+          <div id="meBubble" class="message-guest">
+            <div class="message-bubble" >
               <p>Hi, I need help with my booking. It’s not confirming 🥲</p>
             </div>
           </div>
 
           <!-- CSR Message -->
-          <div class="message-csr">
+          <div id="csrBubble" class="message-csr">
             <div class="message-bubble">
               <p>Hey! Let me check your booking ID real quick 🙌</p>
-            </div>
-          </div>
-
-          <!-- Guest Follow-up -->
-          <div class="message-guest">
-            <div class="message-bubble">
-              <p>Thank youu! Appreciate it 💖</p>
             </div>
           </div>
           
@@ -188,6 +150,7 @@
   <script defer src="../../src/modal.js"></script>
   <script defer src="../../src/messageBox.js"></script>
   <script defer src="../../src/supportTicketLayout.js"></script>
+  <script defer src="../../src/unauthFunctions/support.js"></script>
 
 </body>
 </html>

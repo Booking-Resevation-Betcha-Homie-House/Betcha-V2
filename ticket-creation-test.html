@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ticket Creation Test</title>
+    <link rel="stylesheet" href="/src/index.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+        button {
+            margin: 10px 5px;
+            padding: 8px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .info {
+            background: #e7f3ff;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #007bff;
+            margin: 10px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #ffc107;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Ticket Creation Test</h1>
+        <p>This page tests the complete ticket creation functionality with API integration.</p>
+
+        <div class="warning">
+            <h4>⚠️ Prerequisites:</h4>
+            <ul>
+                <li>User must be logged in (userID in localStorage)</li>
+                <li>Agent must be selected from dropdown</li>
+                <li>Category must be selected</li>
+                <li>Description must be at least 10 characters</li>
+            </ul>
+        </div>
+
+        <div class="test-section">
+            <h3>Setup Test Environment</h3>
+            <button onclick="setTestUserId()">Set Test User ID</button>
+            <button onclick="clearUserId()">Clear User ID</button>
+            <button onclick="checkLocalStorage()">Check LocalStorage</button>
+            
+            <div id="userStatus" class="info" style="margin-top: 15px;">
+                Checking user status...
+            </div>
+        </div>
+
+        <div class="test-section">
+            <h3>Complete Ticket Form</h3>
+            
+            <!-- Ticket Form -->
+            <form id="generateTicketForm" class="space-y-6">
+
+                <!-- Agent Dropdown -->
+                <div class="space-y-2">
+                    <label for="agentDropdownBtn" class="text-sm font-manrope font-medium">Select a Customer Service Agent</label>
+                    <div class="relative w-full">
+                        <button type="button" id="agentDropdownBtn" class="input-style flex justify-between items-center w-full group border border-gray-300 rounded-lg px-4 py-2 bg-white">
+                            <span id="selectedAgent" class="text-gray-400">Select a Customer Service Agent</span>
+                            <svg id="agentDropdownIcon" class="w-4 h-4 transition-transform duration-300" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1.5L8 8.5L15 1.5" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="bevel" />
+                            </svg>
+                        </button>
+                        <ul id="agentDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-gray-300 rounded-lg shadow hidden text-gray-800 max-h-48 overflow-y-auto"></ul>
+                    </div>
+                </div>
+
+                <!-- Concern Dropdown -->
+                <div class="space-y-2">
+                    <label for="concernDropdownBtn" class="text-sm font-manrope font-medium">Select a Concern</label>
+                    <div class="relative w-full">
+                        <button type="button" id="concernDropdownBtn" class="input-style flex justify-between items-center w-full group border border-gray-300 rounded-lg px-4 py-2 bg-white">
+                            <span id="selectedConcern" class="text-gray-400">Select a Concern</span>
+                            <svg id="concernDropdownIcon" class="w-4 h-4 transition-transform duration-300" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1.5L8 8.5L15 1.5" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="bevel" />
+                            </svg>
+                        </button>
+                        <ul id="concernDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-gray-300 rounded-lg shadow hidden text-gray-800 max-h-48 overflow-y-auto"></ul>
+                    </div>
+                </div>
+
+                <!-- Optional Text Input for 'Others' -->
+                <div id="otherConcernWrapper" class="space-y-2 hidden">
+                    <label for="otherConcernInput" class="text-sm font-manrope font-medium">Specify your concern</label>
+                    <input type="text" id="otherConcernInput" class="input-style w-full border border-gray-300 rounded-lg px-4 py-2" placeholder="Please specify your concern..." />
+                </div>
+
+                <!-- Description -->
+                <div class="space-y-2">
+                    <label for="description" class="text-sm font-medium">Description</label>
+                    <textarea id="description" name="description" rows="6" minlength="10" required placeholder="Explain the issue you're facing..." class="w-full border border-gray-300 rounded-lg px-4 py-2 text-sm leading-relaxed resize-none focus:ring-2 focus:ring-primary outline-none"></textarea>
+                    <p class="text-xs text-gray-500">Minimum of 10 characters</p>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full bg-blue-500 text-white py-3 px-6 rounded-lg hover:bg-blue-600 transition-colors">
+                    Generate Ticket
+                </button>
+
+            </form>
+        </div>
+
+        <div class="test-section">
+            <h3>API Test Data Preview</h3>
+            <button onclick="previewTicketData()">Preview Ticket Data</button>
+            <div id="ticketPreview" class="info" style="margin-top: 15px;">
+                Fill the form and click "Preview Ticket Data" to see what will be sent to the API.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Test functions
+        function setTestUserId() {
+            const testUserId = "685009ff53a090e126b9e2b4";
+            localStorage.setItem('userID', testUserId);
+            updateUserStatus();
+        }
+
+        function clearUserId() {
+            localStorage.removeItem('userID');
+            updateUserStatus();
+        }
+
+        function checkLocalStorage() {
+            updateUserStatus();
+        }
+
+        function updateUserStatus() {
+            const userId = localStorage.getItem('userID');
+            const statusDiv = document.getElementById('userStatus');
+            
+            if (userId) {
+                statusDiv.innerHTML = `
+                    <strong>✅ User Status:</strong> Logged in<br>
+                    <strong>User ID:</strong> ${userId}
+                `;
+                statusDiv.className = 'info';
+            } else {
+                statusDiv.innerHTML = `
+                    <strong>❌ User Status:</strong> Not logged in<br>
+                    <strong>Action:</strong> Click "Set Test User ID" to simulate login
+                `;
+                statusDiv.className = 'warning';
+            }
+        }
+
+        function previewTicketData() {
+            const selectedEmployeeId = window.getSelectedEmployeeId ? window.getSelectedEmployeeId() : null;
+            const selectedCategory = window.getSelectedCategory ? window.getSelectedCategory() : null;
+            const description = document.getElementById('description').value.trim();
+            const otherConcern = document.getElementById('otherConcernInput').value.trim();
+            const userId = localStorage.getItem('userID');
+            
+            let finalCategory = selectedCategory;
+            if (selectedCategory === 'Others' && otherConcern) {
+                finalCategory = otherConcern;
+            }
+            
+            const ticketData = {
+                category: finalCategory,
+                customerServiceAgentId: selectedEmployeeId,
+                senderId: userId,
+                messages: [
+                    {
+                        userId: userId,
+                        userLevel: "guest",
+                        message: description
+                    }
+                ]
+            };
+            
+            document.getElementById('ticketPreview').innerHTML = `
+                <strong>📝 Ticket Data Preview:</strong><br>
+                <pre style="background: #f8f9fa; padding: 10px; border-radius: 4px; overflow-x: auto; margin-top: 10px;">${JSON.stringify(ticketData, null, 2)}</pre>
+                
+                <div style="margin-top: 10px;">
+                    <strong>Validation Status:</strong><br>
+                    • Agent Selected: ${selectedEmployeeId ? '✅' : '❌'}<br>
+                    • Category Selected: ${selectedCategory ? '✅' : '❌'}<br>
+                    • Description (10+ chars): ${description.length >= 10 ? '✅' : '❌'}<br>
+                    • User Logged In: ${userId ? '✅' : '❌'}
+                </div>
+            `;
+        }
+
+        // Initialize user status on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            updateUserStatus();
+        });
+    </script>
+
+    <!-- Load the actual dropdown script -->
+    <script src="/src/genTicketInput.js"></script>
+</body>
+</html>
