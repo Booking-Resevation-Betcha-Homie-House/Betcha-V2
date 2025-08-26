@@ -493,8 +493,98 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Updated header - Ticket:', ticketNumber, 'Agent:', agentName, 'Status:', status);
   }
 
+  // Function to handle form submission for sending messages
+  function setupMessageForm() {
+    const messageForm = document.querySelector('form');
+    const messageBox = document.getElementById('messageBox');
+    
+    if (!messageForm || !messageBox) {
+      console.error('Message form or message box not found');
+      return;
+    }
+    
+    // Add form submission handler
+    messageForm.addEventListener('submit', async (event) => {
+      event.preventDefault(); // Prevent page refresh
+      
+      const message = messageBox.value.trim();
+      if (!message) {
+        console.log('No message to send');
+        return;
+      }
+      
+      if (!currentSelectedTicketId) {
+        console.error('No ticket selected');
+        return;
+      }
+      
+      const userId = getUserId();
+      if (!userId) {
+        console.error('User not logged in');
+        return;
+      }
+      
+      // Send the message
+      await sendMessage(message, currentSelectedTicketId, userId);
+      
+      // Clear the message box
+      messageBox.value = '';
+      messageBox.style.height = 'auto'; // Reset height
+    });
+    
+    // Add auto-resize functionality for textarea
+    messageBox.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 104) + 'px'; // Max height 6.5rem (104px)
+    });
+  }
+  
+  // Function to send a message
+  async function sendMessage(message, ticketId, userId) {
+    try {
+      console.log('Sending message:', message, 'to ticket:', ticketId);
+      
+      const response = await fetch(`https://betcha-api.onrender.com/tk/reply/${ticketId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          userId: userId,
+          userLevel: 'guest',
+          message: message
+        })
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        console.log('Message sent successfully:', result);
+        
+        // Refresh the ticket messages to show the new message
+        const updatedTicket = await fetchTicketMessages(ticketId);
+        if (updatedTicket) {
+          // Update the ticket in our local data
+          const ticketIndex = allTicketsData.findIndex(t => t._id === ticketId);
+          if (ticketIndex !== -1) {
+            allTicketsData[ticketIndex] = updatedTicket;
+            renderTicketMessages(updatedTicket);
+          }
+        }
+      } else {
+        console.error('Failed to send message:', result);
+        // You could add a toast notification here
+      }
+      
+    } catch (error) {
+      console.error('Error sending message:', error);
+      // You could add a toast notification here
+    }
+  }
+
   // Initialize the page
   fetchAndDisplayTickets();
+  setupMessageForm();
   
   // Optional: Add refresh functionality
   window.refreshTickets = fetchAndDisplayTickets;

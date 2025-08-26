@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Ticket Redirect Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            background: #f5f5f5;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .ticket-item {
+            background: white;
+            padding: 15px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .ticket-item:hover {
+            background: #f0f0f0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success { background: #d4edda; color: #155724; }
+        .error { background: #f8d7da; color: #721c24; }
+        .info { background: #d1ecf1; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Dashboard Ticket Redirect Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Setup</h2>
+        <p>This test simulates the dashboard ticket redirect functionality.</p>
+        
+        <button onclick="setupTestData()">Setup Test Data</button>
+        <button onclick="simulateDashboardClick()">Simulate Dashboard Ticket Click</button>
+        <button onclick="checkRedirectData()">Check Redirect Data</button>
+        <button onclick="clearTestData()">Clear Test Data</button>
+    </div>
+
+    <div class="test-section">
+        <h2>Test Results</h2>
+        <div id="testResults"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Sample Tickets (Dashboard View)</h2>
+        <div id="ticketList">
+            <!-- Tickets will be populated here -->
+        </div>
+    </div>
+
+    <script>
+        // Sample ticket data
+        const sampleTickets = [
+            {
+                _id: "ticket001",
+                ticketNumber: "00000001",
+                messages: [
+                    {
+                        userName: "John Doe",
+                        message: "I have an issue with my booking"
+                    }
+                ],
+                createdAt: "2024-01-15T10:30:00Z"
+            },
+            {
+                _id: "ticket002", 
+                ticketNumber: "00000002",
+                messages: [
+                    {
+                        userName: "Jane Smith",
+                        message: "Need help with payment"
+                    }
+                ],
+                createdAt: "2024-01-15T11:45:00Z"
+            },
+            {
+                _id: "ticket003",
+                ticketNumber: "00000003", 
+                messages: [
+                    {
+                        userName: "Bob Johnson",
+                        message: "Question about check-in time"
+                    }
+                ],
+                createdAt: "2024-01-15T14:20:00Z"
+            }
+        ];
+
+        function setupTestData() {
+            // Clear any existing test data
+            localStorage.removeItem('redirectFromDashboard');
+            localStorage.removeItem('selectedTicket');
+            
+            // Populate ticket list
+            const ticketList = document.getElementById('ticketList');
+            ticketList.innerHTML = '';
+            
+            sampleTickets.forEach(ticket => {
+                const ticketDiv = document.createElement('div');
+                ticketDiv.className = 'ticket-item';
+                ticketDiv.innerHTML = `
+                    <strong>#${ticket.ticketNumber}</strong> - ${ticket.messages[0].userName}<br>
+                    <small>${ticket.messages[0].message}</small>
+                `;
+                ticketDiv.onclick = () => simulateTicketClick(ticket);
+                ticketList.appendChild(ticketDiv);
+            });
+            
+            showStatus('Test data setup complete. Click on a ticket to simulate dashboard redirect.', 'info');
+        }
+
+        function simulateTicketClick(ticket) {
+            // This simulates what happens in the dashboard when a ticket is clicked
+            localStorage.setItem('selectedTicket', JSON.stringify(ticket));
+            localStorage.setItem('redirectFromDashboard', 'true');
+            
+            showStatus(`Ticket ${ticket.ticketNumber} selected. Redirect data stored in localStorage.`, 'success');
+        }
+
+        function simulateDashboardClick() {
+            // Simulate clicking the first ticket
+            const firstTicket = sampleTickets[0];
+            simulateTicketClick(firstTicket);
+        }
+
+        function checkRedirectData() {
+            const redirectFlag = localStorage.getItem('redirectFromDashboard');
+            const selectedTicketData = localStorage.getItem('selectedTicket');
+            
+            let status = '';
+            if (redirectFlag === 'true' && selectedTicketData) {
+                try {
+                    const ticket = JSON.parse(selectedTicketData);
+                    status = `✅ Redirect data found:<br>
+                        - Redirect flag: ${redirectFlag}<br>
+                        - Selected ticket: ${ticket.ticketNumber} (${ticket._id})<br>
+                        - Customer: ${ticket.messages[0].userName}`;
+                } catch (e) {
+                    status = `❌ Error parsing ticket data: ${e.message}`;
+                }
+            } else {
+                status = '❌ No redirect data found in localStorage';
+            }
+            
+            showStatus(status, redirectFlag === 'true' ? 'success' : 'error');
+        }
+
+        function clearTestData() {
+            localStorage.removeItem('redirectFromDashboard');
+            localStorage.removeItem('selectedTicket');
+            showStatus('Test data cleared from localStorage.', 'info');
+        }
+
+        function showStatus(message, type) {
+            const resultsDiv = document.getElementById('testResults');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+            resultsDiv.appendChild(statusDiv);
+            
+            // Auto-scroll to bottom
+            resultsDiv.scrollTop = resultsDiv.scrollHeight;
+        }
+
+        // Initialize test on page load
+        window.onload = function() {
+            setupTestData();
+        };
+    </script>
+</body>
+</html>

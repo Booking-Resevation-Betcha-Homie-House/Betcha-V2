@@ -131,11 +131,65 @@ function initializeTicketingFeatures() {
     fetchAndPopulateTickets();
     setupTabSwitching();
     setupTicketSelection();
+    setupAutoResizeTextarea();
+    handleDashboardRedirect();
     
     // Initially hide close ticket button until a ticket is selected
     const closeTicketBtn = document.querySelector('[data-modal-target="closeTicketModal"]');
     if (closeTicketBtn) {
         closeTicketBtn.style.display = 'none';
+    }
+}
+
+function handleDashboardRedirect() {
+    // Check if we were redirected from dashboard with a specific ticket
+    const redirectFromDashboard = localStorage.getItem('redirectFromDashboard');
+    const selectedTicketData = localStorage.getItem('selectedTicket');
+    
+    if (redirectFromDashboard === 'true' && selectedTicketData) {
+        console.log('Handling dashboard redirect with selected ticket');
+        
+        try {
+            const ticket = JSON.parse(selectedTicketData);
+            console.log('Selected ticket from dashboard:', ticket);
+            
+            // Wait for tickets to be loaded, then find and select the specific ticket
+            setTimeout(() => {
+                // Ensure the correct tab is active based on ticket status
+                const targetTabIndex = (ticket.status === 'resolved' || ticket.status === 'completed') ? 1 : 0;
+                document.querySelectorAll('[data-tab-group]').forEach(groupEl => {
+                    try {
+                        if (typeof setActiveTab === 'function') {
+                            setActiveTab(groupEl, targetTabIndex);
+                        }
+                    } catch (_) {}
+                });
+                selectTicketFromDashboard(ticket);
+            }, 1000); // Give time for tickets to load
+            
+        } catch (error) {
+            console.error('Error parsing selected ticket data:', error);
+        }
+        
+        // Clean up the redirect flags
+        localStorage.removeItem('redirectFromDashboard');
+        localStorage.removeItem('selectedTicket');
+    }
+}
+
+function selectTicketFromDashboard(ticket) {
+    // Find the ticket element that matches the ticket from dashboard
+    const ticketElements = document.querySelectorAll('.ticket-item');
+    
+    for (let element of ticketElements) {
+        const ticketId = element.dataset.ticketId;
+        if (ticketId === ticket._id || ticketId === ticket.ticketId) {
+            console.log('Found matching ticket, selecting it:', ticketId);
+            
+            // Simulate a click on the ticket to open it
+            element.click();
+            break;
+        }
     }
 }
 
@@ -270,6 +324,18 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
 function loadTicketDetails(ticket) {
     console.log('Loading ticket details for:', ticket);
 
+    // Reset compose box when switching tickets
+    const composeEl = document.getElementById('messageBox');
+    if (composeEl) {
+        composeEl.value = '';
+        composeEl.style.height = 'auto';
+        // Trigger auto-resize to ensure proper initial height
+        setTimeout(() => {
+            const event = new Event('input');
+            composeEl.dispatchEvent(event);
+        }, 10);
+    }
+
     const chatHeader = document.querySelector('.chat-header');
     if (chatHeader) {
         const ticketNumber = chatHeader.querySelector('p');
@@ -383,6 +449,37 @@ function setupTicketSelection() {
             ticketMain?.classList.replace('translate-x-0', 'translate-x-full');
         });
     }
+}
+
+function setupAutoResizeTextarea() {
+    const messageBox = document.getElementById('messageBox');
+    if (!messageBox) return;
+
+    // Function to auto-resize the textarea
+    function autoResize() {
+        // Reset height to auto to get the correct scrollHeight
+        messageBox.style.height = 'auto';
+        
+        // Set height to scrollHeight, but limit to max height (6.5rem = 104px)
+        const maxHeight = 104; // 6.5rem in pixels
+        const scrollHeight = messageBox.scrollHeight;
+        
+        if (scrollHeight <= maxHeight) {
+            messageBox.style.height = scrollHeight + 'px';
+        } else {
+            messageBox.style.height = maxHeight + 'px';
+        }
+    }
+
+    // Add event listeners
+    messageBox.addEventListener('input', autoResize);
+    messageBox.addEventListener('paste', () => {
+        // Small delay to allow paste content to be processed
+        setTimeout(autoResize, 10);
+    });
+
+    // Initial resize
+    autoResize();
 }
 
 function showNoTicketsMessage() {
@@ -507,7 +604,7 @@ document.querySelector('#ticketMain form').addEventListener('submit', (e) => {
     e.preventDefault();
     const textarea = document.getElementById('messageBox');
     const message = textarea.value.trim();
-    const ticketId = document.querySelector('.ticket-item[class*="bg-primary/10"]')?.dataset.ticketId;
+    const ticketId = document.querySelector('.ticket-item.selected-ticket')?.dataset.ticketId;
  // currently opened ticket
 
     if (!ticketId) {

@@ -308,19 +308,20 @@ function createTransactionElement(transaction, tabType) {
 
 // Get Status Color Class
 function getStatusColorClass(status) {
-    switch (status.toLowerCase()) {
-        case 'fully-paid':
-        case 'completed':
-            return 'text-green-600';
-        case 'pending payment':
-        case 'pending':
-            return 'text-yellow-600';
-        case 'cancelled':
-        case 'refunded':
-            return 'text-red-600';
-        default:
-            return 'text-neutral-800';
+    const normalized = String(status || '').toLowerCase();
+    
+    // Rose red for any cancel/refund variants
+    if (normalized.includes('cancel') || normalized.includes('refunded')) {
+        return 'text-rose-600';
     }
+    
+    // Yellow for any pending variants
+    if (normalized.includes('pending')) {
+        return 'text-yellow-600';
+    }
+    
+    // Everything else is green
+    return 'text-green-600';
 }
 
 // Setup Tab Switching Functionality
@@ -412,17 +413,9 @@ function openTransactionModal(transaction, skipApiCall = false) {
         // Setup modal close functionality
         setupModalCloseHandlers(modal);
         
-        if (skipApiCall) {
-            // Skip API call and directly populate with transaction data
-            console.log('Skipping API call, using transaction data directly');
-            setTimeout(() => {
-                restoreModalContent(modal);
-                populateModalWithTransactionData(modal, transaction);
-            }, 300);
-        } else {
-            // Fetch detailed booking information
-            fetchBookingDetails(transaction.bookingId, modal, transaction);
-        }
+        // Always fetch detailed booking information for accurate pricing
+        console.log('Fetching detailed booking information for accurate pricing');
+        fetchBookingDetails(transaction.bookingId, modal, transaction);
         
         console.log('Transaction modal opened successfully');
         
@@ -675,15 +668,15 @@ function populateModalWithBookingData(modal, booking, transactionData) {
         const packageFeePerDay = Math.round(booking.packageFee / booking.numOfDays);
         const totalAdditionalPaxFee = booking.additionalPaxPrice * booking.additionalPax;
         
-        updateElement('#packageFee', packageFeePerDay.toLocaleString());
-        updateElement('#numOfDays', booking.numOfDays);
-        updateElement('#totalPackageFee', booking.packageFee.toLocaleString());
-        updateElement('#additionalPaxPrice', booking.additionalPaxPrice.toLocaleString());
-        updateElement('#additionalPax', booking.additionalPax);
-        updateElement('#totalAdditionalPax', totalAdditionalPaxFee.toLocaleString());
+        updateElement('#pricePerDay', packageFeePerDay.toLocaleString());
+        updateElement('#daysOfStay', booking.numOfDays);
+        updateElement('#totalPriceDay', booking.packageFee.toLocaleString());
+        updateElement('#addGuestPrice', booking.additionalPaxPrice.toLocaleString());
+        updateElement('#addGuestCount', booking.additionalPax);
+        updateElement('#totalAddGuest', totalAdditionalPaxFee.toLocaleString());
         updateElement('#reservationFee', booking.reservationFee.toLocaleString());
         updateElement('#discount', booking.discount);
-        updateElement('#totalFee', booking.totalFee.toLocaleString());
+        updateElement('#totalPrice', booking.totalFee.toLocaleString());
         
         // Update total amount display
         const formattedAmount = parseFloat(booking.totalFee).toLocaleString('en-PH', {

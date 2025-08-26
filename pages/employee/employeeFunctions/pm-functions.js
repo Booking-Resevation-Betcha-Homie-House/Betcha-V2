@@ -2238,11 +2238,7 @@ function createCalendarBookingElement(booking) {
                 <span id="checkOutDate">${checkOutFormatted}</span>
             </div>
             
-            <!-- Booking ID and Status -->
-            <div class="flex items-center gap-2 mt-2">
-                <span class="text-xs text-neutral-400 font-mono">ID: ${bookingId}</span>
-                <span class="text-xs px-2 py-1 rounded-full ${statusColor} font-medium">${status}</span>
-            </div>
+            <!-- Removed ID and status badge per design request -->
         </div>
     `;
     
