@@ -704,21 +704,21 @@ function filterProperties(searchTerm) {
     });
 }
 
-// Export functions for use in other files
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        addEmployee,
-        showError,
-        showSuccess,
-        resetForm,
-        validateForm,
-        populateRoles,
-        populateRolesManually,
-        updateSelectedRolesDisplay,
-        removeRole,
-        populateProperties,
-        updateSelectedPropertiesDisplay,
-        removeProperty,
-        filterProperties
-    };
-}
+// Export functions for use in other files (commented out for potential deletion)
+// if (typeof module !== 'undefined' && module.exports) {
+//     module.exports = {
+//         addEmployee,
+//         showError,
+//         showSuccess,
+//         resetForm,
+//         validateForm,
+//         populateRoles,
+//         populateRolesManually,
+//         updateSelectedRolesDisplay,
+//         removeRole,
+//         populateProperties,
+//         updateSelectedPropertiesDisplay,
+//         removeProperty,
+//         filterProperties
+//     };
+// }

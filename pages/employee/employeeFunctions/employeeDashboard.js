@@ -460,7 +460,7 @@ async function loadAndPopulateTodayCheckins() {
     // Handle the actual API response structure - it's an array with message and booking objects
     if (Array.isArray(data)) {
       // Filter out message objects and keep only valid booking objects
-      const allBookings = data.filter(item => item.bookingId && item.propertyId);
+      const allBookings = data.filter(item => item._id && item.propertyId); // Changed bookingId to _id
       
       // Apply the same status filtering logic as the PM page
       const validBookings = allBookings.filter(booking => {

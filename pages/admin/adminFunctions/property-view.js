@@ -18,6 +18,104 @@ document.addEventListener('DOMContentLoaded', function() {
     initializePage();
 });
 
+// (Removed) console.log override; logs are stripped from this file
+
+// ===== Amenity metadata and category constants =====
+// Single source of truth for amenity display name and icon filename
+const AMENITY_META = {
+    wifi: { name: 'WiFi', icon: 'wifi.svg' },
+    aircon: { name: 'Air Conditioning', icon: 'aircon.svg' },
+    bedset: { name: 'Complete Bed', icon: 'bed.svg' },
+    hanger: { name: 'Hangers', icon: 'hanger.svg' },
+    hairDryer: { name: 'Hair Dryer', icon: 'hairDryer.svg' },
+    iron: { name: 'Iron', icon: 'iron.svg' },
+    extraPillowBlanket: { name: 'Extra Pillows & Blankets', icon: 'extraPillowsBlanket.svg' },
+    towel: { name: 'Towel', icon: 'towel.svg' },
+    ref: { name: 'Refrigerator', icon: 'refrigerator.svg' },
+    microwave: { name: 'Microwave', icon: 'microwave.svg' },
+    stove: { name: 'Stove', icon: 'stove.svg' },
+    oven: { name: 'Oven', icon: 'oven.svg' },
+    coffeeMaker: { name: 'Coffee Maker', icon: 'coffeeMaker.svg' },
+    toaster: { name: 'Toaster', icon: 'toaster.svg' },
+    potsPans: { name: 'Pots & Pans', icon: 'pan.svg' },
+    PotsPans: { name: 'Pots & Pans', icon: 'pan.svg' },
+    spices: { name: 'Spices', icon: 'salt.svg' },
+    dishesCutlery: { name: 'Dishes & Cutlery', icon: 'dishes.svg' },
+    diningTable: { name: 'Dining Table', icon: 'diningtable.svg' },
+    bathtub: { name: 'Bathtub', icon: 'bath.svg' },
+    shower: { name: 'Shower', icon: 'shower.svg' },
+    shampoo: { name: 'Shampoo', icon: 'shampoo.svg' },
+    soap: { name: 'Soap', icon: 'soap.svg' },
+    toilet: { name: 'Toilet', icon: 'toilet.svg' },
+    toiletPaper: { name: 'Toilet Paper', icon: 'toiletPaper.svg' },
+    washer: { name: 'Washer', icon: 'washer.svg' },
+    dryer: { name: 'Dryer', icon: 'dryer.svg' },
+    dryingRack: { name: 'Drying Rack', icon: 'ironBoard.svg' },
+    ironBoard: { name: 'Iron Board', icon: 'ironBoard.svg' },
+    cleaningProduct: { name: 'Cleaning Products', icon: 'detergent.svg' },
+    tv: { name: 'TV', icon: 'tv.svg' },
+    streaming: { name: 'Streaming Services', icon: 'tv.svg' },
+    soundSystem: { name: 'Sound System', icon: 'speaker.svg' },
+    consoleGames: { name: 'Gaming Console', icon: 'console.svg' },
+    boardGames: { name: 'Board Games', icon: 'chess.svg' },
+    cardGames: { name: 'Card Games', icon: 'card.svg' },
+    billiard: { name: 'Billiard Table', icon: 'chess.svg' },
+    smokeAlarm: { name: 'Smoke Alarm', icon: 'smokeAlarm.svg' },
+    fireExtinguisher: { name: 'Fire Extinguisher', icon: 'fireExtinguisher.svg' },
+    firstAidKit: { name: 'First Aid Kit', icon: 'firstAidKit.svg' },
+    cctv: { name: 'CCTV', icon: 'cctv.svg' },
+    smartLock: { name: 'Smart Lock', icon: 'smartLock.svg' },
+    guard: { name: 'Security Guard', icon: 'guard.svg' },
+    stairGate: { name: 'Stair Gate', icon: 'gate.svg' },
+    freeParking: { name: 'Free Parking', icon: 'parkring.svg' },
+    paidParking: { name: 'Paid Parking', icon: 'parkring.svg' },
+    bike: { name: 'Bicycle', icon: 'bike.svg' },
+    balcony: { name: 'Balcony', icon: 'balcony.svg' },
+    garden: { name: 'Garden', icon: 'garden.svg' },
+    grill: { name: 'Grill', icon: 'grill.svg' },
+    firePit: { name: 'Fire Pit', icon: 'firePit.svg' },
+    pool: { name: 'Swimming Pool', icon: 'pool.svg' },
+    bed: { name: 'Bed', icon: 'bed.svg' },
+    petsAllowed: { name: 'Pets Allowed', icon: 'petPaw.svg' },
+    petsNotAllowed: { name: 'No Pets', icon: 'petPaw.svg' },
+    notAllowed: { name: 'No Pets', icon: 'petPaw.svg' },
+    petBowls: { name: 'Pet Bowls', icon: 'bowl.svg' },
+    foodBowl: { name: 'Pet Bowls', icon: 'bowl.svg' },
+    petBed: { name: 'Pet Bed', icon: 'bed.svg' },
+    crib: { name: 'Crib', icon: 'crib.svg' },
+    babyBath: { name: 'Baby Bath', icon: 'bath.svg' },
+    allowed: { name: 'Pets Allowed', icon: 'petPaw.svg' }
+};
+
+// No fuzzy normalization needed – API provides canonical amenity keys
+
+// Category definitions shared across categorization and rendering
+const CATEGORIES = {
+    'Essentials': ['wifi', 'aircon', 'bedset', 'hanger', 'hairDryer', 'iron', 'extraPillowBlanket', 'towel'],
+    'Kitchen & Dining': ['ref', 'microwave', 'stove', 'oven', 'coffeeMaker', 'toaster', 'PotsPans', 'spices', 'dishesCutlery', 'diningTable'],
+    'Safety & Security': ['smokeAlarm', 'fireExtinguisher', 'firstAidKit', 'cctv', 'smartLock', 'guard', 'stairGate'],
+    'Entertainment': ['tv', 'streaming', 'soundSystem', 'consoleGames', 'boardGames', 'cardGames', 'billiard'],
+    'Outdoor & Parking': ['freeParking', 'paidParking', 'bike', 'balcony', 'garden', 'grill', 'firePit', 'pool'],
+    'Bathroom': ['bathtub', 'shower', 'shampoo', 'soap', 'toilet', 'toiletPaper'],
+    'Laundry': ['washer', 'dryer', 'dryingRack', 'ironBoard', 'cleaningProduct'],
+    'Pets': ['petsAllowed', 'petsNotAllowed', 'petBowls', 'petBed', 'allowed'],
+    'Family Friendly': ['crib', 'babyBath', 'stairGate']
+};
+
+// Map of category to modal container id
+const CATEGORY_TO_CONTAINER_ID = {
+    'Essentials': 'essentialsList',
+    'Kitchen & Dining': 'kitchenDiningList',
+    'Bathroom': 'bathroomList',
+    'Laundry': 'laundryList',
+    'Safety & Security': 'safetySecurityList',
+    'Entertainment': 'entertainmentList',
+    'Outdoor & Parking': 'outdoorNatureList',
+    'Parking & Transport': 'parkingTransportList',
+    'Pets': 'petsList',
+    'Family Friendly': 'familyFriendlyList',
+    'Other': 'othersList'
+};
 // Fetch property data from API
 async function fetchPropertyData(propertyId) {
     try {
@@ -28,7 +126,6 @@ async function fetchPropertyData(propertyId) {
         }
         
         const propertyData = await response.json();
-        console.log('Property data:', propertyData);
         
         // Populate the page with the fetched data
         populatePropertyData(propertyData);
@@ -296,43 +393,18 @@ function createImageElement(src, className) {
 }
 
 // Populate amenities
-function populateAmenities(amenities, otherAmenities) {
-    console.log('🏠 Starting amenities population:', { amenities, otherAmenities });
-    
-    if (!amenities || amenities.length === 0) {
-        console.warn('⚠️ No amenities provided, skipping population');
-        return;
-    }
-    
-    // Prevent duplicate population
-    if (window.amenitiesPopulated) {
-        console.log('⚠️ Amenities already populated, skipping duplicate population');
-        return;
-    }
-    
+function renderAmenities({ amenities, otherAmenities, mainLimit = 5 }) {
+    if (!amenities || amenities.length === 0) return;
+    if (window.amenitiesPopulated) return;
     try {
-    // Clear all existing amenity items
-    clearAllAmenities();
-    
-        // Get the amenities container for the main display (first 5 amenities)
+        clearAllAmenities();
         const mainAmenitiesContainer = document.getElementById('mainAmenities');
         if (mainAmenitiesContainer) {
             mainAmenitiesContainer.innerHTML = '';
-            
-            // Show up to 5 amenities in the main section
-            const displayAmenities = amenities.slice(0, 5);
+            const displayAmenities = amenities.slice(0, mainLimit);
             displayAmenities.forEach(amenity => {
-                // Get amenity display info
                 const amenityInfo = getAmenityDisplayInfo(amenity);
                 const iconPath = getAmenityIcon(amenityInfo.icon);
-                
-                console.log(`🎯 Creating amenity item for "${amenity}":`, {
-                    amenity,
-                    amenityInfo,
-                    iconPath
-                });
-                
-                // Create amenity item for main display
                 const li = document.createElement('li');
                 li.className = 'w-full p-2';
                 li.innerHTML = `
@@ -343,108 +415,54 @@ function populateAmenities(amenities, otherAmenities) {
                 `;
                 mainAmenitiesContainer.appendChild(li);
             });
-            
-            // Show "Show all amenities" button if there are more than 5 amenities
-            if (amenities.length > 5) {
-                const showAllButton = document.getElementById('showAllAmenitiesBtn');
-                if (showAllButton) {
+            const showAllButton = document.getElementById('showAllAmenitiesBtn');
+            if (showAllButton) {
+                if (amenities.length > mainLimit) {
                     showAllButton.style.display = 'block';
                     showAllButton.textContent = `Show all amenities (${amenities.length})`;
+                } else {
+                    showAllButton.style.display = 'none';
                 }
             }
-        } else {
-            console.error('❌ Main amenities container not found');
         }
-        
-        // Populate amenities in the new categorized modal structure
-        // Combine regular amenities and other amenities to ensure all are categorized
         const allAmenities = [...amenities];
-    if (otherAmenities && otherAmenities.length > 0) {
-            allAmenities.push(...otherAmenities);
-            console.log('🔍 Combined amenities and other amenities:', allAmenities);
-        }
-        
+        if (otherAmenities && otherAmenities.length > 0) allAmenities.push(...otherAmenities);
         populateCategorizedAmenities(allAmenities);
-        
-        // Mark amenities as populated to prevent duplicates
         window.amenitiesPopulated = true;
-        console.log('✅ Amenities populated successfully');
-        
     } catch (error) {
-        console.error('❌ Error populating amenities:', error);
-        window.amenitiesPopulated = false; // Reset flag on error
+        window.amenitiesPopulated = false;
     }
+}
+
+function populateAmenities(amenities, otherAmenities) {
+    renderAmenities({ amenities, otherAmenities, mainLimit: 5 });
 }
 
 // New function to populate categorized amenities in the modal
 function populateCategorizedAmenities(amenities) {
-    console.log('📁 Populating categorized amenities in modal');
     
     // Group amenities by category
     const categorizedAmenities = categorizeAmenities(amenities);
-    console.log('📁 Categorized amenities:', categorizedAmenities);
     
     // Populate each category list
     Object.keys(categorizedAmenities).forEach(category => {
         const amenitiesList = categorizedAmenities[category];
         if (amenitiesList.length > 0) {
-            console.log(`📁 Populating category: "${category}" with amenities:`, amenitiesList);
             
             // Get the appropriate container for this category
-            let containerId = '';
-            switch (category) {
-                case 'Essentials':
-                    containerId = 'essentialsList';
-                    break;
-                case 'Kitchen & Dining':
-                    containerId = 'kitchenDiningList';
-                    break;
-                case 'Bathroom':
-                    containerId = 'bathroomList';
-                    break;
-                case 'Laundry':
-                    containerId = 'laundryList';
-                    break;
-                case 'Safety & Security':
-                    containerId = 'safetySecurityList';
-                    break;
-                case 'Entertainment':
-                    containerId = 'entertainmentList';
-                    break;
-                case 'Outdoor & Parking':
-                    containerId = 'outdoorNatureList';
-                    break;
-                case 'Parking & Transport':
-                    containerId = 'parkingTransportList';
-                    break;
-                case 'Pets':
-                    containerId = 'petsList';
-                    break;
-                case 'Family Friendly':
-                    containerId = 'familyFriendlyList';
-                    break;
-                case 'Other':
-                    // Handle "Other" category by populating the others section
-                    console.log(`📁 Handling "Other" category with ${amenitiesList.length} amenities`);
-                    populateOtherAmenities(amenitiesList);
-                    return; // Skip the rest of the loop for this category
-                default:
-                    console.log(`ℹ️ Category "${category}" not displayed in modal (${amenitiesList.length} amenities)`);
-                    return;
+            let containerId = CATEGORY_TO_CONTAINER_ID[category] || '';
+            if (category === 'Other') {
+                populateOtherAmenities(amenitiesList);
+                return; // Skip the rest of the loop for this category
             }
             
-            console.log(`🔍 Looking for container with ID: ${containerId}`);
             const container = document.getElementById(containerId);
             if (container) {
-                console.log(`✅ Found container for ${category}:`, container);
                 container.innerHTML = '';
                 
                 amenitiesList.forEach(amenity => {
-                    console.log(`🔍 Processing amenity for display: "${amenity}"`);
                     const amenityInfo = getAmenityDisplayInfo(amenity);
-                    console.log(`📝 Amenity info for "${amenity}":`, amenityInfo);
                     const iconPath = getAmenityIcon(amenityInfo.icon);
-                    console.log(`🎨 Icon path for "${amenity}": ${iconPath}`);
                     
                     const li = document.createElement('li');
                     li.className = 'p-2';
@@ -455,10 +473,8 @@ function populateCategorizedAmenities(amenities) {
                         </div>
                     `;
                     container.appendChild(li);
-                    console.log(`✅ Added amenity "${amenity}" to ${category} container`);
                 });
                 
-                console.log(`✅ Category "${category}" populated with ${amenitiesList.length} amenities`);
             } else {
                 console.error(`❌ Container not found for category: ${category} (ID: ${containerId})`);
             }
@@ -468,7 +484,6 @@ function populateCategorizedAmenities(amenities) {
 
 // New function to populate other amenities
 function populateOtherAmenities(otherAmenities) {
-    console.log('🔍 Populating other amenities');
     
     const othersContainer = document.getElementById('othersContainer');
     const othersList = document.getElementById('othersList');
@@ -495,7 +510,6 @@ function populateOtherAmenities(otherAmenities) {
                 othersList.appendChild(li);
             });
             
-            console.log('✅ Other amenities populated successfully');
         } else {
             othersContainer.style.display = 'none';
         }
@@ -507,288 +521,26 @@ function populateOtherAmenities(otherAmenities) {
 // Function to reset amenities populated flag (useful when editing properties)
 function resetAmenitiesPopulatedFlag() {
     window.amenitiesPopulated = false;
-    console.log('🔄 Amenities populated flag reset');
 }
 
-// Function to ensure amenities modal works properly
-function ensureAmenitiesModalWorks() {
-    console.log('🔧 Ensuring amenities modal works properly...');
-    
-    // Check if modal exists
-    const modal = document.getElementById('ammenitiesModal');
-    if (!modal) {
-        console.error('❌ Amenities modal not found');
-        return;
-    }
-    
-    // Check if button exists
-    const button = document.getElementById('showAllAmenitiesBtn');
-    if (!button) {
-        console.error('❌ Show all amenities button not found');
-        return;
-    }
-    
-    // Check if categorized amenities containers exist
-    const essentialsContainer = document.getElementById('essentialsList');
-    const kitchenDiningContainer = document.getElementById('kitchenDiningList');
-    const bathroomContainer = document.getElementById('bathroomList');
-    const laundryContainer = document.getElementById('laundryList');
-    const safetySecurityContainer = document.getElementById('safetySecurityList');
-    const entertainmentContainer = document.getElementById('entertainmentList');
-    const parkingTransportContainer = document.getElementById('parkingTransportList');
-    const outdoorNatureContainer = document.getElementById('outdoorNatureList');
-    const petsContainer = document.getElementById('petsList');
-    const familyFriendlyContainer = document.getElementById('familyFriendlyList');
-    const othersContainer = document.getElementById('othersContainer');
-    
-    if (!essentialsContainer) {
-        console.error('❌ Essentials container not found');
-    } else {
-        console.log('✅ Essentials container found');
-    }
-    
-    if (!kitchenDiningContainer) {
-        console.error('❌ Kitchen & Dining container not found');
-    } else {
-        console.log('✅ Kitchen & Dining container found');
-    }
-    
-    if (!bathroomContainer) {
-        console.error('❌ Bathroom container not found');
-    } else {
-        console.log('✅ Bathroom container found');
-    }
-    
-    if (!laundryContainer) {
-        console.error('❌ Laundry container not found');
-    } else {
-        console.log('✅ Laundry container found');
-    }
-    
-    if (!safetySecurityContainer) {
-        console.error('❌ Safety & Security container not found');
-    } else {
-        console.log('✅ Safety & Security container found');
-    }
-    
-    if (!entertainmentContainer) {
-        console.error('❌ Entertainment container not found');
-    } else {
-        console.log('✅ Entertainment container found');
-    }
-    
-    if (!parkingTransportContainer) {
-        console.error('❌ Parking & Transport container not found');
-    } else {
-        console.log('✅ Parking & Transport container found');
-    }
-    
-    if (!outdoorNatureContainer) {
-        console.error('❌ Outdoor & Nature container not found');
-    } else {
-        console.log('✅ Outdoor & Nature container found');
-    }
-    
-    if (!petsContainer) {
-        console.error('❌ Pets container not found');
-    } else {
-        console.log('✅ Pets container found');
-    }
-    
-    if (!familyFriendlyContainer) {
-        console.error('❌ Family Friendly container not found');
-    } else {
-        console.log('✅ Family Friendly container found');
-    }
-    
-    if (!othersContainer) {
-        console.error('❌ Others container not found');
-    } else {
-        console.log('✅ Others container found');
-    }
-    
-    // Add click event listener if not already present
-    if (!button.hasAttribute('data-modal-target')) {
-        button.setAttribute('data-modal-target', 'ammenitiesModal');
-        console.log('✅ Added data-modal-target attribute to button');
-    }
-    
-    console.log('🔧 Amenities modal setup complete');
-}
+// (Removed) ensureAmenitiesModalWorks: redundant existence checks not needed in production
 
 // Get amenity display info (icon and friendly name)
 function getAmenityDisplayInfo(amenity) {
-    const amenityInfo = {
-        'wifi': { icon: 'wifi', name: 'WiFi' },
-        'aircon': { icon: 'aircon', name: 'Air Conditioning' },
-        'bedset': { icon: 'bed', name: 'Complete Bed' },
-        'hanger': { icon: 'hanger', name: 'Hangers' },
-        'hairDryer': { icon: 'hairDryer', name: 'Hair Dryer' },
-        'iron': { icon: 'iron', name: 'Iron' },
-        'extraPillowBlanket': { icon: 'pillow', name: 'Extra Pillows & Blankets' },
-        'towel': { icon: 'towel', name: 'Towel' },
-        'ref': { icon: 'refrigerator', name: 'Refrigerator' },
-        'microwave': { icon: 'microwave', name: 'Microwave' },
-        'stove': { icon: 'stove', name: 'Stove' },
-        'oven': { icon: 'oven', name: 'Oven' },
-        'coffeeMaker': { icon: 'coffee', name: 'Coffee Maker' },
-        'toaster': { icon: 'toaster', name: 'Toaster' },
-        'PotsPans': { icon: 'pots', name: 'Pots & Pans' },
-        'spices': { icon: 'spices', name: 'Spices' },
-        'dishesCutlery': { icon: 'dishes', name: 'Dishes & Cutlery' },
-        'diningTable': { icon: 'table', name: 'Dining Table' },
-        'bathtub': { icon: 'bathtub', name: 'Bathtub' },
-        'shower': { icon: 'shower', name: 'Shower' },
-        'shampoo': { icon: 'shampoo', name: 'Shampoo' },
-        'soap': { icon: 'soap', name: 'Soap' },
-        'toilet': { icon: 'toilet', name: 'Toilet' },
-        'toiletPaper': { icon: 'toiletPaper', name: 'Toilet Paper' },
-        'washer': { icon: 'washer', name: 'Washer' },
-        'dryer': { icon: 'dryer', name: 'Dryer' },
-        'dryingRack': { icon: 'dryingRack', name: 'Drying Rack' },
-        'ironBoard': { icon: 'ironBoard', name: 'Iron Board' },
-        'cleaningProduct': { icon: 'cleaning', name: 'Cleaning Products' },
-        'tv': { icon: 'tv', name: 'TV' },
-        'streaming': { icon: 'tv', name: 'Streaming Services' },
-        'soundSystem': { icon: 'speaker', name: 'Sound System' },
-        'consoleGames': { icon: 'gamepad', name: 'Gaming Console' },
-        'boardGames': { icon: 'chess', name: 'Board Games' },
-        'cardGames': { icon: 'cards', name: 'Card Games' },
-        'billiard': { icon: 'billiard', name: 'Billiard Table' },
-        'smokeAlarm': { icon: 'smokeAlarm', name: 'Smoke Alarm' },
-        'fireExtinguisher': { icon: 'fireExtinguisher', name: 'Fire Extinguisher' },
-        'firstAidKit': { icon: 'firstAid', name: 'First Aid Kit' },
-        'cctv': { icon: 'cctv', name: 'CCTV' },
-        'smartLock': { icon: 'smartLock', name: 'Smart Lock' },
-        'guard': { icon: 'guard', name: 'Security Guard' },
-        'stairGate': { icon: 'gate', name: 'Stair Gate' },
-        'freeParking': { icon: 'parking', name: 'Free Parking' },
-        'paidParking': { icon: 'parking', name: 'Paid Parking' },
-        'bike': { icon: 'bike', name: 'Bicycle' },
-        'balcony': { icon: 'balcony', name: 'Balcony' },
-        'garden': { icon: 'garden', name: 'Garden' },
-        'grill': { icon: 'grill', name: 'Grill' },
-        'firePit': { icon: 'firePit', name: 'Fire Pit' },
-        'pool': { icon: 'pool', name: 'Swimming Pool' },
-        'petsAllowed': { icon: 'pets', name: 'Pets Allowed' },
-        'petsNotAllowed': { icon: 'pets', name: 'No Pets' },
-        'petBowls': { icon: 'petBowl', name: 'Pet Bowls' },
-        'petBed': { icon: 'petBed', name: 'Pet Bed' },
-        'crib': { icon: 'crib', name: 'Crib' },
-        'babyBath': { icon: 'babyBath', name: 'Baby Bath' },
-        'allowed': { icon: 'pets', name: 'Pets Allowed' }
-    };
-    
-    console.log(`🔍 getAmenityDisplayInfo called with: "${amenity}"`);
-    console.log(`🔍 Available keys:`, Object.keys(amenityInfo));
-    
-    // Try exact match first, then case-insensitive match
-    let result = amenityInfo[amenity] || amenityInfo[amenity.toLowerCase()] || { icon: 'default', name: amenity };
-    console.log(`🔍 getAmenityDisplayInfo("${amenity}") -> result:`, result);
-    return result;
+    const key = (amenity || '').toString();
+    const meta = AMENITY_META[key] || { name: key, icon: 'star.svg' };
+    return { icon: meta.icon.replace('.svg', ''), name: meta.name };
 }
 
 // Get SVG icon for amenity type
 function getAmenityIcon(iconType) {
-    // Map icon types to actual SVG files in the public/svg folder
-    const iconMap = {
-        'wifi': 'wifi.svg',
-        'refrigerator': 'refrigerator.svg',
-        'bathtub': 'bath.svg',
-        'washer': 'washer.svg',
-        'tv': 'tv.svg',
-        'smokeAlarm': 'smokeAlarm.svg',
-        'parking': 'parkring.svg', // Note: this is the actual filename
-        'balcony': 'balcony.svg',
-        'pets': 'petPaw.svg',
-        'crib': 'crib.svg',
-        'aircon': 'aircon.svg',
-        'bed': 'bed.svg',
-        'hanger': 'hanger.svg',
-        'hairDryer': 'hairDryer.svg',
-        'iron': 'iron.svg',
-        'pillow': 'extraPillowsBlanket.svg',
-        'towel': 'towel.svg',
-        'microwave': 'microwave.svg',
-        'stove': 'stove.svg',
-        'oven': 'oven.svg',
-        'coffee': 'coffeeMaker.svg',
-        'toaster': 'toaster.svg',
-        'pots': 'pan.svg',
-        'spices': 'salt.svg',
-        'dishes': 'dishes.svg',
-        'table': 'diningtable.svg',
-        'shower': 'shower.svg',
-        'shampoo': 'shampoo.svg',
-        'soap': 'soap.svg',
-        'toilet': 'toilet.svg',
-        'toiletPaper': 'toiletPaper.svg',
-        'dryer': 'dryer.svg',
-        'dryingRack': 'ironBoard.svg',
-        'ironBoard': 'ironBoard.svg',
-        'cleaning': 'detergent.svg',
-        'speaker': 'speaker.svg',
-        'gamepad': 'console.svg',
-        'chess': 'chess.svg',
-        'cards': 'card.svg',
-        'billiard': 'chess.svg',
-        'fireExtinguisher': 'fireExtinguisher.svg',
-        'firstAid': 'firstAidKit.svg',
-        'cctv': 'cctv.svg',
-        'smartLock': 'smartLock.svg',
-        'guard': 'guard.svg',
-        'gate': 'gate.svg',
-        'bike': 'bike.svg',
-        'garden': 'garden.svg',
-        'grill': 'grill.svg',
-        'firePit': 'firePit.svg',
-        'pool': 'pool.svg',
-        'petBowl': 'bowl.svg',
-        'petBed': 'bed.svg',
-        'babyBath': 'bath.svg',
-        // Add more specific mappings for common amenities
-        'ref': 'refrigerator.svg',
-        'streaming': 'tv.svg',
-        'freeParking': 'parkring.svg',
-        'paidParking': 'parkring.svg',
-        'allowed': 'petPaw.svg',
-        'extraPillowBlanket': 'extraPillowsBlanket.svg',
-        'coffeeMaker': 'coffeeMaker.svg',
-        'PotsPans': 'pan.svg',
-        'dishesCutlery': 'dishes.svg',
-        'diningTable': 'diningtable.svg',
-        'soundSystem': 'speaker.svg',
-        'consoleGames': 'console.svg',
-        'boardGames': 'chess.svg',
-        'cardGames': 'card.svg',
-        'firstAidKit': 'firstAidKit.svg',
-        'petBowls': 'bowl.svg',
-        'default': 'star.svg' // Fallback icon
-    };
-    
-    // Get the icon filename, with fallback to default
-    const iconFilename = iconMap[iconType] || iconMap['default'] || 'star.svg';
-    const iconPath = `/public/svg/${iconFilename}`;
-    
-    console.log(`🎨 getAmenityIcon("${iconType}") -> ${iconPath}`);
-    return iconPath;
+    const v = (iconType || '').toString();
+    const filename = v.endsWith('.svg') ? v : `${v}.svg`;
+    return `/public/svg/${filename}`;
 }
 
 // Helper function to categorize amenities
 function categorizeAmenities(amenities) {
-    console.log('🔍 Categorizing amenities:', amenities);
-    
-    const categories = {
-        'Essentials': ['wifi', 'aircon', 'bedset', 'hanger', 'hairDryer', 'iron', 'extraPillowBlanket', 'towel'],
-        'Kitchen & Dining': ['ref', 'microwave', 'stove', 'oven', 'coffeeMaker', 'toaster', 'PotsPans', 'spices', 'dishesCutlery', 'diningTable'],
-        'Safety & Security': ['smokeAlarm', 'fireExtinguisher', 'firstAidKit', 'cctv', 'smartLock', 'guard', 'stairGate'],
-        'Entertainment': ['tv', 'streaming', 'soundSystem', 'consoleGames', 'boardGames', 'cardGames', 'billiard'],
-        'Outdoor & Parking': ['freeParking', 'paidParking', 'bike', 'balcony', 'garden', 'grill', 'firePit', 'pool'],
-        'Bathroom': ['bathtub', 'shower', 'shampoo', 'soap', 'toilet', 'toiletPaper'],
-        'Laundry': ['washer', 'dryer', 'dryingRack', 'ironBoard', 'cleaningProduct'],
-        'Pets': ['petsAllowed', 'petsNotAllowed', 'petBowls', 'petBed', 'allowed'],
-        'Family Friendly': ['crib', 'babyBath', 'stairGate']
-    };
     
     const categorized = {};
     const processedAmenities = new Set(); // Track processed amenities to avoid duplicates
@@ -796,7 +548,6 @@ function categorizeAmenities(amenities) {
     amenities.forEach(amenity => {
         // Skip only truly invalid amenities
         if (!amenity || typeof amenity !== 'string' || amenity.trim() === '') {
-            console.log(`⚠️ Skipping invalid amenity: "${amenity}"`);
             return;
         }
         
@@ -804,16 +555,14 @@ function categorizeAmenities(amenities) {
             return; // Skip if already processed
         }
         
-        console.log(`🔍 Processing amenity: "${amenity}"`);
         
         let isCategorized = false;
-        for (const [category, categoryAmenities] of Object.entries(categories)) {
+        for (const [category, categoryAmenities] of Object.entries(CATEGORIES)) {
             // Check if amenity matches any category (case-insensitive and partial matching)
             if (categoryAmenities.some(catAmenity => 
                 amenity.toLowerCase().includes(catAmenity.toLowerCase()) || 
                 catAmenity.toLowerCase().includes(amenity.toLowerCase())
             )) {
-                console.log(`✅ Categorized "${amenity}" under "${category}"`);
                 if (!categorized[category]) {
                     categorized[category] = [];
                 }
@@ -826,7 +575,6 @@ function categorizeAmenities(amenities) {
         
         // If amenity doesn't match any category, add to "Other"
         if (!isCategorized) {
-            console.log(`⚠️ Amenity "${amenity}" not categorized, adding to "Other"`);
             if (!categorized['Other']) {
                 categorized['Other'] = [];
             }
@@ -840,13 +588,11 @@ function categorizeAmenities(amenities) {
 
 // Function to clear all amenities from all containers
 function clearAllAmenities() {
-    console.log('🧹 Clearing all amenities from all containers');
     
     // Clear main amenities display
     const mainAmenitiesContainer = document.getElementById('mainAmenities');
     if (mainAmenitiesContainer) {
         mainAmenitiesContainer.innerHTML = '';
-        console.log('✅ Main amenities container cleared');
     }
     
     // Clear categorized amenities in modal
@@ -865,74 +611,59 @@ function clearAllAmenities() {
     
     if (essentialsContainer) {
         essentialsContainer.innerHTML = '';
-        console.log('✅ Essentials container cleared');
     }
     
     if (kitchenDiningContainer) {
         kitchenDiningContainer.innerHTML = '';
-        console.log('✅ Kitchen & Dining container cleared');
     }
     
     if (bathroomContainer) {
         bathroomContainer.innerHTML = '';
-        console.log('✅ Bathroom container cleared');
     }
     
     if (laundryContainer) {
         laundryContainer.innerHTML = '';
-        console.log('✅ Laundry container cleared');
     }
     
     if (safetySecurityContainer) {
         safetySecurityContainer.innerHTML = '';
-        console.log('✅ Safety & Security container cleared');
     }
     
     if (entertainmentContainer) {
         entertainmentContainer.innerHTML = '';
-        console.log('✅ Entertainment container cleared');
     }
     
     if (parkingTransportContainer) {
         parkingTransportContainer.innerHTML = '';
-        console.log('✅ Parking & Transport container cleared');
     }
     
     if (outdoorNatureContainer) {
         outdoorNatureContainer.innerHTML = '';
-        console.log('✅ Outdoor & Nature container cleared');
     }
     
     if (petsContainer) {
         petsContainer.innerHTML = '';
-        console.log('✅ Pets container cleared');
     }
     
     if (familyFriendlyContainer) {
         familyFriendlyContainer.innerHTML = '';
-        console.log('✅ Family Friendly container cleared');
     }
     
     if (othersList) {
         othersList.innerHTML = '';
-        console.log('✅ Others list cleared');
     }
     
     // Hide others container if it exists
     if (othersContainer) {
         othersContainer.style.display = 'none';
-        console.log('✅ Others container hidden');
     }
     
-    console.log('🧹 All amenities containers cleared successfully');
 }
 
 // Populate reports
 function populateReports(reports) {
-    console.log('📋 Populating reports:', reports);
     
     if (!reports) {
-        console.log('No reports data available');
         return;
     }
     
@@ -952,26 +683,22 @@ function populateReports(reports) {
     
     // Populate unsolved reports
     if (reports.unsolved && reports.unsolved.length > 0) {
-        console.log(`📝 Found ${reports.unsolved.length} unsolved reports`);
         reports.unsolved.forEach(report => {
             const reportElement = createReportElement(report, 'unsolved');
             unsolvedContainer.appendChild(reportElement);
         });
     } else {
-        console.log('No unsolved reports');
         const noReportsElement = createNoReportsElement();
         unsolvedContainer.appendChild(noReportsElement);
     }
     
     // Populate solved reports
     if (reports.solved && reports.solved.length > 0) {
-        console.log(`✅ Found ${reports.solved.length} solved reports`);
         reports.solved.forEach(report => {
             const reportElement = createReportElement(report, 'solved');
             solvedContainer.appendChild(reportElement);
         });
     } else {
-        console.log('No solved reports');
         const noReportsElement = createNoReportsElement();
         solvedContainer.appendChild(noReportsElement);
     }
@@ -1042,7 +769,6 @@ function createNoReportsElement() {
 
 // Show report details in modal
 function showReportDetails(report) {
-    console.log('📋 Showing report details:', report);
     
     // Find the report modal
     const reportModal = document.getElementById('reportModal');
@@ -1178,7 +904,6 @@ function showReportDetails(report) {
 
 // Handle reports tab switching
 function setReportsActiveTab(index) {
-    console.log('🔄 Switching to reports tab:', index);
     
     const tabButtons = document.querySelectorAll('.reports-tab-btn');
     const tabContents = document.querySelectorAll('#tab-contents .tab-content');
@@ -1211,7 +936,6 @@ function setReportsActiveTab(index) {
 
 // Initialize reports tabs
 function initializeReportsTabs() {
-    console.log('🚀 Initializing reports tabs');
     
     // Set the first tab as active by default
     setReportsActiveTab(0);
@@ -1222,7 +946,6 @@ function initializeReportsTabs() {
 
 // Change report status
 async function changeReportStatus() {
-    console.log('🔄 Changing report status...');
     
     // Get the current report data from the modal
     const reportModal = document.getElementById('reportModal');
@@ -1238,7 +961,6 @@ async function changeReportStatus() {
     }
     
     const report = JSON.parse(reportData);
-    console.log('📋 Current report data:', report);
     
     // Get current property ID from URL
     const urlParams = new URLSearchParams(window.location.search);
@@ -1260,7 +982,6 @@ async function changeReportStatus() {
         newStatus: newStatus
     };
     
-    console.log('📤 Sending status update request:', requestBody);
     
     try {
         // Show loading state
@@ -1293,7 +1014,6 @@ async function changeReportStatus() {
         }
         
         const result = await response.json();
-        console.log('✅ Report status updated successfully:', result);
         
         // Show success message
         showSuccessMessage(`Report status updated to ${newStatus}`);
@@ -1322,18 +1042,15 @@ async function fetchAndDisplayCalendarData() {
         const propertyId = urlParams.get('id');
         
         if (!propertyId) {
-            console.log('❌ No property ID found, skipping calendar data fetch');
             return;
         }
         
-        console.log('📅 Fetching calendar data for property:', propertyId);
         
         // Fetch calendar data from API
         const response = await fetch(`${API_BASE}/calendar/byProperty/${propertyId}`);
         
         if (response.ok) {
             const calendarData = await response.json();
-            console.log('📅 Calendar data received:', calendarData);
             
             // Update calendar with booked and maintenance dates
             updateCalendarWithDates(calendarData.calendar);
@@ -1348,7 +1065,6 @@ async function fetchAndDisplayCalendarData() {
 // Function to update calendar with booked and maintenance dates
 function updateCalendarWithDates(calendarData) {
     if (!calendarData) {
-        console.log('❌ No calendar data provided');
         return;
     }
     
@@ -1358,8 +1074,6 @@ function updateCalendarWithDates(calendarData) {
     // Get all maintenance dates
     const maintenanceDates = calendarData.maintenance ? calendarData.maintenance.map(maintenance => maintenance.date) : [];
     
-    console.log('📅 Booked dates:', bookedDates);
-    console.log('🔧 Maintenance dates:', maintenanceDates);
     
     // Combine all unavailable dates
     const allUnavailableDates = [...bookedDates, ...maintenanceDates];
@@ -1367,7 +1081,6 @@ function updateCalendarWithDates(calendarData) {
     // Update the global unavailableDates array in calendar2.js
     if (typeof window !== 'undefined' && window.calendarUnavailableDates) {
         window.calendarUnavailableDates = allUnavailableDates;
-        console.log('✅ Updated global unavailable dates:', window.calendarUnavailableDates);
     }
     
     // Force calendar re-render if it exists
@@ -1382,7 +1095,6 @@ function updateCalendarWithDates(calendarData) {
             }
         });
         calendarInstance.dispatchEvent(event);
-        console.log('✅ Calendar update event dispatched');
     }
     
     // Also update the calendar legend with actual counts
@@ -1412,14 +1124,12 @@ function updateCalendarLegend(bookedCount, maintenanceCount) {
 
 // Function to initialize calendar functionality
 function initializeCalendar() {
-    console.log('📅 Initializing calendar functionality...');
     
     // Fetch calendar data when page loads
     fetchAndDisplayCalendarData();
     
     // Listen for calendar data updates
     document.addEventListener('calendarDataUpdated', (event) => {
-        console.log('📅 Calendar data update received:', event.detail);
         // The calendar2.js will handle the re-render
     });
 }
@@ -1432,9 +1142,6 @@ function initializePage() {
     // Initialize read more toggle
     initializeReadMoreToggle();
     
-    // Initialize edit button functionality
-    initializeEditButton();
-    
     // Initialize delete button functionality
     initializeDeleteButton();
     
@@ -1444,20 +1151,11 @@ function initializePage() {
     // Initialize reports tab functionality
     initializeReportsTabs();
 
-    // Ensure amenities modal works properly
-    ensureAmenitiesModalWorks();
-
 }
 
 // Initialize edit button functionality
 function initializeEditButton() {
-    const editButton = document.querySelector('button[onclick="goToEditPage()"]');
-    if (editButton) {
-        editButton.addEventListener('click', function(e) {
-            e.preventDefault();
-            goToEditPage();
-        });
-    }
+    // Redundant when inline onclick exists; no extra binding needed
 }
 
 // Initialize read more toggle functionality
@@ -1495,15 +1193,10 @@ function goToEditPage() {
 
 // Initialize delete button functionality
 async function initializeDeleteButton() {
-    console.log('🔍 Looking for delete button...');
     const deleteButton = document.getElementById('archivePropertyBtn');
     if (deleteButton) {
-        console.log('✅ Delete button found and event listener attached');
-        console.log('📍 Button element:', deleteButton);
-        console.log('📍 Button text:', deleteButton.textContent);
         
         deleteButton.addEventListener('click', async function(e) {
-            console.log('🖱️ Delete button clicked!');
             e.preventDefault();
             
             // Determine current status from the status text on the page
@@ -1525,7 +1218,6 @@ async function initializeDeleteButton() {
                         return;
                     }
                     
-                    console.log(`Updating property status to ${nextStatus}:`, propertyId);
                     
                     // Make PATCH API call to update property status
                     const response = await fetch(`${API_BASE}/property/update/status/${propertyId}`, {
@@ -1540,7 +1232,6 @@ async function initializeDeleteButton() {
                     
                     if (response.ok) {
                         const result = await response.json();
-                        console.log('Property status updated successfully:', result);
                         showSuccessMessage(`Property status set to ${nextStatus}!`);
                         // Update UI
                         document.getElementById('statusText').textContent = nextStatus;
@@ -1557,86 +1248,40 @@ async function initializeDeleteButton() {
                     showErrorMessage('An error occurred while updating the property status. Please try again.');
                 }
             } else {
-                console.log('❌ User cancelled the status change action');
             }
         });
     } else {
         console.error('❌ Delete button not found');
-        console.log('🔍 Available buttons on page:', document.querySelectorAll('button'));
     }
 }
 
-// Show error message
+// Unified toast helper
+function showToast(type, message) {
+    const baseClass = 'fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+    const colorClass = type === 'error' ? 'bg-red-500' : 'bg-green-500';
+    const div = document.createElement('div');
+    div.className = `${baseClass} ${colorClass}`;
+    div.textContent = message;
+    document.body.appendChild(div);
+    setTimeout(() => {
+        if (div.parentNode) {
+            div.parentNode.removeChild(div);
+        }
+    }, 5000);
+}
+
+// Backwards-compatible wrappers
 function showErrorMessage(message) {
-    // Create error message element
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-    errorDiv.textContent = message;
-    
-    document.body.appendChild(errorDiv);
-    
-    // Remove after 5 seconds
-    setTimeout(() => {
-        if (errorDiv.parentNode) {
-            errorDiv.parentNode.removeChild(errorDiv);
-        }
-    }, 5000);
+    showToast('error', message);
 }
 
-// Show success message
 function showSuccessMessage(message) {
-    // Create success message element
-    const successDiv = document.createElement('div');
-    successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-    successDiv.textContent = message;
-    
-    document.body.appendChild(successDiv);
-    
-    // Remove after 5 seconds
-    setTimeout(() => {
-        if (successDiv.parentNode) {
-            successDiv.parentNode.removeChild(successDiv);
-        }
-    }, 5000);
+    showToast('success', message);
 }
 
-// Utility function to format currency
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('en-PH', {
-        style: 'currency',
-        currency: 'PHP'
-    }).format(amount);
-}
+// (Removed) formatCurrency, formatDate: not used in this file
 
-// Utility function to format date
-function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('en-PH', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-    });
-}
-
-// Export functions for use in other scripts if needed
-window.PropertyView = {
-    fetchPropertyData,
-    populatePropertyData,
-    populateBasicInfo,
-    populatePropertyImages,
-    populateAmenities,
-    populateReports,
-    goToEditPage,
-    resetAmenitiesPopulatedFlag,
-    setReportsActiveTab,
-    showReportDetails,
-    changeReportStatus,
-    fetchAndDisplayCalendarData,
-    updateCalendarWithDates,
-    initializeCalendar,
-    populateGalleryModal,
-    openFullSizeImage
-};
+// (Removed) window.PropertyView aggregate export: not referenced elsewhere
 
 // Make amenity functions globally available for property-edit-functions-clean.js
 window.getAmenityDisplayInfo = getAmenityDisplayInfo;
@@ -1665,7 +1310,6 @@ function populateGalleryModal(propertyImages) {
         if (noImagesMessage) {
             noImagesMessage.classList.remove('hidden');
         }
-        console.log('📷 No property images available');
         return;
     }
     
@@ -1674,7 +1318,6 @@ function populateGalleryModal(propertyImages) {
         noImagesMessage.classList.add('hidden');
     }
     
-    console.log('📷 Populating gallery with', propertyImages.length, 'images');
     
     // Create image elements for each property image
     propertyImages.forEach((imageUrl, index) => {
@@ -1720,7 +1363,6 @@ function populateGalleryModal(propertyImages) {
         galleryGrid.appendChild(imageContainer);
     });
     
-    console.log('✅ Gallery populated successfully');
 }
 
 // Function to open full-size image view
@@ -1760,7 +1402,6 @@ function openFullSizeImage(imageUrl, imageTitle) {
 
 // Function to open the maintenance modal
 function openMaintenanceModal() {
-    console.log('🔧 Opening maintenance modal...');
     
     // Get property information from the page
     const propertyName = document.querySelector('.text-2xl.font-manrope')?.textContent || 'Unknown Property';
@@ -1813,7 +1454,6 @@ function openMaintenanceModal() {
 
 // Function to close the maintenance modal
 function closeMaintenanceModal() {
-    console.log('🔧 Closing maintenance modal...');
     
     const modal = document.getElementById('maintenanceModal');
     if (modal) {
@@ -1862,27 +1502,19 @@ function setQuickMaintenanceDate(type) {
     startDateInput.value = startDate.toISOString().split('T')[0];
     endDateInput.value = endDate.toISOString().split('T')[0];
     
-    console.log(`🔧 Quick maintenance date set: ${type}`, { startDate: startDateInput.value, endDate: endDateInput.value });
 }
 
 // Function to load current maintenance dates
 async function loadCurrentMaintenanceDates(propertyId) {
     try {
-        console.log('🔧 Loading current maintenance dates for property:', propertyId);
         
         const response = await fetch(`${API_BASE}/calendar/byProperty/${propertyId}`);
         if (response.ok) {
             const calendarData = await response.json();
-            console.log('🔧 Calendar data received:', calendarData);
             
             const maintenanceDates = calendarData.calendar?.maintenance || [];
-            console.log('🔧 Maintenance dates extracted:', maintenanceDates);
-            console.log('🔧 Maintenance dates type:', typeof maintenanceDates);
-            console.log('🔧 Maintenance dates length:', maintenanceDates.length);
             
             if (maintenanceDates.length > 0) {
-                console.log('🔧 First maintenance item:', maintenanceDates[0]);
-                console.log('🔧 First maintenance item type:', typeof maintenanceDates[0]);
             }
             
             displayCurrentMaintenanceDates(maintenanceDates);
@@ -1998,7 +1630,6 @@ async function removeMaintenanceDate(maintenanceId) {
     }
     
     try {
-        console.log('🔧 Removing maintenance date:', maintenanceId);
         
         // Get property ID
         const urlParams = new URLSearchParams(window.location.search);
@@ -2019,7 +1650,6 @@ async function removeMaintenanceDate(maintenanceId) {
         
         try {
             dates = JSON.parse(datesJson);
-            console.log('🔧 Dates extracted from data attribute:', dates);
         } catch (error) {
             console.error('❌ Error parsing dates from data attribute:', error);
             alert('Could not parse maintenance dates. Please refresh and try again.');
@@ -2036,9 +1666,6 @@ async function removeMaintenanceDate(maintenanceId) {
             dates: dates
         };
         
-        console.log('🔧 Sending delete data to API:', deleteData);
-        console.log('🔧 API endpoint:', `${API_BASE}/property/${propertyId}/maintenance/delete-by-dates`);
-        
         const response = await fetch(`${API_BASE}/property/${propertyId}/maintenance/delete-by-dates`, {
             method: 'DELETE',
             headers: {
@@ -2048,7 +1675,6 @@ async function removeMaintenanceDate(maintenanceId) {
         });
         
         if (response.ok) {
-            console.log('✅ Maintenance date removed successfully');
             // Reload current maintenance dates
             loadCurrentMaintenanceDates(propertyId);
             // Refresh calendar
@@ -2081,7 +1707,6 @@ async function saveMaintenanceDates() {
     }
     
     try {
-        console.log('🔧 Saving maintenance dates:', { startDate, endDate, reason });
         
         // Get property ID
         const urlParams = new URLSearchParams(window.location.search);
@@ -2096,8 +1721,6 @@ async function saveMaintenanceDates() {
             dates.push(currentDate.toISOString().split('T')[0]);
             currentDate.setDate(currentDate.getDate() + 1);
         }
-        
-        console.log('🔧 Generated dates array:', dates);
         
         // Prepare maintenance data according to API specification
         const maintenanceData = {
@@ -2114,7 +1737,6 @@ async function saveMaintenanceDates() {
         });
         
         if (response.ok) {
-            console.log('✅ Maintenance dates saved successfully');
             alert('Maintenance dates have been set successfully!');
             
             // Clear form
@@ -2144,7 +1766,6 @@ async function saveMaintenanceDates() {
 // Function to update existing maintenance dates
 async function updateMaintenanceDates(originalDates, newDates, status = 'Active') {
     try {
-        console.log('🔧 Updating maintenance dates:', { originalDates, newDates, status });
         
         // Get property ID
         const urlParams = new URLSearchParams(window.location.search);
@@ -2167,7 +1788,6 @@ async function updateMaintenanceDates(originalDates, newDates, status = 'Active'
         });
         
         if (response.ok) {
-            console.log('✅ Maintenance dates updated successfully');
             return true;
         } else {
             const errorData = await response.json().catch(() => ({}));

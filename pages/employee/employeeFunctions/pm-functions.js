@@ -4,16 +4,79 @@
 //PM 90% done 
 // Static data for the category for report "Disaster"
 // Suppress console.log output within PM functions to keep console clean
-(function(){
-	try {
-		const prev = console.log;
-		console.log = function(){};
-		window.addEventListener('beforeunload', function(){
-			console.log = prev;
-		});
-	} catch(_) {}
-})();
+
 const API_BASE_URL = 'https://betcha-api.onrender.com';
+
+// ---- BookingContext: single source of truth for booking data ----
+const BookingContext = {
+    state: {
+        bookingId: '',
+        transNo: '',
+        guestId: '',
+        ewallet: '',
+        amountRefund: 0,
+        modeOfRefund: ''
+    },
+    set(partial) {
+        this.state = { ...this.state, ...partial };
+        try {
+            if (partial.bookingId) localStorage.setItem('currentBookingId', partial.bookingId);
+            if (partial.transNo) localStorage.setItem('currentTransNo', partial.transNo);
+            if (partial.guestId) localStorage.setItem('currentGuestId', partial.guestId);
+            if (typeof partial.amountRefund !== 'undefined') localStorage.setItem('amountRefund', String(partial.amountRefund || 0));
+            if (partial.modeOfRefund) localStorage.setItem('modeOfRefund', partial.modeOfRefund);
+            if (partial.ewallet) localStorage.setItem('ewalletNumber', partial.ewallet);
+        } catch(_) {}
+    },
+    get() {
+        const s = { ...this.state };
+        // hydrate from storage if empty
+        if (!s.bookingId) s.bookingId = localStorage.getItem('currentBookingId') || '';
+        if (!s.transNo) s.transNo = localStorage.getItem('currentTransNo') || '';
+        if (!s.guestId) s.guestId = localStorage.getItem('currentGuestId') || '';
+        if (!s.ewallet) s.ewallet = localStorage.getItem('ewalletNumber') || '';
+        if (!s.amountRefund) s.amountRefund = Number(localStorage.getItem('amountRefund') || 0);
+        if (!s.modeOfRefund) s.modeOfRefund = localStorage.getItem('modeOfRefund') || '';
+        return s;
+    },
+    async hydrateFromBooking(id) {
+        if (!id) return this.get();
+        try {
+            const resp = await fetch(`${API_BASE_URL}/booking/${id}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+            if (!resp.ok) return this.get();
+            const data = await resp.json();
+            const b = data?.booking || {};
+            this.set({
+                bookingId: id,
+                transNo: b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo || this.state.transNo,
+                guestId: b.guestId || b?.guest?.id || this.state.guestId,
+                ewallet: b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets || this.state.ewallet,
+                amountRefund: typeof b.reservationFee !== 'undefined' ? (b.reservationFee || 0) : this.state.amountRefund,
+                modeOfRefund: b?.reservation?.modeOfPayment || b?.package?.modeOfPayment || this.state.modeOfRefund
+            });
+        } catch(_) {}
+        return this.get();
+    }
+};
+
+// Resolve bookingId from common sources
+function resolveBookingId(rootEl) {
+    try {
+        const fromDataset = rootEl?.dataset?.bookingId || '';
+        if (fromDataset) return fromDataset;
+        const nearest = rootEl?.closest?.('[data-booking-id]');
+        if (nearest) return nearest.getAttribute('data-booking-id') || '';
+        const viewBtn = document.querySelector('#viewBookingModal [data-modal-target="cancelBookingModal"]');
+        if (viewBtn) return viewBtn.getAttribute('data-booking-id') || '';
+        const ls = localStorage.getItem('currentBookingId') || localStorage.getItem('selectedBookingId');
+        if (ls) return ls;
+        const sel = localStorage.getItem('selectedBooking');
+        if (sel) {
+            try { const b = JSON.parse(sel); return b._id || b.bookingId || b.id || ''; } catch(_) {}
+        }
+        return '';
+    } catch(_) { return ''; }
+}
 
 document.addEventListener('DOMContentLoaded', function() {
     checkRolePrivileges();
@@ -223,26 +286,66 @@ function initializePropertyMonitoringFeatures() {
                     if (transNo) modal.dataset.transNo = transNo;
                     if (guestId) modal.dataset.guestId = guestId;
                     if (bookingId) modal.dataset.bookingId = bookingId;
-                    
+                    // New: derive missing identifiers from nearest card/container carrying data-booking-id
+                    const nearestCarrier = openCancelBtn.closest('[data-booking-id]');
+                    if (nearestCarrier) {
+                        if (!modal.dataset.bookingId) modal.dataset.bookingId = nearestCarrier.getAttribute('data-booking-id') || '';
+                        if (!modal.dataset.transNo && nearestCarrier.getAttribute('data-trans-no')) modal.dataset.transNo = nearestCarrier.getAttribute('data-trans-no');
+                        if (!modal.dataset.guestId && nearestCarrier.getAttribute('data-guest-id')) modal.dataset.guestId = nearestCarrier.getAttribute('data-guest-id');
+                    }
 
-                    // If still missing, enrich from API immediately
+                    // Ensure we fetch booking context immediately when modal opens
+                    const idToFetch = modal.dataset.bookingId || resolveBookingId(openCancelBtn);
+                    if (!idToFetch) {
+                        // Try localStorage fallbacks if opener/ancestor lacked bookingId
+                        let lsId = localStorage.getItem('currentBookingId') || localStorage.getItem('selectedBookingId') || '';
+                        if (!lsId) {
+                            try {
+                                const sb = localStorage.getItem('selectedBooking');
+                                if (sb) {
+                                    const b = JSON.parse(sb);
+                                    lsId = b._id || b.bookingId || b.id || '';
+                                }
+                            } catch(_) {}
+                        }
+                        if (lsId) {
+                            modal.dataset.bookingId = lsId;
+                        }
+                    }
+                    const finalId = modal.dataset.bookingId || resolveBookingId(openCancelBtn) || '';
+                    if (finalId) {
+                        BookingContext.set({ bookingId: finalId });
+                    } else {
+                        console.warn('CancelModal: no bookingId available on open; cannot prepare context');
+                    }
+                    
+                    // Always fetch full context using booking/{id} when modal opens
                     (async () => {
                         try {
-                            if ((!modal.dataset.transNo || !modal.dataset.guestId) && modal.dataset.bookingId) {
-                                const resp = await fetch(`${API_BASE_URL}/booking/${modal.dataset.bookingId}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+                            const idToFetch = modal.dataset.bookingId || '';
+                            if (idToFetch) {
+                                const resp = await fetch(`${API_BASE_URL}/booking/${idToFetch}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
                                 if (resp.ok) {
                                     const data = await resp.json();
                                     const b = data?.booking || {};
-                                    if (!modal.dataset.transNo && (b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo)) {
-                                        modal.dataset.transNo = b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo;
-                                    }
+                                    const t = b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo || '';
+                                    if (t) modal.dataset.transNo = modal.dataset.transNo || t;
                                     if (!modal.dataset.guestId && (b.guestId || b?.guest?.id)) {
                                         modal.dataset.guestId = b.guestId || b?.guest?.id;
                                     }
-                                    if (b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets) {
-                                        modal.dataset.ewallet = b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets;
-                                    }
-                                    
+                                    const ew = b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets;
+                                    if (ew) localStorage.setItem('ewalletNumber', ew.toString());
+                                    if (typeof b.reservationFee !== 'undefined') localStorage.setItem('amountRefund', String(b.reservationFee || 0));
+                                    const mode = b?.reservation?.modeOfPayment || b?.package?.modeOfPayment || '';
+                                    if (mode) localStorage.setItem('modeOfRefund', mode);
+                                    console.log('CancelModal: prepared context from booking API', {
+                                        bookingId: idToFetch,
+                                        transNo: modal.dataset.transNo || null,
+                                        guestId: modal.dataset.guestId || null,
+                                        ewallet: localStorage.getItem('ewalletNumber') || null,
+                                        amountRefund: localStorage.getItem('amountRefund') || null,
+                                        modeOfRefund: localStorage.getItem('modeOfRefund') || null
+                                    });
                                 }
                             }
                         } catch (e) {
@@ -1562,163 +1665,31 @@ async function loadAdminsIntoCancelModal() {
     }
 }
 
-// Ensure modal has booking context (transNo, guestId) by fetching booking
-async function prepareCancelModalContext(bookingId) {
-    try {
-        const modal = document.getElementById('cancelBookingModal');
-        if (!modal || !bookingId) return;
-        const resp = await fetch(`${API_BASE_URL}/booking/${bookingId}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-        if (resp.ok) {
-            const data = await resp.json();
-            const b = data?.booking || {};
-            if (b.transNo) modal.dataset.transNo = b.transNo;
-            if (b.guestId || b.guest?.id) modal.dataset.guestId = b.guestId || b.guest?.id;
-        }
-    } catch (e) {
-        console.warn('Failed to prepare cancel modal context:', e);
-    }
-}
+// prepareCancelModalContext removed (redundant). Context is hydrated by the enrichment block and BookingContext.
 
 // Build request and POST to notify cancellation endpoint
 async function sendCancellationNoticeToAdmin() {
+    console.log('Sending cancellation notice to admin');
     try {
-        // Prefer cancel modal when sending
+        // Simplified context-driven path (early return)
         const modal = document.getElementById('cancelBookingModal') || document.getElementById('checkinConfirmModal');
         const selectEl = document.getElementById('select-cancel-admin');
         const messageTextarea = document.getElementById('input-cancel-admin');
-        if (!selectEl || !messageTextarea) {
-            alert('Missing admin selection or message field.');
-            return;
-        }
+        if (!modal || !selectEl || !messageTextarea) { alert('Missing fields.'); return; }
 
-        // API expects recipient as guestId based on provided sample; fallback to selected admin if missing
-        const toId = (modal?.dataset?.guestId) || selectEl.value;
-        const toName = 'admin';
-        if (!toId) {
-            alert('Please select an admin to notify.');
-            return;
-        }
+        const bookingId = BookingContext.get().bookingId || resolveBookingId(modal);
+        if (!bookingId) { alert('Missing booking id. Open the booking card first.'); return; }
+        const ctx = await BookingContext.hydrateFromBooking(bookingId);
+        if (!ctx.transNo) { alert('Missing transaction number. Open the booking card first.'); return; }
 
         const fromId = localStorage.getItem('employeeId') || localStorage.getItem('userId') || 'unknown-employee';
         const fromName = `${localStorage.getItem('firstName') || 'Employee'} ${localStorage.getItem('lastName') || ''}`.trim();
         const fromRole = 'employee';
+        const toId = selectEl.value;
+        const toName = 'admin';
+        if (!toId) { alert('Please select an admin to notify.'); return; }
 
-        // Optional data if available
-        let transNo = (modal?.dataset?.transNo) || localStorage.getItem('currentTransNo') || '';
-        let guestIdForNotify = modal?.dataset?.guestId || '';
-        let numberEwalletBank = localStorage.getItem('ewalletNumber') || 'N/A';
-        let amountRefund = 0;
-        let modeOfRefund = 'Pending';
-        
-        // If missing, fetch from /booking/{id}
-        if (!transNo || !guestIdForNotify || numberEwalletBank === 'N/A') {
-            try {
-                let bookingId = modal?.dataset?.bookingId || 
-                               document.querySelector('#viewBookingModal [data-modal-target="cancelBookingModal"]')?.getAttribute('data-booking-id') ||
-                               localStorage.getItem('selectedBookingId') ||
-                               localStorage.getItem('currentBookingId');
-                
-                // Fallback: try to get booking ID from stored booking data
-                if (!bookingId) {
-                    try {
-                        const selectedBooking = localStorage.getItem('selectedBooking');
-                        if (selectedBooking) {
-                            const booking = JSON.parse(selectedBooking);
-                            bookingId = booking._id || booking.bookingId || booking.id;
-                        }
-                    } catch (e) {
-                        console.warn('Failed to parse selectedBooking from localStorage:', e);
-                    }
-                }
-                
-                // Final fallback: try to extract from visible booking elements
-                if (!bookingId) {
-                    const bookingElements = document.querySelectorAll('[data-booking-id]');
-                    if (bookingElements.length > 0) {
-                        bookingId = bookingElements[0].getAttribute('data-booking-id');
-                    }
-                }
-                console.log('Debug - Looking for bookingId:', {
-                    modalDatasetBookingId: modal?.dataset?.bookingId,
-                    cancelButtonBookingId: document.querySelector('#viewBookingModal [data-modal-target="cancelBookingModal"]')?.getAttribute('data-booking-id'),
-                    finalBookingId: bookingId,
-                    transNo: transNo,
-                    guestIdForNotify: guestIdForNotify,
-                    numberEwalletBank: numberEwalletBank
-                });
-                if (bookingId) {
-                    const resp = await fetch(`${API_BASE_URL}/booking/${bookingId}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-                    if (resp.ok) {
-                        const data = await resp.json();
-                        const b = data?.booking || {};
-                        transNo = b.transNo || b.reservation?.paymentNo || b.package?.paymentNo || transNo || '';
-                        guestIdForNotify = guestIdForNotify || b.guestId || b.guest?.id || '';
-                        numberEwalletBank = (b.reservation?.numberBankEwallets || b.package?.numberBankEwallets || numberEwalletBank || '').toString() || 'N/A';
-                        
-                        // Extract refund data from booking
-                        amountRefund = b.reservationFee || 0;
-                        modeOfRefund = b.reservation?.modeOfPayment || b.package?.modeOfPayment || 'Pending';
-                        
-                        if (modal) {
-                            if (transNo) modal.dataset.transNo = transNo;
-                            if (guestIdForNotify) modal.dataset.guestId = guestIdForNotify;
-                        }
-                        
-                        console.log('Extracted refund data from booking:', {
-                            amountRefund,
-                            modeOfRefund,
-                            transNo,
-                            numberEwalletBank
-                        });
-                    }
-                }
-            } catch (e) {
-                console.warn('NotifyCancellation: fallback fetch failed', e);
-            }
-        } else {
-            // If we have the basic data but still need refund info, try to get it from localStorage as fallback
-            amountRefund = Number(localStorage.getItem('amountRefund') || 0);
-            modeOfRefund = localStorage.getItem('modeOfRefund') || 'Pending';
-        }
-
-        if (!transNo) {
-            alert('Missing transaction number. Please open the booking from the calendar/list so we can capture its transNo.');
-            return;
-        }
-
-        // Resolve bookingId robustly before building payload
-        let resolvedBookingId = (function() {
-            try {
-                // Try multiple sources
-                const fromModal = modal?.dataset?.bookingId || '';
-                const fromViewBtn = document.querySelector('#viewBookingModal [data-modal-target="cancelBookingModal"]')?.getAttribute('data-booking-id') || '';
-                const fromStorage = localStorage.getItem('selectedBookingId') || localStorage.getItem('currentBookingId') || '';
-                return fromModal || fromViewBtn || fromStorage || '';
-            } catch (_) { return ''; }
-        })();
-
-        // If still missing but we have transNo, fetch booking by transNo
-        if (!resolvedBookingId && transNo) {
-            try {
-                const byTransResp = await fetch(`${API_BASE_URL}/booking/trans/${encodeURIComponent(transNo)}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-                if (byTransResp.ok) {
-                    const byTransData = await byTransResp.json();
-                    const b = byTransData?.booking || byTransData?.data || {};
-                    const id = b._id || b.bookingId || b.id;
-                    if (id) {
-                        resolvedBookingId = id;
-                        if (modal) modal.dataset.bookingId = id;
-                        localStorage.setItem('currentBookingId', id);
-                    }
-                } else {
-                    console.warn('Fetch by transNo failed:', byTransResp.status, byTransResp.statusText);
-                }
-            } catch (e) {
-                console.warn('Error fetching booking by transNo:', e);
-            }
-        }
-
-        let payload = {
+        const payload = {
             fromId,
             fromName,
             fromRole,
@@ -1726,43 +1697,28 @@ async function sendCancellationNoticeToAdmin() {
             toName,
             toRole: 'admin',
             message: messageTextarea.value || 'Requesting approval to cancel a booking.',
-            transNo,
-            amountRefund,
-            modeOfRefund,
+            transNo: ctx.transNo,
+            numberEwalletBank: ctx.ewallet || undefined,
+            amountRefund: ctx.amountRefund || undefined,
+            modeOfRefund: ctx.modeOfRefund || undefined,
             reasonToGuest: messageTextarea.value || 'Cancellation notice',
-            numberEwalletBank,
-            // Always include bookingId field in payload (empty string if unresolved)
-            bookingId: resolvedBookingId || ''
+            bookingId
         };
-
-        console.log('NotifyCancellation: modal dataset ->', modal ? Object.fromEntries(Object.entries(modal.dataset)) : 'NO_MODAL');
-        console.log('NotifyCancellation: outgoing payload ->', payload);
-
-        // Remove optional fields if they are empty / default
-        if (!payload.amountRefund) delete payload.amountRefund;
-        if (!payload.modeOfRefund || payload.modeOfRefund === 'Pending') delete payload.modeOfRefund;
-        if (!payload.numberEwalletBank || payload.numberEwalletBank === 'N/A') delete payload.numberEwalletBank;
-        if (!payload.reasonToGuest) delete payload.reasonToGuest;
+        Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
 
         const resp = await fetch(`${API_BASE_URL}/notify/cancellation`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
-
         if (!resp.ok) {
             const text = await resp.text().catch(() => '');
-            console.error('NotifyCancellation: server error body ->', text);
             throw new Error(`Notify API failed: ${resp.status} ${resp.statusText}${text ? ` - ${text}` : ''}`);
         }
-
         alert('✅ Cancellation notice sent to admin.');
-        // Close modal
         const cancelModal = document.getElementById('cancelBookingModal');
-        if (cancelModal) {
-            cancelModal.classList.add('hidden');
-            document.body.classList.remove('modal-open');
-        }
+        if (cancelModal) { cancelModal.classList.add('hidden'); document.body.classList.remove('modal-open'); }
+        return;
     } catch (err) {
         console.error('Error sending cancellation notice:', err);
         alert(`Failed to send cancellation notice: ${err.message}`);
@@ -1774,9 +1730,7 @@ window.setActivePMTab = setActivePMTab;
 
 // Main function to load today's check-ins (make globally accessible)
 window.loadTodaysCheckins = async function() {
-    try {
-        
-        
+    try {       
         // Show loading state
         showLoadingState();
         showCheckoutLoadingState();
@@ -1794,7 +1748,6 @@ window.loadTodaysCheckins = async function() {
         showCheckoutErrorState();
     }
 }
-
 // Function to show loading state
 function showLoadingState() {
     const tabGroup = document.querySelector('[data-tab-group]');
@@ -1811,7 +1764,6 @@ function showLoadingState() {
         `;
     }
 }
-
 // Function to show error state
 function showErrorState() {
     const tabGroup = document.querySelector('[data-tab-group]');
@@ -1884,7 +1836,6 @@ function initializeCalendarBookings() {
         const bookingCard = e.target.closest('[data-modal-target="viewBookingModal"]');
         if (bookingCard) {
             
-            
             // Extract booking data from the card
             const bookingData = {
                 bookingId: bookingCard.dataset.bookingId,
@@ -1912,6 +1863,12 @@ function initializeCalendarBookings() {
                 // Attach for cancel flow
                 const cancelBtn = modal.querySelector('[data-modal-target="cancelBookingModal"]');
                 if (cancelBtn) {
+                    // Persist booking context globally for downstream modals
+                    try {
+                        if (bookingData.bookingId) localStorage.setItem('currentBookingId', bookingData.bookingId);
+                        if (bookingData.transNo) localStorage.setItem('currentTransNo', bookingData.transNo);
+                        if (bookingData.guestId) localStorage.setItem('currentGuestId', bookingData.guestId);
+                    } catch(_) {}
                     if (bookingData.transNo) cancelBtn.setAttribute('data-trans-no', bookingData.transNo);
                     if (bookingData.guestId) cancelBtn.setAttribute('data-guest-id', bookingData.guestId);
                     
@@ -1953,103 +1910,16 @@ function initializeCalendarBookings() {
 
 // PM-Specific Single-Selection Calendar Function
 function initializePMCalendar() {
-    
-    
     const calendarEl = document.querySelector('.calendar-instance');
-    if (!calendarEl) {
-        console.warn('PM - Calendar instance not found');
-        return;
-    }
-    
-    let selectedDate = null; // Single date instead of Set
-    let currentDate = new Date(); // Track current month view
-    
-    const renderCalendar = () => {
-        const current = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-        const year = current.getFullYear();
-        const month = current.getMonth();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const startDay = new Date(year, month, 1).getDay();
-        
-        const leftLabel = calendarEl.querySelector('.leftMonthLabel');
-        const leftCal = calendarEl.querySelector('.leftCalendar');
-        
-        if (!leftLabel || !leftCal) {
-            console.warn('PM - Calendar elements not found');
-            return;
-        }
-        
-        leftLabel.textContent = current.toLocaleString("default", { month: "long", year: "numeric" });
-        
-        let html = `
-            <div class="grid grid-cols-7 gap-1 text-center font-manrope font-semibold border-b border-neutral-300 pb-1 mb-2">
-                ${['S','M','T','W','T','F','S'].map(d => `<div class="w-full aspect-square flex items-center justify-center text-xs">${d}</div>`).join("")}
-            </div>
-            <div class="grid grid-cols-7 gap-1 text-center">
-        `;
-        
-        for (let i = 0; i < startDay; i++) html += `<div></div>`;
-        
-        for (let d = 1; d <= daysInMonth; d++) {
-            const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
-            const isSelected = selectedDate === dateStr;
-            
-            let classes = "w-full aspect-square text-xs flex items-center justify-center rounded cursor-pointer transition ";
-            
-            if (isSelected) {
-                classes += "bg-primary text-white font-bold"; // Use primary color for single selection
-            } else {
-                classes += "bg-background text-black hover:bg-primary/10";
-            }
-            
-            html += `<div class="${classes}" data-date="${dateStr}">${d}</div>`;
-        }
-        
-        html += "</div>";
-        leftCal.innerHTML = html;
-    };
-    
-    // Single date selection
-    calendarEl.addEventListener("click", e => {
-        const dateEl = e.target.closest("[data-date]");
-        if (dateEl) {
-            const clickedDate = dateEl.dataset.date;
-            
-            // Single selection - replace previous selection
-            selectedDate = clickedDate;
-            
-            
-            
-            // Load bookings for the selected date
-            loadBookingsByDate(selectedDate);
-            
-            renderCalendar();
+    if (!calendarEl) return;
+
+    // Adapter: respond to calendar2.js selections
+    calendarEl.addEventListener('datesSelected', (e) => {
+        const dates = Array.isArray(e.detail?.dates) ? e.detail.dates : [];
+        if (dates.length > 0) {
+            loadBookingsByDate(dates[dates.length - 1]);
         }
     });
-    
-    // Month navigation
-    const prevBtn = calendarEl.querySelector(".prevMonth");
-    const nextBtn = calendarEl.querySelector(".nextMonth");
-    
-    if (prevBtn) {
-        prevBtn.addEventListener("click", () => {
-            currentDate.setMonth(currentDate.getMonth() - 1);
-            selectedDate = null; // Clear selection when changing months
-            renderCalendar();
-        });
-    }
-    
-    if (nextBtn) {
-        nextBtn.addEventListener("click", () => {
-            currentDate.setMonth(currentDate.getMonth() + 1);
-            selectedDate = null; // Clear selection when changing months
-            renderCalendar();
-        });
-    }
-    
-    // Initial render
-    renderCalendar();
-    
 }
 
 // Function to load bookings by date
@@ -2193,6 +2063,18 @@ function createCalendarBookingElement(booking) {
         bookingId: bookingDiv.getAttribute('data-booking-id'),
         guestId: bookingDiv.getAttribute('data-guest-id') || 'N/A',
         transNo: bookingDiv.getAttribute('data-trans-no') || 'N/A'
+    });
+    // Persist core identifiers on card click so downstream modals can recover context
+    bookingDiv.addEventListener('click', () => {
+        try {
+            const id = bookingDiv.getAttribute('data-booking-id') || '';
+            const t = bookingDiv.getAttribute('data-trans-no') || '';
+            const g = bookingDiv.getAttribute('data-guest-id') || '';
+            if (id) localStorage.setItem('currentBookingId', id);
+            if (t) localStorage.setItem('currentTransNo', t);
+            if (g) localStorage.setItem('currentGuestId', g);
+            console.log('CalendarCard: persisted context', { id, t, g });
+        } catch(_) {}
     });
     
     // Extract data from the API response structure
