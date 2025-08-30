@@ -304,6 +304,11 @@ function populateBasicInfo(data) {
             addressSection.appendChild(cityInfo);
         }
     }
+    
+    // Initialize read more toggle after content is populated
+    setTimeout(() => {
+        initializeReadMoreToggle();
+    }, 100);
 }
 
 // Update Archive button to Activate when status is Archived
@@ -1139,9 +1144,6 @@ function initializePage() {
     // Reset amenities populated flag for clean state
     resetAmenitiesPopulatedFlag();
     
-    // Initialize read more toggle
-    initializeReadMoreToggle();
-    
     // Initialize delete button functionality
     initializeDeleteButton();
     
@@ -1164,17 +1166,33 @@ function initializeReadMoreToggle() {
     const descWrapper = document.getElementById('descWrapper');
     
     if (toggleText && descWrapper) {
-        toggleText.addEventListener('click', function() {
-            const isExpanded = descWrapper.style.maxHeight === 'none' || descWrapper.style.maxHeight === '';
+        // Remove any existing event listeners by cloning the element
+        const newToggleText = toggleText.cloneNode(true);
+        toggleText.parentNode.replaceChild(newToggleText, toggleText);
+        
+        // Check if content overflows the collapsed height
+        const contentHeight = descWrapper.scrollHeight;
+        const maxHeight = 96; // 6rem = 96px
+        
+        if (contentHeight <= maxHeight) {
+            // Content fits, hide the toggle link
+            newToggleText.style.display = 'none';
+        } else {
+            // Content overflows, show the toggle link
+            newToggleText.style.display = 'block';
             
-            if (isExpanded) {
-                descWrapper.style.maxHeight = '6rem';
-                toggleText.textContent = 'Read More';
-            } else {
-                descWrapper.style.maxHeight = 'none';
-                toggleText.textContent = 'Read Less';
-            }
-        });
+            newToggleText.addEventListener('click', function() {
+                const isExpanded = descWrapper.style.maxHeight === 'none';
+                
+                if (isExpanded) {
+                    descWrapper.style.maxHeight = '6rem';
+                    newToggleText.textContent = 'Read More';
+                } else {
+                    descWrapper.style.maxHeight = 'none';
+                    newToggleText.textContent = 'Read Less';
+                }
+            });
+        }
     }
 }
 

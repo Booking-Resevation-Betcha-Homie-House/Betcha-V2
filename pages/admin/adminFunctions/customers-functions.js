@@ -70,22 +70,14 @@ function renderCustomers() {
         });
     }
 
-    // Find the tab content containers inside #tab-contents
-    const tabContentsContainer = document.getElementById('tab-contents');
-    if (!tabContentsContainer) {
-        console.error('Could not find #tab-contents container');
-        return;
-    }
-
-    const tabContents = tabContentsContainer.querySelectorAll('.tab-content');
+    // Find the tab content containers using specific IDs
+    const activeTab = document.getElementById('active-tab');
+    const inactiveTab = document.getElementById('inactive-tab');
     
-    if (!tabContents || tabContents.length < 2) {
-        console.error('Could not find tab content elements');
+    if (!activeTab || !inactiveTab) {
+        console.error('Could not find active-tab or inactive-tab elements');
         return;
     }
-
-    const activeTab = tabContents[0];
-    const inactiveTab = tabContents[1];
     
     // Clear existing content
     const activeGrid = activeTab.querySelector('.grid');
@@ -138,9 +130,12 @@ function renderCustomers() {
     // Update tab counts if needed
     updateTabCounts(activeCustomers.length, inactiveCustomers.length);
 
-    // Show the first tab by default (Active tab)
-    activeTab.classList.remove('hidden');
-    inactiveTab.classList.add('hidden');
+    // Always show the active tab by default after rendering
+    console.log('Setting default active tab...');
+    // Small delay to ensure DOM is ready
+    setTimeout(() => {
+        showTab(0); // Always show active tab by default
+    }, 100);
 
     // If no customers at all, show a message
     if (customers.length === 0) {
@@ -246,6 +241,20 @@ function setupEventListeners() {
     if (deactivateBtn) {
         deactivateBtn.addEventListener('click', handleCustomerDeactivation);
     }
+
+    // Tab button functionality
+    const activeTabBtn = document.getElementById('active-customer-tab');
+    const inactiveTabBtn = document.getElementById('inactive-customer-tab');
+    
+    if (activeTabBtn) {
+        activeTabBtn.removeAttribute('onclick');
+        activeTabBtn.addEventListener('click', () => showTab(0));
+    }
+    
+    if (inactiveTabBtn) {
+        inactiveTabBtn.removeAttribute('onclick');
+        inactiveTabBtn.addEventListener('click', () => showTab(1));
+    }
 }
 
 function clearSearch() {
@@ -258,50 +267,92 @@ function clearSearch() {
     }
 }
 
-// Custom setActiveTab function for this page to override multipleTabs.js
-window.setActiveTab = function(index) {
-    console.log('setActiveTab called with index:', index);
+// Function to handle tab switching for customer tabs
+function setActiveTab(tabIndex) {
+    showTab(tabIndex);
+}
+
+// Make setActiveTab globally accessible for customer tabs
+window.setActiveTab = setActiveTab;
+
+function showTab(tabIndex) {
+    console.log('Switching to customer tab:', tabIndex);
+    const activeTab = document.getElementById('active-tab');
+    const inactiveTab = document.getElementById('inactive-tab');
+    const activeTabBtn = document.getElementById('active-customer-tab');
+    const inactiveTabBtn = document.getElementById('inactive-customer-tab');
     
-    const tabGroup = document.querySelector('[data-tab-group]');
-    if (!tabGroup) {
-        console.error('Could not find [data-tab-group] element');
-        return;
+    console.log('Active tab element:', activeTab);
+    console.log('Inactive tab element:', inactiveTab);
+    console.log('Active tab button:', activeTabBtn);
+    console.log('Inactive tab button:', inactiveTabBtn);
+    
+    // Hide all tabs
+    if (activeTab) {
+        activeTab.classList.add('hidden');
+        console.log('Hidden active tab');
+    }
+    if (inactiveTab) {
+        inactiveTab.classList.add('hidden');
+        console.log('Hidden inactive tab');
     }
     
-    const tabBtns = tabGroup.querySelectorAll('.tab-btn');
-    const tabContents = tabGroup.querySelectorAll('.tab-content');
-    
-    console.log('Found tab buttons:', tabBtns.length);
-    console.log('Found tab contents:', tabContents.length);
-
-    tabBtns.forEach((btn, i) => {
-        const span = btn.querySelector('span');
-
-        if (i === index) {
-            btn.classList.add("bg-white", "font-semibold", "shadow");
-            span?.classList.remove("text-neutral-500");
-            span?.classList.add("text-primary");
-            console.log(`Activated button ${i}`);
-        } else {
-            btn.classList.remove("bg-white", "font-semibold", "shadow");
-            span?.classList.remove("text-primary");
-            span?.classList.add("text-neutral-500");
-            console.log(`Deactivated button ${i}`);
+    // Remove active styles from all buttons
+    if (activeTabBtn) {
+        activeTabBtn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
+        const activeSpan = activeTabBtn.querySelector('span');
+        if (activeSpan) {
+            activeSpan.classList.remove('text-primary');
+            activeSpan.classList.add('text-neutral-500');
         }
-    });
-
-    tabContents.forEach((content, i) => {
-        if (i === index) {
-            content.classList.remove("hidden");
-            console.log(`Showed tab content ${i}, classes:`, content.className);
-        } else {
-            content.classList.add("hidden");
-            console.log(`Hid tab content ${i}`);
-        }
-    });
+        console.log('Reset active button styles');
+    }
     
-    console.log('setActiveTab completed');
-};
+    if (inactiveTabBtn) {
+        inactiveTabBtn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
+        const inactiveSpan = inactiveTabBtn.querySelector('span');
+        if (inactiveSpan) {
+            inactiveSpan.classList.remove('text-primary');
+            inactiveSpan.classList.add('text-neutral-500');
+        }
+        console.log('Reset inactive button styles');
+    }
+    
+    // Show selected tab and update button styles
+    if (tabIndex === 0) {
+        // Show active customers tab
+        if (activeTab) {
+            activeTab.classList.remove('hidden');
+            console.log('Active tab now visible, classes:', activeTab.className);
+        }
+        if (activeTabBtn) {
+            activeTabBtn.classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
+            const span = activeTabBtn.querySelector('span');
+            if (span) {
+                span.classList.add('text-primary');
+                span.classList.remove('text-neutral-500');
+            }
+            console.log('Updated active button styles');
+        }
+    } else if (tabIndex === 1) {
+        // Show inactive customers tab
+        if (inactiveTab) {
+            inactiveTab.classList.remove('hidden');
+            console.log('Inactive tab now visible, classes:', inactiveTab.className);
+        }
+        if (inactiveTabBtn) {
+            inactiveTabBtn.classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
+            const span = inactiveTabBtn.querySelector('span');
+            if (span) {
+                span.classList.add('text-primary');
+                span.classList.remove('text-neutral-500');
+            }
+            console.log('Updated inactive button styles');
+        }
+    }
+    
+    console.log('Customer tab switch completed');
+}
 
 function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
     // Hide loading state
@@ -310,11 +361,10 @@ function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
         loadingState.style.display = 'none';
     }
 
-    const tabContents = document.querySelectorAll('.tab-content');
-    if (!tabContents || tabContents.length < 2) return;
-
-    const activeTab = tabContents[0];
-    const inactiveTab = tabContents[1];
+    const activeTab = document.getElementById('active-tab');
+    const inactiveTab = document.getElementById('inactive-tab');
+    
+    if (!activeTab || !inactiveTab) return;
     
     // Clear existing content
     const activeGrid = activeTab.querySelector('.grid');

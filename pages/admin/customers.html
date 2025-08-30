@@ -338,13 +338,13 @@
               </div>
               <!-- Tab buttons -->
               <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full shadow-sm my-5 md:max-w-md ">
-                <button class="tab-btn text-sm !px-4 !py-2 rounded-full flex-1 w-full md:w-fit
+                <button id="active-customer-tab" class="tab-btn text-sm !px-4 !py-2 rounded-full flex-1 w-full md:w-fit
                   hover:bg-primary/10 group active:scale-95
                   transition-all duration-200 bg-white text-primary font-semibold shadow" 
                   onclick="setActiveTab(0)">
                   <span class="text-primary text-sm group-hover:text-primary ">Active</span>
                 </button>
-                <button class="tab-btn text-sm !px-4 !py-2 rounded-full flex-1  w-full md:w-fit
+                <button id="inactive-customer-tab" class="tab-btn text-sm !px-4 !py-2 rounded-full flex-1  w-full md:w-fit
                   hover:bg-primary/10 group active:scale-95
                   transition-all duration-200" 
                   onclick="setActiveTab(1)">
@@ -357,12 +357,12 @@
                   <h3 class="text-lg font-medium text-neutral-900 mb-2">Loading customers...</h3>
                   <p class="text-neutral-500">Please wait while we fetch the customer data.</p>
                 </div>
-                <div class="tab-content hidden">
+                <div id="active-tab" class="tab-content hidden">
                   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
                     <!-- Active customers will be populated by JavaScript -->
                   </div>
                 </div>
-                <div class="tab-content hidden">
+                <div id="inactive-tab" class="tab-content hidden">
                   <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
                     <!-- Inactive customers will be populated by JavaScript -->
                   </div>

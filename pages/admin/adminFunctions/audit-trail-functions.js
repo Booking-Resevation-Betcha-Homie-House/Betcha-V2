@@ -403,10 +403,14 @@ function setActiveAuditTab(tabIndex) {
     console.log('Found tab buttons:', tabButtons.length);
     console.log('Found tab contents:', tabContents.length);
     
-    // Remove active state from all buttons
+    // Remove active state from all buttons and their spans
     tabButtons.forEach(btn => {
         btn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
-        btn.classList.add('text-neutral-500');
+        const span = btn.querySelector('span');
+        if (span) {
+            span.classList.remove('text-primary');
+            span.classList.add('text-neutral-500');
+        }
     });
     
     // Hide all tab contents
@@ -416,7 +420,11 @@ function setActiveAuditTab(tabIndex) {
     if (tabButtons[tabIndex]) {
         console.log(`Activating tab button ${tabIndex}`);
         tabButtons[tabIndex].classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
-        tabButtons[tabIndex].classList.remove('text-neutral-500');
+        const span = tabButtons[tabIndex].querySelector('span');
+        if (span) {
+            span.classList.add('text-primary');
+            span.classList.remove('text-neutral-500');
+        }
     }
     
     if (tabContents[tabIndex]) {

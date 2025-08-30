@@ -1136,7 +1136,8 @@ async function handlePropertyUpdate() {
             await uploadAllImages();
         }
 
-        showSuccessMessage('Property updated successfully!');
+        // Redirect to property view page
+        redirectToPropertyView();
         
     } catch (error) {
         handleError('Failed to update property', error);

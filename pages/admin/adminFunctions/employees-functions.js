@@ -141,11 +141,13 @@ function showTab(tabIndex) {
     console.log('Switching to tab:', tabIndex);
     const activeTab = document.getElementById('active-tab');
     const inactiveTab = document.getElementById('inactive-tab');
-    const tabButtons = document.querySelectorAll('.tab-btn');
+    const activeTabBtn = document.getElementById('active-employee-tab');
+    const inactiveTabBtn = document.getElementById('inactive-employee-tab');
     
     console.log('Active tab element:', activeTab);
     console.log('Inactive tab element:', inactiveTab);
-    console.log('Tab buttons found:', tabButtons.length);
+    console.log('Active tab button:', activeTabBtn);
+    console.log('Inactive tab button:', inactiveTabBtn);
     
     // Hide all tabs
     if (activeTab) {
@@ -158,15 +160,25 @@ function showTab(tabIndex) {
     }
     
     // Remove active styles from all buttons
-    tabButtons.forEach((btn, index) => {
-        btn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
-        const span = btn.querySelector('span');
-        if (span) {
-            span.classList.remove('text-primary');
-            span.classList.add('text-neutral-500');
+    if (activeTabBtn) {
+        activeTabBtn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
+        const activeSpan = activeTabBtn.querySelector('span');
+        if (activeSpan) {
+            activeSpan.classList.remove('text-primary');
+            activeSpan.classList.add('text-neutral-500');
         }
-        console.log(`Reset button ${index} styles`);
-    });
+        console.log('Reset active button styles');
+    }
+    
+    if (inactiveTabBtn) {
+        inactiveTabBtn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
+        const inactiveSpan = inactiveTabBtn.querySelector('span');
+        if (inactiveSpan) {
+            inactiveSpan.classList.remove('text-primary');
+            inactiveSpan.classList.add('text-neutral-500');
+        }
+        console.log('Reset inactive button styles');
+    }
     
     // Show selected tab and update button styles
     if (tabIndex === 0) {
@@ -175,9 +187,9 @@ function showTab(tabIndex) {
             activeTab.classList.remove('hidden');
             console.log('Active tab now visible, classes:', activeTab.className);
         }
-        if (tabButtons[0]) {
-            tabButtons[0].classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
-            const span = tabButtons[0].querySelector('span');
+        if (activeTabBtn) {
+            activeTabBtn.classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
+            const span = activeTabBtn.querySelector('span');
             if (span) {
                 span.classList.add('text-primary');
                 span.classList.remove('text-neutral-500');
@@ -190,9 +202,9 @@ function showTab(tabIndex) {
             inactiveTab.classList.remove('hidden');
             console.log('Inactive tab now visible, classes:', inactiveTab.className);
         }
-        if (tabButtons[1]) {
-            tabButtons[1].classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
-            const span = tabButtons[1].querySelector('span');
+        if (inactiveTabBtn) {
+            inactiveTabBtn.classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
+            const span = inactiveTabBtn.querySelector('span');
             if (span) {
                 span.classList.add('text-primary');
                 span.classList.remove('text-neutral-500');
@@ -325,6 +337,20 @@ function setupEventListeners() {
         addEmployeeBtn.addEventListener('click', () => {
             window.location.href = 'employee-add.html';
         });
+    }
+
+    // Tab button functionality
+    const activeTabBtn = document.getElementById('active-employee-tab');
+    const inactiveTabBtn = document.getElementById('inactive-employee-tab');
+    
+    if (activeTabBtn) {
+        activeTabBtn.removeAttribute('onclick');
+        activeTabBtn.addEventListener('click', () => showTab(0));
+    }
+    
+    if (inactiveTabBtn) {
+        inactiveTabBtn.removeAttribute('onclick');
+        inactiveTabBtn.addEventListener('click', () => showTab(1));
     }
 }
 
