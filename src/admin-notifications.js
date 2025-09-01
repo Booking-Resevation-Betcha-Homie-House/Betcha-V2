@@ -120,48 +120,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     cModal.dataset.bookingId = wrapper.dataset.bookingId || '';
                     cModal.dataset.fromId = wrapper.dataset.fromId || '';
                     
-                    console.log('Modal data stored:', {
-                        notificationId: wrapper.dataset.id,
-                        bookingId: wrapper.dataset.bookingId
-                    });
+
                     
-                    // Fetch and log booking details when modal opens
-                    const bookingId = wrapper.dataset.bookingId;
-                    if (bookingId) {
-                        console.log('📋 Fetching booking details when modal opens...');
-                        fetch(`${API_BASE}/booking/${bookingId}`)
-                            .then(response => response.json())
-                            .then(bookingData => {
-                                if (bookingData.success && bookingData.booking) {
-                                    const booking = bookingData.booking;
-                                    console.log('📊 BOOKING DETAILS WHEN MODAL OPENS:', {
-                                        bookingId: booking._id,
-                                        transNo: booking.transNo,
-                                        guestName: booking.guestName,
-                                        propertyName: booking.propertyName,
-                                        currentStatus: booking.status,
-                                        checkIn: booking.checkIn,
-                                        checkOut: booking.checkOut,
-                                        totalFee: booking.totalFee,
-                                        paymentCategory: booking.paymentCategory,
-                                        reservationFee: booking.reservationFee,
-                                        packageFee: booking.packageFee,
-                                        modeOfPayment: booking.reservation?.modeOfPayment || booking.package?.modeOfPayment,
-                                        paymentNo: booking.reservation?.paymentNo || booking.package?.paymentNo,
-                                        numberEwalletBank: booking.reservation?.numberBankEwallets || booking.package?.numberBankEwallets,
-                                        createdAt: booking.createdAt,
-                                        updatedAt: booking.updatedAt
-                                    });
-                                } else {
-                                    console.warn('⚠️ Could not fetch booking details when modal opens:', bookingData);
-                                }
-                            })
-                            .catch(fetchError => {
-                                console.error('❌ Error fetching booking details when modal opens:', fetchError);
-                            });
-                    } else {
-                        console.log('⚠️ No booking ID available when modal opens - cannot fetch booking details');
-                    }
+
                     
                     const sender = cModal.querySelector('#notifSender');
                     const date = cModal.querySelector('#notifDate');
@@ -456,7 +417,6 @@ function markAsReadInUI(notificationId) {
 }
 
 // Admin-specific notification functions
-const API_BASE = 'https://betcha-api.onrender.com';
 
 // Show notification success message
 function showNotificationSuccess(message) {
@@ -490,11 +450,7 @@ async function updateNotificationStatus(notifId, statusRejection) {
         const url = `${API_BASE}/notify/status-rejection/${notifId}`;
         const body = { statusRejection };
 
-        console.log('🔄 Updating notification status...');
-        console.log('Notification ID:', notifId);
-        console.log('Status:', statusRejection);
-        console.log('➡️ PATCH URL:', url);
-        console.log('➡️ Payload:', body);
+
 
         const response = await fetch(url, {
             method: 'PATCH',
@@ -510,7 +466,7 @@ async function updateNotificationStatus(notifId, statusRejection) {
         }
 
         const result = await response.json();
-        console.log('✅ Notification status updated successfully:', result);
+
 
         // Show success message
         showNotificationSuccess(`Cancellation request ${statusRejection.toLowerCase()} successfully`);
@@ -536,10 +492,7 @@ async function cancelBooking(bookingId) {
         
         const url = `${API_BASE}/booking/update-status/${bookingId}`;
         const body = { status: 'Cancel' };
-        console.log('🔄 Cancelling booking...');
-        console.log('Booking ID:', bookingId);
-        console.log('➡️ PATCH URL:', url);
-        console.log('➡️ Payload:', body);
+
         
         const response = await fetch(url, {
             method: 'PATCH',
@@ -555,7 +508,7 @@ async function cancelBooking(bookingId) {
         }
         
         const result = await response.json();
-        console.log('✅ Booking cancelled successfully:', result);
+
         
         // Show success message
         showNotificationSuccess('Booking cancelled successfully');
@@ -575,47 +528,6 @@ async function cancelBooking(bookingId) {
 // Handle cancellation request workflow
 async function handleCancellationRequest(notifId, bookingId, action) {
     try {
-        console.log('🚀 Handling cancellation request...');
-        console.log('Action:', action);
-        console.log('Notification ID:', notifId);
-        console.log('Booking ID:', bookingId);
-        
-        // Fetch and log comprehensive booking details
-        if (bookingId) {
-            console.log('📋 Fetching booking details for logging...');
-            try {
-                const bookingResponse = await fetch(`${API_BASE}/booking/${bookingId}`);
-                const bookingData = await bookingResponse.json();
-                
-                if (bookingData.success && bookingData.booking) {
-                    const booking = bookingData.booking;
-                    console.log('📊 BOOKING DETAILS FOR CANCELLATION:', {
-                        bookingId: booking._id,
-                        transNo: booking.transNo,
-                        guestName: booking.guestName,
-                        propertyName: booking.propertyName,
-                        currentStatus: booking.status,
-                        checkIn: booking.checkIn,
-                        checkOut: booking.checkOut,
-                        totalFee: booking.totalFee,
-                        paymentCategory: booking.paymentCategory,
-                        reservationFee: booking.reservationFee,
-                        packageFee: booking.packageFee,
-                        modeOfPayment: booking.reservation?.modeOfPayment || booking.package?.modeOfPayment,
-                        paymentNo: booking.reservation?.paymentNo || booking.package?.paymentNo,
-                        numberEwalletBank: booking.reservation?.numberBankEwallets || booking.package?.numberBankEwallets,
-                        createdAt: booking.createdAt,
-                        updatedAt: booking.updatedAt
-                    });
-                } else {
-                    console.warn('⚠️ Could not fetch booking details:', bookingData);
-                }
-            } catch (fetchError) {
-                console.error('❌ Error fetching booking details:', fetchError);
-            }
-        } else {
-            console.log('⚠️ No booking ID provided - cannot fetch booking details');
-        }
         
         if (action === 'accept') {
             // Admin accepts cancellation
@@ -623,15 +535,8 @@ async function handleCancellationRequest(notifId, bookingId, action) {
                 throw new Error('Booking ID is required when accepting cancellation');
             }
             
-            // Step 1: Update notification status to "Complete"
-            console.log('📝 Step 1: Updating notification status to "Complete"');
             const notifResult = await updateNotificationStatus(notifId, 'Complete');
-            
-            // Step 2: Cancel the booking
-            console.log('📝 Step 2: Cancelling the booking');
             const bookingResult = await cancelBooking(bookingId);
-            
-            console.log('✅ Cancellation request accepted and processed successfully');
             
             return {
                 success: true,
@@ -642,11 +547,7 @@ async function handleCancellationRequest(notifId, bookingId, action) {
             };
             
         } else if (action === 'reject') {
-            // Admin rejects cancellation
-            console.log('📝 Rejecting cancellation request');
             const notifResult = await updateNotificationStatus(notifId, 'Rejected');
-            
-            console.log('✅ Cancellation request rejected successfully');
             
             return {
                 success: true,
@@ -671,16 +572,12 @@ async function handleCancellationRequest(notifId, bookingId, action) {
 
 // Initialize static modal buttons for cancellation management
 function initializeStaticModalButtons() {
-    console.log('🔧 Initializing static modal buttons...');
-    
-    // Initialize reject button
     const rejectBtn = document.getElementById('cancelRejectBtn');
     if (rejectBtn) {
-        console.log('Found reject button, setting up event listener');
         
         rejectBtn.addEventListener('click', async function(e) {
             e.preventDefault();
-            console.log('Reject button clicked');
+
             
             try {
                 // Get notification data from the modal
@@ -694,74 +591,39 @@ function initializeStaticModalButtons() {
                     throw new Error('No notification ID found in modal data');
                 }
                 
-                console.log('Rejecting cancellation request:', notifId);
+
                 
                 // Get booking ID from modal data
                 let bookingId = modal.dataset.bookingId;
-                console.log('Booking ID from modal:', bookingId);
+
                 
                 // If no booking ID, try to get it from transaction number
                 if (!bookingId) {
                     const transNo = modal.querySelector('#cancel-transNo, #transNo')?.textContent?.replace('Transaction no. ', '') || 
                                    modal.querySelector('[data-trans-no]')?.textContent;
-                    console.log('Transaction number from modal:', transNo);
+
                     
                     if (transNo) {
                         try {
-                            console.log('🔍 Searching for booking by transaction number:', transNo);
+
                             const searchResponse = await fetch(`${API_BASE}/booking/trans/${encodeURIComponent(transNo)}`);
                             const searchData = await searchResponse.json();
                             
                             if (searchData && (searchData.booking || searchData.data)) {
                                 const b = searchData.booking || searchData.data;
                                 bookingId = b._id || b.id || b.bookingId || '';
-                                console.log('✅ Found booking ID by transaction number:', bookingId);
+
                                 if (bookingId) modal.dataset.bookingId = bookingId;
                             } else {
-                                console.warn('⚠️ No booking found with transaction number:', transNo);
+
                             }
                         } catch (searchError) {
-                            console.error('❌ Error searching for booking by transaction number:', searchError);
+
                         }
                     }
                 }
                 
-                // Fetch and log comprehensive booking details
-                if (bookingId) {
-                    console.log('📋 Fetching booking details for logging...');
-                    try {
-                        const bookingResponse = await fetch(`${API_BASE}/booking/${bookingId}`);
-                        const bookingData = await bookingResponse.json();
-                        
-                        if (bookingData.success && bookingData.booking) {
-                            const booking = bookingData.booking;
-                            console.log('📊 BOOKING DETAILS FOR CANCELLATION REJECTION:', {
-                                bookingId: booking._id,
-                                transNo: booking.transNo,
-                                guestName: booking.guestName,
-                                propertyName: booking.propertyName,
-                                currentStatus: booking.status,
-                                checkIn: booking.checkIn,
-                                checkOut: booking.checkOut,
-                                totalFee: booking.totalFee,
-                                paymentCategory: booking.paymentCategory,
-                                reservationFee: booking.reservationFee,
-                                packageFee: booking.packageFee,
-                                modeOfPayment: booking.reservation?.modeOfPayment || booking.package?.modeOfPayment,
-                                paymentNo: booking.reservation?.paymentNo || booking.package?.paymentNo,
-                                numberEwalletBank: booking.reservation?.numberBankEwallets || booking.package?.numberBankEwallets,
-                                createdAt: booking.createdAt,
-                                updatedAt: booking.updatedAt
-                            });
-                        } else {
-                            console.warn('⚠️ Could not fetch booking details:', bookingData);
-                        }
-                    } catch (fetchError) {
-                        console.error('❌ Error fetching booking details:', fetchError);
-                    }
-                } else {
-                    console.log('⚠️ No booking ID found in modal data - cannot fetch booking details');
-                }
+
                 
                 // Disable button during processing
                 const originalText = rejectBtn.textContent;
@@ -786,14 +648,14 @@ function initializeStaticModalButtons() {
                         toRole: 'employee',
                         message: 'Your cancellation request has been reviewed and rejected by the admin. The booking will remain active. This thread does not accept replies. For any concerns, please reach out to the admin via the designated support channel.'
                     };
-                    console.log('➡️ Sending rejection message payload:', payload);
+
                     const msgResp = await fetch(`${API_BASE}/notify/message`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
                     const msgResult = await msgResp.json().catch(() => ({}));
-                    console.log('✅ Rejection message API result:', msgResult);
+
                 } catch (msgErr) {
                     console.warn('⚠️ Failed to send rejection message:', msgErr);
                 }
@@ -809,7 +671,7 @@ function initializeStaticModalButtons() {
                     fetchNotifications();
                 }
                 
-                console.log('✅ Cancellation request rejected successfully');
+
                 
             } catch (error) {
                 console.error('❌ Error rejecting cancellation request:', error);
@@ -821,19 +683,14 @@ function initializeStaticModalButtons() {
             }
         });
         
-        console.log('✅ Reject button event listener set up');
-    } else {
-        console.warn('⚠️ Reject button (cancelRejectBtn) not found');
     }
     
-    // Initialize approve button
     const approveBtn = document.getElementById('approveCancelBtn');
     if (approveBtn) {
-        console.log('Found approve button, setting up event listener');
         
         approveBtn.addEventListener('click', async function(e) {
             e.preventDefault();
-            console.log('Approve button clicked');
+
             
             try {
                 // Get notification data from the modal
@@ -853,7 +710,7 @@ function initializeStaticModalButtons() {
                 if (!bookingId) {
                     const transNo = modal.querySelector('#cancel-transNo, #transNo')?.textContent?.replace('Transaction no. ', '') || 
                                    modal.querySelector('[data-trans-no]')?.textContent;
-                    console.log('Attempting to resolve missing bookingId via transNo:', transNo);
+
                     if (transNo) {
                         try {
                             const searchResponse = await fetch(`${API_BASE}/booking/trans/${encodeURIComponent(transNo)}`);
@@ -862,10 +719,10 @@ function initializeStaticModalButtons() {
                                 const b = searchData.booking || searchData.data;
                                 bookingId = b._id || b.id || b.bookingId || '';
                                 if (bookingId) modal.dataset.bookingId = bookingId;
-                                console.log('Resolved bookingId:', bookingId);
+
                             }
                         } catch (e2) {
-                            console.warn('Failed to resolve bookingId from transNo:', e2);
+
                         }
                     }
                 }
@@ -874,7 +731,7 @@ function initializeStaticModalButtons() {
                     throw new Error('No booking ID found in modal data');
                 }
                 
-                console.log('Approving cancellation request:', { notifId, bookingId });
+
                 
                 // Disable button during processing
                 const originalText = approveBtn.textContent;
@@ -895,7 +752,7 @@ function initializeStaticModalButtons() {
                     fetchNotifications();
                 }
                 
-                console.log('✅ Cancellation request approved successfully');
+
                 
             } catch (error) {
                 console.error('❌ Error approving cancellation request:', error);
@@ -907,24 +764,174 @@ function initializeStaticModalButtons() {
             }
         });
         
-        console.log('✅ Approve button event listener set up');
-    } else {
-        console.warn('⚠️ Approve button (approveCancelBtn) not found');
     }
 }
 
 // Initialize cancellation management functionality
 function initializeCancellationManagement() {
-    console.log('🚀 Initializing cancellation management system...');
-    
-    // Initialize static modal buttons
     initializeStaticModalButtons();
-    
-    console.log('✅ Cancellation management system initialized');
+}
+
+async function guestCancllationNotification() {
+    try {
+        // Get admin user data from localStorage
+        const fromId = localStorage.getItem('adminId') || localStorage.getItem('userId') || 'admin-user';
+        const fromName = localStorage.getItem('adminName') || `${localStorage.getItem('firstName') || 'Admin'} ${localStorage.getItem('lastName') || 'User'}`.trim();
+        
+        // Get message from textarea
+        const messageTextarea = document.getElementById('input-lpc-subtitle');
+        if (!messageTextarea) {
+            throw new Error('Message textarea not found');
+        }
+        const message = messageTextarea.value.trim();
+        if (!message) {
+            throw new Error('Please enter a message');
+        }
+        
+        // Get guest data from the selected booking (assuming there's a way to get selected booking ID)
+        // Look for booking data in modal or selected booking
+        const cancelModal = document.getElementById('cancelModal');
+        const bookingId = cancelModal?.dataset.bookingId;
+        
+        if (!bookingId) {
+            throw new Error('No booking selected. Please select a booking first.');
+        }
+        
+        // Fetch booking details to get guest information
+        const bookingResponse = await fetch(`${API_BASE}/booking/${bookingId}`);
+        const bookingData = await bookingResponse.json();
+        
+        if (!bookingData || !bookingData.booking) {
+            throw new Error('Could not fetch booking details');
+        }
+        
+        const booking = bookingData.booking;
+        const toId = booking.guestId;
+        const toName = booking.guestName;
+        
+        if (!toId) {
+            throw new Error('Guest ID not found in booking data');
+        }
+        
+        // Update the guest name in the cancelReqModal
+        const cancelReqModal = document.getElementById('cancelReqModal');
+        const guestNameSpan = cancelReqModal?.querySelector('p span');
+        if (guestNameSpan) {
+            guestNameSpan.textContent = toName || 'Unknown Guest';
+        }
+        
+        // Create notification payload for guest
+        const payload = {
+            fromId,
+            fromName,
+            fromRole: 'admin',
+            toId,
+            toName,
+            toRole: 'guest',
+            message
+        };
+        
+        console.log('🐛 DEBUG - Guest notification payload:', {
+            fromId: payload.fromId,
+            fromName: payload.fromName,
+            fromRole: payload.fromRole,
+            toId: payload.toId,
+            toName: payload.toName,
+            toRole: payload.toRole,
+            message: payload.message,
+            messageLength: payload.message.length,
+            bookingId: bookingId
+        });
+        
+
+        
+        // Send notification to guest
+        const response = await fetch(`${API_BASE}/notify/message`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(payload)
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+
+        
+        // Show success message
+        showNotificationSuccess('Guest notification sent successfully!');
+        
+        // Clear the textarea after successful send
+        messageTextarea.value = '';
+        
+        return result;
+        
+    } catch (error) {
+        console.error('❌ Error sending guest notification:', error);
+        showNotificationError(`Failed to send guest notification: ${error.message}`);
+        throw error;
+    }
 }
 
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize cancellation management
     initializeCancellationManagement();
+    
+    // Initialize guest message button
+    const guestMsgBtn = document.getElementById('guestMsgBtn');
+    if (guestMsgBtn) {
+        
+        guestMsgBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+
+            
+            try {
+                // Disable button during processing
+                const originalText = guestMsgBtn.textContent;
+                guestMsgBtn.disabled = true;
+                guestMsgBtn.textContent = 'Sending...';
+                
+                // Send guest notification
+                await guestCancllationNotification();
+                
+            } catch (error) {
+                console.error('❌ Error sending guest notification:', error);
+            } finally {
+                // Re-enable button
+                guestMsgBtn.disabled = false;
+                guestMsgBtn.textContent = originalText;
+            }
+        });
+        
+    }
+    
+    document.addEventListener('click', (e) => {
+        if (e.target.closest('[data-modal-target="cancelReqModal"]')) {
+            setTimeout(async () => {
+                try {
+                    const cancelModal = document.getElementById('cancelModal');
+                    const bookingId = cancelModal?.dataset.bookingId;
+                    if (!bookingId) return;
+                    
+                    const bookingResponse = await fetch(`${API_BASE}/booking/${bookingId}`);
+                    const bookingData = await bookingResponse.json();
+                    
+                    if (bookingData && bookingData.booking) {
+                        const cancelReqModal = document.getElementById('cancelReqModal');
+                        const guestNameSpan = cancelReqModal?.querySelector('p span');
+                        if (guestNameSpan) {
+                            guestNameSpan.textContent = bookingData.booking.guestName || 'Unknown Guest';
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Could not update guest name:', error);
+                }
+            }, 100);
+        }
+    });
 });

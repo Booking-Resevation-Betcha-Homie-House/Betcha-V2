@@ -24,16 +24,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function fetchCustomers() {
     try {
-        console.log('Making API request to:', apiUrl);
         const response = await fetch(apiUrl);
-        console.log('API response status:', response.status);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         const data = await response.json();
-        console.log('Raw API response:', data);
         
         // The API returns a direct array of customers
         if (Array.isArray(data)) {
@@ -42,9 +39,6 @@ async function fetchCustomers() {
         } else {
             throw new Error('Invalid response format from API - expected array');
         }
-        
-        console.log('Fetched customers:', customers);
-        console.log('Number of customers:', customers.length);
         
     } catch (error) {
         console.error('Error fetching customers:', error);
@@ -57,17 +51,6 @@ function renderCustomers() {
     const loadingState = document.getElementById('loading-state');
     if (loadingState) {
         loadingState.style.display = 'none';
-    }
-
-    console.log('Starting to render customers...');
-    console.log('Total customers to render:', customers.length);
-    
-    // Log customer data for debugging
-    if (customers.length > 0) {
-        console.log('Customer archived status:');
-        customers.forEach((customer, index) => {
-            console.log(`Customer ${index + 1}: archived="${customer.archived}", name="${customer.firstname} ${customer.lastname}"`);
-        });
     }
 
     // Find the tab content containers using specific IDs
@@ -96,12 +79,8 @@ function renderCustomers() {
         return customer.archived === "true" || customer.archived === true;
     });
 
-    console.log('Active customers found:', activeCustomers.length);
-    console.log('Inactive customers found:', inactiveCustomers.length);
-
     // Render active customers
     if (activeCustomers.length > 0) {
-        console.log('Rendering active customers...');
         activeCustomers.forEach((customer) => {
             const customerCard = createCustomerCard(customer);
             if (activeGrid) {
@@ -109,13 +88,11 @@ function renderCustomers() {
             }
         });
     } else {
-        console.log('No active customers found, showing empty state');
         if (activeGrid) activeGrid.innerHTML = createEmptyState('No active customers found');
     }
 
     // Render inactive customers
     if (inactiveCustomers.length > 0) {
-        console.log('Rendering inactive customers...');
         inactiveCustomers.forEach((customer) => {
             const customerCard = createCustomerCard(customer);
             if (inactiveGrid) {
@@ -123,7 +100,6 @@ function renderCustomers() {
             }
         });
     } else {
-        console.log('No inactive customers found, showing empty state');
         if (inactiveGrid) inactiveGrid.innerHTML = createEmptyState('No inactive customers found');
     }
 
@@ -131,7 +107,6 @@ function renderCustomers() {
     updateTabCounts(activeCustomers.length, inactiveCustomers.length);
 
     // Always show the active tab by default after rendering
-    console.log('Setting default active tab...');
     // Small delay to ensure DOM is ready
     setTimeout(() => {
         showTab(0); // Always show active tab by default
@@ -142,8 +117,6 @@ function renderCustomers() {
         if (activeGrid) activeGrid.innerHTML = createEmptyState('No customers found in the system');
         if (inactiveGrid) inactiveGrid.innerHTML = createEmptyState('No customers found in the system');
     }
-    
-    console.log('renderCustomers function completed');
 }
 
 function createCustomerCard(customer) {
@@ -276,25 +249,17 @@ function setActiveTab(tabIndex) {
 window.setActiveTab = setActiveTab;
 
 function showTab(tabIndex) {
-    console.log('Switching to customer tab:', tabIndex);
     const activeTab = document.getElementById('active-tab');
     const inactiveTab = document.getElementById('inactive-tab');
     const activeTabBtn = document.getElementById('active-customer-tab');
     const inactiveTabBtn = document.getElementById('inactive-customer-tab');
     
-    console.log('Active tab element:', activeTab);
-    console.log('Inactive tab element:', inactiveTab);
-    console.log('Active tab button:', activeTabBtn);
-    console.log('Inactive tab button:', inactiveTabBtn);
-    
     // Hide all tabs
     if (activeTab) {
         activeTab.classList.add('hidden');
-        console.log('Hidden active tab');
     }
     if (inactiveTab) {
         inactiveTab.classList.add('hidden');
-        console.log('Hidden inactive tab');
     }
     
     // Remove active styles from all buttons
@@ -305,7 +270,6 @@ function showTab(tabIndex) {
             activeSpan.classList.remove('text-primary');
             activeSpan.classList.add('text-neutral-500');
         }
-        console.log('Reset active button styles');
     }
     
     if (inactiveTabBtn) {
@@ -315,7 +279,6 @@ function showTab(tabIndex) {
             inactiveSpan.classList.remove('text-primary');
             inactiveSpan.classList.add('text-neutral-500');
         }
-        console.log('Reset inactive button styles');
     }
     
     // Show selected tab and update button styles
@@ -323,7 +286,6 @@ function showTab(tabIndex) {
         // Show active customers tab
         if (activeTab) {
             activeTab.classList.remove('hidden');
-            console.log('Active tab now visible, classes:', activeTab.className);
         }
         if (activeTabBtn) {
             activeTabBtn.classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
@@ -332,13 +294,11 @@ function showTab(tabIndex) {
                 span.classList.add('text-primary');
                 span.classList.remove('text-neutral-500');
             }
-            console.log('Updated active button styles');
         }
     } else if (tabIndex === 1) {
         // Show inactive customers tab
         if (inactiveTab) {
             inactiveTab.classList.remove('hidden');
-            console.log('Inactive tab now visible, classes:', inactiveTab.className);
         }
         if (inactiveTabBtn) {
             inactiveTabBtn.classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
@@ -347,11 +307,8 @@ function showTab(tabIndex) {
                 span.classList.add('text-primary');
                 span.classList.remove('text-neutral-500');
             }
-            console.log('Updated inactive button styles');
         }
     }
-    
-    console.log('Customer tab switch completed');
 }
 
 function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
@@ -460,7 +417,6 @@ async function fetchCustomerReports(customerId) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         const reports = await response.json();
-        console.log('Customer reports fetched:', reports);
         return reports;
     } catch (error) {
         console.error('Error fetching customer reports:', error);
@@ -583,8 +539,6 @@ async function showCustomerDetails(customer) {
     // Show the modal
     modal.classList.remove('hidden');
     document.body.classList.add('modal-open');
-    
-    console.log('Showing details for customer:', customer);
 }
 
 function showErrorState(message) {
@@ -676,8 +630,6 @@ async function handleCustomerDeactivation() {
             ? `${API_BASE}/guest/unarchive/${currentCustomer._id}`
             : `${API_BASE}/guest/archive/${currentCustomer._id}`;
 
-        console.log(`Making API call to: ${endpoint}`);
-        
         let success = false;
         let response;
 
@@ -708,7 +660,6 @@ async function handleCustomerDeactivation() {
 
         if (success) {
             const result = await response.json();
-            console.log('Customer status updated via API:', result);
             
             // Show success message immediately
             const successAction = !isArchived ? 'deactivated' : 'reactivated';
@@ -767,8 +718,6 @@ async function handleCustomerDeactivation() {
 
 async function refreshCustomerData() {
     try {
-        console.log('Refreshing customer data from API...');
-        
         // Show a subtle loading indicator (optional)
         const searchInput = document.getElementById('customer-search');
         let searchTerm = '';
@@ -799,8 +748,6 @@ async function refreshCustomerData() {
         }
         
         renderCustomers();
-        
-        console.log('Customer data refreshed successfully');
     } catch (error) {
         console.error('Error refreshing customer data:', error);
         // Fall back to rendering current data
