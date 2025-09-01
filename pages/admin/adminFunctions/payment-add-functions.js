@@ -1,19 +1,7 @@
 // Payment Add Functions
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
-// Payment categories/methods
-const PAYMENT_METHODS = [
-    'GCash',
-    'PayMaya',
-    'UnionBank',
-    'BPI',
-    'BDO',
-    'Metrobank',
-    'Bank Transfer',
-    'Credit Card',
-    'Debit Card',
-    'Other'
-];
+
 
 // Initialize form functionality - paymentMethodOption.js handles the dropdown
 document.addEventListener('DOMContentLoaded', function() {
@@ -210,8 +198,6 @@ async function validateAndSubmitForm() {
             qrPhotoLink: qrPhotoLink
         };
 
-        console.log('Submitting payment data:', paymentData);
-
         // Submit to API
         const response = await fetch(`${API_BASE_URL}/paymentPlatform/create`, {
             method: 'POST',
@@ -227,28 +213,16 @@ async function validateAndSubmitForm() {
         }
 
         const result = await response.json();
-        console.log('Payment created successfully (raw):', result);
         const created = result?.newPayment || result?.data || result?.payment || result?.paymentPlatform || result;
-        console.log('Created payment record:', created);
-        console.log('Created payment debug fields:', {
-            id: created?._id || created?.id,
-            paymentName: created?.paymentName,
-            category: created?.category,
-            qrPhotoLink: created?.qrPhotoLink,
-            createdAt: created?.createdAt
-        });
         // If the API did not persist the image on create, attempt an immediate follow-up update
         const createdId = created?._id || created?.id;
         if (createdId && !created?.qrPhotoLink && qrPhotoLink) {
             try {
-                console.log('Attempting follow-up image update for created payment:', createdId);
                 const updatePayload = {
                     paymentName: paymentName,
                     category: selectedCategory,
                     qrPhotoLink: qrPhotoLink
                 };
-                console.log('➡️ PUT URL:', `${API_BASE_URL}/payments/update/${createdId}`);
-                console.log('➡️ Update payload:', updatePayload);
                 const updateResp = await fetch(`${API_BASE_URL}/payments/update/${createdId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
@@ -257,8 +231,6 @@ async function validateAndSubmitForm() {
                 const updateResult = await updateResp.json().catch(() => ({}));
                 if (!updateResp.ok) {
                     console.warn('Follow-up image update failed:', updateResult);
-                } else {
-                    console.log('✅ Follow-up image update succeeded:', updateResult);
                 }
             } catch (followErr) {
                 console.warn('Error during follow-up image update:', followErr);

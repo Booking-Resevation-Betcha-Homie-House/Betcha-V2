@@ -10,15 +10,10 @@ const apiUrl = `${API_BASE}/employee/display`;
 
 // Initialize the employee manager when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('Initializing Employee Manager...');
     try {
-        console.log('Fetching employees from API...');
         await fetchEmployees();
-        console.log('Rendering employees...');
         renderEmployees();
-        console.log('Setting up event listeners...');
         setupEventListeners();
-        console.log('Employee Manager initialized successfully!');
     } catch (error) {
         console.error('Error initializing employee manager:', error);
         showErrorState('Failed to load employees. Please try again.');
@@ -27,17 +22,13 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function fetchEmployees() {
     try {
-        console.log('Making API request to:', apiUrl);
         const response = await fetch(apiUrl);
-        console.log('API response status:', response.status);
         
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
         
         employees = await response.json();
-        console.log('Fetched employees:', employees);
-        console.log('Number of employees:', employees.length);
         
         // Handle case when API returns empty array
         if (!Array.isArray(employees)) {
@@ -50,16 +41,6 @@ async function fetchEmployees() {
 }
 
 function renderEmployees() {
-    console.log('Starting to render employees...');
-    console.log('Total employees to render:', employees.length);
-    
-    // Log status values for debugging
-    if (employees.length > 0) {
-        console.log('Employee status values:');
-        employees.forEach((emp, index) => {
-            console.log(`Employee ${index + 1}: status="${emp.status}", name="${emp.firstname} ${emp.lastname}"`);
-        });
-    }
     
     // Hide loading state
     const loadingState = document.getElementById('loading-state');
@@ -83,30 +64,25 @@ function renderEmployees() {
     const activeEmployees = employees.filter(emp => emp.status === 'active' || emp.status === 'Active' || !emp.status);
     const inactiveEmployees = employees.filter(emp => emp.status === 'archived' || emp.status === 'Archived' || emp.status === 'inactive' || emp.status === 'Inactive');
 
-    console.log('Active employees found:', activeEmployees.length);
-    console.log('Inactive employees found:', inactiveEmployees.length);
+
 
     // Render active employees
     if (activeEmployees.length > 0) {
-        console.log('Rendering active employees...');
         activeEmployees.forEach(employee => {
             const employeeCard = createEmployeeCard(employee);
             activeTab.querySelector('.grid').appendChild(employeeCard);
         });
     } else {
-        console.log('No active employees found, showing empty state');
         activeTab.querySelector('.grid').innerHTML = createEmptyState('No active employees found');
     }
 
     // Render inactive employees
     if (inactiveEmployees.length > 0) {
-        console.log('Rendering inactive employees...');
         inactiveEmployees.forEach(employee => {
             const employeeCard = createEmployeeCard(employee);
             inactiveTab.querySelector('.grid').appendChild(employeeCard);
         });
     } else {
-        console.log('No inactive employees found, showing empty state');
         inactiveTab.querySelector('.grid').innerHTML = createEmptyState('No inactive employees found');
     }
 
@@ -114,7 +90,6 @@ function renderEmployees() {
     updateTabCounts(activeEmployees.length, inactiveEmployees.length);
 
     // Always show the active tab by default after rendering
-    console.log('Setting default active tab...');
     // Small delay to ensure DOM is ready
     setTimeout(() => {
         showTab(0); // Always show active tab by default
@@ -125,8 +100,6 @@ function renderEmployees() {
         activeTab.querySelector('.grid').innerHTML = createEmptyState('No employees found in the system');
         inactiveTab.querySelector('.grid').innerHTML = createEmptyState('No employees found in the system');
     }
-    
-    console.log('Finished rendering employees');
 }
 
 // Function to handle tab switching
@@ -138,25 +111,17 @@ function setActiveTab(tabIndex) {
 window.setActiveTab = setActiveTab;
 
 function showTab(tabIndex) {
-    console.log('Switching to tab:', tabIndex);
     const activeTab = document.getElementById('active-tab');
     const inactiveTab = document.getElementById('inactive-tab');
     const activeTabBtn = document.getElementById('active-employee-tab');
     const inactiveTabBtn = document.getElementById('inactive-employee-tab');
     
-    console.log('Active tab element:', activeTab);
-    console.log('Inactive tab element:', inactiveTab);
-    console.log('Active tab button:', activeTabBtn);
-    console.log('Inactive tab button:', inactiveTabBtn);
-    
     // Hide all tabs
     if (activeTab) {
         activeTab.classList.add('hidden');
-        console.log('Hidden active tab');
     }
     if (inactiveTab) {
         inactiveTab.classList.add('hidden');
-        console.log('Hidden inactive tab');
     }
     
     // Remove active styles from all buttons
@@ -167,7 +132,6 @@ function showTab(tabIndex) {
             activeSpan.classList.remove('text-primary');
             activeSpan.classList.add('text-neutral-500');
         }
-        console.log('Reset active button styles');
     }
     
     if (inactiveTabBtn) {
@@ -177,7 +141,6 @@ function showTab(tabIndex) {
             inactiveSpan.classList.remove('text-primary');
             inactiveSpan.classList.add('text-neutral-500');
         }
-        console.log('Reset inactive button styles');
     }
     
     // Show selected tab and update button styles
@@ -185,7 +148,6 @@ function showTab(tabIndex) {
         // Show active employees tab
         if (activeTab) {
             activeTab.classList.remove('hidden');
-            console.log('Active tab now visible, classes:', activeTab.className);
         }
         if (activeTabBtn) {
             activeTabBtn.classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
@@ -194,13 +156,11 @@ function showTab(tabIndex) {
                 span.classList.add('text-primary');
                 span.classList.remove('text-neutral-500');
             }
-            console.log('Updated active button styles');
         }
     } else if (tabIndex === 1) {
         // Show inactive employees tab
         if (inactiveTab) {
             inactiveTab.classList.remove('hidden');
-            console.log('Inactive tab now visible, classes:', inactiveTab.className);
         }
         if (inactiveTabBtn) {
             inactiveTabBtn.classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
@@ -209,11 +169,8 @@ function showTab(tabIndex) {
                 span.classList.add('text-primary');
                 span.classList.remove('text-neutral-500');
             }
-            console.log('Updated inactive button styles');
         }
     }
-    
-    console.log('Tab switch completed');
 }
 
 function createEmployeeCard(employee) {
@@ -473,12 +430,4 @@ async function retryLoad() {
     }
 }
 
-// Export for use in other modules if needed
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = {
-        fetchEmployees,
-        renderEmployees,
-        createEmployeeCard,
-        filterEmployees
-    };
-}
+

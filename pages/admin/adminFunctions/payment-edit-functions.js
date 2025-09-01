@@ -1,5 +1,4 @@
 // Payment edit functions for admin panel
-// Main functionality: Edit existing payment methods with auto-population, validation, and image upload
 
 // Constants
 const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -91,10 +90,8 @@ function populateFormFields(paymentData) {
     const paymentNameDiv = document.getElementById('paymentNameDiv');
     const customNameInput = document.getElementById('input-payment-name');
     
-    // Determine the category - use category field if available, otherwise derive from paymentName
     let category = paymentData.category;
     if (!category && paymentData.paymentName) {
-        // Try to match paymentName with available categories
         category = PAYMENT_CATEGORIES.find(cat => 
             paymentData.paymentName.toLowerCase().includes(cat.toLowerCase())
         ) || 'Other';
@@ -107,7 +104,6 @@ function populateFormFields(paymentData) {
         selectedMethodElement.classList.remove('text-neutral-400');
         selectedMethodElement.classList.add('text-primary-text');
         
-        // Show custom name field if "Other" category or if category doesn't match standard options
         if (category === 'Other' || !PAYMENT_CATEGORIES.includes(category)) {
             paymentNameDiv.classList.remove('hidden');
             customNameInput.value = paymentData.paymentName || '';
@@ -116,7 +112,6 @@ function populateFormFields(paymentData) {
             customNameInput.value = paymentData.paymentName || category;
         }
     } else {
-        // Fallback - treat as "Other" if no category can be determined
         selectedMethodElement.textContent = 'Other';
         selectedMethodElement.setAttribute('data-value', 'Other');
         selectedMethodElement.classList.remove('text-neutral-400');
@@ -125,7 +120,6 @@ function populateFormFields(paymentData) {
         customNameInput.value = paymentData.paymentName || '';
     }
     
-    // Set QR image if available (keep overlay visible for guidance)
     if (paymentData.qrPhotoLink && paymentData.qrPhotoLink.trim() !== '') {
         const preview = document.getElementById('qr-preview');
         const placeholder = document.getElementById('qr-placeholder');
@@ -133,7 +127,6 @@ function populateFormFields(paymentData) {
         if (preview && placeholder) {
             preview.src = paymentData.qrPhotoLink;
             preview.style.display = 'block';
-            // Keep placeholder visible but allow click-through via input on top
             placeholder.style.display = 'flex';
         }
     }
@@ -145,27 +138,22 @@ function setupPaymentMethodIntegration() {
     const customNameDiv = document.getElementById('paymentNameDiv');
     const paymentDropdownList = document.getElementById('paymentDropdownList');
     
-    // Consolidated function to handle dropdown state changes
     function handleDropdownSelection(selectedValue) {
         if (!selectedValue || selectedValue === 'Select Payment') return;
         
-        // Store the selected value as data attribute
         selectedMethodElement.setAttribute('data-value', selectedValue);
         
-        // Handle "Other" category visibility
         const customNameInput = document.getElementById('input-payment-name');
         if (selectedValue === 'Other') {
             customNameDiv.classList.remove('hidden');
         } else {
             customNameDiv.classList.add('hidden');
-            // Clear custom name input when not "Other"
             if (customNameInput) {
                 customNameInput.value = '';
             }
         }
     }
     
-    // Monitor dropdown list clicks to capture selections
     if (paymentDropdownList) {
         paymentDropdownList.addEventListener('click', function(e) {
             const listItem = e.target.closest('li');
@@ -175,7 +163,6 @@ function setupPaymentMethodIntegration() {
         });
     }
     
-    // Fallback: MutationObserver to watch for changes to the selected payment method
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.type === 'childList' || mutation.type === 'characterData') {
@@ -185,7 +172,6 @@ function setupPaymentMethodIntegration() {
         });
     });
     
-    // Start observing
     observer.observe(selectedMethodElement, {
         childList: true,
         characterData: true,
@@ -193,7 +179,6 @@ function setupPaymentMethodIntegration() {
     });
 }
 
-// Consolidated file validation function
 function validateImageFile(file, inputElement = null) {
     // Validate file type
     if (!file.type.startsWith('image/')) {
@@ -202,7 +187,6 @@ function validateImageFile(file, inputElement = null) {
         return false;
     }
 
-    // Validate file size using constant
     if (file.size > MAX_FILE_SIZE) {
         showError('File size must be less than 5MB.');
         if (inputElement) inputElement.value = '';
@@ -223,18 +207,15 @@ function initializeFileUpload() {
             const file = e.target.files[0];
             
             if (file) {
-                // Use consolidated validation
                 if (!validateImageFile(file, fileInput)) {
                     return;
                 }
 
-                // Show preview
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     if (preview && placeholder) {
                         preview.src = e.target.result;
                         preview.style.display = 'block';
-                        // Keep overlay for instruction visibility
                         placeholder.style.display = 'flex';
                     }
                 };
@@ -246,7 +227,6 @@ function initializeFileUpload() {
                 
                 reader.readAsDataURL(file);
             } else {
-                // If no file selected, restore placeholder if there was no existing image
                 if (preview && placeholder && !currentPaymentData?.qrPhotoLink) {
                     preview.style.display = 'none';
                     placeholder.style.display = 'flex';
@@ -277,7 +257,6 @@ function setupFormSubmission() {
     setupModalConfirmation();
 }
 
-// Consolidated validation function
 function validatePaymentForm() {
     const selectedMethod = document.getElementById('selectedPaymentMethod');
     const customNameInput = document.getElementById('input-payment-name');
@@ -290,7 +269,6 @@ function validatePaymentForm() {
         return { isValid: false };
     }
     
-    // Determine and validate payment name
     let paymentName;
     if (selectedCategory === 'Other') {
         paymentName = customNameInput.value.trim();
@@ -310,7 +288,6 @@ function validatePaymentForm() {
     };
 }
 
-// Pre-modal validation (uses consolidated validation)
 function preModalValidation() {
     return validatePaymentForm().isValid;
 }
@@ -350,16 +327,13 @@ async function validateAndSubmitForm() {
             // Convert the new image to base64 for direct storage
             const file = fileInput.files[0];
             
-            // Use consolidated validation (no need to clear input in submission context)
             if (!validateImageFile(file)) {
                 hideLoadingState();
                 return;
             }
             
             try {
-                // Convert to base64 - this is what the API expects
                 qrPhotoLink = await convertFileToBase64(file);
-                console.log('New image converted to base64, size:', qrPhotoLink.length, 'characters');
                 
             } catch (fileError) {
                 console.error('Error processing image file:', fileError);
@@ -376,8 +350,6 @@ async function validateAndSubmitForm() {
             qrPhotoLink: qrPhotoLink
         };
 
-        console.log('Updating payment data:', paymentData);
-
         // Make API call to update payment
         const response = await fetch(`${API_BASE}/payments/update/${currentPaymentId}`, {
             method: 'PUT',
@@ -393,28 +365,22 @@ async function validateAndSubmitForm() {
         }
 
         const result = await response.json();
-        console.log('Payment updated successfully:', result);
         
-        // Verify if image was updated
         const hasNewImage = fileInput.files[0];
         const successMessage = hasNewImage 
             ? 'Payment method and image updated successfully!' 
             : 'Payment method updated successfully!';
         
-        // Close the confirmation modal
         const modal = document.getElementById('confirmDetailsModal');
         if (modal) {
             modal.classList.add('hidden');
         }
         
-        // Show success and redirect
         hideLoadingState();
         showSuccess(successMessage);
         
-        // Clear the stored payment ID
         sessionStorage.removeItem('editPaymentId');
         
-        // Redirect to payment list page after a short delay
         setTimeout(() => {
             window.location.href = 'payment.html';
         }, 1500);
@@ -444,16 +410,8 @@ function convertFileToBase64(file) {
 }
 
 // Utility functions for loading states and notifications
-function showLoadingState() {
-    // Loading state implementation
-}
-
-function hideLoadingState() {
-    // Hide loading state implementation
-}
 
 function showSuccess(message) {
-    // Create and show success toast notification
     const toast = document.createElement('div');
     toast.className = 'fixed top-5 right-5 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
     toast.innerHTML = `
@@ -467,7 +425,6 @@ function showSuccess(message) {
     
     document.body.appendChild(toast);
     
-    // Auto remove after 3 seconds
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translateX(100%)';
@@ -480,7 +437,6 @@ function showSuccess(message) {
 }
 
 function showError(message) {
-    // Create and show error toast notification
     const toast = document.createElement('div');
     toast.className = 'fixed top-5 right-5 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
     toast.innerHTML = `
@@ -494,7 +450,6 @@ function showError(message) {
     
     document.body.appendChild(toast);
     
-    // Auto remove after 5 seconds
     setTimeout(() => {
         toast.style.opacity = '0';
         toast.style.transform = 'translateX(100%)';
@@ -506,12 +461,9 @@ function showError(message) {
     }, 5000);
 }
 
-// Search functionality for payments
 function setupSearchFunctionality() {
-    // Create search functionality similar to property-functions.js
     const searchInput = document.getElementById('payment-search');
     
-    // If there's no search input on the edit page, we can create one or skip
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             const value = e.target.value.trim().toLowerCase();
@@ -519,7 +471,6 @@ function setupSearchFunctionality() {
         });
     }
     
-    // Setup alternative search functionality for payment name auto-complete
     setupPaymentNameAutocomplete();
 }
 
@@ -534,7 +485,6 @@ function filterPayments(searchTerm) {
         return name.includes(searchTerm) || category.includes(searchTerm);
     });
     
-    // You could render these filtered payments if needed
     return filteredPayments;
 }
 
@@ -544,7 +494,6 @@ function setupPaymentNameAutocomplete() {
     const selectedMethodElement = document.getElementById('selectedPaymentMethod');
     
     if (customNameInput && allPayments.length > 0) {
-        // Create datalist for autocomplete
         let datalist = document.getElementById('payment-names-datalist');
         if (!datalist) {
             datalist = document.createElement('datalist');
@@ -553,26 +502,21 @@ function setupPaymentNameAutocomplete() {
             customNameInput.parentNode.appendChild(datalist);
         }
         
-        // Populate datalist with existing payment names
         const uniqueNames = [...new Set(allPayments.map(p => p.paymentName).filter(Boolean))];
         datalist.innerHTML = uniqueNames.map(name => `<option value="${name}">`).join('');
         
-        // Add input event listener for smart suggestions
         customNameInput.addEventListener('input', function(e) {
             const inputValue = e.target.value.toLowerCase();
             const selectedCategory = selectedMethodElement.getAttribute('data-value') || selectedMethodElement.textContent.trim();
             
-            // Filter suggestions based on category if available
             let suggestions = allPayments.filter(payment => {
                 const nameMatch = payment.paymentName && payment.paymentName.toLowerCase().includes(inputValue);
                 const categoryMatch = !selectedCategory || selectedCategory === 'Select Payment' || payment.category === selectedCategory;
                 return nameMatch && categoryMatch;
             }).map(p => p.paymentName);
             
-            // Remove duplicates
             suggestions = [...new Set(suggestions)];
             
-            // Update datalist
             datalist.innerHTML = suggestions.map(name => `<option value="${name}">`).join('');
         });
     }
@@ -604,7 +548,7 @@ function getPaymentSuggestions(partialName) {
             category: payment.category,
             qrPhotoLink: payment.qrPhotoLink
         }))
-        .slice(0, 5); // Limit to 5 suggestions
+        .slice(0, 5);
 }
 
 // Quick search for specific payment by ID
@@ -630,7 +574,6 @@ function advancedPaymentSearch(criteria) {
     });
 }
 
-// Render payment search results (utility function for potential future use)
 function renderPaymentSearchResults(payments, containerId = 'payment-search-results') {
     const container = document.getElementById(containerId);
     if (!container) return;
@@ -699,8 +642,7 @@ function formatPaymentDate(dateString) {
     return `${month}/${day}/${year}`;
 }
 
-// Function to select a payment for editing (utility function)
 function selectPaymentForEdit(paymentId) {
     sessionStorage.setItem('editPaymentId', paymentId);
-    window.location.reload(); // Reload to load the selected payment
+    window.location.reload();
 }

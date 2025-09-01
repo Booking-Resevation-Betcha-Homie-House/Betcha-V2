@@ -138,10 +138,8 @@ function waitForAlpineAndPopulate(employeeId) {
         attempts++;
         
         if (window.Alpine && window.Alpine.$data) {
-            console.log('Alpine.js is ready, populating form...');
             populateEmployeeEditForm(employeeId);
         } else if (attempts < maxAttempts) {
-            console.log(`Waiting for Alpine.js... Attempt ${attempts}/${maxAttempts}`);
             setTimeout(checkAlpine, 100);
         } else {
             console.error('Alpine.js failed to initialize after 5 seconds');
@@ -212,14 +210,10 @@ function setInitialAvatar(employee) {
 
 async function populateRoles(employee) {
     try {
-        console.log('Starting to populate roles for employee:', employee);
-        
         // Get role data from employee
         const employeeRoles = parseEmployeeFieldData(employee, ['roles', 'role', 'userRoles', 'assignedRoles']);
-        console.log('Employee roles data:', employeeRoles);
         
         if (!employeeRoles) {
-            console.log('No employee roles found, skipping role population');
             return;
         }
         
@@ -227,14 +221,12 @@ async function populateRoles(employee) {
         const response = await fetch(`${API_BASE}/roles/display`);
         const rolesData = await response.json();
         const allRoles = rolesData.value || rolesData;
-        console.log('All available roles:', allRoles);
         
         // Wait for Alpine.js initialization
         await new Promise(resolve => setTimeout(resolve, 200));
         
         // Find Alpine component for roles
         const roleComponent = document.querySelector('div[x-data*="roles"]');
-        console.log('Role component found:', !!roleComponent);
         
         if (!roleComponent || !window.Alpine) {
             console.error('Role component or Alpine.js not found');
@@ -242,15 +234,12 @@ async function populateRoles(employee) {
         }
 
         const alpineData = Alpine.$data(roleComponent);
-        console.log('Alpine data for roles:', alpineData);
         
         // Update roles list
         alpineData.roles = allRoles.map(role => role.name);
-        console.log('Updated roles list:', alpineData.roles);
         
         // Parse and set selected roles
         const employeeRolesList = parseDataArray(employeeRoles);
-        console.log('Parsed employee roles list:', employeeRolesList);
         
         const selectedRoleNames = employeeRolesList.map(roleData => {
             if (typeof roleData === 'string') {
@@ -261,28 +250,11 @@ async function populateRoles(employee) {
             return roleData?.name || roleData;
         }).filter(name => alpineData.roles.includes(name));
         
-        console.log('Selected role names:', selectedRoleNames);
-        
         // Set selected roles in Alpine with proper reactivity
         alpineData.selected = [...selectedRoleNames];
         
         // Store all roles for later use in form submission
         alpineData.allRoles = allRoles;
-        
-        console.log('Roles populated successfully:', {
-            allRoles: alpineData.roles,
-            selectedRoles: alpineData.selected,
-            alpineData: alpineData
-        });
-        
-        // Verify the checkboxes are properly bound
-        setTimeout(() => {
-            const checkboxes = document.querySelectorAll('input[type="checkbox"][value]');
-            console.log('Found checkboxes:', checkboxes.length);
-            checkboxes.forEach(checkbox => {
-                console.log(`Checkbox ${checkbox.value}: checked=${checkbox.checked}, shouldBeChecked=${alpineData.selected.includes(checkbox.value)}`);
-            });
-        }, 500);
         
     } catch (error) {
         console.error('Error populating roles:', error);
@@ -340,11 +312,6 @@ async function populateAssignedProperties(employee) {
         // Set selected properties in Alpine with proper reactivity
         alpineData.selected = [...selectedPropertyNames];
         
-        console.log('Properties populated successfully:', {
-            allProperties: alpineData.properties,
-            selectedProperties: alpineData.selected
-        });
-        
     } catch (error) {
         console.error('Error populating properties:', error);
     }
@@ -359,25 +326,12 @@ function getFormData() {
     const lastNameInput = document.querySelector('#empLName input');
     const emailInput = document.querySelector('#empEmail input');
     
-    console.log('Input elements found:', {
-        firstNameInput: !!firstNameInput,
-        lastNameInput: !!lastNameInput,
-        emailInput: !!emailInput
-    });
-    
     if (firstNameInput) formData.firstname = firstNameInput.value.trim();
     if (lastNameInput) formData.lastname = lastNameInput.value.trim();
     if (emailInput) formData.email = emailInput.value.trim();
     
-    console.log('Basic form data extracted:', {
-        firstname: formData.firstname,
-        lastname: formData.lastname,
-        email: formData.email
-    });
-    
     // Get selected roles
     const roleComponent = document.querySelector('[x-data*="roles"]');
-    console.log('Role component found:', !!roleComponent);
     if (roleComponent) {
         try {
             const alpineData = Alpine.$data(roleComponent);
@@ -392,22 +346,16 @@ function getFormData() {
                 });
             }
             formData.roles = roleIds;
-            formData.roleNames = alpineData.selected || []; // Keep names for debugging
-            console.log('Roles extracted:', { names: formData.roleNames, ids: formData.roles });
         } catch (error) {
             console.error('Error getting roles:', error);
             formData.roles = [];
-            formData.roleNames = [];
         }
     } else {
-        console.warn('Role component not found');
         formData.roles = [];
-        formData.roleNames = [];
     }
     
     // Get selected properties
     const propertyComponent = document.querySelector('[x-data*="properties"]');
-    console.log('Property component found:', !!propertyComponent);
     if (propertyComponent) {
         try {
             const alpineData = Alpine.$data(propertyComponent);
@@ -422,17 +370,13 @@ function getFormData() {
                 });
             }
             formData.properties = propertyIds;
-            console.log('Properties extracted:', formData.properties);
         } catch (error) {
             console.error('Error getting properties:', error);
             formData.properties = [];
         }
     } else {
-        console.warn('Property component not found');
         formData.properties = [];
     }
-    
-    console.log('Final form data:', formData);
     return formData;
 }
 
@@ -481,7 +425,6 @@ async function submitEmployeeUpdate() {
         showLoadingState(true);
         
         const formData = getFormData();
-        console.log('Form data to submit:', formData);
         
         // Validate form data
         const validationErrors = validateFormData(formData);
@@ -492,7 +435,6 @@ async function submitEmployeeUpdate() {
         }
         
         // Prepare data for API call
-        // Based on the API response structure, let's try sending minimal required fields first
         const updateData = {
             firstname: formData.firstname,
             lastname: formData.lastname,
@@ -520,10 +462,6 @@ async function submitEmployeeUpdate() {
             throw new Error('Email cannot be empty');
         }
         
-        console.log('Update data being sent:', updateData);
-        console.log('Employee ID:', employeeId);
-        console.log('API URL:', `${API_BASE}/employee/update/${employeeId}`);
-        
         // Make API call to update employee
         const response = await fetch(`${API_BASE}/employee/update/${employeeId}`, {
             method: 'PUT',
@@ -533,9 +471,6 @@ async function submitEmployeeUpdate() {
             body: JSON.stringify(updateData)
         });
         
-        console.log('Response status:', response.status);
-        console.log('Response headers:', response.headers);
-        
         if (!response.ok) {
             const errorData = await response.text();
             console.error('Server error response:', errorData);
@@ -543,7 +478,6 @@ async function submitEmployeeUpdate() {
         }
         
         const result = await response.json();
-        console.log('Employee update response:', result);
         
         // Handle profile picture update if a new one was selected
         await handleProfilePictureUpdate(employeeId);
@@ -569,12 +503,10 @@ async function handleProfilePictureUpdate(employeeId) {
     const profilePictureInput = document.querySelector('.pfp-input');
     
     if (!profilePictureInput || !profilePictureInput.files[0]) {
-        console.log('No new profile picture selected');
         return;
     }
     
     const profilePicture = profilePictureInput.files[0];
-    console.log('Updating profile picture:', profilePicture.name);
     
     try {
         // Create FormData for file upload
@@ -593,7 +525,6 @@ async function handleProfilePictureUpdate(employeeId) {
         }
         
         const result = await response.json();
-        console.log('Profile picture update response:', result);
         
     } catch (error) {
         console.error('Error updating profile picture:', error);
@@ -660,7 +591,6 @@ function showError(message) {
 
 // Function to show success messages
 function showSuccess(message) {
-    console.log('Success:', message);
     
     // Try to find existing success display element
     let successElement = document.getElementById('successMessage');

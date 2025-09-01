@@ -27,7 +27,6 @@ async function populateEmployeeDetails() {
 	showLoadingState();
 	
 	try {
-		console.log('Fetching employee details for ID:', employeeId);
 		const response = await fetch(`${API_BASE}/employee/display/${employeeId}`);
 		
 		if (!response.ok) {
@@ -35,7 +34,6 @@ async function populateEmployeeDetails() {
 		}
 		
 		const employee = await response.json();
-		console.log('Employee data received:', employee);
 		
 		// Hide loading state
 		hideLoadingState();
@@ -74,25 +72,10 @@ async function populateEmployeeDetails() {
 		}
 		
 		// Populate assigned properties
-		console.log('=== EMPLOYEE PROPERTIES DEBUG ===');
-		console.log('Raw employee.properties:', employee.properties);
-		console.log('Type of employee.properties:', typeof employee.properties);
-		console.log('Is array:', Array.isArray(employee.properties));
-		if (employee.properties) {
-			console.log('Length:', employee.properties.length);
-			employee.properties.forEach((prop, index) => {
-				console.log(`Property ${index}:`, prop);
-				console.log(`Property ${index} type:`, typeof prop);
-			});
-		}
-		console.log('=== END DEBUG ===');
-		
 		populateAssignedProperties(employee.properties || []);
 		
 		// Show/hide deactivate/reactivate buttons based on status
 		updateStatusButtons(employee.status);
-		
-		console.log('Employee details populated successfully');
 		
 	} catch (error) {
 		console.error('Error fetching employee details:', error);
@@ -105,34 +88,26 @@ async function populateAssignedProperties(properties) {
 	const container = document.getElementById('assigned-properties-container');
 	if (!container) return;
 	
-	console.log('=== PROPERTY PROCESSING DEBUG ===');
-	console.log('Raw properties input:', properties);
-	
 	// Normalize the properties array to handle different formats
 	let normalizedProperties = [];
 	
 	if (!properties || properties.length === 0) {
-		console.log('No properties assigned');
+		// No properties assigned
 	} else {
 		properties.forEach((prop, index) => {
-			console.log(`Processing property ${index}:`, prop, typeof prop);
-			
 			if (typeof prop === 'string') {
 				// Check if it's a JSON stringified array
 				if (prop.startsWith('[') && prop.endsWith(']')) {
 					try {
 						const parsed = JSON.parse(prop);
-						console.log(`Parsed JSON array:`, parsed);
 						normalizedProperties.push(...parsed);
 					} catch (e) {
-						console.log(`Failed to parse as JSON:`, e);
 						normalizedProperties.push(prop);
 					}
 				}
 				// Check if it's a comma-separated list of IDs
 				else if (prop.includes(',') && prop.length > 20) { // Assuming IDs are long
 					const splitProps = prop.split(',').map(p => p.trim());
-					console.log(`Split comma-separated IDs:`, splitProps);
 					normalizedProperties.push(...splitProps);
 				}
 				// Regular string (property name or single ID)
@@ -145,9 +120,6 @@ async function populateAssignedProperties(properties) {
 			}
 		});
 	}
-	
-	console.log('Normalized properties:', normalizedProperties);
-	console.log('=== END PROPERTY PROCESSING DEBUG ===');
 	
 	if (normalizedProperties.length === 0) {
 		container.innerHTML = `
@@ -170,7 +142,6 @@ async function populateAssignedProperties(properties) {
 		`;
 		
 		// Fetch all properties from API
-		console.log('Fetching properties data...');
 		const response = await fetch(`${API_BASE}/property/display`);
 		
 		if (!response.ok) {
@@ -178,20 +149,6 @@ async function populateAssignedProperties(properties) {
 		}
 		
 		const allProperties = await response.json();
-		console.log('All properties data received:', allProperties);
-		console.log('Employee normalized properties:', normalizedProperties);
-		
-		// Debug: Log property names from API to see what fields are available
-		if (allProperties.length > 0) {
-			console.log('Sample property structure:', allProperties[0]);
-			console.log('Available property fields:', {
-				_id: allProperties[0]._id,
-				propertyName: allProperties[0].propertyName,
-				name: allProperties[0].name,
-				title: allProperties[0].title,
-				propertyTitle: allProperties[0].propertyTitle
-			});
-		}
 		
 		// Filter properties that are assigned to this employee with more robust matching
 		const assignedPropertiesData = allProperties.filter(property => {
@@ -213,9 +170,6 @@ async function populateAssignedProperties(properties) {
 			});
 		});
 		
-		console.log('Assigned properties data:', assignedPropertiesData);
-		console.log('Matched properties count:', assignedPropertiesData.length);
-		
 		// Clear container and populate with property cards
 		container.innerHTML = '';
 		
@@ -231,17 +185,6 @@ async function populateAssignedProperties(properties) {
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m5 0v-9a2 2 0 00-2-2H8a2 2 0 00-2 2v9m8 0V9a2 2 0 012-2h2a2 2 0 012 2v12M7 7h3v3H7V7z"></path>
 					</svg>
 					<p class="text-neutral-400 text-center mb-2">Property data not found</p>
-					<div class="text-xs text-neutral-300 text-center max-w-md">
-						<p class="mb-2"><strong>Assigned Properties:</strong></p>
-						<div class="bg-neutral-100 p-2 rounded mb-2">
-							${normalizedProperties.map(prop => `<div>• ${prop}</div>`).join('')}
-						</div>
-						<p class="mb-2"><strong>Available Properties (first 10):</strong></p>
-						<div class="max-h-32 overflow-y-auto text-left bg-neutral-100 p-2 rounded">
-							${availableIdentifiers.slice(0, 10).map(id => `<div>• ${id}</div>`).join('')}
-							${availableIdentifiers.length > 10 ? `<div>... and ${availableIdentifiers.length - 10} more</div>` : ''}
-						</div>
-					</div>
 				</div>
 			`;
 			return;
@@ -302,7 +245,6 @@ async function populateAssignedProperties(properties) {
 			
 			// Add click handler to view property details
 			propertyCard.onclick = () => {
-				console.log('Clicked on property:', property);
 				// Navigate to property view page with property ID
 				if (property._id) {
 					window.location.href = `property-view.html?id=${property._id}`;
@@ -341,8 +283,6 @@ function updateStatusButtons(status) {
 		if (deactivateContainer) deactivateContainer.style.display = 'none';
 		if (reactivateContainer) reactivateContainer.style.display = 'block';
 	}
-	
-	console.log('Employee status:', status);
 }
 
 async function deactivateEmployee() {
@@ -352,7 +292,6 @@ async function deactivateEmployee() {
 	}
 
 	try {
-		console.log('Deactivating employee:', currentEmployeeId);
 		const response = await fetch(`${API_BASE}/employee/archive/${currentEmployeeId}`, {
 			method: 'PUT',
 			headers: {
@@ -365,7 +304,6 @@ async function deactivateEmployee() {
 		}
 
 		const result = await response.json();
-		console.log('Employee deactivated successfully:', result);
 		
 		// Close modal
 		document.getElementById('deactivateModal').classList.add('hidden');
@@ -387,7 +325,6 @@ async function reactivateEmployee() {
 	}
 
 	try {
-		console.log('Reactivating employee:', currentEmployeeId);
 		const response = await fetch(`${API_BASE}/employee/unarchive/${currentEmployeeId}`, {
 			method: 'PUT',
 			headers: {
@@ -400,7 +337,6 @@ async function reactivateEmployee() {
 		}
 
 		const result = await response.json();
-		console.log('Employee reactivated successfully:', result);
 		
 		// Close modal
 		document.getElementById('reactivateModal').classList.add('hidden');

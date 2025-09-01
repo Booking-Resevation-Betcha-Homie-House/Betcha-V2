@@ -10,7 +10,7 @@ async function addEmployee() {
     let originalText = ''; // Declare originalText outside try block to fix scope issue
     
     try {
-        console.log('Adding employee...');
+
         // Get form values
         const firstName = document.querySelector('input[placeholder="First name"]').value.trim();
         const middleInitial = document.querySelector('input[placeholder="M.I."]').value.trim();
@@ -37,7 +37,6 @@ async function addEmployee() {
                         const role = window.allRoles?.find(r => r.name === roleName);
                         return role ? role._id : roleName; // fallback to name if ID not found
                     });
-                    console.log('Got roles from Alpine.js:', selectedRoles);
                 }
             } catch (error) {
                 console.warn('Could not get roles from Alpine.js:', error);
@@ -50,7 +49,6 @@ async function addEmployee() {
             selectedRoles = Array.from(roleCheckboxes)
                 .filter(checkbox => checkbox.checked)
                 .map(checkbox => checkbox.getAttribute('data-role-id'));
-            console.log('Got roles from DOM checkboxes:', selectedRoles);
         }
         
         // Get selected properties from the DOM
@@ -77,31 +75,6 @@ async function addEmployee() {
 
         if (selectedRoles.length === 0) {
             showError('Please select at least one role');
-            console.log('Debug: No roles selected');
-            console.log('Available roles:', window.allRoles);
-            
-            // Debug Alpine.js state
-            const roleSelector = document.getElementById('roleSelector');
-            if (roleSelector && window.Alpine) {
-                try {
-                    const alpineData = Alpine.$data(roleSelector);
-                    console.log('Alpine.js role state:', alpineData);
-                } catch (error) {
-                    console.log('Alpine.js not available or error:', error);
-                }
-            }
-            
-            // Debug DOM checkboxes
-            const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][data-role-id]');
-            console.log('DOM role checkboxes found:', roleCheckboxes.length);
-            roleCheckboxes.forEach((checkbox, index) => {
-                console.log(`Checkbox ${index}:`, {
-                    checked: checkbox.checked,
-                    value: checkbox.value,
-                    roleId: checkbox.getAttribute('data-role-id')
-                });
-            });
-            
             return;
         }
 
@@ -129,20 +102,6 @@ async function addEmployee() {
             </svg>
         `;
         confirmBtn.disabled = true;
-
-        // Log the form data for debugging
-        console.log('Form data being sent:', {
-            firstname: firstName,
-            minitial: middleInitial,
-            lastname: lastName,
-            email: email,
-            password: password,
-            role: selectedRoles,
-            properties: selectedProperties,
-            pfp: profilePicture ? profilePicture.name : 'No file selected'
-        });
-
-
 
         // Make API call
         const response = await fetch(`${API_BASE}/employee/create`, {
@@ -257,7 +216,6 @@ function resetForm() {
             const alpineData = Alpine.$data(roleSelector);
             if (alpineData) {
                 alpineData.selected = [];
-                console.log('Reset Alpine.js role selection');
             }
         } catch (error) {
             console.warn('Could not reset Alpine.js roles:', error);
@@ -327,7 +285,6 @@ function validateForm() {
 
 // Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing employee add functions...');
     
     // Add event listener to confirm button
     const confirmBtn = document.getElementById('confirmEmployeeBtn');
@@ -339,19 +296,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
-    // Check if Alpine.js is available
-    console.log('Alpine.js available:', typeof window.Alpine !== 'undefined');
-    
     // Wait for Alpine.js to be ready before populating roles
     document.addEventListener('alpine:init', () => {
-        console.log('Alpine.js initialized, populating roles...');
         // Populate roles from API when Alpine.js is ready
         populateRoles();
     });
     
     // Fallback: Populate roles after a short delay if Alpine.js event doesn't fire
     setTimeout(() => {
-        console.log('Fallback: Populating roles after 500ms delay...');
         populateRoles();
     }, 500);
     
@@ -370,8 +322,7 @@ async function populateRoles() {
         
         const rolesData = await response.json();
         const roles = rolesData.value || rolesData; // Handle both formats
-        
-        console.log('Fetched roles from API:', roles);
+
         
         // Store roles globally for later reference
         window.allRoles = roles;
@@ -387,7 +338,6 @@ async function populateRoles() {
                     const alpineData = Alpine.$data(roleSelector);
                     if (alpineData) {
                         alpineData.roles = roles.map(role => role.name);
-                        console.log('Updated Alpine.js roles:', alpineData.roles);
                     }
                 }
             } catch (error) {
@@ -397,8 +347,6 @@ async function populateRoles() {
                 populateRolesManually(roles);
             }
         }
-        
-        console.log('Roles populated successfully');
         
     } catch (error) {
         console.error('Error fetching roles:', error);
@@ -447,8 +395,7 @@ function populateRolesManually(roles) {
                 
                 roleListContainer.appendChild(roleItem);
             });
-            
-            console.log('Roles populated manually in DOM:', roles);
+
         }
     } else {
         console.error('Role list container not found');
@@ -520,7 +467,6 @@ function removeRole(roleId) {
             if (alpineData && alpineData.selected) {
                 const roleName = window.allRoles?.find(r => r._id === roleId)?.name || roleId;
                 alpineData.selected = alpineData.selected.filter(s => s !== roleName);
-                console.log('Removed role from Alpine.js:', roleName);
             }
         } catch (error) {
             console.warn('Could not remove role from Alpine.js:', error);
@@ -549,14 +495,11 @@ async function populateProperties() {
         }
         
         const properties = await response.json();
-        console.log('Properties fetched from API:', properties);
         
         // Find the property list container in the HTML using the specific ID
         const propertyListContainer = document.getElementById('propertyListContainer');
-        console.log('Property list container found:', propertyListContainer);
         
         if (propertyListContainer) {
-            console.log('Property list container found, clearing and populating...');
             // Clear existing content
             propertyListContainer.innerHTML = '';
             
@@ -599,8 +542,7 @@ async function populateProperties() {
                     filterProperties(this.value);
                 });
             }
-            
-            console.log('Properties populated successfully:', properties);
+
         } else {
             console.error('Property list container not found');
         }
@@ -704,21 +646,4 @@ function filterProperties(searchTerm) {
     });
 }
 
-// Export functions for use in other files (commented out for potential deletion)
-// if (typeof module !== 'undefined' && module.exports) {
-//     module.exports = {
-//         addEmployee,
-//         showError,
-//         showSuccess,
-//         resetForm,
-//         validateForm,
-//         populateRoles,
-//         populateRolesManually,
-//         updateSelectedRolesDisplay,
-//         removeRole,
-//         populateProperties,
-//         updateSelectedPropertiesDisplay,
-//         removeProperty,
-//         filterProperties
-//     };
-// }
+

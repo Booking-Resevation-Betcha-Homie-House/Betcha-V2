@@ -1,7 +1,6 @@
 // Dashboard not still finished Drop down issues Data population issue ? since no data for top property
 
 // Dashboard Functions for Admin Dashboard
-console.log('Dashboard functions script loaded');
 
 // API Base URLs
 const API_BASE = 'https://betcha-api.onrender.com';
@@ -28,7 +27,6 @@ let currentYearFilter = null;
 
 // Initialize dashboard when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing dashboard...');
     // Initialize filters first to avoid undefined month/year
     initializeMonthYearFilters();
     // Then load summary and counts
@@ -42,8 +40,6 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 async function initializeDashboard() {
     try {
-        console.log('Starting dashboard initialization...');
-        
         // Show loading states
         showLoadingStates();
         
@@ -55,8 +51,6 @@ async function initializeDashboard() {
         // Fetch Top Rentals after defaults are set by filters
         await fetchTopPropertiesData();
         await fetchAuditTrailData(); // Fetch audit trails
-        
-        console.log('Dashboard initialized successfully!');
     } catch (error) {
         console.error('Error initializing dashboard:', error);
         showErrorState('Failed to load dashboard data. Please refresh the page.');
@@ -92,13 +86,10 @@ function showLoadingStates() {
  */
 async function fetchSummaryData() {
     try {
-        console.log('Fetching summary data from:', DASHBOARD_ENDPOINTS.summary);
-        
         const response = await fetch(DASHBOARD_ENDPOINTS.summary);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         summaryData = await response.json();
-        console.log('Summary data received:', summaryData);
         
         // Normalize API shape to UI shape
         const normalized = (summaryData && summaryData.summary)
@@ -131,9 +122,6 @@ async function fetchSummaryData() {
  */
 async function fetchTopPropertiesData() {
     try {
-        console.log('Fetching top properties data from:', DASHBOARD_ENDPOINTS.rankProperty);
-        console.log('Current filters - Month:', currentMonthFilter, 'Year:', currentYearFilter);
-        
         // Build POST body with numeric fields
         const url = DASHBOARD_ENDPOINTS.rankProperty;
         const monthNum = (currentMonthFilter && currentMonthFilter !== 'all')
@@ -143,13 +131,9 @@ async function fetchTopPropertiesData() {
             ? parseInt(String(currentYearFilter), 10)
             : undefined;
 
-        console.log('Parsed values - Month:', monthNum, 'Year:', yearNum);
-
         const payload = {};
         if (!Number.isNaN(monthNum)) payload.month = monthNum;
         if (!Number.isNaN(yearNum)) payload.year = yearNum;
-
-        console.log('Fetching Top Rentals with POST body:', payload);
 
         let response = await fetch(url, {
             method: 'POST',
@@ -165,7 +149,6 @@ async function fetchTopPropertiesData() {
             const yearParam = (typeof payload.year === 'number') ? `year=${payload.year}` : '';
             const qs = [monthParam, yearParam].filter(Boolean).join('&');
             const fallbackUrl = qs ? `${url}?${qs}` : url;
-            console.warn('POST failed, retrying GET:', fallbackUrl);
             response = await fetch(fallbackUrl);
         }
 
@@ -174,7 +157,6 @@ async function fetchTopPropertiesData() {
         }
         
         topPropertiesData = await response.json();
-        console.log('Top properties raw data:', topPropertiesData);
         
         // Normalize to array of items with name and earnings
         let chartData = [];
@@ -197,7 +179,7 @@ async function fetchTopPropertiesData() {
             totalEarnings: typeof item.totalEarnings === 'number' ? item.totalEarnings : (typeof item.earned === 'number' ? item.earned : 0)
         }));
 
-        console.log('Processed chart data:', chartData);
+
         // If the built-in chart exists, update it to preserve design
         if (window.updateTopRoomsChart) {
             const labels = chartData.map(i => i.propertyName || i.name || 'Unknown Property');
@@ -210,7 +192,6 @@ async function fetchTopPropertiesData() {
         
     } catch (error) {
         console.error('Error fetching top properties data:', error);
-        console.warn('Using empty chart due to API error');
         populateTopPropertiesChart([]);
     }
 }
@@ -220,10 +201,6 @@ async function fetchTopPropertiesData() {
  */
 async function fetchCountsData() {
     try {
-        console.log('Fetching counts data...');
-        
-        // Log all endpoints being used
-        console.log('Using endpoints:', DASHBOARD_ENDPOINTS);
         
         // Fetch all counts in parallel
         const [
@@ -242,16 +219,6 @@ async function fetchCountsData() {
             fetch(DASHBOARD_ENDPOINTS.activeBookingCount)
         ]);
         
-        // Log response status for debugging
-        console.log('API Response Status:', {
-            employee: employeeResponse.status,
-            guest: guestResponse.status,
-            property: propertyResponse.status,
-            todayBooking: todayBookingResponse.status,
-            availableToday: availableTodayResponse.status,
-            activeBooking: activeBookingResponse.status
-        });
-        
         // Parse responses
         const countsData = {
             employees: employeeResponse.ok ? await employeeResponse.json() : { count: 0 },
@@ -261,12 +228,6 @@ async function fetchCountsData() {
             availableToday: availableTodayResponse.ok ? await availableTodayResponse.json() : { availableRoomCount: 0 },
             activeBookings: activeBookingResponse.ok ? await activeBookingResponse.json() : { count: 0 }
         };
-        
-        console.log('Counts data received:', countsData);
-        
-        // Log specific values for debugging
-        console.log('Available today count:', countsData.availableToday.availableRoomCount);
-        console.log('Booked today count:', countsData.todayBookings.activeBookingsToday);
         
         populateCountsData(countsData);
         
@@ -289,13 +250,10 @@ async function fetchCountsData() {
  */
 async function fetchAuditTrailData() {
     try {
-        console.log('Fetching audit trail data from:', DASHBOARD_ENDPOINTS.auditTrails);
-        
         const response = await fetch(DASHBOARD_ENDPOINTS.auditTrails);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         
         const auditData = await response.json();
-        console.log('Audit trail data received:', auditData);
         
         // Populate audit trail cards
         populateAuditTrailCards(auditData);
@@ -311,7 +269,6 @@ async function fetchAuditTrailData() {
  * Populate audit trail cards in the dashboard
  */
 function populateAuditTrailCards(auditData) {
-    console.log('Populating audit trail cards:', auditData);
     
     // Validate audit data
     if (!Array.isArray(auditData)) {
@@ -323,8 +280,6 @@ function populateAuditTrailCards(auditData) {
     const adminData = auditData.filter(item => item && item.userType === 'Admin').slice(0, 5);
     const employeeData = auditData.filter(item => item && item.userType === 'Employee').slice(0, 5);
     const customerData = auditData.filter(item => item && item.userType === 'Guest').slice(0, 5);
-    
-    console.log('Filtered data - Admin:', adminData.length, 'Employee:', employeeData.length, 'Customer:', customerData.length);
     
     // Populate each tab
     populateAuditTab(0, adminData); // Admin tab
@@ -375,8 +330,6 @@ function populateAuditTab(tabIndex, data) {
         const card = createAuditTrailCard(item);
         gridContainer.appendChild(card);
     });
-    
-    console.log(`Populated tab ${tabIndex} with ${data.length} audit trail cards`);
 }
 
 /**
@@ -447,7 +400,6 @@ function createAuditTrailCard(auditItem) {
  * Populate summary data (earnings)
  */
 function populateSummaryData(data) {
-    console.log('Populating summary data:', data);
     
     // Year earnings
     const yearElement = document.getElementById('totalYearEarning');
@@ -472,16 +424,12 @@ function populateSummaryData(data) {
  * Populate counts data
  */
 function populateCountsData(data) {
-    console.log('Populating counts data:', data);
     
     // Available rentals today
     const availableElement = document.getElementById('availableRental');
     if (availableElement) {
         const availableCount = data.availableToday.availableRoomCount || 0;
         availableElement.textContent = availableCount;
-        console.log('Updated available rentals:', availableCount);
-    } else {
-        console.warn('Available rental element not found');
     }
     
     // Booked rooms today  
@@ -489,9 +437,6 @@ function populateCountsData(data) {
     if (bookedElement) {
         const bookedCount = data.todayBookings.activeBookingsToday || 0;
         bookedElement.textContent = bookedCount;
-        console.log('Updated booked rooms:', bookedCount);
-    } else {
-        console.warn('Booked room element not found');
     }
     
     // Total employees
@@ -549,7 +494,6 @@ function updateProgressBars(data) {
  * Populate top properties chart
  */
 function populateTopPropertiesChart(data) {
-    console.log('Populating top properties chart:', data);
     
     const chartCanvas = document.getElementById('topRoomsChart');
     if (!chartCanvas) {
@@ -709,7 +653,6 @@ function showErrorState(message) {
  * Refresh dashboard data
  */
 async function refreshDashboard() {
-    console.log('Refreshing dashboard data...');
     await initializeDashboard();
 }
 
@@ -720,7 +663,6 @@ async function refreshDashboard() {
  * Initialize month and year filters for the dashboard
  */
 function initializeMonthYearFilters() {
-    console.log('Initializing month/year filters...');
     initializeMonthDropdown();
     initializeYearDropdown();
     
@@ -735,27 +677,16 @@ function initializeMonthYearFilters() {
     // Reflect defaults in UI
     setMonthFilter(mm, true);
     setYearFilter(yyyy, true);
-    
-    console.log('Month/year filters initialized');
 }
 
 /**
  * Initialize month dropdown functionality
  */
 function initializeMonthDropdown() {
-    console.log('Initializing month dropdown...');
-    
     const monthDropdownBtn = document.getElementById('monthDropdownBtn');
     const monthDropdownList = document.getElementById('monthDropdownList');
     const monthDropdownIcon = document.getElementById('monthDropdownIcon');
     const selectedMonthSpan = document.getElementById('selectedMonth');
-    
-    console.log('Month dropdown elements:', {
-        btn: !!monthDropdownBtn,
-        list: !!monthDropdownList,
-        icon: !!monthDropdownIcon,
-        span: !!selectedMonthSpan
-    });
     
     if (!monthDropdownBtn || !monthDropdownList) {
         console.warn('Month dropdown elements not found');
@@ -788,18 +719,11 @@ function initializeMonthDropdown() {
     monthDropdownList.classList.add('hidden');
     monthDropdownList.classList.remove('block');
     
-    console.log('Month dropdown populated with HTML:', monthOptions.substring(0, 100) + '...');
-    console.log('Month dropdown list element:', monthDropdownList);
-    console.log('Month dropdown list classes (after explicit hide):', monthDropdownList.className);
-    console.log('Month dropdown list computed display (after explicit hide):', window.getComputedStyle(monthDropdownList).display);
-    
     // Toggle dropdown
     let isMonthDropdownOpen = false; // Track state independently
     
     monthDropdownBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('Month dropdown clicked!');
-        console.log('Current state - isMonthDropdownOpen:', isMonthDropdownOpen);
         
         if (!isMonthDropdownOpen) {
             // Open dropdown
@@ -808,7 +732,6 @@ function initializeMonthDropdown() {
             monthDropdownBtn.setAttribute('aria-expanded', 'true');
             monthDropdownIcon.classList.add('rotate-180');
             isMonthDropdownOpen = true;
-            console.log('Month dropdown opened');
         } else {
             // Close dropdown
             monthDropdownList.classList.add('hidden');
@@ -816,12 +739,7 @@ function initializeMonthDropdown() {
             monthDropdownBtn.setAttribute('aria-expanded', 'false');
             monthDropdownIcon.classList.remove('rotate-180');
             isMonthDropdownOpen = false; // Reset state
-            console.log('Month dropdown closed');
         }
-        
-        console.log('After toggle - isMonthDropdownOpen:', isMonthDropdownOpen);
-        console.log('After toggle - Month list classes:', monthDropdownList.className);
-        console.log('After toggle - Month list computed display:', window.getComputedStyle(monthDropdownList).display);
     });
     
     // Handle month selection
@@ -837,7 +755,6 @@ function initializeMonthDropdown() {
             
             // Update current month filter
             currentMonthFilter = monthValue;
-            console.log('Month filter updated to:', monthValue, 'Current filter:', currentMonthFilter);
             
             // Refresh chart data with new filter
             fetchTopPropertiesData();
@@ -893,18 +810,11 @@ function initializeYearDropdown() {
     yearDropdownList.classList.add('hidden');
     yearDropdownList.classList.remove('block');
     
-    console.log('Year dropdown populated with HTML:', yearOptions.substring(0, 100) + '...');
-    console.log('Year dropdown list element:', yearDropdownList);
-    console.log('Year dropdown list classes (after explicit hide):', yearDropdownList.className);
-    console.log('Year dropdown list computed display (after explicit hide):', window.getComputedStyle(yearDropdownList).display);
-    
     // Toggle dropdown
     let isYearDropdownOpen = false; // Track state independently
     
     yearDropdownBtn.addEventListener('click', function(e) {
         e.stopPropagation();
-        console.log('Year dropdown clicked!');
-        console.log('Current state - isYearDropdownOpen:', isYearDropdownOpen);
         
         if (!isYearDropdownOpen) {
             // Open dropdown
@@ -913,7 +823,6 @@ function initializeYearDropdown() {
             yearDropdownBtn.setAttribute('aria-expanded', 'true');
             yearDropdownIcon.classList.add('rotate-180');
             isYearDropdownOpen = true;
-            console.log('Year dropdown opened');
         } else {
             // Close dropdown
             yearDropdownList.classList.add('hidden');
@@ -921,12 +830,7 @@ function initializeYearDropdown() {
             yearDropdownBtn.setAttribute('aria-expanded', 'false');
             yearDropdownIcon.classList.remove('rotate-180');
             isYearDropdownOpen = false;
-            console.log('Year dropdown closed');
         }
-        
-        console.log('After toggle - isYearDropdownOpen:', isYearDropdownOpen);
-        console.log('After toggle - Year list classes:', yearDropdownList.className);
-        console.log('After toggle - Year list computed display:', window.getComputedStyle(yearDropdownList).display);
     });
     
     // Handle year selection
@@ -942,7 +846,6 @@ function initializeYearDropdown() {
             
             // Update current year filter
             currentYearFilter = yearValue;
-            console.log('Year filter updated to:', yearValue, 'Current filter:', currentYearFilter);
             
             // Refresh chart data with new filter
             fetchTopPropertiesData();
@@ -978,7 +881,6 @@ function sortPropertiesByEarnings(data) {
         return earningsB - earningsA; // Highest to lowest
     });
 }
-
 /**
  * Set month filter programmatically
  */
@@ -1004,7 +906,6 @@ function setMonthFilter(month, suppressFetch) {
     // Refresh data
     if (!suppressFetch) fetchTopPropertiesData();
 }
-
 /**
  * Set year filter programmatically
  */
@@ -1024,59 +925,15 @@ function setYearFilter(year, suppressFetch) {
 }
 
 /**
- * Manual test function for API endpoints
- */
-async function testCountsAPI() {
-    console.log('=== Testing Counts API Endpoints ===');
-    
-    try {
-        // Test Available Today
-        console.log('Testing Available Today:', DASHBOARD_ENDPOINTS.availableToday);
-        const availableResponse = await fetch(DASHBOARD_ENDPOINTS.availableToday);
-        console.log('Available Today Status:', availableResponse.status);
-        if (availableResponse.ok) {
-            const availableData = await availableResponse.json();
-            console.log('Available Today Data:', availableData);
-        }
-        
-        // Test Today Bookings
-        console.log('Testing Today Bookings:', DASHBOARD_ENDPOINTS.todayBookingCount);
-        const bookingsResponse = await fetch(DASHBOARD_ENDPOINTS.todayBookingCount);
-        console.log('Today Bookings Status:', bookingsResponse.status);
-        if (bookingsResponse.ok) {
-            const bookingsData = await bookingsResponse.json();
-            console.log('Today Bookings Data:', bookingsData);
-        }
-        
-        // Test Active Bookings
-        console.log('Testing Active Bookings:', DASHBOARD_ENDPOINTS.activeBookingCount);
-        const activeResponse = await fetch(DASHBOARD_ENDPOINTS.activeBookingCount);
-        console.log('Active Bookings Status:', activeResponse.status);
-        if (activeResponse.ok) {
-            const activeData = await activeResponse.json();
-            console.log('Active Bookings Data:', activeData);
-        }
-        
-    } catch (error) {
-        console.error('Error testing API endpoints:', error);
-    }
-    
-    console.log('=== API Test Complete ===');
-}
-
-/**
- * Force refresh counts data for testing
+ * Force refresh counts data
  */
 async function refreshCountsOnly() {
-    console.log('Force refreshing counts data...');
     await fetchCountsData();
 }
-
 /**
  * Refresh audit trail data
  */
 async function refreshAuditTrails() {
-    console.log('Refreshing audit trail data...');
     await fetchAuditTrailData();
 }
 
@@ -1084,7 +941,6 @@ async function refreshAuditTrails() {
  * Set active tab for audit trails
  */
 function setActiveTab(tabIndex) {
-    console.log('Setting active tab:', tabIndex);
     
     // Remove active state from all tab buttons
     const tabButtons = document.querySelectorAll('.tab-btn');
@@ -1107,8 +963,6 @@ function setActiveTab(tabIndex) {
             content.classList.add('hidden');
         }
     });
-    
-    console.log('Tab switched to:', tabIndex);
 }
 
 /**
@@ -1148,8 +1002,6 @@ function setAuditTab(tabIndex) {
             content.classList.add('hidden');
         }
     });
-
-    console.log('Audit tab switched to:', tabIndex);
 }
 
 /**
@@ -1185,7 +1037,6 @@ if (typeof module !== 'undefined' && module.exports) {
         fetchCountsData,
         setMonthFilter,
         setYearFilter,
-        testCountsAPI,
         refreshCountsOnly,
         setActiveTab,
         refreshAuditTrails,
@@ -1197,7 +1048,7 @@ if (typeof module !== 'undefined' && module.exports) {
 window.refreshDashboard = refreshDashboard;
 window.setMonthFilter = setMonthFilter;
 window.setYearFilter = setYearFilter;
-window.testCountsAPI = testCountsAPI;
+
 window.refreshCountsOnly = refreshCountsOnly;
 window.setActiveTab = setActiveTab;
 window.refreshAuditTrails = refreshAuditTrails;
@@ -1213,7 +1064,6 @@ window.sendGuestNotification = sendGuestNotification;
  */
 async function sendGuestNotification(notificationData) {
     try {
-        console.log('Sending guest notification:', notificationData);
         
         const response = await fetch(`${API_BASE}/notify/message`, {
             method: 'POST',
@@ -1229,7 +1079,6 @@ async function sendGuestNotification(notificationData) {
         }
 
         const result = await response.json();
-        console.log('Guest notification sent successfully:', result);
         
         // Show success message
         showNotificationSuccess('Guest notification sent successfully!');
@@ -1315,16 +1164,12 @@ function showNotificationError(message) {
  * Sets up event listeners for guest message buttons
  */
 function initializeGuestNotifications() {
-    console.log('Initializing guest notification functionality...');
     
     // Set up event listener for guest message button
     const guestMsgBtn = document.getElementById('guestMsgBtn');
     if (guestMsgBtn) {
-        console.log('Guest message button found, setting up event listener');
-        
         guestMsgBtn.addEventListener('click', async function(e) {
             e.preventDefault();
-            console.log('Guest message button clicked');
             
             try {
                 // Get admin user data from localStorage or use defaults
@@ -1342,8 +1187,6 @@ function initializeGuestNotifications() {
                     message: "Welcome to Betcha Booking! We're excited to have you stay with us."
                 };
                 
-                console.log('Sending notification with payload:', notificationPayload);
-                
                 // Send the notification
                 await sendGuestNotification(notificationPayload);
                 
@@ -1351,10 +1194,6 @@ function initializeGuestNotifications() {
                 console.error('Failed to send guest notification:', error);
             }
         });
-        
-        console.log('Guest message button event listener set up successfully');
-    } else {
-        console.warn('Guest message button (guestMsgBtn) not found in the DOM');
     }
 }
 
@@ -1371,90 +1210,9 @@ window.initializeGuestNotifications = initializeGuestNotifications;
 window.showNotificationSuccess = showNotificationSuccess;
 window.showNotificationError = showNotificationError;
 
-// API Testing Functions for Notification & Booking Updates
-// ======================================================
 
-/**
- * Test the notification status update API
- * @param {string} notifId - Notification ID to test
- * @param {string} statusRejection - Status to test ("Rejected" or "Complete")
- */
-async function testNotificationStatusAPI(notifId = 'test-notif-123', statusRejection = 'Complete') {
-    try {
-        console.log('🧪 Testing Notification Status API...');
-        console.log('Endpoint:', `${API_BASE}/notify/status-rejection/${notifId}`);
-        console.log('Payload:', { statusRejection });
-        
-        const response = await fetch(`${API_BASE}/notify/status-rejection/${notifId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ statusRejection })
-        });
-        
-        console.log('Response Status:', response.status);
-        console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
-        
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Unknown error');
-            console.error('❌ API Error Response:', errorText);
-            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('✅ Notification Status API Response:', result);
-        
-        // Test if response meets our criteria
-        const meetsCriteria = validateNotificationStatusResponse(result);
-        console.log('📋 Meets API Criteria:', meetsCriteria);
-        
-        return { success: true, data: result, meetsCriteria };
-        
-    } catch (error) {
-        console.error('❌ Notification Status API Test Failed:', error);
-        return { success: false, error: error.message };
-    }
-}
 
-/**
- * Test the booking status update API
- * @param {string} bookingId - Booking ID to test
- * @param {string} status - Status to test ("Cancel")
- */
-async function testBookingStatusAPI(bookingId = 'test-booking-456', status = 'Cancel') {
-    try {
-        console.log('🧪 Testing Booking Status API...');
-        console.log('Endpoint:', `${API_BASE}/booking/update-status/${bookingId}`);
-        console.log('Payload:', { status });
-        
-        const response = await fetch(`${API_BASE}/booking/update-status/${bookingId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status })
-        });
-        
-        console.log('Response Status:', response.status);
-        console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
-        
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Unknown error');
-            console.error('❌ API Error Response:', errorText);
-            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('✅ Booking Status API Response:', result);
-        
-        // Test if response meets our criteria
-        const meetsCriteria = validateBookingStatusResponse(result);
-        console.log('📋 Meets API Criteria:', meetsCriteria);
-        
-        return { success: true, data: result, meetsCriteria };
-        
-    } catch (error) {
-        console.error('❌ Booking Status API Test Failed:', error);
-        return { success: false, error: error.message };
-    }
-}
+
 
 /**
  * Validate notification status API response against our criteria
@@ -1542,224 +1300,13 @@ function validateBookingStatusResponse(response) {
     return criteria;
 }
 
-/**
- * Run comprehensive API tests for notification and booking functionality
- */
-async function runComprehensiveAPITests() {
-    console.log('🚀 Starting Comprehensive API Tests...');
-    console.log('=====================================');
-    
-    // Test 1: Notification Status API
-    console.log('\n📧 Test 1: Notification Status Update API');
-    console.log('----------------------------------------');
-    const notifTest = await testNotificationStatusAPI();
-    
-    // Test 2: Booking Status API
-    console.log('\n📋 Test 2: Booking Status Update API');
-    console.log('------------------------------------');
-    const bookingTest = await testBookingStatusAPI();
-    
-    // Summary
-    console.log('\n📊 API Test Summary');
-    console.log('==================');
-    console.log('Notification API:', notifTest.success ? '✅ PASSED' : '❌ FAILED');
-    console.log('Booking API:', bookingTest.success ? '✅ PASSED' : '❌ FAILED');
-    
-    if (notifTest.success && notifTest.meetsCriteria) {
-        console.log('✅ Notification API meets all criteria for implementation');
-    } else {
-        console.log('⚠️ Notification API may need adjustments before implementation');
-    }
-    
-    if (bookingTest.success && bookingTest.meetsCriteria) {
-        console.log('✅ Booking API meets all criteria for implementation');
-    } else {
-        console.log('⚠️ Booking API may need adjustments before implementation');
-    }
-    
-    return {
-        notification: notifTest,
-        booking: bookingTest,
-        allPassed: notifTest.success && bookingTest.success
-    };
-}
 
-// Make test functions globally accessible
-window.testNotificationStatusAPI = testNotificationStatusAPI;
-window.testBookingStatusAPI = testBookingStatusAPI;
-window.runComprehensiveAPITests = runComprehensiveAPITests;
+
+// Make validation functions globally accessible
 window.validateNotificationStatusResponse = validateNotificationStatusResponse;
 window.validateBookingStatusResponse = validateBookingStatusResponse;
 
-// Enhanced API Testing Functions with Real Data Support
-// ===================================================
 
-/**
- * Get sample notification IDs from the system (if available)
- * This would typically come from a notifications list or database
- */
-function getSampleNotificationIds() {
-    // In a real system, you'd fetch this from your notifications API
-    // For now, return common patterns that might exist
-    return [
-        '685597501a58eb359c2a0e8d', // Sample ID from your payload
-        '685009ff53a090e126b9e2b4', // Another sample ID
-        // Add more sample IDs as needed
-    ];
-}
-
-/**
- * Get sample booking IDs from the system (if available)
- * This would typically come from a bookings list or database
- */
-function getSampleBookingIds() {
-    // In a real system, you'd fetch this from your bookings API
-    // For now, return common patterns that might exist
-    return [
-        'booking-001',
-        'booking-002',
-        // Add more sample IDs as needed
-    ];
-}
-
-/**
- * Test notification status API with real or sample IDs
- * @param {string} notifId - Notification ID to test (optional, will use sample if not provided)
- * @param {string} statusRejection - Status to test ("Rejected" or "Complete")
- */
-async function testNotificationStatusAPIWithRealData(notifId = null, statusRejection = 'Complete') {
-    try {
-        // Use provided ID or get a sample ID
-        const testNotifId = notifId || getSampleNotificationIds()[0];
-        
-        if (!testNotifId) {
-            throw new Error('No notification ID available for testing. Please provide a valid ID.');
-        }
-        
-        console.log('🧪 Testing Notification Status API with Real Data...');
-        console.log('Endpoint:', `${API_BASE}/notify/status-rejection/${testNotifId}`);
-        console.log('Payload:', { statusRejection });
-        console.log('Using Notification ID:', testNotifId);
-        
-        const response = await fetch(`${API_BASE}/notify/status-rejection/${testNotifId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ statusRejection })
-        });
-        
-        console.log('Response Status:', response.status);
-        console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
-        
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Unknown error');
-            console.error('❌ API Error Response:', errorText);
-            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('✅ Notification Status API Response:', result);
-        
-        // Test if response meets our criteria
-        const meetsCriteria = validateNotificationStatusResponse(result);
-        console.log('📋 Meets API Criteria:', meetsCriteria);
-        
-        return { success: true, data: result, meetsCriteria, notifId: testNotifId };
-        
-    } catch (error) {
-        console.error('❌ Notification Status API Test Failed:', error);
-        return { success: false, error: error.message, notifId: notifId || 'unknown' };
-    }
-}
-
-/**
- * Test booking status API with real or sample IDs
- * @param {string} bookingId - Booking ID to test (optional, will use sample if not provided)
- * @param {string} status - Status to test ("Cancel")
- */
-async function testBookingStatusAPIWithRealData(bookingId = null, status = 'Cancel') {
-    try {
-        // Use provided ID or get a sample ID
-        const testBookingId = bookingId || getSampleBookingIds()[0];
-        
-        if (!testBookingId) {
-            throw new Error('No booking ID available for testing. Please provide a valid ID.');
-        }
-        
-        console.log('🧪 Testing Booking Status API with Real Data...');
-        console.log('Endpoint:', `${API_BASE}/booking/update-status/${testBookingId}`);
-        console.log('Payload:', { status });
-        console.log('Using Booking ID:', testBookingId);
-        
-        const response = await fetch(`${API_BASE}/booking/update-status/${testBookingId}`, {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status })
-        });
-        
-        console.log('Response Status:', response.status);
-        console.log('Response Headers:', Object.fromEntries(response.headers.entries()));
-        
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Unknown error');
-            console.error('❌ API Error Response:', errorText);
-            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('✅ Booking Status API Response:', result);
-        
-        // Test if response meets our criteria
-        const meetsCriteria = validateBookingStatusResponse(result);
-        console.log('📋 Meets API Criteria:', meetsCriteria);
-        
-        return { success: true, data: result, meetsCriteria, bookingId: testBookingId };
-        
-    } catch (error) {
-        console.error('❌ Booking Status API Test Failed:', error);
-        return { success: false, error: error.message, bookingId: bookingId || 'unknown' };
-    }
-}
-
-/**
- * Interactive test function that prompts for real IDs
- */
-async function testWithUserProvidedIDs() {
-    console.log('🔍 Interactive API Testing with User-Provided IDs');
-    console.log('================================================');
-    
-    // Prompt for notification ID
-    const notifId = prompt('Enter a real Notification ID to test (or leave empty to use sample):');
-    const statusRejection = prompt('Enter status to test ("Rejected" or "Complete"):', 'Complete');
-    
-    // Prompt for booking ID
-    const bookingId = prompt('Enter a real Booking ID to test (or leave empty to use sample):');
-    const status = prompt('Enter status to test (default: "Cancel"):', 'Cancel');
-    
-    console.log('\n📧 Testing with provided IDs:');
-    console.log('Notification ID:', notifId || 'Using sample');
-    console.log('Status Rejection:', statusRejection);
-    console.log('Booking ID:', bookingId || 'Using sample');
-    console.log('Status:', status);
-    
-    // Run tests with provided IDs
-    const notifTest = await testNotificationStatusAPIWithRealData(notifId, statusRejection);
-    const bookingTest = await testBookingStatusAPIWithRealData(bookingId, status);
-    
-    // Summary
-    console.log('\n📊 Test Results Summary');
-    console.log('======================');
-    console.log('Notification API:', notifTest.success ? '✅ PASSED' : '❌ FAILED');
-    console.log('Booking API:', bookingTest.success ? '✅ PASSED' : '❌ FAILED');
-    
-    return { notification: notifTest, booking: bookingTest };
-}
-
-// Make enhanced test functions globally accessible
-window.testNotificationStatusAPIWithRealData = testNotificationStatusAPIWithRealData;
-window.testBookingStatusAPIWithRealData = testBookingStatusAPIWithRealData;
-window.testWithUserProvidedIDs = testWithUserProvidedIDs;
-window.getSampleNotificationIds = getSampleNotificationIds;
-window.getSampleBookingIds = getSampleBookingIds;
 
 // Production Notification & Booking Management Functions
 // ===================================================
@@ -1782,11 +1329,6 @@ async function updateNotificationStatus(notifId, statusRejection) {
         
         const url = `${API_BASE}/notify/status-rejection/${notifId}`;
         const body = { statusRejection };
-        console.log('🔄 Updating notification status...');
-        console.log('Notification ID:', notifId);
-        console.log('Status:', statusRejection);
-        console.log('➡️ PATCH URL:', url);
-        console.log('➡️ Payload:', body);
         
         const response = await fetch(url, {
             method: 'PATCH',
@@ -1802,7 +1344,6 @@ async function updateNotificationStatus(notifId, statusRejection) {
         }
         
         const result = await response.json();
-        console.log('✅ Notification status updated successfully:', result);
         
         // Show success message
         showNotificationSuccess(`Cancellation request ${statusRejection.toLowerCase()} successfully`);
@@ -1810,7 +1351,7 @@ async function updateNotificationStatus(notifId, statusRejection) {
         return result;
         
     } catch (error) {
-        console.error('❌ Error updating notification status:', error);
+        console.error('Error updating notification status:', error);
         
         // Show error message
         showNotificationError(`Failed to update notification status: ${error.message}`);
@@ -1832,10 +1373,6 @@ async function cancelBooking(bookingId) {
         
         const url = `${API_BASE}/booking/update-status/${bookingId}`;
         const body = { status: 'Cancel' };
-        console.log('🔄 Cancelling booking...');
-        console.log('Booking ID:', bookingId);
-        console.log('➡️ PATCH URL:', url);
-        console.log('➡️ Payload:', body);
         
         const response = await fetch(url, {
             method: 'PATCH',
@@ -1851,7 +1388,6 @@ async function cancelBooking(bookingId) {
         }
         
         const result = await response.json();
-        console.log('✅ Booking cancelled successfully:', result);
         
         // Show success message
         showNotificationSuccess('Booking cancelled successfully');
@@ -1859,7 +1395,7 @@ async function cancelBooking(bookingId) {
         return result;
         
     } catch (error) {
-        console.error('❌ Error cancelling booking:', error);
+        console.error('Error cancelling booking:', error);
         
         // Show error message
         showNotificationError(`Failed to cancel booking: ${error.message}`);
@@ -1878,46 +1414,16 @@ async function cancelBooking(bookingId) {
  */
 async function handleCancellationRequest(notifId, bookingId, action) {
     try {
-        console.log('🚀 Handling cancellation request...');
-        console.log('Action:', action);
-        console.log('Notification ID:', notifId);
-        console.log('Booking ID:', bookingId);
-        
         // Fetch and log comprehensive booking details
         if (bookingId) {
-            console.log('📋 Fetching booking details for logging...');
             try {
                 const bookingResponse = await fetch(`${API_BASE}/booking/${bookingId}`);
                 const bookingData = await bookingResponse.json();
                 
-                if (bookingData.success && bookingData.booking) {
-                    const booking = bookingData.booking;
-                    console.log('📊 BOOKING DETAILS FOR CANCELLATION:', {
-                        bookingId: booking._id,
-                        transNo: booking.transNo,
-                        guestName: booking.guestName,
-                        propertyName: booking.propertyName,
-                        currentStatus: booking.status,
-                        checkIn: booking.checkIn,
-                        checkOut: booking.checkOut,
-                        totalFee: booking.totalFee,
-                        paymentCategory: booking.paymentCategory,
-                        reservationFee: booking.reservationFee,
-                        packageFee: booking.packageFee,
-                        modeOfPayment: booking.reservation?.modeOfPayment || booking.package?.modeOfPayment,
-                        paymentNo: booking.reservation?.paymentNo || booking.package?.paymentNo,
-                        numberEwalletBank: booking.reservation?.numberBankEwallets || booking.package?.numberBankEwallets,
-                        createdAt: booking.createdAt,
-                        updatedAt: booking.updatedAt
-                    });
-                } else {
-                    console.warn('⚠️ Could not fetch booking details:', bookingData);
-                }
+                // Booking details fetched for logging purposes only
             } catch (fetchError) {
-                console.error('❌ Error fetching booking details:', fetchError);
+                console.error('Error fetching booking details:', fetchError);
             }
-        } else {
-            console.log('⚠️ No booking ID provided - cannot fetch booking details');
         }
         
         if (action === 'accept') {
@@ -1927,14 +1433,10 @@ async function handleCancellationRequest(notifId, bookingId, action) {
             }
             
             // Step 1: Update notification status to "Complete"
-            console.log('📝 Step 1: Updating notification status to "Complete"');
             const notifResult = await updateNotificationStatus(notifId, 'Complete');
             
             // Step 2: Cancel the booking
-            console.log('📝 Step 2: Cancelling the booking');
             const bookingResult = await cancelBooking(bookingId);
-            
-            console.log('✅ Cancellation request accepted and processed successfully');
             
             return {
                 success: true,
@@ -1946,10 +1448,7 @@ async function handleCancellationRequest(notifId, bookingId, action) {
             
         } else if (action === 'reject') {
             // Admin rejects cancellation
-            console.log('📝 Rejecting cancellation request');
             const notifResult = await updateNotificationStatus(notifId, 'Rejected');
-            
-            console.log('✅ Cancellation request rejected successfully');
             
             return {
                 success: true,
@@ -1963,7 +1462,7 @@ async function handleCancellationRequest(notifId, bookingId, action) {
         }
         
     } catch (error) {
-        console.error('❌ Error handling cancellation request:', error);
+        console.error('Error handling cancellation request:', error);
         
         // Show error message
         showNotificationError(`Failed to process cancellation request: ${error.message}`);
@@ -2043,7 +1542,6 @@ function createCancellationActionButtons(notifId, bookingId, container) {
  * Sets up event listeners and prepares the system for handling cancellation requests
  */
 function initializeCancellationManagement() {
-    console.log('🚀 Initializing cancellation management system...');
     
     // Initialize static modal buttons
     initializeStaticModalButtons();
@@ -2056,20 +1554,15 @@ function initializeCancellationManagement() {
         const bookingId = element.dataset.bookingId;
         
         if (notifId && bookingId) {
-            console.log('Found notification with booking:', { notifId, bookingId });
-            
             // Check if this notification is a cancellation request
             const isCancellationRequest = element.textContent.toLowerCase().includes('cancellation') ||
                                         element.textContent.toLowerCase().includes('cancel');
             
             if (isCancellationRequest) {
-                console.log('Adding cancellation action buttons to notification:', notifId);
                 createCancellationActionButtons(notifId, bookingId, element);
             }
         }
     });
-    
-    console.log('✅ Cancellation management system initialized');
 }
 
 /**
@@ -2077,16 +1570,12 @@ function initializeCancellationManagement() {
  * Sets up event listeners for the reject and approve buttons in the cancelModal
  */
 function initializeStaticModalButtons() {
-    console.log('🔧 Initializing static modal buttons...');
     
     // Initialize reject button
     const rejectBtn = document.getElementById('cancelRejectBtn');
     if (rejectBtn) {
-        console.log('Found reject button, setting up event listener');
-        
         rejectBtn.addEventListener('click', async function(e) {
             e.preventDefault();
-            console.log('Reject button clicked');
             
             try {
                 // Get notification data from the modal
@@ -2100,74 +1589,30 @@ function initializeStaticModalButtons() {
                     throw new Error('No notification ID found in modal data');
                 }
                 
-                console.log('Rejecting cancellation request:', notifId);
-                
                 // Get booking ID from modal data
                 let bookingId = modal.dataset.bookingId;
-                console.log('Booking ID from modal:', bookingId);
                 
                 // If no booking ID, try to get it from transaction number
                 if (!bookingId) {
                     const transNo = modal.querySelector('#cancel-transNo, #transNo')?.textContent?.replace('Transaction no. ', '') || 
                                    modal.querySelector('[data-trans-no]')?.textContent;
-                    console.log('Transaction number from modal:', transNo);
                     
                     if (transNo) {
                         try {
-                            console.log('🔍 Searching for booking by transaction number:', transNo);
                             const searchResponse = await fetch(`${API_BASE}/booking/trans/${encodeURIComponent(transNo)}`);
                             const searchData = await searchResponse.json();
                             
                             if (searchData && (searchData.booking || searchData.data)) {
                                 const b = searchData.booking || searchData.data;
                                 bookingId = b._id || b.id || b.bookingId || '';
-                                console.log('✅ Found booking ID by transaction number:', bookingId);
                                 if (bookingId) modal.dataset.bookingId = bookingId;
-                            } else {
-                                console.warn('⚠️ No booking found with transaction number:', transNo);
                             }
                         } catch (searchError) {
-                            console.error('❌ Error searching for booking by transaction number:', searchError);
+                            console.error('Error searching for booking by transaction number:', searchError);
                         }
                     }
                 }
-                
-                // Fetch and log comprehensive booking details
-                if (bookingId) {
-                    console.log('📋 Fetching booking details for logging...');
-                    try {
-                        const bookingResponse = await fetch(`${API_BASE}/booking/${bookingId}`);
-                        const bookingData = await bookingResponse.json();
-                        
-                        if (bookingData.success && bookingData.booking) {
-                            const booking = bookingData.booking;
-                            console.log('📊 BOOKING DETAILS FOR CANCELLATION REJECTION:', {
-                                bookingId: booking._id,
-                                transNo: booking.transNo,
-                                guestName: booking.guestName,
-                                propertyName: booking.propertyName,
-                                currentStatus: booking.status,
-                                checkIn: booking.checkIn,
-                                checkOut: booking.checkOut,
-                                totalFee: booking.totalFee,
-                                paymentCategory: booking.paymentCategory,
-                                reservationFee: booking.reservationFee,
-                                packageFee: booking.packageFee,
-                                modeOfPayment: booking.reservation?.modeOfPayment || booking.package?.modeOfPayment,
-                                paymentNo: booking.reservation?.paymentNo || booking.package?.paymentNo,
-                                numberEwalletBank: booking.reservation?.numberBankEwallets || booking.package?.numberBankEwallets,
-                                createdAt: booking.createdAt,
-                                updatedAt: booking.updatedAt
-                            });
-                        } else {
-                            console.warn('⚠️ Could not fetch booking details:', bookingData);
-                        }
-                    } catch (fetchError) {
-                        console.error('❌ Error fetching booking details:', fetchError);
-                    }
-                } else {
-                    console.log('⚠️ No booking ID found in modal data - cannot fetch booking details');
-                }
+
                 
                 // Disable button during processing
                 const originalText = rejectBtn.textContent;
@@ -2192,16 +1637,14 @@ function initializeStaticModalButtons() {
                         toRole: 'employee',
                         message: 'Your cancellation request has been reviewed and rejected by the admin. The booking will remain active. This thread does not accept replies. For any concerns, please reach out to the admin via the designated support channel.'
                     };
-                    console.log('➡️ Sending rejection message payload:', payload);
                     const msgResp = await fetch(`${API_BASE}/notify/message`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    const msgResult = await msgResp.json().catch(() => ({}));
-                    console.log('✅ Rejection message API result:', msgResult);
+                    await msgResp.json().catch(() => ({}));
                 } catch (msgErr) {
-                    console.warn('⚠️ Failed to send rejection message:', msgErr);
+                    console.warn('Failed to send rejection message:', msgErr);
                 }
                 
                 // Close the modal
@@ -2215,10 +1658,8 @@ function initializeStaticModalButtons() {
                     fetchNotifications();
                 }
                 
-                console.log('✅ Cancellation request rejected successfully');
-                
             } catch (error) {
-                console.error('❌ Error rejecting cancellation request:', error);
+                console.error('Error rejecting cancellation request:', error);
                 showNotificationError(`Failed to reject cancellation: ${error.message}`);
             } finally {
                 // Re-enable button
@@ -2226,20 +1667,13 @@ function initializeStaticModalButtons() {
                 rejectBtn.textContent = originalText;
             }
         });
-        
-        console.log('✅ Reject button event listener set up');
-    } else {
-        console.warn('⚠️ Reject button (cancelRejectBtn) not found');
     }
     
     // Initialize approve button
     const approveBtn = document.getElementById('approveCancelBtn');
     if (approveBtn) {
-        console.log('Found approve button, setting up event listener');
-        
         approveBtn.addEventListener('click', async function(e) {
             e.preventDefault();
-            console.log('Approve button clicked');
             
             try {
                 // Get notification data from the modal
@@ -2259,7 +1693,6 @@ function initializeStaticModalButtons() {
                 if (!bookingId) {
                     const transNo = modal.querySelector('#cancel-transNo, #transNo')?.textContent?.replace('Transaction no. ', '') || 
                                    modal.querySelector('[data-trans-no]')?.textContent;
-                    console.log('Attempting to resolve missing bookingId via transNo:', transNo);
                     if (transNo) {
                         try {
                             const searchResponse = await fetch(`${API_BASE}/booking/trans/${encodeURIComponent(transNo)}`);
@@ -2268,7 +1701,6 @@ function initializeStaticModalButtons() {
                                 const b = searchData.booking || searchData.data;
                                 bookingId = b._id || b.id || b.bookingId || '';
                                 if (bookingId) modal.dataset.bookingId = bookingId;
-                                console.log('Resolved bookingId:', bookingId);
                             }
                         } catch (e2) {
                             console.warn('Failed to resolve bookingId from transNo:', e2);
@@ -2279,8 +1711,6 @@ function initializeStaticModalButtons() {
                 if (!bookingId) {
                     throw new Error('No booking ID found in modal data');
                 }
-                
-                console.log('Approving cancellation request:', { notifId, bookingId });
                 
                 // Disable button during processing
                 const originalText = approveBtn.textContent;
@@ -2301,10 +1731,8 @@ function initializeStaticModalButtons() {
                     fetchNotifications();
                 }
                 
-                console.log('✅ Cancellation request approved successfully');
-                
             } catch (error) {
-                console.error('❌ Error approving cancellation request:', error);
+                console.error('Error approving cancellation request:', error);
                 showNotificationError(`Failed to approve cancellation: ${error.message}`);
             } finally {
                 // Re-enable button
@@ -2312,10 +1740,6 @@ function initializeStaticModalButtons() {
                 approveBtn.textContent = originalText;
             }
         });
-        
-        console.log('✅ Approve button event listener set up');
-    } else {
-        console.warn('⚠️ Approve button (approveCancelBtn) not found');
     }
 }
 

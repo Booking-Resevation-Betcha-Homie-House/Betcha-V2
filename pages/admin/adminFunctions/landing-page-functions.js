@@ -1,5 +1,4 @@
 // Landing Page Functions - Fetch and Update Landing Page Content
-console.log('Landing page functions script loaded');
 
 // API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
@@ -23,7 +22,6 @@ let propertySearchInput, propertyListContainer, selectedPropertiesContainer;
 
 // Initialize page when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing landing page functions...');
     initializeDOMElements();
     fetchLandingPageData();
     fetchAllProperties();
@@ -49,15 +47,7 @@ function initializeDOMElements() {
     previewContainer = document.getElementById('previewContainer');
     colorRadios = document.querySelectorAll('input[name="color"]');
     
-    // Debug: Log if elements are found
-    console.log('DOM Elements initialized:', {
-        editModal: !!editModal,
-        titleInput: !!titleInput,
-        descriptionInput: !!descriptionInput,
-        fileInput: !!fileInput,
-        previewContainer: !!previewContainer,
-        colorRadios: colorRadios.length
-    });
+
     
     // Find save button by looking for the button with "Save" text
     if (editModal) {
@@ -79,7 +69,6 @@ function initializeDOMElements() {
  */
 async function fetchAllProperties() {
     try {
-        console.log('Fetching all properties from:', PROPERTY_LIST_URL);
         
         const response = await fetch(PROPERTY_LIST_URL, {
             method: 'GET',
@@ -93,11 +82,9 @@ async function fetchAllProperties() {
         }
 
         const data = await response.json();
-        console.log('Properties data received:', data);
         
         // Filter to only include active properties
         allProperties = Array.isArray(data) ? data.filter(property => property.status === 'Active') : [];
-        console.log('Total active properties loaded:', allProperties.length);
         
     } catch (error) {
         console.error('Error fetching properties:', error);
@@ -111,7 +98,6 @@ async function fetchAllProperties() {
  */
 async function fetchLandingPageData() {
     try {
-        console.log('Fetching landing page data from:', LANDING_GET_URL);
         
         const response = await fetch(LANDING_GET_URL, {
             method: 'GET',
@@ -125,7 +111,6 @@ async function fetchLandingPageData() {
         }
 
         const data = await response.json();
-        console.log('Landing page data received:', data);
         
         landingPageData = data;
         populateLandingPageContent(data);
@@ -169,8 +154,6 @@ function populateLandingPageContent(data) {
             populateFeaturedUnits(data.featured);
         }
         
-        console.log('Landing page content populated successfully');
-        
     } catch (error) {
         console.error('Error populating landing page content:', error);
         showErrorMessage('Error displaying landing page content.');
@@ -194,7 +177,6 @@ function populateFeaturedUnits(units) {
 
     // If no units provided, hide the section or show placeholder
     if (!units || units.length === 0) {
-        console.log('No featured units to display');
         return;
     }
 
@@ -304,8 +286,6 @@ function populateEditModal() {
 
         // Populate property list
         populatePropertyList();
-
-        console.log('Edit modal populated with current data');
         
     } catch (error) {
         console.error('Error populating edit modal:', error);
@@ -457,7 +437,7 @@ function removeSelectedProperty(propertyId) {
  * Handle color change in edit modal
  */
 function handleColorChange(event) {
-    console.log('Color changed to:', event.target.value);
+    // Color change handled
 }
 
 /**
@@ -470,7 +450,6 @@ function setupFileUpload() {
     
     // Check if events are already attached to prevent duplicates
     if (fileInput.dataset.eventsAttached === 'true') {
-        console.log('File upload events already attached, skipping...');
         return;
     }
     
@@ -487,14 +466,12 @@ function setupFileUpload() {
     
     // Mark events as attached
     fileInput.dataset.eventsAttached = 'true';
-    console.log('File upload events attached successfully');
 }
 
 /**
  * Handle file selection
  */
 function handleFileSelection(event) {
-    console.log('File selection triggered', event.target.files.length, 'files');
     const files = event.target.files;
     if (files.length > 0) {
         displayFilePreview(files[0]);
@@ -580,7 +557,6 @@ function displayFilePreview(file) {
         const bannerImage = document.getElementById('banner-image');
         if (bannerImage) {
             bannerImage.src = e.target.result;
-            console.log('Banner image updated with new preview');
         }
     };
     reader.readAsDataURL(file);
@@ -596,17 +572,6 @@ function displayFilePreview(file) {
  */
 async function handleSaveChanges() {
     try {
-        console.log('Saving landing page changes...');
-        
-        // Debug: Check form values before processing
-        console.log('Form values debug:', {
-            titleInput: titleInput,
-            titleValue: titleInput?.value,
-            descriptionInput: descriptionInput,
-            descriptionValue: descriptionInput?.value,
-            titleInputId: titleInput?.id,
-            descriptionInputId: descriptionInput?.id
-        });
         
         // Disable save button to prevent double-submission
         if (saveButton) {
@@ -660,7 +625,6 @@ async function handleSaveChanges() {
         }
 
         if (response.ok) {
-            console.log('Landing page updated successfully:', result);
             showSuccessMessage('Landing page updated successfully!');
             
             // Close modal
@@ -755,12 +719,7 @@ function showErrorMessage(message) {
     }, 5000);
 }
 
-// Export functions for external use if needed
-window.landingPageFunctions = {
-    fetchLandingPageData,
-    populateLandingPageContent,
-    handleSaveChanges
-};
+
 
 // Make functions available globally for onclick handlers
 window.handlePropertySelection = handlePropertySelection;
