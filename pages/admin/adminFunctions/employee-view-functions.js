@@ -184,7 +184,7 @@ async function populateAssignedProperties(properties) {
 					<svg class="w-16 h-16 text-neutral-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
 						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m5 0v-9a2 2 0 00-2-2H8a2 2 0 00-2 2v9m8 0V9a2 2 0 012-2h2a2 2 0 012 2v12M7 7h3v3H7V7z"></path>
 					</svg>
-					<p class="text-neutral-400 text-center mb-2">Property data not found</p>
+					<p class="text-neutral-400 text-center mb-2">Properties not found</p>
 				</div>
 			`;
 			return;

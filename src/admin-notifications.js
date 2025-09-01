@@ -95,7 +95,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const isUnread = !n.seen;
         wrapper.innerHTML = `
             <div class="flex items-start gap-2">
-                <div>
+                <div class="w-full">
                     <div class="flex justify-between">
                         <div class="flex gap-2 items-center">
                             ${isUnread ? '<div class="dot-notif"></div>' : ''}

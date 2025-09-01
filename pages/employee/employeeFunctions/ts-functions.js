@@ -943,9 +943,22 @@ async function approvePayment(paymentType, booking) {
         // Call payment checking API to update status
         const statusUpdateResponse = await updatePaymentStatus(paymentType, booking._id, 'approve');
 
-        // Fetch fresh booking data after both API calls
-        const modal = document.querySelector('#transactionModal');
+        // Hide buttons immediately after successful API call
+        const modal = document.getElementById('viewTSModal');
         if (modal) {
+            // Hide the specific buttons immediately for instant feedback
+            if (paymentType === 'reservation') {
+                const approveBtn = modal.querySelector('[data-approve-reservation]');
+                const declineBtn = modal.querySelector('[data-decline-reservation]');
+                if (approveBtn) approveBtn.style.display = 'none';
+                if (declineBtn) declineBtn.style.display = 'none';
+            } else if (paymentType === 'package') {
+                const approveBtn = modal.querySelector('[data-approve-package]');
+                const declineBtn = modal.querySelector('[data-decline-package]');
+                if (approveBtn) approveBtn.style.display = 'none';
+                if (declineBtn) declineBtn.style.display = 'none';
+            }
+            
             console.log('Fetching fresh booking data after approval...');
             await fetchBookingDetails(booking._id, modal, booking);
         }
@@ -976,9 +989,22 @@ async function declinePayment(paymentType, booking) {
         // Show success message
         alert(`${paymentType.charAt(0).toUpperCase() + paymentType.slice(1)} payment declined successfully!`);
 
-        // Refresh the modal data
-        const modal = document.querySelector('#transactionModal');
+        // Hide buttons immediately after successful API call
+        const modal = document.getElementById('viewTSModal');
         if (modal) {
+            // Hide the specific buttons immediately for instant feedback
+            if (paymentType === 'reservation') {
+                const approveBtn = modal.querySelector('[data-approve-reservation]');
+                const declineBtn = modal.querySelector('[data-decline-reservation]');
+                if (approveBtn) approveBtn.style.display = 'none';
+                if (declineBtn) declineBtn.style.display = 'none';
+            } else if (paymentType === 'package') {
+                const approveBtn = modal.querySelector('[data-approve-package]');
+                const declineBtn = modal.querySelector('[data-decline-package]');
+                if (approveBtn) approveBtn.style.display = 'none';
+                if (declineBtn) declineBtn.style.display = 'none';
+            }
+            
             // Fetch updated booking data
             await fetchBookingDetails(booking._id, modal, booking);
         }
@@ -1058,9 +1084,14 @@ function updateButtonVisibility(modal, booking) {
             if (approveReservationBtn) approveReservationBtn.style.display = 'none';
             if (declineReservationBtn) declineReservationBtn.style.display = 'none';
         } else {
-            // Show reservation buttons if payment is still pending
-            if (approveReservationBtn) approveReservationBtn.style.display = 'inline-block';
-            if (declineReservationBtn) declineReservationBtn.style.display = 'inline-block';
+            // Show reservation buttons if payment is still pending and has actual payment number
+            if (!isReservationPaymentPending) {
+                if (approveReservationBtn) approveReservationBtn.style.display = 'inline-block';
+                if (declineReservationBtn) declineReservationBtn.style.display = 'inline-block';
+            } else {
+                if (approveReservationBtn) approveReservationBtn.style.display = 'none';
+                if (declineReservationBtn) declineReservationBtn.style.display = 'none';
+            }
         }
         
         // Handle package buttons visibility

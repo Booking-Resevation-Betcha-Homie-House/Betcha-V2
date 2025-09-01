@@ -127,7 +127,7 @@ function populateFormFields(paymentData) {
         if (preview && placeholder) {
             preview.src = paymentData.qrPhotoLink;
             preview.style.display = 'block';
-            placeholder.style.display = 'flex';
+            placeholder.style.display = 'none';
         }
     }
 }
@@ -216,7 +216,7 @@ function initializeFileUpload() {
                     if (preview && placeholder) {
                         preview.src = e.target.result;
                         preview.style.display = 'block';
-                        placeholder.style.display = 'flex';
+                        placeholder.style.display = 'none';
                     }
                 };
                 

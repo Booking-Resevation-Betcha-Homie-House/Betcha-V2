@@ -568,15 +568,7 @@
                   <div class="flex flex-col">
                     <div class="flex items-center justify-between mb-3">
                       <p class="text-lg font-manrope md:text-xl">Calendar legend</p>
-                      <button 
-                        onclick="openMaintenanceModal()"
-                        class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-2.5 py-1 rounded-lg text-xs font-medium transition-colors duration-200 flex items-center gap-1.5">
-                        <svg class="w-3.5 h-3.5 fill-rose-700" viewBox="0 0 24 24">
-                          <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-                          <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                        </svg>
-                        Set Maintenance
-                      </button>
+                      
                     </div>
                     <div class="flex gap-2 ml-3">
                       <div class="aspect-square h-5 bg-primary rounded shadow"></div>
@@ -586,7 +578,17 @@
                       <div class="aspect-square h-5 bg-rose-700 rounded shadow"></div>
                       <p class="font-inter text-primary-text">- Maintenance</p>
                     </div>
+                    
                   </div>
+                  <hr class="my-4 border-t border-neutral-300">
+                  <button 
+                        onclick="openMaintenanceModal()"
+                        class="bg-rose-100 hover:bg-rose-200 text-rose-700 px-1.5 py-0.5 rounded-lg text-xs font-normal transition-colors duration-200 flex items-center justify-center gap-2">
+                                                 <svg class="w-4 stroke-black stroke-2" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                           <path d="M2.66666 7.99996H8M8 7.99996H13.3333M8 7.99996V2.66663M8 7.99996V13.3333" stroke-linecap="round" stroke-linejoin="round"></path>
+                       </svg>
+                        Set Maintenance
+                  </button>
                 </div>
 
                 <div data-tab-group class="bg-white rounded-3xl shadow-md p-6 flex flex-col mb-6">
@@ -1086,6 +1088,7 @@
   <script defer src="../../src/admin-notifications.js"></script>
   <script defer src="../../src/navbar.js"></script>
   <script defer src="../../src/modal.js"></script>
+  <script defer src="../../src/simple-loader.js"></script>
   <script defer src="../../src/topRoomsChart.js"></script>
   <script defer src="../../src/date.js"></script>
   <script defer src="../../src/calendar2.js"></script>
