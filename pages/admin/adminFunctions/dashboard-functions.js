@@ -40,10 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
  */
 async function initializeDashboard() {
     try {
-        // Show loading states
-        showLoadingStates();
-        
-        // Fetch all dashboard data
+        // Fetch all dashboard data immediately without showing loading text
         await Promise.all([
             fetchSummaryData(),
             fetchCountsData()
@@ -52,7 +49,7 @@ async function initializeDashboard() {
         await fetchTopPropertiesData();
         await fetchAuditTrailData(); // Fetch audit trails
         
-        // Hide loading states and show content
+        // Hide skeleton loading and show content
         hideLoadingStates();
     } catch (error) {
         console.error('Error initializing dashboard:', error);
@@ -60,49 +57,6 @@ async function initializeDashboard() {
         // Hide loading states even on error
         hideLoadingStates();
     }
-}
-
-/**
- * Show loading states for dashboard elements
- */
-function showLoadingStates() {
-    // Show skeleton containers and hide content containers
-    const skeletonElements = ['earningsSkeleton', 'chartsSkeleton', 'auditTrailsSkeleton'];
-    const contentElements = ['earningsContent', 'chartsContent', 'auditTrailsContent'];
-    
-    skeletonElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.classList.remove('hidden');
-        }
-    });
-    
-    contentElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.classList.add('hidden');
-        }
-    });
-    
-    // Keep the old loading behavior for backward compatibility
-    const loadingElements = [
-        'totalYearEarning',
-        'totalMonthEarning', 
-        'totalWeekEarning',
-        'availableRental',
-        'bookedRoom',
-        'totalEmployee',
-        'totalCustomer',
-        'totalRoom',
-        'totalTransaction'
-    ];
-    
-    loadingElements.forEach(id => {
-        const element = document.getElementById(id);
-        if (element) {
-            element.textContent = '...';
-        }
-    });
 }
 
 /**
