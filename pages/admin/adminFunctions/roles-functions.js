@@ -75,7 +75,7 @@ async function fetchRoles() {
 // Create HTML for a single role card
 function createRoleCard(role) {
     const privilegesPills = role.privileges.map(privilege => 
-        `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-neutral-300 text-neutral-700 transition-all duration-200 hover:bg-neutral-400">${privilege}</span>`
+        `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-neutral-100 text-neutral-700 transition-all duration-200 hover:bg-neutral-400">${privilege}</span>`
     ).join('');
 
     return `
