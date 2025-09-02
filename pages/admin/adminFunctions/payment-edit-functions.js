@@ -410,43 +410,19 @@ async function validateAndSubmitForm() {
     showLoadingState();
 
     try {
-        // Handle image upload
-        let qrPhotoLink = currentPaymentData.qrPhotoLink || '';
+        // Create FormData with all payment data including image
+        const formData = new FormData();
+        formData.append('paymentName', paymentName);
+        formData.append('category', selectedCategory);
         
         if (fileInput.files[0]) {
-            // Convert the new image to base64 for direct storage
-            const file = fileInput.files[0];
-            
-            if (!validateImageFile(file)) {
-                hideLoadingState();
-                return;
-            }
-            
-            try {
-                qrPhotoLink = await convertFileToBase64(file);
-                
-            } catch (fileError) {
-                console.error('Error processing image file:', fileError);
-                showError('Error processing the uploaded image. Please try again.');
-                hideLoadingState();
-                return;
-            }
+            formData.append('qrPicture', fileInput.files[0]);
         }
 
-        // Create payment data
-        const paymentData = {
-            paymentName: paymentName,
-            category: selectedCategory,
-            qrPhotoLink: qrPhotoLink
-        };
-
-        // Make API call to update payment
+        // Make API call to update payment using FormData
         const response = await fetch(`${API_BASE}/payments/update/${currentPaymentId}`, {
             method: 'PUT',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(paymentData)
+            body: formData
         });
 
         if (!response.ok) {
@@ -482,22 +458,7 @@ async function validateAndSubmitForm() {
     }
 }
 
-// Helper function to convert file to base64
-function convertFileToBase64(file) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        
-        reader.onload = function(e) {
-            resolve(e.target.result);
-        };
-        
-        reader.onerror = function(error) {
-            reject(error);
-        };
-        
-        reader.readAsDataURL(file);
-    });
-}
+// Helper function removed - now using FormData for file uploads like profile pictures
 
 // Utility functions for loading states and notifications
 

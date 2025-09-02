@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment FormData Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .test-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .test-result { margin: 10px 0; padding: 10px; border-radius: 4px; white-space: pre-wrap; }
+        .success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .info { background-color: #d1ecf1; color: #0c5460; border: 1px solid #bee5eb; }
+        input[type="file"] { margin: 10px 0; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; }
+        img { max-width: 200px; margin: 10px 0; border: 1px solid #ddd; }
+    </style>
+</head>
+<body>
+    <h1>Payment FormData Upload Test</h1>
+    
+    <div class="test-section">
+        <h2>Test 1: Create Payment with FormData (New Method)</h2>
+        <input type="text" id="paymentName1" placeholder="Payment Name" value="Test Payment FormData">
+        <input type="text" id="category1" placeholder="Category" value="GCash">
+        <input type="file" id="fileInput1" accept="image/*">
+        <button onclick="testCreatePaymentFormData()">Create Payment (FormData)</button>
+        <div id="result1" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 2: Create Payment with Base64 (Old Method)</h2>
+        <input type="text" id="paymentName2" placeholder="Payment Name" value="Test Payment Base64">
+        <input type="text" id="category2" placeholder="Category" value="Maya">
+        <input type="file" id="fileInput2" accept="image/*">
+        <button onclick="testCreatePaymentBase64()">Create Payment (Base64)</button>
+        <div id="result2" class="test-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>Test 3: Compare URL Formats</h2>
+        <div id="comparison" class="test-result info">Upload files in both tests above to see the difference in URL formats.</div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://betcha-api.onrender.com';
+
+        // Test new FormData method
+        async function testCreatePaymentFormData() {
+            const result = document.getElementById('result1');
+            const paymentName = document.getElementById('paymentName1').value;
+            const category = document.getElementById('category1').value;
+            const fileInput = document.getElementById('fileInput1');
+
+            if (!paymentName || !category) {
+                result.className = 'test-result error';
+                result.textContent = 'Please fill in payment name and category';
+                return;
+            }
+
+            try {
+                result.className = 'test-result info';
+                result.textContent = 'Creating payment with FormData...';
+
+                // Create FormData with all data including image
+                const formData = new FormData();
+                formData.append('paymentName', paymentName);
+                formData.append('category', category);
+                
+                if (fileInput.files[0]) {
+                    formData.append('qrPicture', fileInput.files[0]);
+                }
+
+                const response = await fetch(`${API_BASE_URL}/paymentPlatform/create`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorData}`);
+                }
+
+                const createResult = await response.json();
+                result.className = 'test-result success';
+                result.textContent = `✅ SUCCESS!\n\nPayment created with FormData: ${JSON.stringify(createResult, null, 2)}`;
+
+                updateComparison('formdata', createResult);
+
+            } catch (error) {
+                result.className = 'test-result error';
+                result.textContent = `❌ ERROR: ${error.message}`;
+            }
+        }
+
+        // Test old base64 method
+        async function testCreatePaymentBase64() {
+            const result = document.getElementById('result2');
+            const paymentName = document.getElementById('paymentName2').value;
+            const category = document.getElementById('category2').value;
+            const fileInput = document.getElementById('fileInput2');
+
+            if (!paymentName || !category) {
+                result.className = 'test-result error';
+                result.textContent = 'Please fill in payment name and category';
+                return;
+            }
+
+            try {
+                result.className = 'test-result info';
+                result.textContent = 'Creating payment with base64 image...';
+
+                let qrPhotoLink = '';
+                
+                if (fileInput.files[0]) {
+                    // Convert to base64
+                    qrPhotoLink = await new Promise((resolve, reject) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => resolve(e.target.result || '');
+                        reader.onerror = (err) => reject(err);
+                        reader.readAsDataURL(fileInput.files[0]);
+                    });
+                }
+
+                const paymentData = {
+                    paymentName: paymentName,
+                    category: category,
+                    qrPhotoLink: qrPhotoLink
+                };
+
+                const response = await fetch(`${API_BASE_URL}/paymentPlatform/create`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(paymentData)
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorData}`);
+                }
+
+                const createResult = await response.json();
+                result.className = 'test-result success';
+                result.textContent = `✅ Payment created with base64 image\n\n${JSON.stringify(createResult, null, 2)}`;
+
+                updateComparison('base64', createResult);
+
+            } catch (error) {
+                result.className = 'test-result error';
+                result.textContent = `❌ ERROR: ${error.message}`;
+            }
+        }
+
+        function updateComparison(method, result) {
+            const comparison = document.getElementById('comparison');
+            const qrLink = result?.qrPhotoLink || result?.newPayment?.qrPhotoLink || result?.data?.qrPhotoLink || 'No image link found';
+            
+            const existingContent = comparison.innerHTML;
+            const newContent = `
+                <strong>${method.toUpperCase()} Result:</strong><br>
+                Image URL: ${qrLink}<br>
+                ${qrLink.startsWith('data:') ? '❌ Base64 data URL (long)' : '✅ Proper Google Drive URL'}<br>
+                Length: ${qrLink.length} characters<br><br>
+            `;
+            
+            comparison.innerHTML = newContent + (existingContent.includes('Result:') ? existingContent : '');
+        }
+    </script>
+</body>
+</html>

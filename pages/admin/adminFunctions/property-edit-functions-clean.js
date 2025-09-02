@@ -847,12 +847,10 @@ function populateGalleryModal() {
         imageContainer.innerHTML = `
             <img src="${imageUrl}" 
                  alt="Property image ${index + 1}" 
-                 class="w-full h-32 object-cover">
+                 class="w-full h-32 md:h-48 object-cover">
             <button onclick="deleteExistingImage('${imageUrl}', this)" 
-                    class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
+                    class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm font-bold">
+                ×
             </button>
         `;
         

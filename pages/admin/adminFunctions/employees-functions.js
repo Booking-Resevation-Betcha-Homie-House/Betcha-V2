@@ -1,5 +1,4 @@
-// Employee Functions for Admin Dashboard
-
+// Employee Functions
 // API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 

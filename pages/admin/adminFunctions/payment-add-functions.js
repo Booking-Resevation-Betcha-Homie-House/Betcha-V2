@@ -174,37 +174,19 @@ async function validateAndSubmitForm() {
     showLoadingState();
 
     try {
-        // Convert image to base64 for storage (optional)
-        let qrPhotoLink = '';
+        // Create FormData with all payment data including image
+        const formData = new FormData();
+        formData.append('paymentName', paymentName);
+        formData.append('category', selectedCategory);
         
         if (fileInput.files[0]) {
-            // Encode selected image as base64 data URL so API receives an image on create
-            qrPhotoLink = await new Promise((resolve, reject) => {
-                try {
-                    const reader = new FileReader();
-                    reader.onload = (e) => resolve(e.target.result || '');
-                    reader.onerror = (err) => reject(err);
-                    reader.readAsDataURL(fileInput.files[0]);
-                } catch (err) {
-                    reject(err);
-                }
-            });
+            formData.append('qrPicture', fileInput.files[0]);
         }
 
-        // Create payment data
-        const paymentData = {
-            paymentName: paymentName,
-            category: selectedCategory,
-            qrPhotoLink: qrPhotoLink
-        };
-
-        // Submit to API
+        // Submit to API using FormData (like profile pictures)
         const response = await fetch(`${API_BASE_URL}/paymentPlatform/create`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(paymentData)
+            body: formData
         });
 
         if (!response.ok) {
@@ -214,30 +196,6 @@ async function validateAndSubmitForm() {
 
         const result = await response.json();
         const created = result?.newPayment || result?.data || result?.payment || result?.paymentPlatform || result;
-        // If the API did not persist the image on create, attempt an immediate follow-up update
-        const createdId = created?._id || created?.id;
-        if (createdId && !created?.qrPhotoLink && qrPhotoLink) {
-            try {
-                const updatePayload = {
-                    paymentName: paymentName,
-                    category: selectedCategory,
-                    qrPhotoLink: qrPhotoLink
-                };
-                const updateResp = await fetch(`${API_BASE_URL}/payments/update/${createdId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(updatePayload)
-                });
-                const updateResult = await updateResp.json().catch(() => ({}));
-                if (!updateResp.ok) {
-                    console.warn('Follow-up image update failed:', updateResult);
-                }
-            } catch (followErr) {
-                console.warn('Error during follow-up image update:', followErr);
-            }
-        } else if (!created?.qrPhotoLink) {
-            console.warn('No qrPhotoLink returned on create. The list may render a fallback image until an image is uploaded/saved.');
-        }
         
         // Close the confirmation modal
         const modal = document.getElementById('confirmDetailsModal');

@@ -98,7 +98,7 @@ const CATEGORIES = {
     'Outdoor & Parking': ['freeParking', 'paidParking', 'bike', 'balcony', 'garden', 'grill', 'firePit', 'pool'],
     'Bathroom': ['bathtub', 'shower', 'shampoo', 'soap', 'toilet', 'toiletPaper'],
     'Laundry': ['washer', 'dryer', 'dryingRack', 'ironBoard', 'cleaningProduct'],
-    'Pets': ['petsAllowed', 'petsNotAllowed', 'petBowls', 'petBed', 'allowed'],
+    'Pets': ['petsAllowed', 'petsNotAllowed', 'foodBowl', 'petBed', 'allowed'],
     'Family Friendly': ['crib', 'babyBath', 'stairGate']
 };
 
@@ -248,7 +248,7 @@ function populateBasicInfo(data) {
     const propertyDiscPriceElement = document.getElementById('propertyDiscPrice');
     if (propertyDiscPriceElement) {
         if (data.discount && data.discount > 0) {
-            propertyDiscPriceElement.textContent = `₱${data.discount}`;
+            propertyDiscPriceElement.textContent = `${data.discount}%`;
         } else {
             propertyDiscPriceElement.textContent = 'No discount';
         }
@@ -730,7 +730,7 @@ function createReportElement(report, status) {
     div.setAttribute('data-report-id', report.id);
     div.setAttribute('data-report-sender', report.sender);
     div.setAttribute('data-report-category', report.category);
-    div.setAttribute('data-report-status', report.status);
+  
     div.setAttribute('data-report-date', report.date);
     div.setAttribute('data-report-transno', report.transNo);
     div.setAttribute('data-report-message', report.message);
@@ -748,9 +748,7 @@ function createReportElement(report, status) {
             <span class="text-[11px] font-medium text-white bg-primary/80 rounded-full px-2 py-0.5">
                 ${report.category || 'General Issue'}
             </span>
-                    <span class="text-[10px] font-medium text-white ${report.status === 'Solved' ? 'bg-green-500' : 'bg-orange-500'} rounded-full px-2 py-0.5">
-                        ${report.status}
-            </span>
+                  
                 </div>
             </div>
             <div class="mt-2">
@@ -1025,6 +1023,10 @@ async function changeReportStatus() {
         // Show success message
         showSuccessMessage(`Report status updated to ${newStatus}`);
         
+        // Reset button state
+        solveButton.innerHTML = originalText;
+        solveButton.disabled = false;
+        
         // Close the modal
         reportModal.classList.add('hidden');
         
@@ -1162,40 +1164,9 @@ function initializeEditButton() {
     // Redundant when inline onclick exists; no extra binding needed
 }
 
-// Initialize read more toggle functionality
+// Initialize read more toggle functionality - handled by global script
 function initializeReadMoreToggle() {
-    const toggleText = document.getElementById('toggleText');
-    const descWrapper = document.getElementById('descWrapper');
-    
-    if (toggleText && descWrapper) {
-        // Remove any existing event listeners by cloning the element
-        const newToggleText = toggleText.cloneNode(true);
-        toggleText.parentNode.replaceChild(newToggleText, toggleText);
-        
-        // Check if content overflows the collapsed height
-        const contentHeight = descWrapper.scrollHeight;
-        const maxHeight = 96; // 6rem = 96px
-        
-        if (contentHeight <= maxHeight) {
-            // Content fits, hide the toggle link
-            newToggleText.style.display = 'none';
-        } else {
-            // Content overflows, show the toggle link
-            newToggleText.style.display = 'block';
-            
-            newToggleText.addEventListener('click', function() {
-                const isExpanded = descWrapper.style.maxHeight === 'none';
-                
-                if (isExpanded) {
-                    descWrapper.style.maxHeight = '6rem';
-                    newToggleText.textContent = 'Read More';
-                } else {
-                    descWrapper.style.maxHeight = 'none';
-                    newToggleText.textContent = 'Read Less';
-                }
-            });
-        }
-    }
+    // Let the global readTextToggle.js script handle this functionality
 }
 
 // Function to navigate to edit page with property ID
@@ -1223,12 +1194,8 @@ async function initializeDeleteButton() {
             const currentStatus = document.getElementById('statusText')?.textContent?.trim() || '';
             const isArchived = currentStatus.toLowerCase() === 'archived';
             const nextStatus = isArchived ? 'Active' : 'Archived';
-            const confirmMessage = isArchived
-                ? 'Activate this property? This will set the status to "Active".'
-                : 'Are you sure you want to archive this property? This will set the status to "Archived".';
 
-            if (confirm(confirmMessage)) {
-                try {
+            try {
                     // Get current property ID from URL
                 const urlParams = new URLSearchParams(window.location.search);
                     const propertyId = urlParams.get('id');
@@ -1267,8 +1234,6 @@ async function initializeDeleteButton() {
                     console.error('Error updating property status:', error);
                     showErrorMessage('An error occurred while updating the property status. Please try again.');
                 }
-            } else {
-            }
         });
     } else {
         console.error('❌ Delete button not found');
@@ -1660,7 +1625,6 @@ async function removeMaintenanceDate(maintenanceId) {
         const maintenanceElement = maintenanceContainer.querySelector(`[data-maintenance-id="${maintenanceId}"]`);
         
         if (!maintenanceElement) {
-            alert('Could not find maintenance data. Please refresh and try again.');
             return;
         }
         
@@ -1672,12 +1636,10 @@ async function removeMaintenanceDate(maintenanceId) {
             dates = JSON.parse(datesJson);
         } catch (error) {
             console.error('❌ Error parsing dates from data attribute:', error);
-            alert('Could not parse maintenance dates. Please refresh and try again.');
             return;
         }
         
         if (dates.length === 0) {
-            alert('No maintenance dates found. Please refresh and try again.');
             return;
         }
         
@@ -1702,11 +1664,9 @@ async function removeMaintenanceDate(maintenanceId) {
         } else {
             const errorData = await response.json().catch(() => ({}));
             console.error('❌ Failed to remove maintenance date:', response.status, errorData);
-            alert(`Failed to remove maintenance date: ${errorData.message || 'Unknown error'}`);
         }
     } catch (error) {
         console.error('❌ Error removing maintenance date:', error);
-        alert('Error removing maintenance date. Please try again.');
     }
 }
 
@@ -1717,12 +1677,10 @@ async function saveMaintenanceDates() {
     const reason = document.getElementById('maintenanceReason').value;
     
     if (!startDate || !endDate) {
-        alert('Please select both start and end dates.');
         return;
     }
     
     if (new Date(startDate) > new Date(endDate)) {
-        alert('Start date cannot be after end date.');
         return;
     }
     
@@ -1757,8 +1715,6 @@ async function saveMaintenanceDates() {
         });
         
         if (response.ok) {
-            alert('Maintenance dates have been set successfully!');
-            
             // Clear form
             document.getElementById('maintenanceStartDate').value = '';
             document.getElementById('maintenanceEndDate').value = '';
@@ -1775,11 +1731,9 @@ async function saveMaintenanceDates() {
         } else {
             const errorData = await response.json().catch(() => ({}));
             console.error('❌ Failed to save maintenance dates:', response.status, errorData);
-            alert(`Failed to save maintenance dates: ${errorData.message || 'Unknown error'}`);
         }
     } catch (error) {
         console.error('❌ Error saving maintenance dates:', error);
-        alert('Error saving maintenance dates. Please try again.');
     }
 }
 

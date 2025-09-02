@@ -1924,6 +1924,9 @@ function initializePMCalendar() {
     const calendarEl = document.querySelector('.calendar-instance');
     if (!calendarEl) return;
 
+    // Fetch and display calendar overview data
+    fetchPMCalendarOverview();
+
     // Adapter: respond to calendar2.js selections
     calendarEl.addEventListener('datesSelected', (e) => {
         const dates = Array.isArray(e.detail?.dates) ? e.detail.dates : [];
@@ -1931,6 +1934,137 @@ function initializePMCalendar() {
             loadBookingsByDate(dates[dates.length - 1]);
         }
     });
+}
+
+// Function to fetch PM calendar overview data
+async function fetchPMCalendarOverview() {
+    try {
+        // Get property IDs from localStorage
+        const propertyIds = await getPropertyIds();
+        if (propertyIds.length === 0) {
+            console.warn('No property IDs available for calendar overview');
+            return;
+        }
+
+        // Call the calendar overview API
+        const response = await fetch(`${API_BASE_URL}/calendar/byProperties`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                propertyIds: propertyIds
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Calendar overview API failed: ${response.status} ${response.statusText}`);
+        }
+
+        const calendarData = await response.json();
+        
+        // Update calendar with visual indicators
+        updatePMCalendarWithDates(calendarData);
+
+    } catch (error) {
+        console.error('Error fetching PM calendar overview:', error);
+    }
+}
+
+// Function to update PM calendar with booking and maintenance dates
+function updatePMCalendarWithDates(multiPropertyData) {
+    if (!multiPropertyData) {
+        return;
+    }
+
+    // Aggregate all booked and maintenance dates across properties
+    let allBookedDates = [];
+    let allMaintenanceDates = [];
+
+    // Process each property's calendar data
+    Object.values(multiPropertyData).forEach(propertyData => {
+        if (propertyData && propertyData.calendar) {
+            const booking = propertyData.calendar.booking || [];
+            const maintenance = propertyData.calendar.maintenance || [];
+
+            // Extract dates from booking and maintenance arrays
+            allBookedDates.push(...booking.map(b => b.date));
+            allMaintenanceDates.push(...maintenance.map(m => m.date));
+        }
+    });
+
+    // Remove duplicates
+    allBookedDates = [...new Set(allBookedDates)];
+    allMaintenanceDates = [...new Set(allMaintenanceDates)];
+
+    // Combine all unavailable dates
+    const allUnavailableDates = [...allBookedDates, ...allMaintenanceDates];
+
+    // Update the global unavailableDates array in calendar2.js
+    if (typeof window !== 'undefined' && window.calendarUnavailableDates) {
+        window.calendarUnavailableDates = allUnavailableDates;
+    }
+
+    // Force calendar re-render if it exists
+    const calendarInstance = document.querySelector('.calendar-instance');
+    if (calendarInstance) {
+        // Trigger a custom event to force calendar re-render
+        const event = new CustomEvent('calendarDataUpdated', {
+            detail: {
+                bookedDates: allBookedDates,
+                maintenanceDates: allMaintenanceDates,
+                allUnavailableDates: allUnavailableDates
+            }
+        });
+        calendarInstance.dispatchEvent(event);
+    }
+
+    // Update the calendar legend with actual counts
+    updatePMCalendarLegend(allBookedDates.length, allMaintenanceDates.length);
+}
+
+// Function to update PM calendar legend with actual counts
+function updatePMCalendarLegend(bookedCount, maintenanceCount) {
+    // Find or create legend container
+    let legendContainer = document.querySelector('.pm-calendar-legend');
+    
+    if (!legendContainer) {
+        // Create legend container if it doesn't exist
+        const calendarContainer = document.querySelector('.calendar-instance').parentElement;
+        if (calendarContainer) {
+            legendContainer = document.createElement('div');
+            legendContainer.className = 'pm-calendar-legend mt-4';
+            legendContainer.innerHTML = `
+                <div class="flex flex-col">
+                    <div class="flex items-center justify-between mb-3">
+                        <p class="text-lg font-manrope md:text-xl">Calendar legend</p>
+                    </div>
+                    <div class="flex gap-2 ml-3">
+                        <div class="aspect-square h-5 bg-primary rounded shadow"></div>
+                        <p class="font-inter text-primary-text pm-booked-legend">- Booked (0)</p>
+                    </div>
+                    <div class="flex gap-2 ml-3">
+                        <div class="aspect-square h-5 bg-rose-700 rounded shadow"></div>
+                        <p class="font-inter text-primary-text pm-maintenance-legend">- Maintenance (0)</p>
+                    </div>
+                </div>
+            `;
+            calendarContainer.appendChild(legendContainer);
+        }
+    }
+
+    // Update legend text with counts
+    if (legendContainer) {
+        const bookedLegend = legendContainer.querySelector('.pm-booked-legend');
+        const maintenanceLegend = legendContainer.querySelector('.pm-maintenance-legend');
+        
+        if (bookedLegend) {
+            bookedLegend.textContent = `- Booked (${bookedCount})`;
+        }
+        if (maintenanceLegend) {
+            maintenanceLegend.textContent = `- Maintenance (${maintenanceCount})`;
+        }
+    }
 }
 
 // Function to load bookings by date

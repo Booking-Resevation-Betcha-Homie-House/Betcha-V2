@@ -882,20 +882,15 @@ async function handlePaymentAction(action, paymentType, booking) {
             await declinePayment(paymentType, booking);
         }
         
-    } catch (error) {
+            } catch (error) {
         console.error(`Error handling ${action} ${paymentType} payment:`, error);
-        alert(`Error ${action}ing ${paymentType} payment. Please try again.`);
     }
 }
 
 // Approve Payment Function
 async function approvePayment(paymentType, booking) {
     try {
-        // Show confirmation dialog
-        const confirmMessage = `Are you sure you want to approve the ${paymentType} payment?`;
-        if (!confirm(confirmMessage)) {
-            return;
-        }
+
 
         // Prepare the API endpoint and body based on payment type using existing booking data
         const baseURL = 'https://betcha-api.onrender.com';
@@ -936,8 +931,7 @@ async function approvePayment(paymentType, booking) {
         const data = await response.json();
         console.log(`${paymentType} payment approval response:`, data);
 
-        // Show success message
-        alert(`${paymentType.charAt(0).toUpperCase() + paymentType.slice(1)} payment approved successfully!`);
+
 
         // Call payment checking API to update status
         const statusUpdateResponse = await updatePaymentStatus(paymentType, booking._id, 'approve');
@@ -967,26 +961,20 @@ async function approvePayment(paymentType, booking) {
 
     } catch (error) {
         console.error(`Error approving ${paymentType} payment:`, error);
-        alert(`Error approving ${paymentType} payment. Please try again.`);
     }
 }
 
 // Decline Payment Function
 async function declinePayment(paymentType, booking) {
     try {
-        // Show confirmation dialog
-        const confirmMessage = `Are you sure you want to decline the ${paymentType} payment?`;
-        if (!confirm(confirmMessage)) {
-            return;
-        }
+
 
         console.log(`Declining ${paymentType} payment for booking:`, booking._id);
 
         // Call payment checking API to update status
         await updatePaymentStatus(paymentType, booking._id, 'decline');
 
-        // Show success message
-        alert(`${paymentType.charAt(0).toUpperCase() + paymentType.slice(1)} payment declined successfully!`);
+
 
         // Hide buttons immediately after successful API call
         const modal = document.getElementById('viewTSModal');
@@ -1013,7 +1001,6 @@ async function declinePayment(paymentType, booking) {
 
     } catch (error) {
         console.error(`Error declining ${paymentType} payment:`, error);
-        alert(`Error declining ${paymentType} payment. Please try again.`);
     }
 }
 

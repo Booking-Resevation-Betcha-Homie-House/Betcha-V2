@@ -15,7 +15,16 @@
       const inputPfpMobile = document.getElementById('inputPfpMobile');
 
 
-      // Do NOT pre-populate text fields; user must type values to change them
+      // Pre-populate text fields with existing data
+      const firstName = localStorage.getItem('firstName') || '';
+      const lastName = localStorage.getItem('lastName') || '';
+
+      if (inputFirstName) inputFirstName.value = firstName;
+      if (inputLastName) inputLastName.value = lastName;
+      
+      // Also populate middle initial input if it exists
+      const inputMiddleInitial = document.getElementById('inputMiddleInitial');
+      if (inputMiddleInitial && middleInitial) inputMiddleInitial.value = middleInitial;
 
       if (avatarEl && pfplink) {
         avatarEl.style.backgroundImage = `url("${pfplink}")`;
@@ -35,9 +44,10 @@
             const vFirst = ((inputFirstName && inputFirstName.value) || '').trim();
             const vLast = ((inputLastName && inputLastName.value) || '').trim();
             const vEmail = ((inputEmail && inputEmail.value) || '').trim();
-            const vMI = (middleInitial || '').trim();
+            const inputMiddleInitial = document.getElementById('inputMiddleInitial');
+            const vMI = ((inputMiddleInitial && inputMiddleInitial.value) || '').trim();
             if (vFirst) body.firstname = vFirst;
-            if (vMI) body.minitial = vMI; // only sent if present in storage
+            if (vMI) body.minitial = vMI;
             if (vLast) body.lastname = vLast;
             if (vEmail) body.email = vEmail;
 
@@ -67,6 +77,13 @@
               if (body.firstname !== undefined) localStorage.setItem('firstName', body.firstname);
               if (body.lastname !== undefined) localStorage.setItem('lastName', body.lastname);
               if (body.email !== undefined) localStorage.setItem('email', body.email);
+              if (body.minitial !== undefined) localStorage.setItem('middleInitial', body.minitial);
+              
+              // Upload profile picture if one was selected
+              if (selectedFile) {
+                await uploadPfp(selectedFile);
+              }
+              
               // Redirect to profile view with user id in URL
               window.location.href = `profile.html?id=${encodeURIComponent(userId)}`;
             }
@@ -77,6 +94,9 @@
 
       // Primary click opens modal (existing behavior handled by modal.js). Actual save on modal confirm:
       if (confirmSaveBtn) confirmSaveBtn.addEventListener('click', handleSave);
+
+      // Store selected file for later upload
+      let selectedFile = null;
 
       // Helper to upload profile picture via form-data
       async function uploadPfp(file) {
@@ -110,8 +130,28 @@
         }
       }
 
-      if (inputPfp) inputPfp.addEventListener('change', (e) => uploadPfp(e.target.files && e.target.files[0]));
-      if (inputPfpMobile) inputPfpMobile.addEventListener('change', (e) => uploadPfp(e.target.files && e.target.files[0]));
+      if (inputPfp) inputPfp.addEventListener('change', (e) => { 
+        selectedFile = e.target.files && e.target.files[0];
+        if (selectedFile && avatarEl) {
+          const previewUrl = URL.createObjectURL(selectedFile);
+          avatarEl.style.backgroundImage = `url("${previewUrl}")`;
+          avatarEl.style.backgroundSize = 'cover';
+          avatarEl.style.backgroundPosition = 'center';
+          const svg = avatarEl.querySelector('svg');
+          if (svg) svg.style.display = 'none';
+        }
+      });
+      if (inputPfpMobile) inputPfpMobile.addEventListener('change', (e) => { 
+        selectedFile = e.target.files && e.target.files[0];
+        if (selectedFile && avatarEl) {
+          const previewUrl = URL.createObjectURL(selectedFile);
+          avatarEl.style.backgroundImage = `url("${previewUrl}")`;
+          avatarEl.style.backgroundSize = 'cover';
+          avatarEl.style.backgroundPosition = 'center';
+          const svg = avatarEl.querySelector('svg');
+          if (svg) svg.style.display = 'none';
+        }
+      });
     } catch (error) {
       console.error('Failed to populate profile edit form:', error);
     }
