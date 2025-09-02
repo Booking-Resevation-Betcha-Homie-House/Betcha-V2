@@ -79,7 +79,7 @@ function resolveBookingId(rootEl) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    checkRolePrivileges();
+    // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
     initializePropertyMonitoringFeatures();
 });
 
@@ -183,7 +183,18 @@ function filterSidebarByPrivileges(privileges) {
         console.warn('PM - User does not have PM privilege, should not access this page');
         showAccessDeniedMessage();
     }
+    
+    // Show navigation after privilege filtering is complete
+    const sidebarNav = document.querySelector('#sidebar nav');
+    if (sidebarNav) {
+        sidebarNav.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
+        sidebarNav.style.visibility = 'visible';
+        sidebarNav.style.opacity = '1';
+    }
 }
+
+// Export filterSidebarByPrivileges to global scope for universal skeleton
+window.filterSidebarByPrivileges = filterSidebarByPrivileges;
 
 function hideDashboardSections(privileges) {
     

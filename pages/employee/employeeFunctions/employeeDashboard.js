@@ -17,19 +17,19 @@ function updateGridLayout() {
 
 document.addEventListener('DOMContentLoaded', () => {
   // Show skeleton loading while initializing
-  if (window.dashboardSkeleton) {
-    window.dashboardSkeleton.showSkeleton();
+  if (window.employeeSkeleton) {
+    window.employeeSkeleton.showSkeleton();
   }
   
-  checkRolePrivileges();
+  // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
   initializeDashboardFeatures();
   updateGridLayout();
   loadDashboardMetrics();
   
   // Hide skeleton after initialization (simulate loading complete)
   setTimeout(() => {
-    if (window.dashboardSkeleton) {
-      window.dashboardSkeleton.hideSkeleton();
+    if (window.employeeSkeleton) {
+      window.employeeSkeleton.hideSkeleton();
     }
   }, 1500); // Adjust timing as needed
 });
@@ -760,10 +760,10 @@ function filterDashboardSections(privileges) {
     
     // Define content sections that should be hidden based on privileges
     const sectionPrivilegeMap = {
-        'PSR-summary': ['PSR'], // PSR Summary section requires PSR privilege
-        'tickets': ['TK'], // Tickets section requires TK privilege  
-        'PM': ['PM'], // Property Monitoring section requires PM privilege
-        'transactions': ['TS'] // Transactions section requires TS privilege
+        'PSR-summary': { privileges: ['PSR'], display: 'block' }, // PSR Summary section requires PSR privilege
+        'tickets': { privileges: ['TK'], display: 'block' }, // Tickets section requires TK privilege  
+        'PM': { privileges: ['PM'], display: 'block' }, // Property Monitoring section requires PM privilege
+        'transactions': { privileges: ['TS'], display: 'flex' } // Transactions section requires TS privilege
     };
     
     // Define sidebar navigation items that should be hidden based on privileges
@@ -782,7 +782,8 @@ function filterDashboardSections(privileges) {
             return;
         }
         
-        const requiredPrivileges = sectionPrivilegeMap[sectionId];
+        const sectionConfig = sectionPrivilegeMap[sectionId];
+        const requiredPrivileges = sectionConfig.privileges;
         let hasAccess = false;
         
         // Check if user has any of the required privileges for this section
@@ -797,7 +798,7 @@ function filterDashboardSections(privileges) {
             section.style.display = 'none';
         } else {
             console.log(`Dashboard - Showing section: ${sectionId} (access granted with privileges: ${privileges.join(', ')})`);
-            section.style.display = 'block';
+            section.style.display = sectionConfig.display;
         }
     });
     
@@ -830,7 +831,18 @@ function filterDashboardSections(privileges) {
     
     // Update grid layout after filtering
     updateGridLayout();
+    
+    // Show navigation after privilege filtering is complete
+    const sidebarNav = document.querySelector('#sidebar nav');
+    if (sidebarNav) {
+        sidebarNav.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
+        sidebarNav.style.visibility = 'visible';
+        sidebarNav.style.opacity = '1';
+    }
 }
+
+// Export filterDashboardSections to global scope for universal skeleton
+window.filterDashboardSections = filterDashboardSections;
 
 // Skeleton Loading Helper Functions
 function showDashboardSkeleton() {

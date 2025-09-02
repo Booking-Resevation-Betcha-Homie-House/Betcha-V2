@@ -10,7 +10,7 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('TK Functions - DOM Content Loaded');
 
     debugLocalStorage();
-    checkRolePrivileges();
+    // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
     initializeTicketingFeatures();
 });
 
@@ -82,6 +82,14 @@ function filterSidebarByPrivileges(privileges) {
         console.warn('User does not have TK privilege, access denied');
         showAccessDeniedMessage();
     }
+    
+    // Show navigation after privilege filtering is complete
+    const sidebarNav = document.querySelector('#sidebar nav');
+    if (sidebarNav) {
+        sidebarNav.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
+        sidebarNav.style.visibility = 'visible';
+        sidebarNav.style.opacity = '1';
+    }
 }
 
 function hideDashboardSections(privileges) {
@@ -122,6 +130,9 @@ function showAccessDeniedMessage() {
     `;
     document.body.appendChild(message);
 }
+
+// Export filterSidebarByPrivileges to global scope for universal skeleton
+window.filterSidebarByPrivileges = filterSidebarByPrivileges;
 
 // =========================
 // Ticketing Features

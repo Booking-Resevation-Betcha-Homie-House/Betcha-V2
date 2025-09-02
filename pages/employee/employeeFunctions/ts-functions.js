@@ -7,8 +7,7 @@ const API_BASE_URL = 'https://betcha-api.onrender.com';
 document.addEventListener('DOMContentLoaded', function() {
     console.log('TS Functions - DOM Content Loaded');
     
-    // Check role privileges and filter sidebar/content
-    checkRolePrivileges();
+    // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
     
     // Initialize transaction functionality
     initializeTransactionFeatures();
@@ -1598,7 +1597,18 @@ function filterSidebarByPrivileges(privileges) {
         console.warn('TS - User does not have TS privilege, should not access this page');
         showAccessDeniedMessage();
     }
+    
+    // Show navigation after privilege filtering is complete
+    const sidebarNav = document.querySelector('#sidebar nav');
+    if (sidebarNav) {
+        sidebarNav.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
+        sidebarNav.style.visibility = 'visible';
+        sidebarNav.style.opacity = '1';
+    }
 }
+
+// Export filterSidebarByPrivileges to global scope for universal skeleton
+window.filterSidebarByPrivileges = filterSidebarByPrivileges;
 
 function hideDashboardSections(privileges) {
     // Define content sections that should be hidden based on privileges
