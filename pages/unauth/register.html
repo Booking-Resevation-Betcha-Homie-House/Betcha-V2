@@ -140,7 +140,6 @@
                         <ul id="dayDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-neutral-300 rounded-xl shadow hidden text-sm md:text-base text-primary-text max-h-48 overflow-y-auto"></ul>
                     </div>
 
-
                     <!-- Year -->
                     <div class="relative w-full">
                         <button type="button" id="yearDropdownBtn" class="input-style flex justify-between items-center w-full group">
@@ -165,7 +164,7 @@
                 </div>
 
                 <div class="mt-10">
-                    <button type="button" 
+                    <button id="nextBtn2" type="button" 
                     onclick="goToStep2()" 
                     class="group relative w-full btn rounded-full bg-primary px-6 py-3 flex items-center justify-center overflow-hidden shadow-lg shadow-primary/30
                     hover:cursor-pointer active:scale-95
@@ -181,7 +180,6 @@
                     </button>
                 </div>
             </form>
-
             <!-- Step 2 -->
             <form id="step2" class="space-y-4 hidden">
                 <div class="input-style2 flex items-center justify-center gap-3 group">
@@ -261,7 +259,7 @@
                         </span>
                     </button>
 
-                    <button type="button" 
+                    <button id="registerBtn2" type="button" 
                     data-modal-target="emailOTPModal" 
                     class="group relative w-full btn rounded-full bg-primary px-6 py-3 flex items-center justify-center overflow-hidden shadow-lg shadow-primary/30
                     hover:cursor-pointer active:scale-95

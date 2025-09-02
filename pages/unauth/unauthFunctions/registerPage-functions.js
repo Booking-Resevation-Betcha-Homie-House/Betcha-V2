@@ -105,6 +105,10 @@ function showError(message) {
     errorTexts.forEach(text => {
         text.textContent = message;
     });
+
+    // Update button states when error is shown
+    updateRegisterButtonState();
+    updateNextButtonState();
 }
 
 // Hide error message
@@ -115,6 +119,89 @@ function hideError() {
         container.classList.add('hidden');
         container.classList.remove('flex');
     });
+
+    // Update button states when error is hidden
+    updateRegisterButtonState();
+    updateNextButtonState();
+}
+
+// Function to check if register button should be enabled
+function updateRegisterButtonState() {
+    const registerBtn = document.getElementById('registerBtn2');
+    if (!registerBtn) return;
+
+    const email = document.querySelector('#step2 input[type="email"]').value;
+    const phone = document.querySelector('#step2 input[type="tel"]').value;
+    const password = document.querySelector('#step2 #password').value;
+    const confirmPassword = document.querySelector('#step2 #confirmPassword').value;
+
+    // Check if any error is currently being displayed
+    const errorContainers = document.querySelectorAll('#errorContainer');
+    const hasVisibleError = Array.from(errorContainers).some(container => 
+        !container.classList.contains('hidden')
+    );
+
+    // Check if all fields are filled and valid
+    const isEmailValid = email.length > 0 && emailRegex.test(email);
+    const isPhoneValid = phone.trim().length > 0;
+    const isPasswordValid = password.length > 0 && passwordRegex.test(password);
+    const isConfirmPasswordValid = confirmPassword.length > 0 && password === confirmPassword;
+
+    // Button should be enabled only if all fields are valid AND no errors are shown
+    const allValid = isEmailValid && isPhoneValid && isPasswordValid && isConfirmPasswordValid && !hasVisibleError;
+
+    if (allValid) {
+        // Enable button
+        registerBtn.disabled = false;
+        registerBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        registerBtn.classList.add('hover:cursor-pointer');
+    } else {
+        // Disable button
+        registerBtn.disabled = true;
+        registerBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        registerBtn.classList.remove('hover:cursor-pointer');
+    }
+}
+
+// Function to check if next button should be enabled
+function updateNextButtonState() {
+    const nextBtn = document.getElementById('nextBtn2');
+    if (!nextBtn) return;
+
+    // Check if any error is currently being displayed
+    const errorContainers = document.querySelectorAll('#errorContainer');
+    const hasVisibleError = Array.from(errorContainers).some(container => 
+        !container.classList.contains('hidden')
+    );
+
+    // Check step 1 fields
+    const firstName = document.querySelector('#step1 input[placeholder="First name"]')?.value || '';
+    const lastName = document.querySelector('#step1 input[placeholder="Last name"]')?.value || '';
+    const selectedSex = document.querySelector('#selectedSex')?.textContent || 'Sex';
+    const monthElement = document.querySelector('#selectedMonth');
+    const dayElement = document.querySelector('#selectedDay');
+    const yearElement = document.querySelector('#selectedYear');
+
+    const isStep1Valid = firstName.trim() && lastName.trim() && 
+                        selectedSex !== 'Sex' &&
+                        monthElement && monthElement.textContent !== 'Month' &&
+                        dayElement && dayElement.textContent !== 'Month' &&
+                        yearElement && yearElement.textContent !== 'Month';
+
+    // Button should be enabled only if step 1 is valid AND no errors are shown
+    const canProceed = isStep1Valid && !hasVisibleError;
+
+    if (canProceed) {
+        // Enable button
+        nextBtn.disabled = false;
+        nextBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+        nextBtn.classList.add('hover:cursor-pointer');
+    } else {
+        // Disable button
+        nextBtn.disabled = true;
+        nextBtn.classList.add('opacity-50', 'cursor-not-allowed');
+        nextBtn.classList.remove('hover:cursor-pointer');
+    }
 }
 
 // Function to send OTP
@@ -267,11 +354,21 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle next button click
     document.querySelector('button[onclick="goToStep2()"]').addEventListener('click', (e) => {
         e.preventDefault();
+        
+        // Check if button is disabled
+        const nextBtn = document.getElementById('nextBtn2');
+        if (nextBtn && nextBtn.disabled) {
+            return; // Don't proceed if button is disabled
+        }
+        
         if (validateStep1()) {
             step1Form.classList.add('hidden');
             step2Form.classList.remove('hidden');
             document.getElementById('step-label').textContent = 'Step 2 of 2';
             document.getElementById('progress-bar').style.width = '100%';
+            
+            // Initialize button state when step 2 is shown
+            updateRegisterButtonState();
         }
     });
 
@@ -287,6 +384,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // Handle register button click
     document.querySelector('button[data-modal-target="emailOTPModal"]').addEventListener('click', async (e) => {
         e.preventDefault();
+        
+        // Check if button is disabled
+        const registerBtn = document.getElementById('registerBtn2');
+        if (registerBtn && registerBtn.disabled) {
+            return; // Don't proceed if button is disabled
+        }
+        
         if (validateStep2()) {
             const email = document.querySelector('#step2 input[type="email"]').value;
             await sendOTP(email);
@@ -477,6 +581,13 @@ document.addEventListener('DOMContentLoaded', () => {
             emailParent.classList.remove('!border-red-500');
             emailParent.classList.add('focus-within:!border-primary');
         }
+        updateRegisterButtonState();
+    });
+
+    // Real-time phone validation
+    const phoneInput = document.querySelector('#step2 input[type="tel"]');
+    phoneInput.addEventListener('input', () => {
+        updateRegisterButtonState();
     });
 
     // Real-time password validation with strength indicator
@@ -509,9 +620,20 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 passwordParent.classList.remove('!border-red-500');
                 passwordParent.classList.add('focus-within:!border-primary');
-                hideError();
+                
+                // Check if we should hide error (only if this was a password error)
+                const errorText = document.querySelector('#errorText');
+                if (errorText && errorText.textContent.includes('Password must contain')) {
+                    hideError();
+                }
             }
+        } else {
+            // Clear password styling when empty
+            const passwordParent = passwordInput.closest('.input-style2');
+            passwordParent.classList.remove('!border-red-500');
+            passwordParent.classList.add('focus-within:!border-primary');
         }
+        updateRegisterButtonState();
     });
 
     // Real-time confirm password validation
@@ -525,8 +647,54 @@ document.addEventListener('DOMContentLoaded', () => {
             } else {
                 confirmPasswordParent.classList.remove('!border-red-500');
                 confirmPasswordParent.classList.add('focus-within:!border-primary');
-                hideError();
+                
+                // Check if we should hide error (only if this was a password mismatch error)
+                const errorText = document.querySelector('#errorText');
+                if (errorText && errorText.textContent.includes('Passwords do not match')) {
+                    hideError();
+                }
             }
+        } else {
+            // Clear confirm password styling when empty
+            confirmPasswordParent.classList.remove('!border-red-500');
+            confirmPasswordParent.classList.add('focus-within:!border-primary');
         }
+        updateRegisterButtonState();
     });
+
+    // Real-time validation for Step 1 fields
+    const firstNameInput = document.querySelector('#step1 input[placeholder="First name"]');
+    const lastNameInput = document.querySelector('#step1 input[placeholder="Last name"]');
+    
+    if (firstNameInput) {
+        firstNameInput.addEventListener('input', () => {
+            updateNextButtonState();
+        });
+    }
+    
+    if (lastNameInput) {
+        lastNameInput.addEventListener('input', () => {
+            updateNextButtonState();
+        });
+    }
+
+    // Add listeners for dropdown changes (sex, month, day, year)
+    // These will be triggered when dropdown selections are made in the dropdown logic
+    const observer = new MutationObserver(() => {
+        updateNextButtonState();
+    });
+
+    // Observe changes to dropdown elements
+    const sexElement = document.querySelector('#selectedSex');
+    const monthElement = document.querySelector('#selectedMonth');
+    const dayElement = document.querySelector('#selectedDay');
+    const yearElement = document.querySelector('#selectedYear');
+
+    if (sexElement) observer.observe(sexElement, { childList: true, subtree: true });
+    if (monthElement) observer.observe(monthElement, { childList: true, subtree: true });
+    if (dayElement) observer.observe(dayElement, { childList: true, subtree: true });
+    if (yearElement) observer.observe(yearElement, { childList: true, subtree: true });
+
+    // Initialize next button state when DOM is loaded
+    updateNextButtonState();
 });
