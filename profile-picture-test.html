@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Picture Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-container { max-width: 500px; margin: 0 auto; }
+        .preview { width: 150px; height: 150px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; margin: 20px 0; }
+        .preview img { max-width: 100%; max-height: 100%; }
+        .result { margin: 20px 0; padding: 10px; background: #f5f5f5; border-radius: 5px; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Profile Picture Upload Test</h1>
+        
+        <form id="testForm">
+            <div>
+                <label for="fileInput">Select Image:</label>
+                <input type="file" id="fileInput" accept="image/*" required>
+            </div>
+            
+            <div class="preview" id="preview">
+                No image selected
+            </div>
+            
+            <button type="submit">Upload to API</button>
+        </form>
+        
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        const API_BASE_URL = 'https://betcha-api.onrender.com';
+        const userId = '685009ff53a090e126b9e2b4';
+        
+        document.getElementById('fileInput').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const preview = document.getElementById('preview');
+            
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                preview.innerHTML = 'No image selected';
+            }
+        });
+        
+        document.getElementById('testForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById('fileInput');
+            const result = document.getElementById('result');
+            const file = fileInput.files[0];
+            
+            if (!file) {
+                result.innerHTML = '<strong>Error:</strong> Please select a file';
+                return;
+            }
+            
+            try {
+                result.innerHTML = 'Uploading...';
+                
+                const formData = new FormData();
+                formData.append('pfp', file);
+                
+                console.log('Uploading to:', `${API_BASE_URL}/guest/update/pfp/${userId}`);
+                console.log('File:', file.name, file.type, file.size);
+                
+                const response = await fetch(`${API_BASE_URL}/guest/update/pfp/${userId}`, {
+                    method: 'PUT',
+                    body: formData
+                });
+                
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
+                const responseText = await response.text();
+                console.log('Response text:', responseText);
+                
+                if (response.ok) {
+                    try {
+                        const jsonData = JSON.parse(responseText);
+                        result.innerHTML = `
+                            <strong>Success!</strong><br>
+                            Status: ${response.status}<br>
+                            Response: <pre>${JSON.stringify(jsonData, null, 2)}</pre>
+                        `;
+                    } catch {
+                        result.innerHTML = `
+                            <strong>Success!</strong><br>
+                            Status: ${response.status}<br>
+                            Response: ${responseText}
+                        `;
+                    }
+                } else {
+                    result.innerHTML = `
+                        <strong>Error!</strong><br>
+                        Status: ${response.status}<br>
+                        Response: ${responseText}
+                    `;
+                }
+            } catch (error) {
+                console.error('Upload error:', error);
+                result.innerHTML = `<strong>Network Error:</strong> ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>

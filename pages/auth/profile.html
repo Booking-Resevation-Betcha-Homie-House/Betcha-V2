@@ -266,6 +266,33 @@
                 <a id="openForgotPass" class="text-xs text-primary hover:underline font-inter cursor-pointer">Change password</a>
               </div>
             </div>
+
+            <!-- Account Verification -->
+            <div id="activationGroupRow">
+              <!-- Verification Row -->
+              <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between text-center sm:text-left">
+                <div class="flex items-center gap-2 justify-center sm:justify-start">
+                  <p class="text-sm text-neutral-500 font-inter">Account Verification</p>
+                  <div class="w-2 h-2 bg-orange-500 rounded-full animate-pulse"></div>
+                </div>
+                <div class="flex items-center gap-2 justify-center sm:justify-end">
+                  <span class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full font-medium">Pending</span>
+                  <svg class="w-4 h-4 text-orange-500" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                  </svg>
+                </div>
+              </div>
+              
+              <!-- Link -->
+              <div class="text-center mt-1 md:text-right">
+                <span data-modal-target="idVerificationModal" class="text-xs text-primary hover:underline font-inter cursor-pointer group inline-flex items-center gap-1 hover:gap-2 transition-all duration-200">
+                  <svg class="w-3 h-3 opacity-70 group-hover:opacity-100 transition-opacity duration-200" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+                  </svg>
+                  <span>Verify your account</span>
+                </span>
+              </div>
+            </div>
           </div>
       </div>
     </div>
@@ -506,6 +533,71 @@
               </p>
           </div>
       </div>
+  </div>
+
+  <!-- ID Verification Modal -->
+  <div id="idVerificationModal" class="modal fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50 p-4">
+    <div class="bg-white w-full max-w-md mx-auto rounded-3xl overflow-hidden modal-animate shadow-2xl max-h-[90vh] overflow-y-auto font-manrope">
+      <!-- Header -->
+      <div class="bg-gradient-to-r from-primary to-green-600 p-4 sm:p-6 text-center">
+        <div class="w-12 h-12 sm:w-16 sm:h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-3">
+          <svg class="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"></path>
+          </svg>
+        </div>
+        <h2 class="text-white text-lg sm:text-xl font-semibold">Account Verification</h2>
+        <p class="text-white/80 text-xs sm:text-sm mt-2">Secure your account with ID verification</p>
+      </div>
+
+      <!-- Content -->
+      <div class="p-4 sm:p-6">
+        <!-- KYC Information -->
+        <div class="bg-blue-50 border border-blue-200 rounded-xl p-3 sm:p-4 mb-4 sm:mb-6">
+          <div class="flex items-start gap-2 sm:gap-3">
+            <div class="w-4 h-4 sm:w-5 sm:h-5 mt-0.5 text-blue-600 flex-shrink-0">
+              <svg fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="font-medium text-blue-900 text-xs sm:text-sm mb-1 sm:mb-2">How it works</h3>
+              <p class="font-manrope text-xs sm:text-sm text-blue-800 leading-relaxed">
+                To meet KYC requirements, we use AI tools to verify the authenticity of your ID and extract only key information—your actual ID is not stored by our system.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Security Features -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+          <div class="flex items-center justify-center gap-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span class="font-inter text-xs text-neutral-600">AI-powered verification</span>
+          </div>
+          <div class="flex items-center justify-center gap-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span class="font-inter text-xs text-neutral-600">No data storage</span>
+          </div>
+          <div class="flex items-center justify-center gap-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span class="font-inter text-xs text-neutral-600">Encrypted processing</span>
+          </div>
+          <div class="flex items-center justify-center gap-2">
+            <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+            <span class="font-inter text-xs text-neutral-600">GDPR compliant</span>
+          </div>
+        </div>
+        <!-- Action Buttons -->
+        <div class="flex flex-col sm:flex-row gap-2 sm:gap-3">
+          <button type="button" data-close-modal class="flex-1 bg-neutral-100 hover:bg-neutral-200 text-neutral-700 font-manrope font-medium py-2.5 px-4 rounded-xl transition-colors duration-200 modal-close text-sm">
+            Cancel
+          </button>
+          <button type="button" id="startVerificationBtn" class="flex-1 bg-primary hover:bg-primary/90 !text-white font-manrope font-medium py-2.5 px-4 rounded-xl transition-all duration-200 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed text-sm">
+            Start Verification
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script defer src="../../src/modal.js"></script>

@@ -13,19 +13,40 @@
         const phoneEl = document.getElementById('phoneInput');
         if (phoneEl) {
             phoneEl.addEventListener('input', () => {
-                // Remove spaces and disallowed chars; keep leading + if present
-                let v = String(phoneEl.value);
-                v = v.trim();
-                // Keep plus only if it is the first char
-                v = v.replace(/(?!^)[+]/g, '');
-                // Remove all spaces and hyphens
-                v = v.replace(/[\s-]/g, '');
-                // If starts with '63' but no '+', convert to '+63'
-                if (/^63\d*/.test(v) && !v.startsWith('+')) {
-                    v = '+' + v;
+                let v = phoneEl.value.trim();
+                // Remove all non-digit characters
+                v = v.replace(/\D/g, '');
+                
+                // Convert +639 or 639 to 09
+                if (v.startsWith('639')) {
+                    v = '09' + v.substring(3);
                 }
+                
+                // Ensure it starts with 09
+                if (v.length > 0 && !v.startsWith('09')) {
+                    // If it starts with 9, add 0
+                    if (v.startsWith('9')) {
+                        v = '0' + v;
+                    }
+                    // If it doesn't start with 0 or 9, prepend 09
+                    else if (!v.startsWith('0')) {
+                        v = '09' + v;
+                    }
+                }
+                
+                // Limit to 11 digits (09XXXXXXXXX)
+                if (v.length > 11) {
+                    v = v.substring(0, 11);
+                }
+                
                 phoneEl.value = v;
             });
+        }
+
+        // Profile picture upload handler
+        const profileUpload = document.getElementById('profileUpload');
+        if (profileUpload) {
+            profileUpload.addEventListener('change', handleProfilePictureChange);
         }
     });
 
@@ -36,7 +57,9 @@
             try {
                 const resp = await fetch(`${API_BASE_URL}/guest/display/${userId}`);
                 if (resp.ok) guest = await resp.json();
-            } catch (_) {}
+            } catch (error) {
+                console.error('Failed to fetch user data:', error);
+            }
         }
 
         const firstName = (guest && guest.firstname) || localStorage.getItem('firstName') || '';
@@ -83,6 +106,88 @@
                 avatarImg.classList.add('hidden');
                 avatarImg.removeAttribute('src');
                 initialEl.classList.remove('hidden');
+            }
+        }
+    }
+
+    async function handleProfilePictureChange(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file.');
+            return;
+        }
+
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+            alert('Image size should be less than 5MB.');
+            return;
+        }
+
+        // Preview the image
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const avatarImg = document.getElementById('profileAvatarImg');
+            const initialEl = document.getElementById('firstLetterName');
+            if (avatarImg && initialEl) {
+                avatarImg.src = e.target.result;
+                avatarImg.classList.remove('hidden');
+                initialEl.classList.add('hidden');
+            }
+        };
+        reader.readAsDataURL(file);
+
+        // Upload the image
+        await uploadProfilePicture(file);
+    }
+
+    async function uploadProfilePicture(file) {
+        const userId = localStorage.getItem('userId') || '685009ff53a090e126b9e2b4';
+        
+        try {
+            const formData = new FormData();
+            formData.append('pfp', file);
+
+            const response = await fetch(`${API_BASE_URL}/guest/update/pfp/${userId}`, {
+                method: 'PUT',
+                body: formData
+            });
+
+            if (!response.ok) {
+                const errorText = await safeText(response);
+                throw new Error(`Upload failed (${response.status}): ${errorText}`);
+            }
+
+            const result = await response.json();
+            console.log('Profile picture uploaded successfully:', result);
+
+            // Update localStorage if the API returns the new pfplink
+            if (result.pfplink) {
+                localStorage.setItem('pfplink', result.pfplink);
+            }
+
+            alert('Profile picture updated successfully!');
+        } catch (error) {
+            console.error('Error uploading profile picture:', error);
+            alert('Failed to upload profile picture. Please try again.');
+            
+            // Revert the preview if upload failed
+            const avatarImg = document.getElementById('profileAvatarImg');
+            const initialEl = document.getElementById('firstLetterName');
+            const pfplink = localStorage.getItem('pfplink') || '';
+            
+            if (avatarImg && initialEl) {
+                if (pfplink && isValidUrl(pfplink)) {
+                    avatarImg.src = pfplink;
+                    avatarImg.classList.remove('hidden');
+                    initialEl.classList.add('hidden');
+                } else {
+                    avatarImg.classList.add('hidden');
+                    avatarImg.removeAttribute('src');
+                    initialEl.classList.remove('hidden');
+                }
             }
         }
     }
@@ -170,7 +275,12 @@
     }
 
     async function safeText(resp) {
-        try { return await resp.text(); } catch (_) { return ''; }
+        try { 
+            return await resp.text(); 
+        } catch (error) { 
+            console.error('Failed to read response text:', error);
+            return ''; 
+        }
     }
 
     function setValue(id, value) {
@@ -187,7 +297,8 @@
         try {
             const u = new URL(value);
             return u.protocol === 'http:' || u.protocol === 'https:';
-        } catch (_) {
+        } catch (error) {
+            console.error('Invalid URL:', error);
             return false;
         }
     }
