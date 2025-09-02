@@ -64,6 +64,13 @@ document.addEventListener('DOMContentLoaded', () => {
   let messagePollingInterval = null;
   const POLLING_INTERVAL = 5000; // 5 seconds
 
+  // Helper function to escape HTML characters
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+
   // Function to fetch customer service agent name
   async function fetchAgentName(customerServiceAgentId) {
     if (!customerServiceAgentId) {
@@ -472,11 +479,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
       
+      // Process message to handle newlines and escape HTML
+      const processedMessage = escapeHtml(message.message).replace(/\n/g, '<br>');
+      
       return `
         ${dateSeparator}
         <div class="${messageClass}">
           <div class="message-bubble">
-            <p>${message.message}</p>
+            <div style="white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere;">${processedMessage}</div>
             <div class="message-time ${timeClass}">${messageTime}</div>
           </div>
         </div>
@@ -790,6 +800,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const newMessageBox = document.getElementById('messageBox');
     const newMessageForm = document.querySelector('form');
     
+    // Detect if user is on mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                     ('ontouchstart' in window) || 
+                     (navigator.maxTouchPoints > 0);
+    
     // Add form submission handler
     newMessageForm.addEventListener('submit', async (event) => {
       event.preventDefault(); // Prevent page refresh
@@ -819,25 +834,60 @@ document.addEventListener('DOMContentLoaded', () => {
       
       // Clear the message box
       newMessageBox.value = '';
-      newMessageBox.style.height = 'auto'; // Reset height
+      autoResize(); // Reset height properly
       newMessageBox.focus(); // Keep focus for continued conversation
     });
     
-    // Add auto-resize functionality for textarea (override messageBox.js)
-    newMessageBox.addEventListener('input', function() {
-      this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 104) + 'px'; // Max height 6.5rem (104px)
+    // Enhanced auto-resize functionality for textarea
+    function autoResize() {
+      newMessageBox.style.height = 'auto';
+      const maxHeight = 104; // 6.5rem in pixels
+      const minHeight = 32;  // Compact minimum height
+      const scrollHeight = Math.max(newMessageBox.scrollHeight, minHeight);
+      
+      if (scrollHeight <= maxHeight) {
+        newMessageBox.style.height = scrollHeight + 'px';
+      } else {
+        newMessageBox.style.height = maxHeight + 'px';
+      }
+      
+      newMessageBox.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
+    }
+    
+    // Add event listeners for auto-resize
+    newMessageBox.addEventListener('input', autoResize);
+    newMessageBox.addEventListener('paste', () => {
+      setTimeout(autoResize, 10);
     });
     
-    // Add Enter key submission (Ctrl+Enter or Shift+Enter for new line)
+    // Enhanced keyboard handling with mobile support
     newMessageBox.addEventListener('keydown', function(event) {
-      if (event.key === 'Enter' && !event.shiftKey && !event.ctrlKey) {
-        event.preventDefault();
-        newMessageForm.dispatchEvent(new Event('submit'));
+      if (event.key === 'Enter') {
+        if (isMobile) {
+          // On mobile, let Enter create new lines by default
+          setTimeout(autoResize, 10);
+          return; // Don't prevent default behavior
+        } else {
+          // On desktop, Shift+Enter for new lines, Enter to send
+          if (!event.shiftKey) {
+            event.preventDefault();
+            newMessageForm.dispatchEvent(new Event('submit'));
+          } else {
+            setTimeout(autoResize, 10);
+          }
+        }
       }
     });
     
-    console.log('Message form setup completed');
+    // Update placeholder for mobile
+    if (isMobile) {
+      newMessageBox.placeholder = "Type a message... (Use send button to submit)";
+    }
+    
+    // Initial resize
+    autoResize();
+    
+    console.log('Enhanced message form setup completed');
   }
   
   // Function to send a message
@@ -920,10 +970,13 @@ document.addEventListener('DOMContentLoaded', () => {
       minute: '2-digit'
     });
 
+    // Process message to handle newlines and escape HTML
+    const processedMessage = escapeHtml(message).replace(/\n/g, '<br>');
+
     const messageHTML = `
       <div class="${messageClass}">
         <div class="message-bubble">
-          <p>${message}</p>
+          <div style="white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere;">${processedMessage}</div>
           <div class="message-time ${timeClass}">${currentTime}</div>
         </div>
       </div>

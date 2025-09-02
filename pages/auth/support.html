@@ -6,6 +6,20 @@
     <link rel="stylesheet" href="/src/index.css">
     <link rel="icon" type="image/png" href="/public/images/icon-betcha.png">
     <title>Betcha | Support</title>
+    <style>
+        /* Mobile-specific optimizations for textarea */
+        #messageBox {
+            appearance: none;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+        
+        @media (max-width: 768px) {
+            #messageBox {
+                font-size: 16px !important; /* Prevent zoom on iOS */
+            }
+        }
+    </style>
 </head>
 <body class="bg-background">
 
@@ -88,8 +102,8 @@
         <!-- Message Input -->
         <div class="shrink-0 border-t border-neutral-300 bg-white px-6 py-4">
           <form class="flex items-center gap-3">
-            <div class="flex flex-1 items-center bg-white border border-gray-300 rounded-3xl px-4 py-2 pr-4 transition focus-within:ring-2 focus-within:ring-primary">
-              <textarea id="messageBox" placeholder="Type a message..." rows="1" class="w-full resize-none text-sm leading-relaxed outline-none bg-transparent max-h-[6.5rem] overflow-y-auto"></textarea>
+            <div class="flex flex-1 items-center bg-white border border-gray-300 rounded-3xl px-4 py-1.5 pr-4 transition focus-within:ring-2 focus-within:ring-primary">
+              <textarea id="messageBox" placeholder="Type a message... (Shift+Enter for new line)" rows="1" class="w-full resize-none text-sm leading-normal outline-none bg-transparent max-h-[6.5rem] overflow-y-auto py-1"></textarea>
             </div>       
             <button type="submit" class="group cursor-pointer text-white text-sm aspect-square !p-3 rounded-full bg-primary/10 hover:bg-primary/20 active:scale-95 transition font-medium">
               <svg class="h-5 w-auto fill-primary/70 group-hover:fill-primary" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -124,17 +138,12 @@
         <div class="text-center mb-10">
           <p class="text-2xl font-semibold text-primary-text font-manrope">Create a support ticket</p>
           <p class="text-sm text-muted mt-2 font-inter">
-            Who do you want this ticket to be assigned to? Choose how you'd like us to assist you.
+            Submit a ticket to our dedicated support team for professional assistance with your concerns
           </p>
         </div>
 
         <!-- Buttons side-by-side -->
         <div class="flex flex-col gap-5">
-          <button type="button" class="relative rounded-full w-full bg-neutral-200 px-6 py-3 flex flex-col items-center justify-center overflow-hidden transition-all duration-500 ease-in-out hover:cursor-pointer hover:bg-neutral-300 active:scale-95">
-              <span class="text-primary-text text-lg transition-transform duration-500 ease-in-out">Assign to AI Support</span>
-              <span class="text-primary-text/50 text-sm transition-transform duration-500 ease-in-out">Fast automated help with general inquiries.</span>
-              
-          </button>
           <button type="button" onclick="window.location.href='create-ticket.html'" class="relative w-full btn rounded-full bg-primary px-6 py-3 flex flex-col items-center justify-center overflow-hidden hover:cursor-pointer active:bg-[#0E5A31] active:scale-95  transition-all duration-500 ease-in-out ">
               <span class="text-secondary-text text-lg transition-transform duration-500 ease-in-out">Assign to Customer Support</span>
               <span class="text-secondary-text/70 text-sm transition-transform duration-500 ease-in-out">Talk to a real person for personalized support.</span>

@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mobile Newline Test</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        
+        .device-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .form-container {
+            border: 1px solid #ddd;
+            border-radius: 24px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            background: white;
+        }
+        
+        .message-input {
+            flex: 1;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 16px;
+            line-height: 1.4;
+            min-height: 24px;
+            max-height: 120px;
+            overflow-y: auto;
+            /* Mobile optimizations */
+            appearance: none;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+        
+        .send-btn {
+            background: #007AFF;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+        
+        .messages {
+            margin-top: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #eee;
+            border-radius: 8px;
+            padding: 10px;
+        }
+        
+        .message {
+            margin: 8px 0;
+            padding: 8px 12px;
+            border-radius: 12px;
+            max-width: 80%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+        
+        .my-message {
+            background: #007AFF;
+            color: white;
+            margin-left: auto;
+        }
+        
+        .their-message {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        .instructions {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .mobile-detected {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>📱 Mobile Newline Test</h2>
+        
+        <div id="deviceInfo" class="device-info">
+            <strong>Device Detection:</strong> <span id="deviceType">Checking...</span><br>
+            <strong>Touch Support:</strong> <span id="touchSupport">Checking...</span><br>
+            <strong>User Agent:</strong> <span id="userAgent"></span>
+        </div>
+        
+        <div id="instructions" class="instructions">
+            <strong>Instructions will appear here based on your device...</strong>
+        </div>
+        
+        <form id="messageForm">
+            <div class="form-container">
+                <textarea 
+                    id="messageInput" 
+                    class="message-input" 
+                    placeholder="Type your message..."
+                    rows="1"></textarea>
+                <button type="submit" class="send-btn">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                    </svg>
+                </button>
+            </div>
+        </form>
+        
+        <div id="messages" class="messages">
+            <div style="text-align: center; color: #999; font-size: 14px;">
+                Messages will appear here
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; font-size: 12px; color: #666;">
+            <strong>Test scenarios:</strong><br>
+            • Try typing a long message<br>
+            • Press Enter to create new lines<br>
+            • Use the send button<br>
+            • Test auto-resize functionality
+        </div>
+    </div>
+
+    <script>
+        // Detect device type
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         ('ontouchstart' in window) || 
+                         (navigator.maxTouchPoints > 0);
+        
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        
+        // Update device info
+        document.getElementById('deviceType').textContent = isMobile ? 'Mobile Device' : 'Desktop Device';
+        document.getElementById('touchSupport').textContent = isTouch ? 'Yes' : 'No';
+        document.getElementById('userAgent').textContent = navigator.userAgent.substring(0, 50) + '...';
+        
+        // Update instructions based on device
+        const instructions = document.getElementById('instructions');
+        if (isMobile) {
+            instructions.className = 'instructions mobile-detected';
+            instructions.innerHTML = `
+                <strong>📱 Mobile Mode Detected!</strong><br>
+                • Press <strong>Enter</strong> to create new lines<br>
+                • Use the <strong>Send button</strong> to submit<br>
+                • Textarea will auto-resize as you type<br>
+                • Long text will wrap automatically
+            `;
+        } else {
+            instructions.innerHTML = `
+                <strong>🖥️ Desktop Mode</strong><br>
+                • Press <strong>Enter</strong> to send message<br>
+                • Press <strong>Shift+Enter</strong> to create new lines<br>
+                • Textarea will auto-resize as you type<br>
+                • Long text will wrap automatically
+            `;
+        }
+        
+        // Setup textarea auto-resize
+        const messageInput = document.getElementById('messageInput');
+        const messagesContainer = document.getElementById('messages');
+        
+        function autoResize() {
+            messageInput.style.height = 'auto';
+            const maxHeight = 120;
+            const minHeight = 24;
+            const scrollHeight = Math.max(messageInput.scrollHeight, minHeight);
+            
+            if (scrollHeight <= maxHeight) {
+                messageInput.style.height = scrollHeight + 'px';
+            } else {
+                messageInput.style.height = maxHeight + 'px';
+            }
+            
+            messageInput.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
+        }
+        
+        // Event listeners
+        messageInput.addEventListener('input', autoResize);
+        messageInput.addEventListener('paste', () => setTimeout(autoResize, 10));
+        
+        // Handle Enter key behavior based on device
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (isMobile) {
+                    // On mobile, Enter creates new lines
+                    setTimeout(autoResize, 10);
+                    return; // Allow default behavior
+                } else {
+                    // On desktop, Enter sends, Shift+Enter creates new lines
+                    if (!e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    } else {
+                        setTimeout(autoResize, 10);
+                    }
+                }
+            }
+        });
+        
+        // Form submission
+        document.getElementById('messageForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            sendMessage();
+        });
+        
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            // Add message to chat
+            const messageDiv = document.createElement('div');
+            messageDiv.className = 'message my-message';
+            messageDiv.textContent = message;
+            
+            if (messagesContainer.children[0]?.style.textAlign === 'center') {
+                messagesContainer.innerHTML = '';
+            }
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            
+            // Clear input
+            messageInput.value = '';
+            autoResize();
+            
+            // Simulate response
+            setTimeout(() => {
+                const responseDiv = document.createElement('div');
+                responseDiv.className = 'message their-message';
+                responseDiv.textContent = `Received: "${message.substring(0, 30)}${message.length > 30 ? '...' : ''}"`;
+                messagesContainer.appendChild(responseDiv);
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+            }, 500);
+        }
+        
+        // Initial resize
+        autoResize();
+        
+        // Update placeholder based on device
+        if (isMobile) {
+            messageInput.placeholder = "Type a message... (Use send button to submit)";
+        } else {
+            messageInput.placeholder = "Type a message... (Shift+Enter for new line)";
+        }
+    </script>
+</body>
+</html>

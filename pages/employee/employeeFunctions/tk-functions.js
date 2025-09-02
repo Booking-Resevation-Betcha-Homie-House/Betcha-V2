@@ -23,6 +23,8 @@ function debugLocalStorage() {
     console.log('=== End localStorage Debug ===');
 }
 
+// Called by universal skeleton after sidebar restoration
+// eslint-disable-next-line no-unused-vars
 async function checkRolePrivileges() {
     try {
         const roleID = localStorage.getItem('roleID');
@@ -173,7 +175,9 @@ function handleDashboardRedirect() {
                         if (typeof setActiveTab === 'function') {
                             setActiveTab(groupEl, targetTabIndex);
                         }
-                    } catch (_) {}
+                    } catch (error) {
+                        console.warn('Failed to set active tab:', error);
+                    }
                 });
                 selectTicketFromDashboard(ticket);
             }, 1000); // Give time for tickets to load
@@ -390,12 +394,15 @@ function createMessageElement(message) {
     el.className = isMine ? 'flex justify-end' : 'flex justify-start';
 
     const bubbleClasses = isMine
-        ? 'bg-primary rounded-2xl px-4 py-2 max-w-[70%]'
-        : 'bg-neutral-100 text-neutral-900 rounded-2xl px-4 py-2 max-w-[70%]';
+        ? 'bg-primary rounded-2xl px-4 py-2 max-w-[70%] break-words'
+        : 'bg-neutral-100 text-neutral-900 rounded-2xl px-4 py-2 max-w-[70%] break-words';
 
     const nameClass = isMine ? 'text-xs font-medium text-white' : 'text-xs font-medium text-neutral-600';
     const timeClass = isMine ? 'text-xs text-white/80' : 'text-xs text-neutral-400';
-    const msgClass = isMine ? 'text-white' : 'text-neutral-900';
+    const msgClass = isMine ? 'text-white whitespace-pre-wrap' : 'text-neutral-900 whitespace-pre-wrap';
+
+    // Process message to handle newlines and escape HTML
+    const processedMessage = escapeHtml(message.message).replace(/\n/g, '<br>');
 
     el.innerHTML = `
         <div class="${bubbleClasses}">
@@ -403,11 +410,18 @@ function createMessageElement(message) {
                 <span class="${nameClass}">${message.userName}</span>
                 <span class="${timeClass}">${formattedTime}</span>
             </div>
-            <p class="${msgClass}">${message.message}</p>
+            <div class="${msgClass}" style="word-wrap: break-word; overflow-wrap: anywhere;">${processedMessage}</div>
         </div>
     `;
 
     return el;
+}
+
+// Helper function to escape HTML characters
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
 }
 
 // =========================
@@ -473,14 +487,23 @@ function setupAutoResizeTextarea() {
         
         // Set height to scrollHeight, but limit to max height (6.5rem = 104px)
         const maxHeight = 104; // 6.5rem in pixels
-        const scrollHeight = messageBox.scrollHeight;
+        const minHeight = 32;  // Reduced minimum height for more compact look
+        const scrollHeight = Math.max(messageBox.scrollHeight, minHeight);
         
         if (scrollHeight <= maxHeight) {
             messageBox.style.height = scrollHeight + 'px';
         } else {
             messageBox.style.height = maxHeight + 'px';
         }
+        
+        // Enable/disable overflow based on content height
+        messageBox.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
     }
+
+    // Detect if user is on mobile device
+    const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                     ('ontouchstart' in window) || 
+                     (navigator.maxTouchPoints > 0);
 
     // Add event listeners
     messageBox.addEventListener('input', autoResize);
@@ -488,6 +511,37 @@ function setupAutoResizeTextarea() {
         // Small delay to allow paste content to be processed
         setTimeout(autoResize, 10);
     });
+
+    // Handle Enter key for new lines (Shift+Enter) vs sending (Enter)
+    messageBox.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            if (isMobile) {
+                // On mobile, let Enter create new lines by default
+                // User can use the send button to submit
+                setTimeout(autoResize, 10);
+                return; // Don't prevent default behavior
+            } else {
+                // On desktop, Shift+Enter for new lines, Enter to send
+                if (!e.shiftKey) {
+                    // Prevent default Enter behavior (new line)
+                    e.preventDefault();
+                    // Trigger form submission
+                    const form = messageBox.closest('form');
+                    if (form) {
+                        form.dispatchEvent(new Event('submit'));
+                    }
+                } else {
+                    // Allow Shift+Enter for new lines
+                    setTimeout(autoResize, 10);
+                }
+            }
+        }
+    });
+
+    // For mobile: Add a visual indicator about the behavior
+    if (isMobile) {
+        messageBox.placeholder = "Type a message... (Use send button to submit)";
+    }
 
     // Initial resize
     autoResize();
@@ -567,7 +621,6 @@ function clearChatArea() {
 }
 
 // Reply function
-// Reply function
 async function sendReply(ticketId, message) {
     if (!ticketId || !message.trim()) return;
 
@@ -578,7 +631,7 @@ async function sendReply(ticketId, message) {
     const tempMsg = {
         userId: userId,
         userName: "Me",                // you can replace with actual employee name if stored
-        message: message,
+        message: message,              // Keep original message with newlines
         dateTime: new Date().toISOString()
     };
 
@@ -594,7 +647,7 @@ async function sendReply(ticketId, message) {
             body: JSON.stringify({
                 userId: userId,           // employee ID from storage
                 userLevel: "employee",    // employee role
-                message: message
+                message: message          // Send message with preserved newlines
             })
         });
 
@@ -604,8 +657,12 @@ async function sendReply(ticketId, message) {
     } catch (err) {
         console.error("Reply error:", err);
         // ❌ Show error feedback in bubble
-        bubble.querySelector("p").textContent = "❌ Failed to send: " + message;
-        bubble.querySelector("div").classList.add("bg-red-500");
+        const errorDiv = bubble.querySelector("div:last-child");
+        if (errorDiv) {
+            errorDiv.textContent = "❌ Failed to send: " + message;
+            bubble.querySelector("div").classList.remove("bg-primary");
+            bubble.querySelector("div").classList.add("bg-red-500");
+        }
     }
 }
 
@@ -616,7 +673,7 @@ document.querySelector('#ticketMain form').addEventListener('submit', (e) => {
     const textarea = document.getElementById('messageBox');
     const message = textarea.value.trim();
     const ticketId = document.querySelector('.ticket-item.selected-ticket')?.dataset.ticketId;
- // currently opened ticket
+    // currently opened ticket
 
     if (!ticketId) {
         alert("No ticket selected!");
@@ -627,6 +684,11 @@ document.querySelector('#ticketMain form').addEventListener('submit', (e) => {
         sendReply(ticketId, message);
         textarea.value = "";
         textarea.style.height = "auto";
+        // Trigger auto-resize after clearing
+        setTimeout(() => {
+            const event = new Event('input');
+            textarea.dispatchEvent(event);
+        }, 10);
     }
 });
 

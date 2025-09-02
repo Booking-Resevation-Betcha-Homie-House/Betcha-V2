@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Support Chat Newline Test</title>
+    <link rel="stylesheet" href="/src/index.css">
+    <style>
+        /* Mobile-specific optimizations for textarea */
+        #testMessageBox {
+            appearance: none;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+        
+        @media (max-width: 768px) {
+            #testMessageBox {
+                font-size: 16px !important; /* Prevent zoom on iOS */
+            }
+        }
+        
+        .test-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .device-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        
+        .mobile-detected {
+            background: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .message-container {
+            height: 400px;
+            overflow-y: auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 16px;
+            background: #f9fafb;
+            margin: 20px 0;
+        }
+        
+        .sample-message {
+            margin: 12px 0;
+            max-width: 70%;
+        }
+        
+        .message-csr {
+            margin-left: auto;
+            background: #1f2937;
+            color: white;
+            padding: 12px 16px;
+            border-radius: 16px 16px 4px 16px;
+        }
+        
+        .message-guest {
+            margin-right: auto;
+            background: #f3f4f6;
+            color: #1f2937;
+            padding: 12px 16px;
+            border-radius: 16px 16px 16px 4px;
+        }
+        
+        .form-test {
+            border: 1px solid #d1d5db;
+            border-radius: 24px;
+            padding: 12px 16px;
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            background: white;
+            margin: 20px 0;
+        }
+        
+        .test-textarea {
+            flex: 1;
+            border: none;
+            outline: none;
+            resize: none;
+            font-size: 14px;
+            line-height: 1.4;
+            min-height: 32px;
+            max-height: 104px;
+            overflow-y: auto;
+            appearance: none;
+            -webkit-appearance: none;
+            touch-action: manipulation;
+        }
+        
+        .send-btn {
+            background: #1f2937;
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+        
+        .send-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="test-container">
+        <h1 class="text-2xl font-bold mb-6">📞 Support Chat Newline Test</h1>
+        
+        <div id="deviceInfo" class="device-info">
+            <strong>Device Detection:</strong> <span id="deviceType">Checking...</span><br>
+            <strong>Touch Support:</strong> <span id="touchSupport">Checking...</span><br>
+            <strong>Keyboard Mode:</strong> <span id="keyboardMode">Checking...</span>
+        </div>
+        
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mb-6">
+            <h3 class="font-semibold text-yellow-800 mb-2">Test Instructions:</h3>
+            <div id="instructions" class="text-sm text-yellow-700">
+                Instructions will appear here based on your device...
+            </div>
+        </div>
+        
+        <div class="message-container" id="messagesArea">
+            <div class="text-center text-gray-500 mb-4">Sample messages with newline support:</div>
+            
+            <div class="sample-message message-guest">
+                <div style="white-space: pre-wrap; word-wrap: break-word;">Hi! I need help with my booking.
+It's not confirming properly.</div>
+                <div class="text-xs text-gray-400 mt-2">2:30 PM</div>
+            </div>
+            
+            <div class="sample-message message-csr">
+                <div style="white-space: pre-wrap; word-wrap: break-word;">Hello! I'd be happy to help you.
+
+Let me check your booking details.
+Can you provide your booking ID?</div>
+                <div class="text-xs text-white/70 mt-2">2:31 PM</div>
+            </div>
+            
+            <div class="sample-message message-guest">
+                <div style="white-space: pre-wrap; word-wrap: break-word;">Sure! Here's my booking ID: BK-2024-001234
+
+And here's my email: customer@example.com
+
+This is a very long message that should wrap automatically when it reaches the maximum width of the chat bubble container and continues to the next line without breaking the layout or causing any overflow issues.</div>
+                <div class="text-xs text-gray-400 mt-2">2:32 PM</div>
+            </div>
+            
+            <div class="sample-message message-csr">
+                <div style="white-space: pre-wrap; word-wrap: break-word;">Perfect! I found your booking.
+
+The issue was:
+- Payment verification pending
+- Email confirmation not sent
+
+I've resolved both issues now.
+You should receive a confirmation email shortly! ✅</div>
+                <div class="text-xs text-white/70 mt-2">2:35 PM</div>
+            </div>
+        </div>
+        
+        <form id="testForm" class="form-test">
+            <textarea 
+                id="testMessageBox" 
+                class="test-textarea" 
+                placeholder="Type your message..."
+                rows="1"></textarea>
+            <button type="submit" class="send-btn">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+                </svg>
+            </button>
+        </form>
+        
+        <div class="bg-gray-50 rounded-lg p-4">
+            <h4 class="font-semibold mb-2">Test Features:</h4>
+            <ul class="text-sm text-gray-600 space-y-1">
+                <li>✅ Auto-resize textarea (32px - 104px)</li>
+                <li>✅ Mobile-friendly newline handling</li>
+                <li>✅ Text wrapping in chat bubbles</li>
+                <li>✅ HTML escaping for security</li>
+                <li>✅ Proper whitespace preservation</li>
+                <li>✅ Cross-platform keyboard support</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Helper function to escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Detect device type
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
+                         ('ontouchstart' in window) || 
+                         (navigator.maxTouchPoints > 0);
+        
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+        
+        // Update device info
+        document.getElementById('deviceType').textContent = isMobile ? 'Mobile Device' : 'Desktop Device';
+        document.getElementById('touchSupport').textContent = isTouch ? 'Yes' : 'No';
+        
+        // Update instructions and keyboard mode
+        const instructions = document.getElementById('instructions');
+        const keyboardMode = document.getElementById('keyboardMode');
+        
+        if (isMobile) {
+            document.getElementById('deviceInfo').classList.add('mobile-detected');
+            keyboardMode.textContent = 'Mobile Mode - Enter for newlines';
+            instructions.innerHTML = `
+                <strong>📱 Mobile Mode Active!</strong><br>
+                • Press <strong>Enter</strong> to create new lines<br>
+                • Use the <strong>Send button</strong> to submit<br>
+                • Textarea auto-resizes as you type<br>
+                • Text wraps automatically in bubbles
+            `;
+        } else {
+            keyboardMode.textContent = 'Desktop Mode - Shift+Enter for newlines';
+            instructions.innerHTML = `
+                <strong>🖥️ Desktop Mode</strong><br>
+                • Press <strong>Enter</strong> to send message<br>
+                • Press <strong>Shift+Enter</strong> to create new lines<br>
+                • Textarea auto-resizes as you type<br>
+                • Text wraps automatically in bubbles
+            `;
+        }
+        
+        // Setup textarea functionality (matching support.js)
+        const messageInput = document.getElementById('testMessageBox');
+        const messagesArea = document.getElementById('messagesArea');
+        
+        // Enhanced auto-resize function
+        function autoResize() {
+            messageInput.style.height = 'auto';
+            const maxHeight = 104; // 6.5rem in pixels
+            const minHeight = 32;  // Compact minimum height
+            const scrollHeight = Math.max(messageInput.scrollHeight, minHeight);
+            
+            if (scrollHeight <= maxHeight) {
+                messageInput.style.height = scrollHeight + 'px';
+            } else {
+                messageInput.style.height = maxHeight + 'px';
+            }
+            
+            messageInput.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
+        }
+        
+        // Event listeners
+        messageInput.addEventListener('input', autoResize);
+        messageInput.addEventListener('paste', () => setTimeout(autoResize, 10));
+        
+        // Enhanced keyboard handling with mobile support
+        messageInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') {
+                if (isMobile) {
+                    // On mobile, let Enter create new lines by default
+                    setTimeout(autoResize, 10);
+                    return; // Don't prevent default behavior
+                } else {
+                    // On desktop, Shift+Enter for new lines, Enter to send
+                    if (!e.shiftKey) {
+                        e.preventDefault();
+                        sendTestMessage();
+                    } else {
+                        setTimeout(autoResize, 10);
+                    }
+                }
+            }
+        });
+        
+        // Update placeholder for mobile
+        if (isMobile) {
+            messageInput.placeholder = "Type a message... (Use send button to submit)";
+        } else {
+            messageInput.placeholder = "Type a message... (Shift+Enter for new line)";
+        }
+        
+        // Form submission
+        document.getElementById('testForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            sendTestMessage();
+        });
+        
+        function sendTestMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+            
+            // Add user message
+            addTestMessage(message, true);
+            
+            // Clear input
+            messageInput.value = '';
+            autoResize();
+            
+            // Simulate agent response
+            setTimeout(() => {
+                const responses = [
+                    "Thanks for your message!\n\nI'll help you with that right away.",
+                    "Got it! Let me check that for you.\n\nThis might take a moment.",
+                    "I understand your concern.\n\nHere are the details:\n- Status: Active\n- Processing: Complete\n- Next steps: Confirmation email",
+                    "Perfect! Everything looks good.\n\nYour request has been processed successfully. You should see the changes within the next few minutes.\n\nIs there anything else I can help you with?"
+                ];
+                const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                addTestMessage(randomResponse, false);
+            }, 1000);
+        }
+        
+        function addTestMessage(message, isUser) {
+            const messageClass = isUser ? 'message-csr' : 'message-guest';
+            const timeClass = isUser ? 'text-xs text-white/70 mt-2' : 'text-xs text-gray-400 mt-2';
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            // Process message with newlines and HTML escaping
+            const processedMessage = escapeHtml(message).replace(/\n/g, '<br>');
+            
+            const messageElement = document.createElement('div');
+            messageElement.className = `sample-message ${messageClass}`;
+            messageElement.innerHTML = `
+                <div style="white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere;">${processedMessage}</div>
+                <div class="${timeClass}">${time}</div>
+            `;
+            
+            messagesArea.appendChild(messageElement);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+        }
+        
+        // Initial resize
+        autoResize();
+    </script>
+</body>
+</html>
