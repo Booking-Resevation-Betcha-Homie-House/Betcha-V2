@@ -49,11 +49,14 @@
             .betcha-spinner {
                 animation: spin 1s linear infinite;
                 border-radius: 50%;
-                height: 96px;
-                width: 96px;
-                border: 4px solid transparent;
-                border-bottom: 4px solid #10b981;
-                margin: 0 auto 24px auto;
+                height: 6rem;
+                width: 6rem;
+                border-width: 0;
+                border-bottom-width: 4px;
+                border-style: solid;
+                border-color: transparent;
+                border-bottom-color: var(--color-secondary);
+                margin: 0 auto 1.5rem auto;
             }
             
             .betcha-loading-text {
@@ -181,14 +184,14 @@
 
     document.addEventListener('click', (e) => {
         if (shouldHandleLinkClick(e)) {
-            showLoader();
+            //showLoader();
         }
     }, true);
 
     // Also show loader as the page begins unloading
     window.addEventListener('beforeunload', () => {
         try { 
-            showLoader(); 
+            //showLoader(); 
         } catch (_) { 
             /* ignore */ 
         }
