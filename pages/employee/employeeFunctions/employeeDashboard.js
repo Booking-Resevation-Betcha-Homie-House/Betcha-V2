@@ -16,10 +16,22 @@ function updateGridLayout() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+  // Show skeleton loading while initializing
+  if (window.dashboardSkeleton) {
+    window.dashboardSkeleton.showSkeleton();
+  }
+  
   checkRolePrivileges();
   initializeDashboardFeatures();
   updateGridLayout();
   loadDashboardMetrics();
+  
+  // Hide skeleton after initialization (simulate loading complete)
+  setTimeout(() => {
+    if (window.dashboardSkeleton) {
+      window.dashboardSkeleton.hideSkeleton();
+    }
+  }, 1500); // Adjust timing as needed
 });
 
 // Initialize dashboard features
@@ -819,3 +831,46 @@ function filterDashboardSections(privileges) {
     // Update grid layout after filtering
     updateGridLayout();
 }
+
+// Skeleton Loading Helper Functions
+function showDashboardSkeleton() {
+    if (window.dashboardSkeleton) {
+        window.dashboardSkeleton.showSkeleton();
+    }
+}
+
+function hideDashboardSkeleton() {
+    if (window.dashboardSkeleton) {
+        window.dashboardSkeleton.hideSkeleton();
+    }
+}
+
+function simulateDashboardLoading(duration = 3000) {
+    if (window.dashboardSkeleton) {
+        window.dashboardSkeleton.simulateLoading(duration);
+    }
+}
+
+// Integration with existing async functions
+async function loadDashboardWithSkeleton() {
+    showDashboardSkeleton();
+    
+    try {
+        await loadDashboardMetrics();
+        await Promise.all([
+            loadAndPopulateTickets(),
+            loadAndPopulateTransactions(),
+            loadAndPopulateTodayCheckins()
+        ]);
+    } catch (error) {
+        console.error('Error loading dashboard:', error);
+    } finally {
+        hideDashboardSkeleton();
+    }
+}
+
+// Export helper functions to global scope
+window.showDashboardSkeleton = showDashboardSkeleton;
+window.hideDashboardSkeleton = hideDashboardSkeleton;
+window.simulateDashboardLoading = simulateDashboardLoading;
+window.loadDashboardWithSkeleton = loadDashboardWithSkeleton;

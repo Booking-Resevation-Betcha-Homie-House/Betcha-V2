@@ -9,6 +9,49 @@
 </head>
 <body class="bg-background h-screen flex overflow-hidden">
     <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden transition-all duration-300 ease-in-out"></div>
+    <!-- Sidebar Skeleton -->
+    <div id="sidebar-skeleton" 
+        class="w-64 bg-white shadow-md p-6 overflow-x-auto
+        transition-transform duration-300 ease-in-out transform 
+        lg:translate-x-0 -translate-x-full fixed lg:static z-50 h-full hidden">
+        <!-- Logo skeleton -->
+        <div class="h-[30px] bg-neutral-200 rounded animate-pulse mb-10"></div>
+        
+        <!-- Dashboard item skeleton -->
+        <div class="bg-neutral-200 rounded-xl p-3 mb-4 animate-pulse">
+            <div class="flex gap-3 items-center">
+                <div class="h-5 w-5 bg-neutral-300 rounded"></div>
+                <div class="h-4 bg-neutral-300 rounded w-20"></div>
+            </div>
+        </div>
+        
+        <!-- Divider skeleton -->
+        <div class="h-px bg-neutral-200 my-4"></div>
+        
+        <!-- Management text skeleton -->
+        <div class="h-4 bg-neutral-200 rounded w-24 mb-3"></div>
+        
+        <!-- Menu items skeleton -->
+        <div class="space-y-3">
+            <div class="flex gap-3 items-center p-3">
+                <div class="h-5 w-5 bg-neutral-200 rounded animate-pulse"></div>
+                <div class="h-4 bg-neutral-200 rounded w-32 animate-pulse"></div>
+            </div>
+            <div class="flex gap-3 items-center p-3">
+                <div class="h-5 w-5 bg-neutral-200 rounded animate-pulse"></div>
+                <div class="h-4 bg-neutral-200 rounded w-24 animate-pulse"></div>
+            </div>
+            <div class="flex gap-3 items-center p-3">
+                <div class="h-5 w-5 bg-neutral-200 rounded animate-pulse"></div>
+                <div class="h-4 bg-neutral-200 rounded w-28 animate-pulse"></div>
+            </div>
+            <div class="flex gap-3 items-center p-3">
+                <div class="h-5 w-5 bg-neutral-200 rounded animate-pulse"></div>
+                <div class="h-4 bg-neutral-200 rounded w-36 animate-pulse"></div>
+            </div>
+        </div>
+    </div>
+
     <aside id="sidebar" 
         class="w-64 bg-white shadow-md p-6 overflow-x-auto
         transition-transform duration-300 ease-in-out transform 
@@ -214,6 +257,140 @@
         </nav>
 
         <main class="w-full p-5 md:p-10 overflow-auto h-full">
+            <!-- Main Content Skeleton -->
+            <div id="main-content-skeleton" class="hidden">
+                <!-- Stats Cards Skeleton -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                    <div class="rounded-2xl p-6 bg-white shadow-md animate-pulse">
+                        <div class="h-4 bg-neutral-200 rounded w-16 mb-2"></div>
+                        <div class="h-8 bg-neutral-200 rounded w-24"></div>
+                    </div>
+                    <div class="rounded-2xl p-6 bg-white shadow-md animate-pulse">
+                        <div class="h-4 bg-neutral-200 rounded w-20 mb-2"></div>
+                        <div class="h-8 bg-neutral-200 rounded w-28"></div>
+                    </div>
+                    <div class="rounded-2xl p-6 bg-white shadow-md animate-pulse">
+                        <div class="h-4 bg-neutral-200 rounded w-18 mb-2"></div>
+                        <div class="h-8 bg-neutral-200 rounded w-24"></div>
+                    </div>
+                </div>
+
+                <!-- Busiest Period Card Skeleton -->
+                <div class="bg-neutral-200 rounded-2xl shadow-md p-6 h-fit w-full flex flex-col mb-5 animate-pulse">
+                    <div class="h-8 bg-neutral-300 rounded w-48 mb-5"></div>
+                    <div class="flex flex-col md:flex-row gap-4 mt-2 w-full">
+                        <div class="flex flex-col items-start justify-center p-5 w-full bg-white rounded-xl border border-neutral-200">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-3 bg-neutral-200 rounded-full w-12 h-12"></div>
+                                <div class="h-6 bg-neutral-200 rounded w-16"></div>
+                            </div>
+                            <div class="h-4 bg-neutral-200 rounded w-20 mb-1"></div>
+                            <div class="h-6 bg-neutral-200 rounded w-32 mb-1"></div>
+                            <div class="h-4 bg-neutral-200 rounded w-24"></div>
+                        </div>
+                        <div class="flex flex-col items-start justify-center p-5 w-full bg-white rounded-xl border border-neutral-200">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-3 bg-neutral-200 rounded-full w-12 h-12"></div>
+                                <div class="h-6 bg-neutral-200 rounded w-16"></div>
+                            </div>
+                            <div class="h-4 bg-neutral-200 rounded w-20 mb-1"></div>
+                            <div class="h-6 bg-neutral-200 rounded w-32 mb-1"></div>
+                            <div class="h-4 bg-neutral-200 rounded w-24"></div>
+                        </div>
+                        <div class="flex flex-col items-start justify-center p-5 w-full bg-white rounded-xl border border-neutral-200">
+                            <div class="flex items-center gap-3 mb-3">
+                                <div class="p-3 bg-neutral-200 rounded-full w-12 h-12"></div>
+                                <div class="h-6 bg-neutral-200 rounded w-16"></div>
+                            </div>
+                            <div class="h-4 bg-neutral-200 rounded w-20 mb-1"></div>
+                            <div class="h-6 bg-neutral-200 rounded w-32 mb-1"></div>
+                            <div class="h-4 bg-neutral-200 rounded w-24"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid Content Skeleton -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    <!-- Tickets Skeleton -->
+                    <div class="bg-white rounded-2xl shadow-md p-6 w-full h-fit animate-pulse">
+                        <div class="h-8 bg-neutral-200 rounded w-20 mb-4"></div>
+                        <div class="space-y-4">
+                            <div class="flex items-center justify-between bg-neutral-50 p-4 border border-neutral-200 rounded-xl">
+                                <div class="flex flex-col space-y-2">
+                                    <div class="h-3 bg-neutral-200 rounded w-8"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-20"></div>
+                                    <div class="h-3 bg-neutral-200 rounded w-32"></div>
+                                </div>
+                                <div class="w-3 h-3 bg-neutral-200 rounded"></div>
+                            </div>
+                            <div class="flex items-center justify-between bg-neutral-50 p-4 border border-neutral-200 rounded-xl">
+                                <div class="flex flex-col space-y-2">
+                                    <div class="h-3 bg-neutral-200 rounded w-8"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-20"></div>
+                                    <div class="h-3 bg-neutral-200 rounded w-32"></div>
+                                </div>
+                                <div class="w-3 h-3 bg-neutral-200 rounded"></div>
+                            </div>
+                            <div class="flex items-center justify-between bg-neutral-50 p-4 border border-neutral-200 rounded-xl">
+                                <div class="flex flex-col space-y-2">
+                                    <div class="h-3 bg-neutral-200 rounded w-8"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-20"></div>
+                                    <div class="h-3 bg-neutral-200 rounded w-32"></div>
+                                </div>
+                                <div class="w-3 h-3 bg-neutral-200 rounded"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Transactions Skeleton -->
+                    <div class="bg-white rounded-2xl shadow-md p-6 w-full flex flex-col h-fit animate-pulse">
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-5 gap-4">
+                            <div class="h-8 bg-neutral-200 rounded w-40"></div>
+                            <div class="h-8 bg-neutral-200 rounded w-16"></div>
+                        </div>
+                        <div class="space-y-4">
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-5 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
+                                <div class="flex flex-col space-y-1">
+                                    <div class="h-3 bg-neutral-200 rounded w-12"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-16"></div>
+                                </div>
+                                <div class="flex flex-col space-y-1">
+                                    <div class="h-3 bg-neutral-200 rounded w-8"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-20"></div>
+                                </div>
+                                <div class="flex flex-col space-y-1">
+                                    <div class="h-3 bg-neutral-200 rounded w-16"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-24"></div>
+                                </div>
+                                <div class="flex flex-col space-y-1">
+                                    <div class="h-3 bg-neutral-200 rounded w-20"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-24"></div>
+                                </div>
+                            </div>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-5 p-4 bg-neutral-50 rounded-xl border border-neutral-200">
+                                <div class="flex flex-col space-y-1">
+                                    <div class="h-3 bg-neutral-200 rounded w-12"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-16"></div>
+                                </div>
+                                <div class="flex flex-col space-y-1">
+                                    <div class="h-3 bg-neutral-200 rounded w-8"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-20"></div>
+                                </div>
+                                <div class="flex flex-col space-y-1">
+                                    <div class="h-3 bg-neutral-200 rounded w-16"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-24"></div>
+                                </div>
+                                <div class="flex flex-col space-y-1">
+                                    <div class="h-3 bg-neutral-200 rounded w-20"></div>
+                                    <div class="h-4 bg-neutral-200 rounded w-24"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Real Content -->
             <div id="PSR-summary">
               <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
                 <!-- Monthly Earnings -->
@@ -732,6 +909,7 @@
   <script defer src="../../src/modal.js"></script>
   <script defer src="../admin/adminFunctions/logout-functions.js"></script>
   <script defer src="../../src/simple-loader.js"></script>
+  <script defer src="employeeFunctions/dashboardSkeleton.js"></script>
   <script defer src="employeeFunctions/employeeDashboard.js"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
