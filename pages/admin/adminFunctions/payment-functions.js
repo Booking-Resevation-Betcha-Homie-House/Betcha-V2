@@ -20,6 +20,41 @@ function getPaymentGrid() {
     return grid;
 }
 
+// Utility function to get payment skeleton element
+function getPaymentSkeleton() {
+    const skeleton = document.getElementById('paymentSkeleton');
+    if (!skeleton) {
+        console.error('Payment skeleton element not found');
+    }
+    return skeleton;
+}
+
+// Function to show skeleton loading
+function showSkeleton() {
+    const skeleton = getPaymentSkeleton();
+    const grid = getPaymentGrid();
+    
+    if (skeleton) {
+        skeleton.classList.remove('hidden');
+    }
+    if (grid) {
+        grid.classList.add('hidden');
+    }
+}
+
+// Function to hide skeleton loading
+function hideSkeleton() {
+    const skeleton = getPaymentSkeleton();
+    const grid = getPaymentGrid();
+    
+    if (skeleton) {
+        skeleton.classList.add('hidden');
+    }
+    if (grid) {
+        grid.classList.remove('hidden');
+    }
+}
+
 // Function to set payment grid content
 function setPaymentGridContent(content) {
     const paymentGrid = getPaymentGrid();
@@ -117,7 +152,7 @@ function createPaymentCard(payment) {
 // Function to load payment methods
 async function loadPaymentMethods() {
     try {
-        showLoadingState();
+        showSkeleton();
         
         const response = await fetch(`${API_BASE_URL}/payments/display`);
         
@@ -133,12 +168,15 @@ async function loadPaymentMethods() {
             if (paymentGrid) {
                 paymentGrid.innerHTML = payments.map(payment => createPaymentCard(payment)).join('');
             }
+            hideSkeleton();
         } else {
+            hideSkeleton();
             showEmptyState();
         }
         
     } catch (error) {
         console.error('Error loading payment methods:', error);
+        hideSkeleton();
         showErrorState();
     }
 }
@@ -155,38 +193,44 @@ function showLoadingState() {
 
 // Function to show empty state
 function showEmptyState() {
-    setPaymentGridContent(`
-        <div class="${UI_STYLES.state}">
-            <svg class="w-16 h-16 text-neutral-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-            </svg>
-            <h3 class="text-lg font-medium text-neutral-500 mb-2">No Payment Methods</h3>
-            <p class="text-neutral-400 text-center">No payment methods have been added yet.</p>
-            <button 
-                onclick="window.location.href='payment-add.html'"
-                class="${UI_STYLES.button.primary}">
-                Add Payment Method
-            </button>
-        </div>
-    `);
+    const paymentGrid = getPaymentGrid();
+    if (paymentGrid) {
+        paymentGrid.innerHTML = `
+            <div class="${UI_STYLES.state}">
+                <svg class="w-16 h-16 text-neutral-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                </svg>
+                <h3 class="text-lg font-medium text-neutral-500 mb-2">No Payment Methods</h3>
+                <p class="text-neutral-400 text-center">No payment methods have been added yet.</p>
+                <button 
+                    onclick="window.location.href='payment-add.html'"
+                    class="${UI_STYLES.button.primary}">
+                    Add Payment Method
+                </button>
+            </div>
+        `;
+    }
 }
 
 // Function to show error state
 function showErrorState() {
-    setPaymentGridContent(`
-        <div class="${UI_STYLES.state}">
-            <svg class="w-16 h-16 text-red-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <h3 class="text-lg font-medium text-red-500 mb-2">Error Loading Payment Methods</h3>
-            <p class="text-neutral-400 text-center mb-4">There was an error loading the payment methods.</p>
-            <button 
-                onclick="loadPaymentMethods()"
-                class="${UI_STYLES.button.primary}">
-                Try Again
-            </button>
-        </div>
-    `);
+    const paymentGrid = getPaymentGrid();
+    if (paymentGrid) {
+        paymentGrid.innerHTML = `
+            <div class="${UI_STYLES.state}">
+                <svg class="w-16 h-16 text-red-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <h3 class="text-lg font-medium text-red-500 mb-2">Error Loading Payment Methods</h3>
+                <p class="text-neutral-400 text-center mb-4">There was an error loading the payment methods.</p>
+                <button 
+                    onclick="loadPaymentMethods()"
+                    class="${UI_STYLES.button.primary}">
+                    Try Again
+                </button>
+            </div>
+        `;
+    }
 }
 
 // Function to handle edit payment
@@ -228,6 +272,11 @@ function setupSearch() {
         searchInput.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const paymentCards = document.querySelectorAll('[data-payment-id]');
+            
+            // If we're searching and the skeleton is visible, hide it
+            if (searchTerm) {
+                hideSkeleton();
+            }
             
             paymentCards.forEach(card => {
                 const paymentName = card.querySelector('.text-lg').textContent.toLowerCase();

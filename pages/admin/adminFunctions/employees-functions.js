@@ -34,6 +34,11 @@ async function fetchEmployees() {
         if (!Array.isArray(employees)) {
             throw new Error('Invalid response format from API');
         }
+
+        // Debug: Log all unique status values
+        const uniqueStatuses = [...new Set(employees.map(emp => emp.status))];
+        console.log('Unique employee statuses from API:', uniqueStatuses);
+        
     } catch (error) {
         console.error('Error fetching employees:', error);
         throw error;
@@ -42,10 +47,10 @@ async function fetchEmployees() {
 
 function renderEmployees() {
     
-    // Hide loading state
-    const loadingState = document.getElementById('loading-state');
-    if (loadingState) {
-        loadingState.style.display = 'none';
+    // Hide skeleton loading
+    const skeletonLoading = document.getElementById('skeleton-loading');
+    if (skeletonLoading) {
+        skeletonLoading.style.display = 'none';
     }
 
     const activeTab = document.getElementById('active-tab');
@@ -61,10 +66,19 @@ function renderEmployees() {
     inactiveTab.querySelector('.grid').innerHTML = '';
 
     // Separate active and inactive employees - be more flexible with status values
-    const activeEmployees = employees.filter(emp => emp.status === 'active' || emp.status === 'Active' || !emp.status);
-    const inactiveEmployees = employees.filter(emp => emp.status === 'archived' || emp.status === 'Archived' || emp.status === 'inactive' || emp.status === 'Inactive');
+    const activeEmployees = employees.filter(emp => {
+        const status = emp.status ? emp.status.toLowerCase() : 'active';
+        return status === 'active' || !emp.status;
+    });
+    
+    const inactiveEmployees = employees.filter(emp => {
+        const status = emp.status ? emp.status.toLowerCase() : '';
+        return status === 'archived' || status === 'inactive' || status === 'deactivated';
+    });
 
-
+    console.log('Active employees:', activeEmployees.length);
+    console.log('Inactive employees:', inactiveEmployees.length);
+    console.log('All employees statuses:', employees.map(emp => emp.status));
 
     // Render active employees
     if (activeEmployees.length > 0) {
@@ -86,7 +100,7 @@ function renderEmployees() {
         inactiveTab.querySelector('.grid').innerHTML = createEmptyState('No inactive employees found');
     }
 
-    // Update tab counts if needed
+    // Update tab counts
     updateTabCounts(activeEmployees.length, inactiveEmployees.length);
 
     // Always show the active tab by default after rendering
@@ -109,6 +123,9 @@ function setActiveTab(tabIndex) {
 
 // Make setActiveTab globally accessible
 window.setActiveTab = setActiveTab;
+
+// Make retryLoad globally accessible
+window.retryLoad = retryLoad;
 
 function showTab(tabIndex) {
     const activeTab = document.getElementById('active-tab');
@@ -341,9 +358,16 @@ function renderFilteredEmployees(filteredEmployees) {
     activeTab.querySelector('.grid').innerHTML = '';
     inactiveTab.querySelector('.grid').innerHTML = '';
 
-    // Separate filtered active and inactive employees
-    const activeEmployees = filteredEmployees.filter(emp => emp.status === 'active');
-    const inactiveEmployees = filteredEmployees.filter(emp => emp.status === 'archived');
+    // Separate filtered active and inactive employees using the same logic as renderEmployees
+    const activeEmployees = filteredEmployees.filter(emp => {
+        const status = emp.status ? emp.status.toLowerCase() : 'active';
+        return status === 'active' || !emp.status;
+    });
+    
+    const inactiveEmployees = filteredEmployees.filter(emp => {
+        const status = emp.status ? emp.status.toLowerCase() : '';
+        return status === 'archived' || status === 'inactive' || status === 'deactivated';
+    });
 
     // Render filtered active employees
     if (activeEmployees.length > 0) {
@@ -370,10 +394,10 @@ function renderFilteredEmployees(filteredEmployees) {
 }
 
 function showErrorState(message) {
-    // Hide loading state
-    const loadingState = document.getElementById('loading-state');
-    if (loadingState) {
-        loadingState.style.display = 'none';
+    // Hide skeleton loading
+    const skeletonLoading = document.getElementById('skeleton-loading');
+    if (skeletonLoading) {
+        skeletonLoading.style.display = 'none';
     }
 
     // Show error state in the main content area
@@ -398,28 +422,19 @@ function showErrorState(message) {
 
 async function retryLoad() {
     try {
-        // Show loading state
-        const tabContents = document.getElementById('tab-contents');
-        if (tabContents) {
-            tabContents.innerHTML = `
-                <div id="loading-state" class="flex items-center justify-center h-full">
-                    <div class="text-center">
-                        <div class="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p class="text-neutral-500">Loading employees...</p>
-                    </div>
-                </div>
-                
-                <div  class="tab-content hidden " id="active-tab">
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
-                        <!-- Active employees will be populated here dynamically -->
-                    </div>
-                </div>
-                <div  class="tab-content hidden " id="inactive-tab">
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
-                        <!-- Inactive employees will be populated here dynamically -->
-                    </div>
-                </div>
-            `;
+        // Show skeleton loading
+        const skeletonLoading = document.getElementById('skeleton-loading');
+        const activeTab = document.getElementById('active-tab');
+        const inactiveTab = document.getElementById('inactive-tab');
+        
+        if (skeletonLoading) {
+            skeletonLoading.style.display = 'grid';
+        }
+        if (activeTab) {
+            activeTab.classList.add('hidden');
+        }
+        if (inactiveTab) {
+            inactiveTab.classList.add('hidden');
         }
 
         await fetchEmployees();

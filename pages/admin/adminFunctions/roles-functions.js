@@ -7,6 +7,49 @@ let allRoles = [];
 // API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
+// Utility functions for skeleton loading
+function getRolesSkeleton() {
+    const skeleton = document.getElementById('rolesSkeleton');
+    if (!skeleton) {
+        console.error('Roles skeleton element not found');
+    }
+    return skeleton;
+}
+
+function getRolesGrid() {
+    const grid = document.getElementById('rolesGrid');
+    if (!grid) {
+        console.error('Roles grid element not found');
+    }
+    return grid;
+}
+
+// Function to show skeleton loading
+function showSkeleton() {
+    const skeleton = getRolesSkeleton();
+    const grid = getRolesGrid();
+    
+    if (skeleton) {
+        skeleton.classList.remove('hidden');
+    }
+    if (grid) {
+        grid.classList.add('hidden');
+    }
+}
+
+// Function to hide skeleton loading
+function hideSkeleton() {
+    const skeleton = getRolesSkeleton();
+    const grid = getRolesGrid();
+    
+    if (skeleton) {
+        skeleton.classList.add('hidden');
+    }
+    if (grid) {
+        grid.classList.remove('hidden');
+    }
+}
+
 // Fetch all roles from the API
 async function fetchRoles() {
     try {
@@ -84,16 +127,16 @@ function createRoleCard(role) {
 
 // Populate the roles grid with data
 async function populateRoles(rolesToDisplay = null) {
-    const rolesGrid = document.getElementById('rolesGrid');
+    const rolesGrid = getRolesGrid();
     
     if (!rolesGrid) {
         console.error('Roles grid container not found');
         return;
     }
 
-    // Show loading state only if we're fetching new data
+    // Show skeleton loading only if we're fetching new data
     if (!rolesToDisplay) {
-        rolesGrid.innerHTML = '<div class="col-span-full text-center text-neutral-500">Loading roles...</div>';
+        showSkeleton();
     }
 
     try {
@@ -106,6 +149,7 @@ async function populateRoles(rolesToDisplay = null) {
         }
         
         if (roles.length === 0) {
+            hideSkeleton();
             rolesGrid.innerHTML = '<div class="col-span-full text-center text-neutral-500">No roles found.</div>';
             return;
         }
@@ -113,9 +157,11 @@ async function populateRoles(rolesToDisplay = null) {
         // Generate HTML for all roles
         const rolesHTML = roles.map(role => createRoleCard(role)).join('');
         rolesGrid.innerHTML = rolesHTML;
+        hideSkeleton();
 
     } catch (error) {
         console.error('Error populating roles:', error);
+        hideSkeleton();
         rolesGrid.innerHTML = '<div class="col-span-full text-center text-red-500">Error loading roles. Please try again later.</div>';
     }
 }
@@ -125,6 +171,9 @@ function searchRoles(searchTerm) {
     if (!allRoles || allRoles.length === 0) {
         return;
     }
+
+    // Hide skeleton when searching
+    hideSkeleton();
 
     const filteredRoles = allRoles.filter(role => {
         const searchLower = searchTerm.toLowerCase();

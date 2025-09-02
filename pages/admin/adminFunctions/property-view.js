@@ -338,45 +338,47 @@ function updateArchiveButtonUI(status) {
 // Populate property images
 function populatePropertyImages(photoLinks) {
     if (!photoLinks || photoLinks.length === 0) {
+        // Keep default "No photos" state - don't change anything
         return;
     }
     
-    const photosSection = document.getElementById('PhotosSection');
-    if (!photosSection) return;
+    // Get the individual photo elements
+    const photo1 = document.getElementById('photo1');
+    const photo2Container = document.getElementById('photo2');
+    const photo2 = photo2Container ? photo2Container.querySelector('div:first-child') : null;
+    const photo3 = document.getElementById('photo3');
     
-    // Clear existing content
-    photosSection.innerHTML = '';
+    if (!photo1) return;
     
-    if (photoLinks.length === 1) {
-        // Single image - make it full width
-        const img = createImageElement(photoLinks[0], 'rounded-2xl w-full h-full object-cover');
-        photosSection.appendChild(img);
-    } else if (photoLinks.length === 2) {
-        // Two images - left large, right small
-        const leftImg = createImageElement(photoLinks[0], 'rounded-2xl w-full h-full object-cover col-span-1 sm:col-span-3');
-        const rightImg = createImageElement(photoLinks[1], 'rounded-2xl w-full h-full object-cover col-span-1 sm:col-span-2');
-        
-        photosSection.appendChild(leftImg);
-        photosSection.appendChild(rightImg);
-    } else if (photoLinks.length >= 3) {
-        // Three or more images - left large, right two small
-        const leftImg = createImageElement(photoLinks[0], 'rounded-2xl w-full h-full object-cover col-span-1 sm:col-span-3');
-        
-        const rightContainer = document.createElement('div');
-        rightContainer.className = 'hidden sm:grid sm:col-span-2 sm:grid-rows-2 sm:gap-3 h-full';
-        
-        const topRightImg = createImageElement(photoLinks[1], 'rounded-2xl w-full h-full object-cover');
-        const bottomRightImg = createImageElement(photoLinks[2], 'rounded-2xl w-full h-full object-cover');
-        
-        rightContainer.appendChild(topRightImg);
-        rightContainer.appendChild(bottomRightImg);
-        
-        photosSection.appendChild(leftImg);
-        photosSection.appendChild(rightContainer);
+    // Set background image for photo1 (first image)
+    if (photoLinks.length >= 1) {
+        photo1.style.backgroundImage = `url('${photoLinks[0]}')`;
+        photo1.style.backgroundSize = 'cover';
+        photo1.style.backgroundPosition = 'center';
+        photo1.style.backgroundRepeat = 'no-repeat';
+        photo1.innerHTML = ''; // Remove "No photos" text
+    }
+    
+    // Set background image for photo2 (second image)
+    if (photoLinks.length >= 2 && photo2) {
+        photo2.style.backgroundImage = `url('${photoLinks[1]}')`;
+        photo2.style.backgroundSize = 'cover';
+        photo2.style.backgroundPosition = 'center';
+        photo2.style.backgroundRepeat = 'no-repeat';
+        photo2.innerHTML = ''; // Remove "No photos" text
+    }
+    
+    // Set background image for photo3 (third image)
+    if (photoLinks.length >= 3 && photo3) {
+        photo3.style.backgroundImage = `url('${photoLinks[2]}')`;
+        photo3.style.backgroundSize = 'cover';
+        photo3.style.backgroundPosition = 'center';
+        photo3.style.backgroundRepeat = 'no-repeat';
+        photo3.innerHTML = ''; // Remove "No photos" text
     }
     
     // Update photo count in floating button
-    const photoCountElement = photosSection.querySelector('span');
+    const photoCountElement = document.getElementById('photoCount');
     if (photoCountElement) {
         photoCountElement.textContent = `${photoLinks.length}+`;
     }

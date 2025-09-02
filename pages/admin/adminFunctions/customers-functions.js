@@ -12,15 +12,39 @@ const apiUrl = `${API_BASE}/guest/display`;
 
 // Initialize the customer manager when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
+    // Show skeleton loading immediately
+    showSkeletonLoading();
+    
     try {
         await fetchCustomers();
         renderCustomers();
         setupEventListeners();
     } catch (error) {
         console.error('Error initializing customer manager:', error);
+        hideSkeletonLoading();
         showErrorState('Failed to load customers. Please try again.');
     }
 });
+
+function showSkeletonLoading() {
+    const skeletonContainer = document.getElementById('skeleton-container');
+    const activeTab = document.getElementById('active-tab');
+    const inactiveTab = document.getElementById('inactive-tab');
+    
+    // Show skeleton loading
+    if (skeletonContainer) skeletonContainer.style.display = 'grid';
+    
+    // Hide content tabs
+    if (activeTab) activeTab.classList.add('hidden');
+    if (inactiveTab) inactiveTab.classList.add('hidden');
+}
+
+function hideSkeletonLoading() {
+    const skeletonContainer = document.getElementById('skeleton-container');
+    
+    // Hide skeleton loading
+    if (skeletonContainer) skeletonContainer.style.display = 'none';
+}
 
 async function fetchCustomers() {
     try {
@@ -47,11 +71,8 @@ async function fetchCustomers() {
 }
 
 function renderCustomers() {
-    // Hide loading state
-    const loadingState = document.getElementById('loading-state');
-    if (loadingState) {
-        loadingState.style.display = 'none';
-    }
+    // Hide skeleton loading and show content
+    hideSkeletonLoading();
 
     // Find the tab content containers using specific IDs
     const activeTab = document.getElementById('active-tab');
@@ -62,6 +83,10 @@ function renderCustomers() {
         return;
     }
     
+    // Remove hidden class from tab containers but don't show both
+    activeTab.classList.remove('hidden');
+    inactiveTab.classList.remove('hidden');
+    
     // Clear existing content
     const activeGrid = activeTab.querySelector('.grid');
     const inactiveGrid = inactiveTab.querySelector('.grid');
@@ -69,15 +94,20 @@ function renderCustomers() {
     if (activeGrid) activeGrid.innerHTML = '';
     if (inactiveGrid) inactiveGrid.innerHTML = '';
 
-    // Separate active and inactive customers - handle both string and boolean values
+    // Separate active and inactive customers - case-insensitive status filtering  
     const activeCustomers = customers.filter(customer => {
         // Handle string "false", boolean false, undefined, or null as active
-        return customer.archived === "false" || customer.archived === false || !customer.archived;
+        const archived = customer.archived;
+        return archived === "false" || archived === false || !archived;
     });
     const inactiveCustomers = customers.filter(customer => {
         // Handle string "true" or boolean true as inactive
-        return customer.archived === "true" || customer.archived === true;
+        const archived = customer.archived;
+        return archived === "true" || archived === true;
     });
+
+    console.log('Customer statuses:', customers.map(c => ({ name: c.firstname, archived: c.archived, type: typeof c.archived })));
+    console.log('Active customers:', activeCustomers.length, 'Inactive customers:', inactiveCustomers.length);
 
     // Render active customers
     if (activeCustomers.length > 0) {
@@ -330,9 +360,15 @@ function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
     if (activeGrid) activeGrid.innerHTML = '';
     if (inactiveGrid) inactiveGrid.innerHTML = '';
 
-    // Separate filtered active and inactive customers
-    const activeCustomers = filteredCustomers.filter(customer => !customer.archived);
-    const inactiveCustomers = filteredCustomers.filter(customer => customer.archived);
+    // Separate filtered active and inactive customers - case-insensitive filtering
+    const activeCustomers = filteredCustomers.filter(customer => {
+        const archived = customer.archived;
+        return archived === "false" || archived === false || !archived;
+    });
+    const inactiveCustomers = filteredCustomers.filter(customer => {
+        const archived = customer.archived;
+        return archived === "true" || archived === true;
+    });
 
     // Render filtered active customers
     if (activeCustomers.length > 0) {
@@ -397,9 +433,8 @@ function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
     // Update tab counts
     updateTabCounts(activeCustomers.length, inactiveCustomers.length);
 
-    // Show the active tab by default
-    activeTab.classList.remove('hidden');
-    inactiveTab.classList.add('hidden');
+    // Use proper tab switching instead of showing both tabs
+    showTab(0); // Show active tab by default
 
     // If no customers found at all, show message in active tab
     if (filteredCustomers.length === 0 && searchTerm) {
@@ -542,15 +577,17 @@ async function showCustomerDetails(customer) {
 }
 
 function showErrorState(message) {
-    // Hide loading state
-    const loadingState = document.getElementById('loading-state');
-    if (loadingState) {
-        loadingState.style.display = 'none';
-    }
+    // Hide skeleton loading
+    hideSkeletonLoading();
 
-    const tabContents = document.querySelectorAll('.tab-content');
-    if (tabContents.length >= 1) {
-        const activeTab = tabContents[0];
+    const activeTab = document.getElementById('active-tab');
+    const inactiveTab = document.getElementById('inactive-tab');
+    
+    if (activeTab && inactiveTab) {
+        // Hide inactive tab and show only active tab with error
+        activeTab.classList.remove('hidden');
+        inactiveTab.classList.add('hidden');
+        
         const activeGrid = activeTab.querySelector('.grid');
         if (activeGrid) {
             activeGrid.innerHTML = `
@@ -560,20 +597,30 @@ function showErrorState(message) {
                     </svg>
                     <h3 class="text-lg font-medium text-red-900 mb-2">Error Loading Customers</h3>
                     <p class="text-red-500">${message}</p>
-                    <button onclick="location.reload()" class="mt-4 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/80 transition-colors">
+                    <button onclick="retryLoadCustomers()" class="mt-4 px-4 py-2 bg-primary text-white rounded-xl hover:bg-primary/80 transition-colors">
                         Try Again
                     </button>
                 </div>
             `;
         }
-        // Show the active tab
-        activeTab.classList.remove('hidden');
-        // Hide other tabs
-        if (tabContents.length >= 2) {
-            tabContents[1].classList.add('hidden');
-        }
     }
 }
+
+// Global retry function for customers
+async function retryLoadCustomers() {
+    showSkeletonLoading();
+    try {
+        await fetchCustomers();
+        renderCustomers();
+    } catch (error) {
+        console.error('Retry failed:', error);
+        hideSkeletonLoading();
+        showErrorState('Failed to load customers. Please check your connection and try again.');
+    }
+}
+
+// Make retry function globally accessible
+window.retryLoadCustomers = retryLoadCustomers;
 
 function updateDeactivateButton(customer) {
     const deactivateBtn = document.getElementById('deactivateCustomerBtn');
@@ -659,8 +706,6 @@ async function handleCustomerDeactivation() {
         }
 
         if (success) {
-            const result = await response.json();
-            
             // Show success message immediately
             const successAction = !isArchived ? 'deactivated' : 'reactivated';
             alert(`Customer has been successfully ${successAction}!`);
@@ -761,22 +806,34 @@ document.addEventListener('DOMContentLoaded', () => {
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             const value = e.target.value.trim().toLowerCase();
-            const filtered = allCustomers.filter(customer => {
-                // Search across multiple customer fields like property searches by name
-                const firstName = customer.first_name || customer.firstname || '';
-                const lastName = customer.last_name || customer.lastname || '';
-                const email = customer.email || '';
-                const fullName = `${firstName} ${lastName}`.trim();
-                
-                return firstName.toLowerCase().includes(value) ||
-                       lastName.toLowerCase().includes(value) ||
-                       fullName.toLowerCase().includes(value) ||
-                       email.toLowerCase().includes(value);
-            });
             
-            // Update customers array and render like property-functions.js does
-            customers = filtered;
-            renderCustomers();
+            // Show skeleton loading during search
+            if (value) {
+                showSkeletonLoading();
+                // Use setTimeout to simulate brief loading and show skeleton animation
+                setTimeout(() => {
+                    const filtered = allCustomers.filter(customer => {
+                        // Search across multiple customer fields like property searches by name
+                        const firstName = customer.first_name || customer.firstname || '';
+                        const lastName = customer.last_name || customer.lastname || '';
+                        const email = customer.email || '';
+                        const fullName = `${firstName} ${lastName}`.trim();
+                        
+                        return firstName.toLowerCase().includes(value) ||
+                               lastName.toLowerCase().includes(value) ||
+                               fullName.toLowerCase().includes(value) ||
+                               email.toLowerCase().includes(value);
+                    });
+                    
+                    // Update customers array and render like property-functions.js does
+                    customers = filtered;
+                    renderCustomers();
+                }, 300); // Brief loading animation
+            } else {
+                // No search term - show all customers immediately
+                customers = allCustomers;
+                renderCustomers();
+            }
         });
     }
 });

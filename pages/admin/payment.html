@@ -347,7 +347,61 @@
                   </div>
                 </div>
                 <div class="p-3 flex-1 overflow-auto">
-                    <div id="paymentGrid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pr-1">
+                    <!-- Skeleton Loading -->
+                    <div id="paymentSkeleton" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pr-1">
+                        <!-- Skeleton Payment Cards -->
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-4 bg-gray-300 rounded w-24"></div>
+                                <div class="h-6 w-6 bg-gray-300 rounded"></div>
+                            </div>
+                            <div class="h-3 bg-gray-300 rounded w-full mb-2"></div>
+                            <div class="h-3 bg-gray-300 rounded w-3/4"></div>
+                        </div>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-4 bg-gray-300 rounded w-24"></div>
+                                <div class="h-6 w-6 bg-gray-300 rounded"></div>
+                            </div>
+                            <div class="h-3 bg-gray-300 rounded w-full mb-2"></div>
+                            <div class="h-3 bg-gray-300 rounded w-3/4"></div>
+                        </div>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-4 bg-gray-300 rounded w-24"></div>
+                                <div class="h-6 w-6 bg-gray-300 rounded"></div>
+                            </div>
+                            <div class="h-3 bg-gray-300 rounded w-full mb-2"></div>
+                            <div class="h-3 bg-gray-300 rounded w-3/4"></div>
+                        </div>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-4 bg-gray-300 rounded w-24"></div>
+                                <div class="h-6 w-6 bg-gray-300 rounded"></div>
+                            </div>
+                            <div class="h-3 bg-gray-300 rounded w-full mb-2"></div>
+                            <div class="h-3 bg-gray-300 rounded w-3/4"></div>
+                        </div>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-4 bg-gray-300 rounded w-24"></div>
+                                <div class="h-6 w-6 bg-gray-300 rounded"></div>
+                            </div>
+                            <div class="h-3 bg-gray-300 rounded w-full mb-2"></div>
+                            <div class="h-3 bg-gray-300 rounded w-3/4"></div>
+                        </div>
+                        <div class="bg-white rounded-lg border border-gray-200 p-4 animate-pulse">
+                            <div class="flex items-center justify-between mb-3">
+                                <div class="h-4 bg-gray-300 rounded w-24"></div>
+                                <div class="h-6 w-6 bg-gray-300 rounded"></div>
+                            </div>
+                            <div class="h-3 bg-gray-300 rounded w-full mb-2"></div>
+                            <div class="h-3 bg-gray-300 rounded w-3/4"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actual Payment Grid -->
+                    <div id="paymentGrid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 pr-1 hidden">
                         <!-- Payment cards will be populated dynamically -->
                     </div>
                 </div>

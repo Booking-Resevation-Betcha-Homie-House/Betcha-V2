@@ -20,6 +20,50 @@ let editModal, titleInput, descriptionInput, fileInput, previewContainer, colorR
 // Property selection elements
 let propertySearchInput, propertyListContainer, selectedPropertiesContainer;
 
+// Utility functions for skeleton loading
+function getLandingPageSkeleton() {
+    const skeleton = document.getElementById('landingPageSkeleton');
+    if (!skeleton) {
+        console.error('Landing page skeleton element not found');
+    }
+    return skeleton;
+}
+
+function getLandingPageContent() {
+    const content = document.getElementById('landingPageContent');
+    if (!content) {
+        console.error('Landing page content element not found');
+    }
+    return content;
+}
+
+// Function to show skeleton loading
+function showSkeleton() {
+    const skeleton = getLandingPageSkeleton();
+    const content = getLandingPageContent();
+    
+    if (skeleton) {
+        skeleton.classList.remove('hidden');
+    }
+    if (content) {
+        content.classList.add('hidden');
+    }
+}
+
+// Function to hide skeleton loading
+function hideSkeleton() {
+    const skeleton = getLandingPageSkeleton();
+    const content = getLandingPageContent();
+    
+    if (skeleton) {
+        skeleton.classList.add('hidden');
+    }
+    if (content) {
+        content.classList.remove('hidden');
+        content.style.display = 'flex'; // Restore flex display
+    }
+}
+
 // Initialize page when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeDOMElements();
@@ -98,6 +142,7 @@ async function fetchAllProperties() {
  */
 async function fetchLandingPageData() {
     try {
+        showSkeleton();
         
         const response = await fetch(LANDING_GET_URL, {
             method: 'GET',
@@ -114,9 +159,11 @@ async function fetchLandingPageData() {
         
         landingPageData = data;
         populateLandingPageContent(data);
+        hideSkeleton();
         
     } catch (error) {
         console.error('Error fetching landing page data:', error);
+        hideSkeleton();
         showErrorMessage('Failed to load landing page content. Please try again.');
     }
 }
@@ -630,7 +677,8 @@ async function handleSaveChanges() {
             // Close modal
             closeEditModal();
             
-            // Refresh page data
+            // Show skeleton and refresh page data
+            showSkeleton();
             await fetchLandingPageData();
             
         } else {

@@ -355,52 +355,544 @@
                   </button>
                 </div>
                 <div id="tab-contents" class="w-full h-full p-3 overflow-x-auto">
-                  <div  class="tab-content hidden ">
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
-                      <div class="bg-neutral-50 rounded-xl border border-neutral-200 p-4 hover:bg-neutral-100 transition-all duration-300 ease-in-out">
-                        <p class="font-semibold text-neutral-800 font-manrope mb-3">
-                          Reference #
-                        </p>
-
-                        <div class="flex flex-col gap-2 text-xs text-neutral-500 font-inter">
-                          <p><span class="font-medium text-neutral-700">Date:</span> Aug 12, 2025 | 3:45 PM</p>
-                          <p><span class="font-medium text-neutral-700">Name:</span> John Doe</p>
-                          <p><span class="font-medium text-neutral-700">Activity:</span> Updated booking details</p>
-                          <p><span class="font-medium text-neutral-700">User Type:</span> Admin</p>
+                  <!-- Admin Tab Content -->
+                  <div class="tab-content">
+                    <!-- Skeleton Loading -->
+                    <div id="auditSkeletonAdmin" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
+                      <!-- Skeleton Cards -->
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-3/4 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-2/3 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-24"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-4/5 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-36"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-24"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-18"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-3/5 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-30"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-22"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-26"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-14"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-2/4 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-34"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-18"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-4/6 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-26"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-18"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-3/4 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-24"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-30"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-5/6 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-22"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
                         </div>
                       </div>
                     </div>
+                    
+                    <!-- Actual Content Grid -->
+                    <div id="auditContentAdmin" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full hidden">
+                      <!-- Dynamic audit trail cards will be inserted here -->
+                    </div>
                   </div>
-                  <div  class="tab-content hidden ">
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
-                      <div class="bg-neutral-50 rounded-xl border border-neutral-200 p-4 hover:bg-neutral-100 transition-all duration-300 ease-in-out">
-                        <p class="font-semibold text-neutral-800 font-manrope mb-3">
-                          Reference #
-                        </p>
-
-                        <div class="flex flex-col gap-2 text-xs text-neutral-500 font-inter">
-                          <p><span class="font-medium text-neutral-700">Date:</span> Aug 12, 2025 | 3:45 PM</p>
-                          <p><span class="font-medium text-neutral-700">Name:</span> John Doe</p>
-                          <p><span class="font-medium text-neutral-700">Activity:</span> Updated booking details</p>
-                          <p><span class="font-medium text-neutral-700">User Type:</span> Admin</p>
+                  <!-- Employee Tab Content -->
+                  <div class="tab-content hidden">
+                    <!-- Skeleton Loading -->
+                    <div id="auditSkeletonEmployee" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
+                      <!-- Skeleton Cards -->
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-3/4 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-2/3 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-24"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-4/5 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-36"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-24"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-18"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-3/5 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-30"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-22"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-26"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-14"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-2/4 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-34"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-18"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-4/6 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-26"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-18"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-3/4 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-24"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-30"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-5/6 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-22"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
                         </div>
                       </div>
                     </div>
+                    
+                    <!-- Actual Content Grid -->
+                    <div id="auditContentEmployee" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full hidden">
+                      <!-- Dynamic audit trail cards will be inserted here -->
+                    </div>
                   </div>
-                  <div  class="tab-content hidden ">
-                    <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
-                      <div class="bg-neutral-50 rounded-xl border border-neutral-200 p-4 hover:bg-neutral-100 transition-all duration-300 ease-in-out">
-                        <p class="font-semibold text-neutral-800 font-manrope mb-3">
-                          Reference #
-                        </p>
-
-                        <div class="flex flex-col gap-2 text-xs text-neutral-500 font-inter">
-                          <p><span class="font-medium text-neutral-700">Date:</span> Aug 12, 2025 | 3:45 PM</p>
-                          <p><span class="font-medium text-neutral-700">Name:</span> John Doe</p>
-                          <p><span class="font-medium text-neutral-700">Activity:</span> Updated booking details</p>
-                          <p><span class="font-medium text-neutral-700">User Type:</span> Admin</p>
+                  <!-- Customer Tab Content -->
+                  <div class="tab-content hidden">
+                    <!-- Skeleton Loading -->
+                    <div id="auditSkeletonCustomer" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
+                      <!-- Skeleton Cards -->
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-3/4 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
                         </div>
                       </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-2/3 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-24"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-4/5 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-36"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-24"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-18"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-3/5 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-30"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-22"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-26"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-14"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-2/4 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-34"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-18"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-4/6 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-26"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-18"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-3/4 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-24"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-30"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="bg-white rounded-xl border border-neutral-200 p-4 animate-pulse">
+                        <div class="h-5 bg-gray-300 rounded w-5/6 mb-3"></div>
+                        <div class="space-y-2">
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-32"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-12"></div>
+                            <div class="h-3 bg-gray-300 rounded w-22"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-16"></div>
+                            <div class="h-3 bg-gray-300 rounded w-28"></div>
+                          </div>
+                          <div class="flex gap-2">
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                            <div class="h-3 bg-gray-300 rounded w-20"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <!-- Actual Content Grid -->
+                    <div id="auditContentCustomer" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full hidden">
+                      <!-- Dynamic audit trail cards will be inserted here -->
                     </div>
                   </div>
                 </div>

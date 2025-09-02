@@ -9,11 +9,17 @@ let allProperties = []; // Store fetched properties for searching
 
 async function getAllProperties() {
     // Only run if we're on a page that needs properties
-    const grid = document.querySelector('.grid.gap-4.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-4.h-full');
-    if (!grid) {
-        console.log('Property grid not found on this page, skipping property fetch');
+    const skeletonContainer = document.getElementById('skeleton-container');
+    const propertiesContainer = document.getElementById('properties-container');
+    
+    if (!skeletonContainer && !propertiesContainer) {
+        console.log('Property containers not found on this page, skipping property fetch');
         return;
     }
+
+    // Show skeleton loading
+    if (skeletonContainer) skeletonContainer.style.display = 'grid';
+    if (propertiesContainer) propertiesContainer.style.display = 'none';
 
     try {
         const response = await fetch(`${API_BASE}/property/display`);
@@ -27,17 +33,43 @@ async function getAllProperties() {
                 console.log('First property photoLinks:', data[0].photoLinks);
             }
             renderProperties(allProperties);
+            
+            // Hide skeleton and show content
+            if (skeletonContainer) skeletonContainer.style.display = 'none';
+            if (propertiesContainer) propertiesContainer.style.display = 'grid';
         }
     } catch (error) {
         console.error('Failed to fetch properties:', error);
+        // Hide skeleton on error and show empty state or error message
+        if (skeletonContainer) skeletonContainer.style.display = 'none';
+        if (propertiesContainer) {
+            propertiesContainer.style.display = 'grid';
+            propertiesContainer.innerHTML = `
+                <div class="col-span-full text-center py-12">
+                    <p class="text-neutral-500 mb-4">Failed to load properties</p>
+                    <button onclick="getAllProperties()" class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors">
+                        Try Again
+                    </button>
+                </div>
+            `;
+        }
     }
 }
 
 function renderProperties(properties) {
-    // Find the grid container for properties
-    const grid = document.querySelector('.grid.gap-4.sm\\:grid-cols-2.lg\\:grid-cols-3.xl\\:grid-cols-4.h-full');
-    if (!grid) return;
-    grid.innerHTML = '';
+    // Find the properties container
+    const propertiesContainer = document.getElementById('properties-container');
+    if (!propertiesContainer) return;
+    propertiesContainer.innerHTML = '';
+
+    if (properties.length === 0) {
+        propertiesContainer.innerHTML = `
+            <div class="col-span-full text-center py-12">
+                <p class="text-neutral-500">No properties found</p>
+            </div>
+        `;
+        return;
+    }
 
     properties.forEach(property => {
         const propertyCard = document.createElement('a');
@@ -98,7 +130,7 @@ function renderProperties(properties) {
                 </div>
             </div>
         `;
-        grid.appendChild(propertyCard);
+        propertiesContainer.appendChild(propertyCard);
     });
 }
 
@@ -114,6 +146,14 @@ document.addEventListener('DOMContentLoaded', () => {
             const filtered = allProperties.filter(p =>
                 p.name && p.name.toLowerCase().includes(value)
             );
+            
+            // Ensure properties container is visible when searching
+            const skeletonContainer = document.getElementById('skeleton-container');
+            const propertiesContainer = document.getElementById('properties-container');
+            
+            if (skeletonContainer) skeletonContainer.style.display = 'none';
+            if (propertiesContainer) propertiesContainer.style.display = 'grid';
+            
             renderProperties(filtered);
         });
     }

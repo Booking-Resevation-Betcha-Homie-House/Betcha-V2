@@ -4,24 +4,88 @@
 // API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
+// Skeleton and content toggle functions
+function showSkeleton() {
+    const skeleton = document.getElementById('faqsSkeleton');
+    const content = document.getElementById('faqsContent');
+    if (skeleton) skeleton.classList.remove('hidden');
+    if (content) content.classList.add('hidden');
+}
+
+function hideSkeleton() {
+    const skeleton = document.getElementById('faqsSkeleton');
+    const content = document.getElementById('faqsContent');
+    if (skeleton) skeleton.classList.add('hidden');
+    if (content) content.classList.remove('hidden');
+}
+
 async function getAllFAQS() {
     try {
+        showSkeleton();
         const response = await fetch(`${API_BASE}/faq/getAll`);
         const data = await response.json();
         console.log(data);
         if (data && data.allFAQ) {
             renderFAQs(data.allFAQ);
+        } else {
+            // Handle empty state
+            renderEmptyState();
         }
+        hideSkeleton();
     } catch (error) {
         console.log(error);
+        hideSkeleton();
+        renderErrorState();
     }
+}
+
+// Render empty state
+function renderEmptyState() {
+    const grid = document.getElementById('faqsContent');
+    if (!grid) return;
+    grid.innerHTML = `
+        <div class="col-span-full text-center py-12">
+            <div class="text-gray-400 mb-4">
+                <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">No FAQs found</h3>
+            <p class="text-gray-500">Get started by adding your first FAQ.</p>
+        </div>
+    `;
+}
+
+// Render error state
+function renderErrorState() {
+    const grid = document.getElementById('faqsContent');
+    if (!grid) return;
+    grid.innerHTML = `
+        <div class="col-span-full text-center py-12">
+            <div class="text-red-400 mb-4">
+                <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-medium text-gray-900 mb-2">Failed to load FAQs</h3>
+            <p class="text-gray-500 mb-4">There was an error loading the FAQs. Please try again.</p>
+            <button onclick="getAllFAQS()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors">
+                Retry
+            </button>
+        </div>
+    `;
 }
 
 // Render FAQs to the container
 function renderFAQs(faqs) {
-    const grid = document.querySelector('.grid.gap-4.sm\\:grid-cols-2.h-full');
+    const grid = document.getElementById('faqsContent');
     if (!grid) return;
     grid.innerHTML = '';
+
+    if (faqs.length === 0) {
+        renderEmptyState();
+        return;
+    }
 
     faqs.forEach(faq => {
         const faqItem = document.createElement('div');
@@ -137,6 +201,7 @@ async function createFAQ(question, answer) {
             body: JSON.stringify({ question, answer })
         });
     } catch (error) {
+        console.error('Failed to add FAQ:', error);
         alert('Failed to add FAQ.');
     }
 }
@@ -148,6 +213,7 @@ async function deleteFAQ(id) {
             method: 'DELETE'
         });
     } catch (error) {
+        console.error('Failed to delete FAQ:', error);
         alert('Failed to delete FAQ.');
     }
 }
@@ -161,6 +227,7 @@ async function updateFAQ(id, question, answer) {
             body: JSON.stringify({ question, answer })
         });
     } catch (error) {
+        console.error('Failed to update FAQ:', error);
         alert('Failed to update FAQ.');
     }
 }

@@ -51,9 +51,14 @@ async function initializeDashboard() {
         // Fetch Top Rentals after defaults are set by filters
         await fetchTopPropertiesData();
         await fetchAuditTrailData(); // Fetch audit trails
+        
+        // Hide loading states and show content
+        hideLoadingStates();
     } catch (error) {
         console.error('Error initializing dashboard:', error);
         showErrorState('Failed to load dashboard data. Please refresh the page.');
+        // Hide loading states even on error
+        hideLoadingStates();
     }
 }
 
@@ -61,6 +66,25 @@ async function initializeDashboard() {
  * Show loading states for dashboard elements
  */
 function showLoadingStates() {
+    // Show skeleton containers and hide content containers
+    const skeletonElements = ['earningsSkeleton', 'chartsSkeleton', 'auditTrailsSkeleton'];
+    const contentElements = ['earningsContent', 'chartsContent', 'auditTrailsContent'];
+    
+    skeletonElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.remove('hidden');
+        }
+    });
+    
+    contentElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.add('hidden');
+        }
+    });
+    
+    // Keep the old loading behavior for backward compatibility
     const loadingElements = [
         'totalYearEarning',
         'totalMonthEarning', 
@@ -79,6 +103,51 @@ function showLoadingStates() {
             element.textContent = '...';
         }
     });
+}
+
+/**
+ * Hide loading states and show actual content
+ */
+function hideLoadingStates() {
+    // Hide skeleton containers and show content containers
+    const skeletonElements = ['earningsSkeleton', 'chartsSkeleton', 'auditTrailsSkeleton'];
+    const contentElements = ['earningsContent', 'chartsContent', 'auditTrailsContent'];
+    
+    skeletonElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.add('hidden');
+        }
+    });
+    
+    contentElements.forEach(id => {
+        const element = document.getElementById(id);
+        if (element) {
+            element.classList.remove('hidden');
+        }
+    });
+}
+
+/**
+ * Show loading state for charts section only
+ */
+function showChartLoading() {
+    const chartsSkeleton = document.getElementById('chartsSkeleton');
+    const chartsContent = document.getElementById('chartsContent');
+    
+    if (chartsSkeleton) chartsSkeleton.classList.remove('hidden');
+    if (chartsContent) chartsContent.classList.add('hidden');
+}
+
+/**
+ * Hide loading state for charts section only
+ */
+function hideChartLoading() {
+    const chartsSkeleton = document.getElementById('chartsSkeleton');
+    const chartsContent = document.getElementById('chartsContent');
+    
+    if (chartsSkeleton) chartsSkeleton.classList.add('hidden');
+    if (chartsContent) chartsContent.classList.remove('hidden');
 }
 
 /**
@@ -122,6 +191,9 @@ async function fetchSummaryData() {
  */
 async function fetchTopPropertiesData() {
     try {
+        // Show chart loading state
+        showChartLoading();
+        
         // Build POST body with numeric fields
         const url = DASHBOARD_ENDPOINTS.rankProperty;
         const monthNum = (currentMonthFilter && currentMonthFilter !== 'all')
@@ -190,9 +262,14 @@ async function fetchTopPropertiesData() {
             populateTopPropertiesChart(chartData);
         }
         
+        // Hide chart loading state
+        hideChartLoading();
+        
     } catch (error) {
         console.error('Error fetching top properties data:', error);
         populateTopPropertiesChart([]);
+        // Hide chart loading state even on error
+        hideChartLoading();
     }
 }
 

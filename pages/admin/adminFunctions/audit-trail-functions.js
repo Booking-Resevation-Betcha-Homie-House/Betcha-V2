@@ -7,8 +7,11 @@ let customerNameMap = new Map(); // Map userId to customer name
 // Fetch audit trail data from API
 async function fetchAuditTrails() {
     try {
-        // Show loading state
+        // Show loading state for the current active tab
         showLoadingState();
+        
+        // Add a small delay to ensure skeleton is visible
+        await new Promise(resolve => setTimeout(resolve, 200));
         
         // Fetch both audit trails and customer data
         const [auditResponse, customerResponse] = await Promise.all([
@@ -51,8 +54,11 @@ async function fetchAuditTrails() {
         setupSearch();
         console.log('Search setup completed');
         
+        // Don't hide loading state here - let the filtering/rendering functions handle it
+        
     } catch (error) {
         console.error('Error fetching audit trails:', error);
+        hideLoadingState();
         showErrorMessage('Failed to load audit trail data: ' + error.message);
     }
 }
@@ -112,43 +118,41 @@ function renderAuditTrails() {
     console.log('=== RENDERING DEBUG ===');
     console.log('Rendering audit trails with filtered data count:', filteredData.length);
     
-    const tabContents = document.querySelectorAll('#tab-contents .tab-content');
-    console.log('Found tab contents:', tabContents.length);
+    const tabIndex = getCurrentTabIndex();
+    const elementIds = getTabElementIds(tabIndex);
+    const gridContainer = document.getElementById(elementIds.content);
     
-    tabContents.forEach((tabContent, index) => {
-        if (!tabContent.classList.contains('hidden')) {
-            console.log(`Tab content ${index} is visible`);
-            const gridContainer = tabContent.querySelector('.grid');
-            if (gridContainer) {
-                console.log(`Grid container found in tab ${index}`);
-                gridContainer.innerHTML = '';
-                
-                if (filteredData.length === 0) {
-                    console.log('No filtered data, showing no data message');
-                    gridContainer.innerHTML = `
-                        <div class="col-span-full flex items-center justify-center h-32">
-                            <p class="text-neutral-500 text-center">No audit trails found for this user type.</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                console.log(`Rendering ${filteredData.length} audit cards`);
-                filteredData.forEach((audit, auditIndex) => {
-                    const auditCardHTML = createAuditCard(audit);
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = auditCardHTML;
-                    const auditCard = tempDiv.firstElementChild;
-                    gridContainer.appendChild(auditCard);
-                    console.log(`Added audit card ${auditIndex + 1} to grid`);
-                });
-            } else {
-                console.log(`No grid container found in tab ${index}`);
-            }
-        } else {
-            console.log(`Tab content ${index} is hidden`);
+    if (gridContainer) {
+        console.log(`Grid container found for tab ${tabIndex}`);
+        gridContainer.innerHTML = '';
+        
+        if (filteredData.length === 0) {
+            console.log('No filtered data, showing no data message');
+            gridContainer.innerHTML = `
+                <div class="col-span-full flex items-center justify-center h-32">
+                    <p class="text-neutral-500 text-center">No audit trails found for this user type.</p>
+                </div>
+            `;
+            hideLoadingState();
+            return;
         }
-    });
+        
+        console.log(`Rendering ${filteredData.length} audit cards`);
+        filteredData.forEach((audit, auditIndex) => {
+            const auditCardHTML = createAuditCard(audit);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = auditCardHTML;
+            const auditCard = tempDiv.firstElementChild;
+            gridContainer.appendChild(auditCard);
+            console.log(`Added audit card ${auditIndex + 1} to grid`);
+        });
+        
+        // Hide skeleton and show content
+        hideLoadingState();
+    } else {
+        console.log(`No grid container found for tab ${tabIndex}`);
+    }
+    
     console.log('=== END RENDERING DEBUG ===');
 }
 
@@ -296,100 +300,134 @@ function renderSearchResults(results) {
     console.log('=== RENDERING SEARCH RESULTS DEBUG ===');
     console.log('Rendering search results:', results.length);
     
-    const tabContents = document.querySelectorAll('#tab-contents .tab-content');
-    console.log('Found tab contents:', tabContents.length);
+    const tabIndex = getCurrentTabIndex();
+    const elementIds = getTabElementIds(tabIndex);
+    const gridContainer = document.getElementById(elementIds.content);
     
-    tabContents.forEach((tabContent, index) => {
-        if (!tabContent.classList.contains('hidden')) {
-            console.log(`Tab content ${index} is visible`);
-            const gridContainer = tabContent.querySelector('.grid');
-            if (gridContainer) {
-                console.log(`Grid container found in tab ${index}, clearing and rendering search results`);
-                gridContainer.innerHTML = '';
-                
-                if (results.length === 0) {
-                    console.log('No search results, showing no results message');
-                    gridContainer.innerHTML = `
-                        <div class="col-span-full flex items-center justify-center h-32">
-                            <p class="text-neutral-500 text-center">No results found for your search.</p>
-                        </div>
-                    `;
-                    return;
-                }
-                
-                console.log(`Rendering ${results.length} search result cards`);
-                results.forEach((audit, auditIndex) => {
-                    const auditCardHTML = createAuditCard(audit);
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = auditCardHTML;
-                    const auditCard = tempDiv.firstElementChild;
-                    gridContainer.appendChild(auditCard);
-                    console.log(`Added search result card ${auditIndex + 1} to grid`);
-                });
-            } else {
-                console.log(`No grid container found in tab ${index}`);
-            }
-        } else {
-            console.log(`Tab content ${index} is hidden`);
+    if (gridContainer) {
+        console.log(`Grid container found for tab ${tabIndex}, clearing and rendering search results`);
+        gridContainer.innerHTML = '';
+        
+        if (results.length === 0) {
+            console.log('No search results, showing no results message');
+            gridContainer.innerHTML = `
+                <div class="col-span-full flex items-center justify-center h-32">
+                    <p class="text-neutral-500 text-center">No results found for your search.</p>
+                </div>
+            `;
+            hideLoadingState();
+            return;
         }
-    });
+        
+        console.log(`Rendering ${results.length} search result cards`);
+        results.forEach((audit, auditIndex) => {
+            const auditCardHTML = createAuditCard(audit);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = auditCardHTML;
+            const auditCard = tempDiv.firstElementChild;
+            gridContainer.appendChild(auditCard);
+            console.log(`Added search result card ${auditIndex + 1} to grid`);
+        });
+        
+        // Hide skeleton and show content
+        hideLoadingState();
+    } else {
+        console.log(`No grid container found for tab ${tabIndex}`);
+    }
+    
     console.log('=== END RENDERING SEARCH RESULTS DEBUG ===');
 }
 
-// Show loading state
-function showLoadingState() {
+// Get current active tab index
+function getCurrentTabIndex() {
     const tabContents = document.querySelectorAll('#tab-contents .tab-content');
-    
-    tabContents.forEach((tabContent) => {
-        if (!tabContent.classList.contains('hidden')) {
-            const gridContainer = tabContent.querySelector('.grid');
-            if (gridContainer) {
-                gridContainer.innerHTML = `
-                    <div class="col-span-full flex items-center justify-center h-32">
-                        <p class="text-neutral-500 text-center">Loading audit trails...</p>
-                    </div>
-                `;
-            }
+    for (let i = 0; i < tabContents.length; i++) {
+        if (!tabContents[i].classList.contains('hidden')) {
+            return i;
         }
-    });
+    }
+    return 0; // Default to first tab
+}
+
+// Get tab-specific element IDs
+function getTabElementIds(tabIndex) {
+    const tabNames = ['Admin', 'Employee', 'Customer'];
+    const tabName = tabNames[tabIndex] || 'Admin';
+    return {
+        skeleton: `auditSkeleton${tabName}`,
+        content: `auditContent${tabName}`
+    };
+}
+
+// Show loading state with skeleton
+function showLoadingState() {
+    const tabIndex = getCurrentTabIndex();
+    const elementIds = getTabElementIds(tabIndex);
+    
+    const skeletonContainer = document.getElementById(elementIds.skeleton);
+    const contentContainer = document.getElementById(elementIds.content);
+    
+    if (skeletonContainer) skeletonContainer.classList.remove('hidden');
+    if (contentContainer) contentContainer.classList.add('hidden');
+}
+
+// Hide skeleton and show content
+function hideLoadingState() {
+    const tabIndex = getCurrentTabIndex();
+    const elementIds = getTabElementIds(tabIndex);
+    
+    const skeletonContainer = document.getElementById(elementIds.skeleton);
+    const contentContainer = document.getElementById(elementIds.content);
+    
+    if (skeletonContainer) skeletonContainer.classList.add('hidden');
+    if (contentContainer) contentContainer.classList.remove('hidden');
 }
 
 // Show no data message
 function showNoDataMessage(userType) {
-    const tabContents = document.querySelectorAll('#tab-contents .tab-content');
-
-    tabContents.forEach((tabContent) => {
-        if (!tabContent.classList.contains('hidden')) {
-            const gridContainer = tabContent.querySelector('.grid');
-            if (gridContainer) {
-                // Map Guest to Customer for display
-                const displayUserType = userType === 'Guest' ? 'Customer' : userType;
-                gridContainer.innerHTML = `
-                    <div class="col-span-full flex items-center justify-center h-32">
-                        <p class="text-neutral-500 text-center">No audit trails found for ${displayUserType} users.</p>
-                    </div>
-                `;
-            }
-        }
-    });
+    const tabIndex = getCurrentTabIndex();
+    const elementIds = getTabElementIds(tabIndex);
+    const gridContainer = document.getElementById(elementIds.content);
+    
+    if (gridContainer) {
+        // Map Guest to Customer for display
+        const displayUserType = userType === 'Guest' ? 'Customer' : userType;
+        gridContainer.innerHTML = `
+            <div class="col-span-full flex items-center justify-center h-32">
+                <p class="text-neutral-500 text-center">No audit trails found for ${displayUserType} users.</p>
+            </div>
+        `;
+        // Hide skeleton and show content
+        hideLoadingState();
+    }
 }
 
 // Show error message
 function showErrorMessage(message) {
-    const tabContents = document.querySelectorAll('#tab-contents .tab-content');
+    const tabIndex = getCurrentTabIndex();
+    const elementIds = getTabElementIds(tabIndex);
+    const gridContainer = document.getElementById(elementIds.content);
     
-    tabContents.forEach((tabContent) => {
-        if (!tabContent.classList.contains('hidden')) {
-            const gridContainer = tabContent.querySelector('.grid');
-            if (gridContainer) {
-                gridContainer.innerHTML = `
-                    <div class="col-span-full flex items-center justify-center h-32">
-                        <p class="text-red-500 text-center">${message}</p>
+    if (gridContainer) {
+        gridContainer.innerHTML = `
+            <div class="col-span-full flex items-center justify-center h-32">
+                <div class="text-center">
+                    <div class="text-red-400 mb-4">
+                        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
                     </div>
-                `;
-            }
-        }
-    });
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Error Loading Data</h3>
+                    <p class="text-red-500 mb-4">${message}</p>
+                    <button onclick="fetchAuditTrails()" class="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary-dark transition-colors">
+                        Retry
+                    </button>
+                </div>
+            </div>
+        `;
+        // Hide skeleton and show content
+        hideLoadingState();
+    }
 }
 
 // Enhanced tab switching function for audit trails
@@ -451,7 +489,13 @@ function setActiveAuditTab(tabIndex) {
     console.log(`Filtering for user type: ${userType}`);
     console.log('=== END TAB SWITCHING DEBUG ===');
     
-    filterByUserType(userType);
+    // Show skeleton loading for the new tab
+    showLoadingState();
+    
+    // Add a small delay to ensure skeleton is visible before filtering
+    setTimeout(() => {
+        filterByUserType(userType);
+    }, 100);
 }
 
 // Initialize audit trail functionality
@@ -462,12 +506,11 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('audit-search');
     console.log('Search input found on DOM load:', !!searchInput);
     
-    // Fetch audit trails when page loads
+    // Initialize the Admin tab first (this sets up the correct tab visibility)
+    setActiveAuditTab(0);
+    
+    // Then fetch audit trails (this will show skeleton and load data)
     fetchAuditTrails().then(() => {
-        // After data is fetched, initialize the Admin tab (index 0)
-        // This will filter and show only Admin data
-        setActiveAuditTab(0);
-        
         // Double-check search setup after tab initialization
         console.log('Double-checking search setup after tab initialization...');
         setupSearch();

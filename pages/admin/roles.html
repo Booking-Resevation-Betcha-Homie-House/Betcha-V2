@@ -348,7 +348,103 @@
                   </div>
                 </div>
                 <div class="overflow-x-auto p-3">
-                    <div id="rolesGrid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
+                    <!-- Skeleton Loading -->
+                    <div id="rolesSkeleton" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
+                        <!-- Skeleton Role Cards -->
+                        <div class="bg-white rounded-3xl shadow-md p-5 animate-pulse">
+                            <div class="flex flex-col gap-2 mb-4">
+                                <div class="h-5 bg-gray-300 rounded w-32 mb-2"></div>
+                                <div class="h-3 bg-gray-300 rounded w-16 mb-2"></div>
+                                <div class="space-y-2 mb-4">
+                                    <div class="h-3 bg-gray-300 rounded w-full"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-3/4"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-5/6"></div>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 w-full mt-auto">
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-3xl shadow-md p-5 animate-pulse">
+                            <div class="flex flex-col gap-2 mb-4">
+                                <div class="h-5 bg-gray-300 rounded w-28 mb-2"></div>
+                                <div class="h-3 bg-gray-300 rounded w-16 mb-2"></div>
+                                <div class="space-y-2 mb-4">
+                                    <div class="h-3 bg-gray-300 rounded w-full"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-4/5"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-2/3"></div>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 w-full mt-auto">
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-3xl shadow-md p-5 animate-pulse">
+                            <div class="flex flex-col gap-2 mb-4">
+                                <div class="h-5 bg-gray-300 rounded w-36 mb-2"></div>
+                                <div class="h-3 bg-gray-300 rounded w-16 mb-2"></div>
+                                <div class="space-y-2 mb-4">
+                                    <div class="h-3 bg-gray-300 rounded w-full"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-3/5"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-4/5"></div>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 w-full mt-auto">
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-3xl shadow-md p-5 animate-pulse">
+                            <div class="flex flex-col gap-2 mb-4">
+                                <div class="h-5 bg-gray-300 rounded w-24 mb-2"></div>
+                                <div class="h-3 bg-gray-300 rounded w-16 mb-2"></div>
+                                <div class="space-y-2 mb-4">
+                                    <div class="h-3 bg-gray-300 rounded w-full"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-2/3"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-5/6"></div>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 w-full mt-auto">
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-3xl shadow-md p-5 animate-pulse">
+                            <div class="flex flex-col gap-2 mb-4">
+                                <div class="h-5 bg-gray-300 rounded w-30 mb-2"></div>
+                                <div class="h-3 bg-gray-300 rounded w-16 mb-2"></div>
+                                <div class="space-y-2 mb-4">
+                                    <div class="h-3 bg-gray-300 rounded w-full"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-4/6"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-3/4"></div>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 w-full mt-auto">
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                            </div>
+                        </div>
+                        <div class="bg-white rounded-3xl shadow-md p-5 animate-pulse">
+                            <div class="flex flex-col gap-2 mb-4">
+                                <div class="h-5 bg-gray-300 rounded w-32 mb-2"></div>
+                                <div class="h-3 bg-gray-300 rounded w-16 mb-2"></div>
+                                <div class="space-y-2 mb-4">
+                                    <div class="h-3 bg-gray-300 rounded w-full"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-3/5"></div>
+                                    <div class="h-3 bg-gray-300 rounded w-4/5"></div>
+                                </div>
+                            </div>
+                            <div class="flex gap-3 w-full mt-auto">
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                                <div class="h-12 bg-gray-300 rounded-2xl w-full"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Actual Roles Grid -->
+                    <div id="rolesGrid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full hidden">
                         <!-- Roles will be populated here -->
                     </div>
                 
