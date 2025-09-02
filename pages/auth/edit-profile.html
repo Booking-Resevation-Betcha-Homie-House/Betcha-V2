@@ -270,67 +270,6 @@
               </svg>
               <input id="phoneInput" type="tel" placeholder="09XXXXXXXXX or +639XXXXXXXXX" inputmode="numeric" pattern="^(?:\+639|09)\d{9}$" title="Use 11-digit 09XXXXXXXXX or +639XXXXXXXXX" maxlength="13" class="flex-1 bg-transparent focus:outline-none text-sm md:text-base font-normal" />
           </div>
-          
-          <!-- Birthday -->
-          <div class="flex flex-col gap-3 ">
-            <p class="text-sm text-muted">Birthdate</p>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <!-- Month -->
-              <div class="relative w-full">
-                  <button type="button" id="monthDropdownBtn" class="input-style flex justify-between items-center w-full group">
-                      <div class="flex items-center justify-center gap-3">
-                          <span class="text-muted font-manrope font-semibold 
-                          transition-colors duration-200 
-                          group-focus-within:text-primary
-                          text-sm md:text-base">mm</span>
-                          <span id="selectedMonth" class="text-muted text-sm md:text-base">Month</span>
-                      </div>
-                      
-                      <svg id="monthDropdownIcon" class="w-4 md:w-5 text-neutral-500 transition-transform duration-300" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1.5L8 8.5L15 1.5" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="bevel" />
-                      </svg>
-                  </button>
-                  <ul id="monthDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-neutral-300 rounded-xl shadow hidden text-sm md:text-base text-primary-text max-h-48 overflow-y-auto"></ul>
-              </div>
-
-              <!-- Day -->
-              <div class="relative w-full">
-                  <button type="button" id="dayDropdownBtn" class="input-style flex justify-between items-center w-full group">
-                      <div class="flex items-center justify-center gap-3">
-                          <span class="text-muted font-manrope font-semibold 
-                          transition-colors duration-200 
-                          group-focus-within:text-primary
-                          text-sm md:text-base">mm</span>
-                          <span id="selectedDay" class="text-muted text-sm md:text-base">Month</span>
-                      </div>
-                      
-                      <svg id="dayDropdownIcon" class="w-4 md:w-5 text-neutral-500 transition-transform duration-300" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1.5L8 8.5L15 1.5" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="bevel" />
-                      </svg>
-                  </button>
-                  <ul id="dayDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-neutral-300 rounded-xl shadow hidden text-sm md:text-base text-primary-text max-h-48 overflow-y-auto"></ul>
-              </div>
-
-
-              <!-- Year -->
-              <div class="relative w-full">
-                  <button type="button" id="yearDropdownBtn" class="input-style flex justify-between items-center w-full group">
-                      <div class="flex items-center justify-center gap-3">
-                          <span class="text-muted font-manrope font-semibold 
-                          transition-colors duration-200 
-                          group-focus-within:text-primary
-                          text-sm md:text-base">mm</span>
-                          <span id="selectedYear" class="text-muted text-sm md:text-base">Month</span>
-                      </div>
-                      
-                      <svg id="yearDropdownIcon" class="w-4 md:w-5 text-neutral-500 transition-transform duration-300" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M1 1.5L8 8.5L15 1.5" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="bevel" />
-                      </svg>
-                  </button>
-                  <ul id="yearDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-neutral-300 rounded-xl shadow hidden text-sm md:text-base text-primary-text max-h-48 overflow-y-auto"></ul>
-              </div>
-            </div>
-          </div>
 
           <!-- Save Button -->
           <div class="pt-4 flex flex-col md:flex-row gap-5">

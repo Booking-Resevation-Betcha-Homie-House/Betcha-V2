@@ -67,7 +67,6 @@
         const lastName = (guest && guest.lastname) || localStorage.getItem('lastName') || '';
         const phoneNumber = (guest && guest.phoneNumber) || '';
         const sex = (guest && guest.sex) || '';
-        const birthday = (guest && guest.birthday) || '';
         const pfplink = (guest && guest.pfplink) || localStorage.getItem('pfplink') || '';
 
         setValue('firstNameInput', firstName);
@@ -78,19 +77,6 @@
         // Sex dropdown label
         const selectedSex = document.getElementById('selectedSex');
         if (selectedSex && sex) selectedSex.textContent = sex;
-
-        // Birthday dropdown labels
-        if (birthday) {
-            const d = new Date(birthday);
-            if (!Number.isNaN(d.getTime())) {
-                const month = d.toLocaleString(undefined, { month: 'long' });
-                const day = String(d.getDate());
-                const year = String(d.getFullYear());
-                setText('selectedMonth', month);
-                setText('selectedDay', day);
-                setText('selectedYear', year);
-            }
-        }
 
         // Avatar
         const avatarImg = document.getElementById('profileAvatarImg');
@@ -205,11 +191,6 @@
             return;
         }
         const sex = getText('selectedSex');
-        const monthLabel = getText('selectedMonth');
-        const dayLabel = getText('selectedDay');
-        const yearLabel = getText('selectedYear');
-
-        const birthday = buildIsoDate(yearLabel, monthLabel, dayLabel); // yyyy-mm-dd or ''
 
         const payload = {};
         if (firstname) payload.firstname = firstname;
@@ -217,7 +198,6 @@
         if (lastname) payload.lastname = lastname;
         if (phoneNumber) payload.phoneNumber = phoneNumber;
         if (sex && sex !== 'Sex') payload.sex = sex;
-        if (birthday) payload.birthday = birthday;
 
         try {
             const resp = await fetch(`${API_BASE_URL}/guest/update/${userId}`, {
@@ -237,7 +217,6 @@
             if (payload.lastname !== undefined) localStorage.setItem('lastName', payload.lastname);
             if (payload.phoneNumber !== undefined) localStorage.setItem('phoneNumber', payload.phoneNumber);
             if (payload.sex !== undefined) localStorage.setItem('sex', payload.sex);
-            if (payload.birthday !== undefined) localStorage.setItem('birthday', payload.birthday);
 
             // Redirect back to profile or show success
             window.location.href = 'profile.html';
@@ -255,23 +234,6 @@
     function getText(id) {
         const el = document.getElementById(id);
         return el ? (el.textContent || '').trim() : '';
-    }
-
-    function buildIsoDate(yearLabel, monthLabel, dayLabel) {
-        if (!yearLabel || !monthLabel || !dayLabel) return '';
-        const monthIndex = monthNameToNumber(monthLabel);
-        if (monthIndex === null) return '';
-        const monthStr = String(monthIndex).padStart(2, '0');
-        const dayStr = String(parseInt(dayLabel, 10)).padStart(2, '0');
-        return `${yearLabel}-${monthStr}-${dayStr}`;
-    }
-
-    function monthNameToNumber(name) {
-        const months = [
-            'January','February','March','April','May','June','July','August','September','October','November','December'
-        ];
-        const idx = months.findIndex(m => m.toLowerCase() === String(name).toLowerCase());
-        return idx === -1 ? null : idx + 1;
     }
 
     async function safeText(resp) {
