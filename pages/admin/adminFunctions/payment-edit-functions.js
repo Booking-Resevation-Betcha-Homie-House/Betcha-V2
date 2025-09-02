@@ -25,11 +25,14 @@ let allPayments = []; // Store all payments for search functionality
 
 // Initialize edit functionality
 document.addEventListener('DOMContentLoaded', function() {
-    initializeEditForm();
-    setupPaymentMethodIntegration();
-    initializeFileUpload();
-    setupFormSubmission();
-    setupSearchFunctionality();
+    // Ensure payment dropdown is initialized first
+    setTimeout(() => {
+        initializeEditForm();
+        setupPaymentMethodIntegration();
+        initializeFileUpload();
+        setupFormSubmission();
+        setupSearchFunctionality();
+    }, 100); // Small delay to ensure dropdown is ready
 });
 
 // Initialize the edit form with payment data
@@ -88,48 +91,130 @@ function populateFormFields(paymentData) {
     // Set payment method dropdown
     const selectedMethodElement = document.getElementById('selectedPaymentMethod');
     const paymentNameDiv = document.getElementById('paymentNameDiv');
-    const customNameInput = document.getElementById('input-payment-name');
+    const mainNameInput = document.getElementById('input-main-payment-name');
+    const customNameInput = document.getElementById('input-custom-payment-name');
+    const paymentDropdownList = document.getElementById('paymentDropdownList');
+    
+    // Always populate the main payment name input first
+    if (mainNameInput && paymentData.paymentName) {
+        mainNameInput.value = paymentData.paymentName;
+    }
     
     let category = paymentData.category;
     if (!category && paymentData.paymentName) {
+        // Try to infer category from payment name
         category = PAYMENT_CATEGORIES.find(cat => 
             paymentData.paymentName.toLowerCase().includes(cat.toLowerCase())
         ) || 'Other';
     }
     
     // Set the payment method category in dropdown
-    if (category) {
+    if (category && PAYMENT_CATEGORIES.includes(category)) {
         selectedMethodElement.textContent = category;
         selectedMethodElement.setAttribute('data-value', category);
         selectedMethodElement.classList.remove('text-neutral-400');
         selectedMethodElement.classList.add('text-primary-text');
         
-        if (category === 'Other' || !PAYMENT_CATEGORIES.includes(category)) {
-            paymentNameDiv.classList.remove('hidden');
-            customNameInput.value = paymentData.paymentName || '';
-        } else {
-            paymentNameDiv.classList.add('hidden');
+        // Hide the custom name input for predefined categories
+        paymentNameDiv.classList.add('hidden');
+        if (customNameInput) {
             customNameInput.value = paymentData.paymentName || category;
         }
     } else {
+        // Set to "Other" and show custom name input
         selectedMethodElement.textContent = 'Other';
         selectedMethodElement.setAttribute('data-value', 'Other');
         selectedMethodElement.classList.remove('text-neutral-400');
         selectedMethodElement.classList.add('text-primary-text');
         paymentNameDiv.classList.remove('hidden');
-        customNameInput.value = paymentData.paymentName || '';
+        if (customNameInput) {
+            customNameInput.value = paymentData.paymentName || '';
+        }
     }
     
+    // Trigger visual update for the dropdown if needed
+    const dropdownIcon = document.getElementById('paymentDropdownIcon');
+    if (dropdownIcon) {
+        dropdownIcon.classList.remove('rotate-180');
+    }
+    
+    // Ensure dropdown list is hidden
+    if (paymentDropdownList) {
+        paymentDropdownList.classList.add('hidden');
+    }
+    
+    // Handle QR image display
     if (paymentData.qrPhotoLink && paymentData.qrPhotoLink.trim() !== '') {
         const preview = document.getElementById('qr-preview');
         const placeholder = document.getElementById('qr-placeholder');
         
         if (preview && placeholder) {
-            preview.src = paymentData.qrPhotoLink;
-            preview.style.display = 'block';
-            placeholder.style.display = 'none';
+            // Process the image URL for proper display
+            let imageUrl = paymentData.qrPhotoLink;
+            
+            // Handle Google Drive links
+            const driveFileIdMatch = imageUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+            if (driveFileIdMatch) {
+                imageUrl = `https://drive.google.com/thumbnail?id=${driveFileIdMatch[1]}&sz=w400-h400`;
+            }
+            
+            // Set up image loading with error handling
+            preview.onload = function() {
+                preview.style.display = 'block';
+                preview.style.opacity = '1';
+                
+                // Update placeholder to show "Change QR Code"
+                placeholder.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                placeholder.innerHTML = `
+                    <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" 
+                            d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                    </svg>
+                    <span class="text-sm font-medium">Change QR Code</span>
+                `;
+            };
+            
+            preview.onerror = function() {
+                // If image fails to load, show upload placeholder
+                preview.style.display = 'none';
+                placeholder.style.display = 'flex';
+                placeholder.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                placeholder.innerHTML = `
+                    <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" 
+                            d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                    </svg>
+                    <span class="text-sm font-medium">Upload QR Code</span>
+                `;
+                console.warn('Failed to load QR image:', imageUrl);
+            };
+            
+            preview.src = imageUrl;
+        }
+    } else {
+        // No existing image, keep the upload placeholder
+        const preview = document.getElementById('qr-preview');
+        const placeholder = document.getElementById('qr-placeholder');
+        
+        if (preview && placeholder) {
+            preview.style.display = 'none';
+            placeholder.style.display = 'flex';
+            placeholder.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+            placeholder.innerHTML = `
+                <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" 
+                        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                </svg>
+                <span class="text-sm font-medium">Upload QR Code</span>
+            `;
         }
     }
+    
+    console.log('Form populated with:', {
+        category: category,
+        paymentName: paymentData.paymentName,
+        hasQrImage: !!(paymentData.qrPhotoLink && paymentData.qrPhotoLink.trim() !== '')
+    });
 }
 
 // Setup integration with paymentMethodOption.js dropdown
@@ -143,7 +228,7 @@ function setupPaymentMethodIntegration() {
         
         selectedMethodElement.setAttribute('data-value', selectedValue);
         
-        const customNameInput = document.getElementById('input-payment-name');
+        const customNameInput = document.getElementById('input-custom-payment-name');
         if (selectedValue === 'Other') {
             customNameDiv.classList.remove('hidden');
         } else {
@@ -259,7 +344,8 @@ function setupFormSubmission() {
 
 function validatePaymentForm() {
     const selectedMethod = document.getElementById('selectedPaymentMethod');
-    const customNameInput = document.getElementById('input-payment-name');
+    const mainNameInput = document.getElementById('input-main-payment-name');
+    const customNameInput = document.getElementById('input-custom-payment-name');
     
     const selectedCategory = selectedMethod.getAttribute('data-value') || selectedMethod.textContent.trim();
     
@@ -271,14 +357,18 @@ function validatePaymentForm() {
     
     let paymentName;
     if (selectedCategory === 'Other') {
-        paymentName = customNameInput.value.trim();
+        paymentName = customNameInput ? customNameInput.value.trim() : '';
         if (!paymentName) {
             showError('Please enter a custom payment name');
-            customNameInput.focus();
+            if (customNameInput) customNameInput.focus();
             return { isValid: false };
         }
     } else {
-        paymentName = customNameInput.value.trim() || selectedCategory;
+        // For predefined categories, use the main input or fall back to category name
+        paymentName = mainNameInput ? mainNameInput.value.trim() : '';
+        if (!paymentName) {
+            paymentName = selectedCategory;
+        }
     }
     
     return { 
@@ -364,7 +454,7 @@ async function validateAndSubmitForm() {
             throw new Error(`Update failed (${response.status}): ${errorData}`);
         }
 
-        const result = await response.json();
+        const _result = await response.json();
         
         const hasNewImage = fileInput.files[0];
         const successMessage = hasNewImage 
@@ -410,6 +500,18 @@ function convertFileToBase64(file) {
 }
 
 // Utility functions for loading states and notifications
+
+function showLoadingState() {
+    if (window.BetchaLoader) {
+        window.BetchaLoader.show();
+    }
+}
+
+function hideLoadingState() {
+    if (window.BetchaLoader) {
+        window.BetchaLoader.hide();
+    }
+}
 
 function showSuccess(message) {
     const toast = document.createElement('div');
@@ -490,40 +592,46 @@ function filterPayments(searchTerm) {
 
 // Setup payment name autocomplete functionality
 function setupPaymentNameAutocomplete() {
-    const customNameInput = document.getElementById('input-payment-name');
+    const customNameInput = document.getElementById('input-custom-payment-name');
+    const mainNameInput = document.getElementById('input-main-payment-name');
     const selectedMethodElement = document.getElementById('selectedPaymentMethod');
     
-    if (customNameInput && allPayments.length > 0) {
-        let datalist = document.getElementById('payment-names-datalist');
-        if (!datalist) {
-            datalist = document.createElement('datalist');
-            datalist.id = 'payment-names-datalist';
-            customNameInput.setAttribute('list', 'payment-names-datalist');
-            customNameInput.parentNode.appendChild(datalist);
-        }
-        
-        const uniqueNames = [...new Set(allPayments.map(p => p.paymentName).filter(Boolean))];
-        datalist.innerHTML = uniqueNames.map(name => `<option value="${name}">`).join('');
-        
-        customNameInput.addEventListener('input', function(e) {
-            const inputValue = e.target.value.toLowerCase();
-            const selectedCategory = selectedMethodElement.getAttribute('data-value') || selectedMethodElement.textContent.trim();
+    // Setup autocomplete for both inputs if they exist and we have payment data
+    if (allPayments.length > 0) {
+        [customNameInput, mainNameInput].forEach(input => {
+            if (!input) return;
             
-            let suggestions = allPayments.filter(payment => {
-                const nameMatch = payment.paymentName && payment.paymentName.toLowerCase().includes(inputValue);
-                const categoryMatch = !selectedCategory || selectedCategory === 'Select Payment' || payment.category === selectedCategory;
-                return nameMatch && categoryMatch;
-            }).map(p => p.paymentName);
+            let datalist = document.getElementById(`${input.id}-datalist`);
+            if (!datalist) {
+                datalist = document.createElement('datalist');
+                datalist.id = `${input.id}-datalist`;
+                input.setAttribute('list', datalist.id);
+                input.parentNode.appendChild(datalist);
+            }
             
-            suggestions = [...new Set(suggestions)];
+            const uniqueNames = [...new Set(allPayments.map(p => p.paymentName).filter(Boolean))];
+            datalist.innerHTML = uniqueNames.map(name => `<option value="${name}">`).join('');
             
-            datalist.innerHTML = suggestions.map(name => `<option value="${name}">`).join('');
+            input.addEventListener('input', function(e) {
+                const inputValue = e.target.value.toLowerCase();
+                const selectedCategory = selectedMethodElement.getAttribute('data-value') || selectedMethodElement.textContent.trim();
+                
+                let suggestions = allPayments.filter(payment => {
+                    const nameMatch = payment.paymentName && payment.paymentName.toLowerCase().includes(inputValue);
+                    const categoryMatch = !selectedCategory || selectedCategory === 'Select Payment' || payment.category === selectedCategory;
+                    return nameMatch && categoryMatch;
+                }).map(p => p.paymentName);
+                
+                suggestions = [...new Set(suggestions)];
+                
+                datalist.innerHTML = suggestions.map(name => `<option value="${name}">`).join('');
+            });
         });
     }
 }
 
 // Enhanced search with category filtering
-function searchPaymentsByCategory(category, searchTerm = '') {
+function _searchPaymentsByCategory(category, searchTerm = '') {
     if (!allPayments.length) return [];
     
     return allPayments.filter(payment => {
@@ -536,7 +644,7 @@ function searchPaymentsByCategory(category, searchTerm = '') {
 }
 
 // Get payment suggestions for form
-function getPaymentSuggestions(partialName) {
+function _getPaymentSuggestions(partialName) {
     if (!allPayments.length || !partialName) return [];
     
     const searchTerm = partialName.toLowerCase();
@@ -552,12 +660,12 @@ function getPaymentSuggestions(partialName) {
 }
 
 // Quick search for specific payment by ID
-function findPaymentById(paymentId) {
+function _findPaymentById(paymentId) {
     return allPayments.find(payment => payment._id === paymentId);
 }
 
 // Search payments by multiple criteria
-function advancedPaymentSearch(criteria) {
+function _advancedPaymentSearch(criteria) {
     if (!allPayments.length) return [];
     
     return allPayments.filter(payment => {
@@ -574,7 +682,7 @@ function advancedPaymentSearch(criteria) {
     });
 }
 
-function renderPaymentSearchResults(payments, containerId = 'payment-search-results') {
+function _renderPaymentSearchResults(payments, containerId = 'payment-search-results') {
     const container = document.getElementById(containerId);
     if (!container) return;
     
@@ -605,7 +713,7 @@ function renderPaymentSearchResults(payments, containerId = 'payment-search-resu
                     ${payment.category ? `<p class="text-sm text-neutral-500">${payment.category}</p>` : ''}
                     <p class="text-xs text-neutral-400">Created: ${formatPaymentDate(payment.createdAt)}</p>
                 </div>
-                <button onclick="selectPaymentForEdit('${payment._id}')" 
+                <button onclick="_selectPaymentForEdit('${payment._id}')" 
                         class="px-4 py-2 bg-primary/10 text-primary rounded-lg hover:bg-primary/20 transition-all duration-300">
                     Select
                 </button>
@@ -642,7 +750,7 @@ function formatPaymentDate(dateString) {
     return `${month}/${day}/${year}`;
 }
 
-function selectPaymentForEdit(paymentId) {
+function _selectPaymentForEdit(paymentId) {
     sessionStorage.setItem('editPaymentId', paymentId);
     window.location.reload();
 }

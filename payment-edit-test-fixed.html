@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/src/index.css">
+    <title>Payment Edit Test - Fixed</title>
+</head>
+<body class="bg-background p-8">
+    <div class="max-w-md mx-auto bg-white rounded-xl p-6">
+        <h1 class="text-2xl font-bold mb-6">Payment Edit Test - Fixed</h1>
+        
+        <button id="testGCash" class="bg-green-500 text-white px-4 py-2 rounded mb-2 mr-2">
+            Test GCash Auto-fill
+        </button>
+        <button id="testOther" class="bg-blue-500 text-white px-4 py-2 rounded mb-4">
+            Test "Other" Auto-fill
+        </button>
+        
+        <div class="mb-5 space-y-3">
+            <!-- Main Payment Name Input -->
+            <div class="flex flex-col gap-2 w-full group">
+                <label for="input-main-payment-name" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                    Payment Name:
+                </label>
+                <div class="input-style3 flex items-center justify-center gap-3 border border-neutral-300 rounded-xl p-3">
+                    <input id="input-main-payment-name" type="text" placeholder="Enter payment name" class="flex-1 bg-transparent focus:outline-none text-sm md:text-base">
+                </div>
+            </div>
+            
+            <!-- Payment Method Dropdown -->
+            <div class="flex flex-col gap-2 w-full group">
+                <label for="paymentDropdownBtn" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                    Payment method:
+                </label>
+                <div class="relative w-full">
+                    <button type="button" id="paymentDropdownBtn" class="input-style3 flex justify-between items-center w-full group border border-neutral-300 rounded-xl p-3">
+                        <span id="selectedPaymentMethod" class="text-neutral-600 text-sm md:text-base">Select Payment</span>
+                        <svg id="paymentDropdownIcon" class="w-4 md:w-5 text-neutral-500 transition-transform duration-300" viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1 1.5L8 8.5L15 1.5" stroke="#666666" stroke-width="2" stroke-linecap="round" stroke-linejoin="bevel" />
+                        </svg>
+                    </button>
+                    <ul id="paymentDropdownList" class="absolute z-50 mt-1 bg-white w-full border border-neutral-300 rounded-xl shadow hidden text-sm md:text-base text-primary-text max-h-48 overflow-y-auto">
+                    </ul>
+                </div>
+            </div>
+            
+            <!-- Custom Payment Name Input -->
+            <div id="paymentNameDiv" class="flex-col gap-2 w-full group hidden">
+                <label for="input-custom-payment-name" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                    Payment platform name
+                </label>
+                <div class="input-style3 flex items-center justify-center gap-3 border border-neutral-300 rounded-xl p-3">
+                    <input 
+                        id="input-custom-payment-name"
+                        type="text" 
+                        placeholder="Payment platform name" 
+                        class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
+                    />
+                </div>
+            </div>
+        </div>
+
+        <!-- QR Upload -->
+        <div class="flex flex-col gap-2 group">
+            <label for="input-qr-image" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                QR image
+            </label>
+            <div id="input-qr-image" class="relative rounded-xl overflow-hidden mb-5 group bg-neutral-300 w-full aspect-square">
+                <img id="qr-preview" 
+                    class="w-full h-full object-cover object-center absolute inset-0 z-0 opacity-70 transition-opacity duration-300 group-hover:opacity-100" />
+
+                <div id="qr-placeholder" 
+                    class="absolute inset-0 flex flex-col items-center justify-center bg-black/30 text-white z-10
+                    transition-all duration-500 ease-in-out
+                    group-hover:scale-105">
+                    <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" 
+                            d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                    </svg>
+                    <span class="text-sm font-medium">Upload QR Code</span>
+                </div>
+
+                <input type="file" id="qr-upload" accept="image/*" 
+                    class="absolute inset-0 opacity-0 cursor-pointer z-20" />
+            </div>
+        </div>
+        
+        <div id="debugInfo" class="mt-4 p-3 bg-gray-100 rounded text-sm">
+            Debug info will appear here...
+        </div>
+    </div>
+
+    <script src="/src/simple-loader.js"></script>
+    <script src="/src/paymentMethodOption.js"></script>
+    <script>
+        // Test constants
+        const PAYMENT_CATEGORIES = ['GCash', 'Maya', 'GoTyme', 'Union Bank'];
+        
+        // Test data
+        const testDataGCash = {
+            _id: 'test123',
+            paymentName: 'GCash - Main Account',
+            category: 'GCash',
+            qrPhotoLink: 'https://drive.google.com/file/d/1kKUH8EQDR2Uh-Yn7lYOdz6wRYF7QqK6U/view?usp=sharing'
+        };
+        
+        const testDataOther = {
+            _id: 'test456',
+            paymentName: 'Custom Payment System',
+            category: 'Other',
+            qrPhotoLink: ''
+        };
+        
+        // Test buttons
+        document.getElementById('testGCash').addEventListener('click', function() {
+            if (window.BetchaLoader) window.BetchaLoader.show();
+            setTimeout(() => {
+                populateFormFields(testDataGCash);
+                if (window.BetchaLoader) window.BetchaLoader.hide();
+                updateDebugInfo(testDataGCash);
+            }, 1000);
+        });
+        
+        document.getElementById('testOther').addEventListener('click', function() {
+            if (window.BetchaLoader) window.BetchaLoader.show();
+            setTimeout(() => {
+                populateFormFields(testDataOther);
+                if (window.BetchaLoader) window.BetchaLoader.hide();
+                updateDebugInfo(testDataOther);
+            }, 1000);
+        });
+        
+        function updateDebugInfo(paymentData) {
+            const selectedMethod = document.getElementById('selectedPaymentMethod').textContent;
+            const mainNameValue = document.getElementById('input-main-payment-name').value;
+            const customNameValue = document.getElementById('input-custom-payment-name').value;
+            const customDivVisible = !document.getElementById('paymentNameDiv').classList.contains('hidden');
+            const qrImageSrc = document.getElementById('qr-preview').src;
+            
+            document.getElementById('debugInfo').innerHTML = `
+                <strong>✅ Test Results:</strong><br>
+                <strong>Input Data:</strong><br>
+                - Payment Name: ${paymentData.paymentName}<br>
+                - Category: ${paymentData.category}<br>
+                - QR Link: ${paymentData.qrPhotoLink ? 'Present' : 'None'}<br>
+                <br>
+                <strong>Form State After Auto-fill:</strong><br>
+                - Selected Method: "${selectedMethod}"<br>
+                - Main Name Input: "${mainNameValue}"<br>
+                - Custom Name Input: "${customNameValue}"<br>
+                - Custom Name Field Visible: ${customDivVisible}<br>
+                - QR Image Loaded: ${qrImageSrc ? 'Yes' : 'No'}<br>
+                <br>
+                <strong>✅ BetchaLoader:</strong> ${window.BetchaLoader ? 'Available' : 'Not Found'}
+            `;
+        }
+        
+        // Test the populate function
+        function populateFormFields(paymentData) {
+            const selectedMethodElement = document.getElementById('selectedPaymentMethod');
+            const paymentNameDiv = document.getElementById('paymentNameDiv');
+            const mainNameInput = document.getElementById('input-main-payment-name');
+            const customNameInput = document.getElementById('input-custom-payment-name');
+            const paymentDropdownList = document.getElementById('paymentDropdownList');
+            
+            // Always populate the main payment name input first
+            if (mainNameInput && paymentData.paymentName) {
+                mainNameInput.value = paymentData.paymentName;
+            }
+            
+            let category = paymentData.category;
+            if (!category && paymentData.paymentName) {
+                category = PAYMENT_CATEGORIES.find(cat => 
+                    paymentData.paymentName.toLowerCase().includes(cat.toLowerCase())
+                ) || 'Other';
+            }
+            
+            // Set the payment method category in dropdown
+            if (category && PAYMENT_CATEGORIES.includes(category)) {
+                selectedMethodElement.textContent = category;
+                selectedMethodElement.setAttribute('data-value', category);
+                selectedMethodElement.classList.remove('text-neutral-400');
+                selectedMethodElement.classList.add('text-primary-text');
+                
+                // Hide the custom name input for predefined categories
+                paymentNameDiv.classList.add('hidden');
+                if (customNameInput) {
+                    customNameInput.value = paymentData.paymentName || category;
+                }
+            } else {
+                // Set to "Other" and show custom name input
+                selectedMethodElement.textContent = 'Other';
+                selectedMethodElement.setAttribute('data-value', 'Other');
+                selectedMethodElement.classList.remove('text-neutral-400');
+                selectedMethodElement.classList.add('text-primary-text');
+                paymentNameDiv.classList.remove('hidden');
+                paymentNameDiv.style.display = 'flex';
+                if (customNameInput) {
+                    customNameInput.value = paymentData.paymentName || '';
+                }
+            }
+            
+            // Handle QR image display
+            if (paymentData.qrPhotoLink && paymentData.qrPhotoLink.trim() !== '') {
+                const preview = document.getElementById('qr-preview');
+                const placeholder = document.getElementById('qr-placeholder');
+                
+                if (preview && placeholder) {
+                    let imageUrl = paymentData.qrPhotoLink;
+                    
+                    // Handle Google Drive links
+                    const driveFileIdMatch = imageUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
+                    if (driveFileIdMatch) {
+                        imageUrl = `https://drive.google.com/thumbnail?id=${driveFileIdMatch[1]}&sz=w400-h400`;
+                    }
+                    
+                    preview.onload = function() {
+                        preview.style.display = 'block';
+                        preview.style.opacity = '1';
+                        
+                        placeholder.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                        placeholder.innerHTML = `
+                            <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" 
+                                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                            </svg>
+                            <span class="text-sm font-medium">Change QR Code</span>
+                        `;
+                    };
+                    
+                    preview.onerror = function() {
+                        preview.style.display = 'none';
+                        placeholder.style.display = 'flex';
+                        placeholder.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                        placeholder.innerHTML = `
+                            <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" 
+                                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                            </svg>
+                            <span class="text-sm font-medium">Upload QR Code</span>
+                        `;
+                        console.warn('Failed to load QR image:', imageUrl);
+                    };
+                    
+                    preview.src = imageUrl;
+                }
+            } else {
+                const preview = document.getElementById('qr-preview');
+                const placeholder = document.getElementById('qr-placeholder');
+                
+                if (preview && placeholder) {
+                    preview.style.display = 'none';
+                    placeholder.style.display = 'flex';
+                    placeholder.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                    placeholder.innerHTML = `
+                        <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                        </svg>
+                        <span class="text-sm font-medium">Upload QR Code</span>
+                    `;
+                }
+            }
+            
+            console.log('✅ Form populated with:', {
+                category: category,
+                paymentName: paymentData.paymentName,
+                hasQrImage: !!(paymentData.qrPhotoLink && paymentData.qrPhotoLink.trim() !== '')
+            });
+        }
+    </script>
+</body>
+</html>

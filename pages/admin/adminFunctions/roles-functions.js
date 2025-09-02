@@ -74,8 +74,8 @@ async function fetchRoles() {
 
 // Create HTML for a single role card
 function createRoleCard(role) {
-    const privilegesList = role.privileges.map(privilege => 
-        `<li>${privilege}</li>`
+    const privilegesPills = role.privileges.map(privilege => 
+        `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary border border-primary/20 transition-all duration-200 hover:bg-primary/20">${privilege}</span>`
     ).join('');
 
     return `
@@ -84,16 +84,16 @@ function createRoleCard(role) {
           transition-all duration-300 ease-in-out h-full">
           <!-- Content -->
           <div class="flex flex-col flex-grow justify-between">
-            <div class="flex flex-col gap-2 text-neutral-500">
+            <div class="flex flex-col gap-3 text-neutral-500">
               <p class="text-base font-bold font-manrope text-primary-text 
                 transition-all duration-300 ease-in-out
               group-hover:text-primary">
                 ${role.name}
               </p>
-              <p class="text-xs">Privileges:</p>
-              <ul class="list-disc list-inside text-sm text-neutral-600 space-y-1 px-3 mb-4">
-                  ${privilegesList}
-              </ul>
+              <p class="text-xs font-medium text-neutral-600">Privileges:</p>
+              <div class="flex flex-wrap gap-2 mb-4">
+                  ${privilegesPills}
+              </div>
             </div>
             
             <!-- Buttons Container - Always at bottom -->
