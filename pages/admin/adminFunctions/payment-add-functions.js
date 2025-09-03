@@ -13,11 +13,9 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 100);
 });
 
-// Setup integration with paymentMethodOption.js dropdown
 function setupPaymentMethodIntegration() {
-    // Monitor for dropdown selections made by paymentMethodOption.js
+
     const selectedMethodElement = document.getElementById('selectedPaymentMethod');
-    // Payment Name is now always visible; no toggle container required
     
     // Create a MutationObserver to watch for changes to the selected payment method
     const observer = new MutationObserver(function(mutations) {
@@ -44,7 +42,6 @@ function setupPaymentMethodIntegration() {
 // Initialize file upload functionality
 function initializeFileUpload() {
     const fileInput = document.getElementById('qr-upload');
-    const preview = document.getElementById('qr-preview');
     const placeholder = document.getElementById('qr-placeholder');
 
     fileInput.addEventListener('change', function(e) {
@@ -65,13 +62,45 @@ function initializeFileUpload() {
 
             const reader = new FileReader();
             reader.onload = function(e) {
-                preview.src = e.target.result;
-                preview.style.display = 'block';
-                placeholder.style.display = 'none';
+                // Update the placeholder to show the image preview
+                placeholder.style.backgroundImage = `url(${e.target.result})`;
+                placeholder.style.backgroundSize = 'cover';
+                placeholder.style.backgroundPosition = 'center';
+                placeholder.style.backgroundRepeat = 'no-repeat';
+                
+                // Update the placeholder content to show a change image option
+                placeholder.innerHTML = `
+                    <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white transition-all duration-300 hover:bg-black/60">
+                        <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                        </svg>
+                        <span class="text-xs font-medium">Change Image</span>
+                    </div>
+                `;
             };
             reader.readAsDataURL(file);
+        } else {
+            // Reset to original placeholder state when no file is selected
+            resetPlaceholder();
         }
     });
+    
+    // Function to reset placeholder to original state
+    function resetPlaceholder() {
+        placeholder.style.backgroundImage = '';
+        placeholder.style.backgroundSize = '';
+        placeholder.style.backgroundPosition = '';
+        placeholder.style.backgroundRepeat = '';
+        
+        placeholder.innerHTML = `
+            <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" 
+                    d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+            </svg>
+            <span class="text-sm font-medium">Upload QR Code</span>
+        `;
+    }
 }
 
 // Setup form submission

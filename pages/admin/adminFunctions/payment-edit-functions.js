@@ -145,10 +145,9 @@ function populateFormFields(paymentData) {
     
     // Handle QR image display
     if (paymentData.qrPhotoLink && paymentData.qrPhotoLink.trim() !== '') {
-        const preview = document.getElementById('qr-preview');
         const placeholder = document.getElementById('qr-placeholder');
         
-        if (preview && placeholder) {
+        if (placeholder) {
             // Process the image URL for proper display
             let imageUrl = paymentData.qrPhotoLink;
             
@@ -158,27 +157,33 @@ function populateFormFields(paymentData) {
                 imageUrl = `https://drive.google.com/thumbnail?id=${driveFileIdMatch[1]}&sz=w400-h400`;
             }
             
-            // Set up image loading with error handling
-            preview.onload = function() {
-                preview.style.display = 'block';
-                preview.style.opacity = '1';
+            // Create a test image to check if it loads properly
+            const testImg = new Image();
+            testImg.onload = function() {
+                // Image loaded successfully, update placeholder
+                placeholder.style.backgroundImage = `url(${imageUrl})`;
+                placeholder.style.backgroundSize = 'cover';
+                placeholder.style.backgroundPosition = 'center';
+                placeholder.style.backgroundRepeat = 'no-repeat';
                 
-                // Update placeholder to show "Change QR Code"
-                placeholder.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
                 placeholder.innerHTML = `
-                    <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" 
-                            d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
-                    </svg>
-                    <span class="text-sm font-medium">Change QR Code</span>
+                    <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white transition-all duration-300 hover:bg-black/60">
+                        <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" 
+                                d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                        </svg>
+                        <span class="text-xs font-medium">Change Image</span>
+                    </div>
                 `;
             };
             
-            preview.onerror = function() {
+            testImg.onerror = function() {
                 // If image fails to load, show upload placeholder
-                preview.style.display = 'none';
-                placeholder.style.display = 'flex';
-                placeholder.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+                placeholder.style.backgroundImage = '';
+                placeholder.style.backgroundSize = '';
+                placeholder.style.backgroundPosition = '';
+                placeholder.style.backgroundRepeat = '';
+                
                 placeholder.innerHTML = `
                     <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" 
@@ -189,17 +194,18 @@ function populateFormFields(paymentData) {
                 console.warn('Failed to load QR image:', imageUrl);
             };
             
-            preview.src = imageUrl;
+            testImg.src = imageUrl;
         }
     } else {
         // No existing image, keep the upload placeholder
-        const preview = document.getElementById('qr-preview');
         const placeholder = document.getElementById('qr-placeholder');
         
-        if (preview && placeholder) {
-            preview.style.display = 'none';
-            placeholder.style.display = 'flex';
-            placeholder.style.backgroundColor = 'rgba(0, 0, 0, 0.3)';
+        if (placeholder) {
+            placeholder.style.backgroundImage = '';
+            placeholder.style.backgroundSize = '';
+            placeholder.style.backgroundPosition = '';
+            placeholder.style.backgroundRepeat = '';
+            
             placeholder.innerHTML = `
                 <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" 
@@ -284,7 +290,6 @@ function validateImageFile(file, inputElement = null) {
 // Initialize file upload functionality
 function initializeFileUpload() {
     const fileInput = document.getElementById('qr-upload');
-    const preview = document.getElementById('qr-preview');
     const placeholder = document.getElementById('qr-placeholder');
 
     if (fileInput) {
@@ -298,10 +303,23 @@ function initializeFileUpload() {
 
                 const reader = new FileReader();
                 reader.onload = function(e) {
-                    if (preview && placeholder) {
-                        preview.src = e.target.result;
-                        preview.style.display = 'block';
-                        placeholder.style.display = 'none';
+                    if (placeholder) {
+                        // Update the placeholder to show the image preview
+                        placeholder.style.backgroundImage = `url(${e.target.result})`;
+                        placeholder.style.backgroundSize = 'cover';
+                        placeholder.style.backgroundPosition = 'center';
+                        placeholder.style.backgroundRepeat = 'no-repeat';
+                        
+                        // Update the placeholder content to show a change image option
+                        placeholder.innerHTML = `
+                            <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white transition-all duration-300 hover:bg-black/60">
+                                <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" 
+                                        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                                </svg>
+                                <span class="text-xs font-medium">Change Image</span>
+                            </div>
+                        `;
                     }
                 };
                 
@@ -312,12 +330,48 @@ function initializeFileUpload() {
                 
                 reader.readAsDataURL(file);
             } else {
-                if (preview && placeholder && !currentPaymentData?.qrPhotoLink) {
-                    preview.style.display = 'none';
-                    placeholder.style.display = 'flex';
-                }
+                // Reset to original or existing QR image state when no file is selected
+                resetPlaceholder();
             }
         });
+    }
+    
+    // Function to reset placeholder to original state or show existing QR
+    function resetPlaceholder() {
+        if (!placeholder) return;
+        
+        placeholder.style.backgroundImage = '';
+        placeholder.style.backgroundSize = '';
+        placeholder.style.backgroundPosition = '';
+        placeholder.style.backgroundRepeat = '';
+        
+        // Check if there's an existing QR image from the payment data
+        if (currentPaymentData?.qrPhotoLink) {
+            // Show existing QR image
+            placeholder.style.backgroundImage = `url(${currentPaymentData.qrPhotoLink})`;
+            placeholder.style.backgroundSize = 'cover';
+            placeholder.style.backgroundPosition = 'center';
+            placeholder.style.backgroundRepeat = 'no-repeat';
+            
+            placeholder.innerHTML = `
+                <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white transition-all duration-300 hover:bg-black/60">
+                    <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" 
+                            d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                    </svg>
+                    <span class="text-xs font-medium">Change Image</span>
+                </div>
+            `;
+        } else {
+            // Show original upload placeholder
+            placeholder.innerHTML = `
+                <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" 
+                        d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4-4m0 0l-4 4m4-4v12" />
+                </svg>
+                <span class="text-sm font-medium">Upload QR Code</span>
+            `;
+        }
     }
 }
 
