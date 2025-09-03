@@ -54,7 +54,10 @@ function getStatusStyle(status) {
         'checked-in': { bgColor: 'bg-green-100', textColor: 'text-green-600' },
         'checked-out': { bgColor: 'bg-gray-100', textColor: 'text-gray-600' },
         'cancelled': { bgColor: 'bg-red-100', textColor: 'text-red-600' },
-        'completed': { bgColor: 'bg-green-100', textColor: 'text-green-600' }
+        'canceled': { bgColor: 'bg-red-100', textColor: 'text-red-600' },
+        'cancel': { bgColor: 'bg-red-100', textColor: 'text-red-600' },
+        'completed': { bgColor: 'bg-green-100', textColor: 'text-green-600' },
+        'complete': { bgColor: 'bg-green-100', textColor: 'text-green-600' }
     };
     
     return statusMap[status.toLowerCase()] || { bgColor: 'bg-gray-100', textColor: 'text-gray-600' };

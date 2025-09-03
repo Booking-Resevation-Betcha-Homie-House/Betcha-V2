@@ -68,78 +68,42 @@ document.addEventListener('DOMContentLoaded', () => {
         if (targetId === 'ammenitiesModal') {
           console.log('🏠 Regular amenities modal opened');
           
-          // Check if amenities are populated in the new categorized structure
-          const essentialsContainer = targetModal.querySelector('#essentialsList');
-          const kitchenDiningContainer = targetModal.querySelector('#kitchenDiningList');
-          const safetySecurityContainer = targetModal.querySelector('#safetySecurityList');
-          const entertainmentContainer = targetModal.querySelector('#entertainmentList');
-          const outdoorParkingContainer = targetModal.querySelector('#outdoorParkingList');
-          const othersContainer = targetModal.querySelector('#othersContainer');
+          // Check if amenities are populated in the actual modal structure
+          const modalSections = targetModal.querySelectorAll('.px-3.mb-5');
           
-          if (essentialsContainer) {
-            console.log('✅ Essentials container found in modal');
-            if (essentialsContainer.children.length === 0) {
-              console.warn('⚠️ Essentials container is empty - amenities may not have been populated');
-            } else {
-              console.log(`📊 Found ${essentialsContainer.children.length} essential amenities in modal`);
+          if (modalSections.length > 0) {
+            console.log(`✅ Found ${modalSections.length} amenity sections in modal`);
+            
+            modalSections.forEach((section, index) => {
+              const sectionTitle = section.querySelector('p.font-manrope.text-2xl');
+              const sectionName = sectionTitle ? sectionTitle.textContent.trim() : `Section ${index + 1}`;
+              const amenityItems = section.querySelectorAll('li[id]');
+              const visibleItems = section.querySelectorAll('li[id]:not(.hidden)');
+              
+              console.log(`📊 ${sectionName}: ${visibleItems.length}/${amenityItems.length} amenities visible`);
+              
+              if (amenityItems.length === 0) {
+                console.warn(`⚠️ ${sectionName} section has no amenity items`);
+              } else if (visibleItems.length === 0) {
+                console.log(`ℹ️ ${sectionName} section has no visible amenities (filtered out)`);
+              }
+            });
+            
+            // Check for "Others" section specifically
+            const othersSection = targetModal.querySelector('#ammenitiesModal .px-3.mb-5:last-child');
+            if (othersSection) {
+              const othersList = othersSection.querySelector('ul');
+              if (othersList) {
+                const othersItems = othersList.querySelectorAll('li');
+                if (othersItems.length > 0) {
+                  console.log(`📊 Others section: ${othersItems.length} items`);
+                } else {
+                  console.log('ℹ️ Others section is empty');
+                }
+              }
             }
           } else {
-            console.error('❌ Essentials container not found in modal');
-          }
-          
-          if (kitchenDiningContainer) {
-            console.log('✅ Kitchen & Dining container found in modal');
-            if (kitchenDiningContainer.children.length === 0) {
-              console.log('ℹ️ Kitchen & Dining container is empty (no kitchen amenities)');
-            } else {
-              console.log(`📊 Found ${kitchenDiningContainer.children.length} kitchen & dining amenities in modal`);
-            }
-          } else {
-            console.error('❌ Kitchen & Dining container not found in modal');
-          }
-          
-          if (safetySecurityContainer) {
-            console.log('✅ Safety & Security container found in modal');
-            if (safetySecurityContainer.children.length === 0) {
-              console.log('ℹ️ Safety & Security container is empty (no safety amenities)');
-            } else {
-              console.log(`📊 Found ${safetySecurityContainer.children.length} safety & security amenities in modal`);
-            }
-          } else {
-            console.error('❌ Safety & Security container not found in modal');
-          }
-          
-          if (entertainmentContainer) {
-            console.log('✅ Entertainment container found in modal');
-            if (entertainmentContainer.children.length === 0) {
-              console.log('ℹ️ Entertainment container is empty (no entertainment amenities)');
-            } else {
-              console.log(`📊 Found ${entertainmentContainer.children.length} entertainment amenities in modal`);
-            }
-          } else {
-            console.error('❌ Entertainment container not found in modal');
-          }
-          
-          if (outdoorParkingContainer) {
-            console.log('✅ Outdoor & Parking container found in modal');
-            if (outdoorParkingContainer.children.length === 0) {
-              console.log('ℹ️ Outdoor & Parking container is empty (no outdoor amenities)');
-            } else {
-              console.log(`📊 Found ${outdoorParkingContainer.children.length} outdoor & parking amenities in modal`);
-            }
-          } else {
-            console.error('❌ Outdoor & Parking container not found in modal');
-          }
-          
-          if (othersContainer) {
-            console.log('✅ Others container found in modal');
-            if (othersContainer.children.length === 0) {
-              console.log('ℹ️ Others container is empty (no other amenities)');
-            } else {
-              console.log(`📊 Found ${othersContainer.children.length} other amenity items in modal`);
-            }
-          } else {
-            console.error('❌ Others container not found in modal');
+            console.error('❌ No amenity sections found in modal');
           }
         }
       } else {
