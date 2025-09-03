@@ -193,6 +193,10 @@ function getReservationDataFromURL(urlParams) {
     data.reservationFee = parseFloat(urlParams.get('reservationFee')) || 0;
     data.packageCapacity = parseInt(urlParams.get('packageCapacity')) || 1;
     
+    // Time details
+    data.timeIn = urlParams.get('timeIn') || '';
+    data.timeOut = urlParams.get('timeOut') || '';
+    
     // Calculate additional guests and pricing
     data.additionalGuests = Math.max(0, data.guestCount - data.packageCapacity);
     data.totalPriceDay = data.pricePerDay * data.daysOfStay;
@@ -214,6 +218,10 @@ function populateReservationData(data) {
         updateElementText('checkInDate', formatDate(data.checkInDate) || 'Date');
         updateElementText('checkOutDate', formatDate(data.checkOutDate) || 'Date');
         updateElementText('guestCount', data.guestCount || '1');
+        
+        // Time details
+        updateElementText('timein', data.timeIn || 'Time not available');
+        updateElementText('timeout', data.timeOut || 'Time not available');
         
         // Price details
         updateElementText('pricePerDay', data.pricePerDay.toLocaleString() || '00');

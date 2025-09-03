@@ -160,6 +160,19 @@ async function fetchAndDisplayProperty() {
             if(el) el.textContent = value || '';
         });
 
+        // Handle timeIn and timeOut data
+        const timeInOutElement = document.getElementById('timeInOut');
+        if (timeInOutElement && data.timeIn && data.timeOut) {
+            // Format the time display
+            const formattedTime = `${data.timeIn} - ${data.timeOut}`;
+            timeInOutElement.textContent = formattedTime;
+            console.log('TimeIn and TimeOut from API:', data.timeIn, data.timeOut);
+        } else if (timeInOutElement) {
+            // Fallback if timeIn/timeOut not available
+            timeInOutElement.textContent = 'Time not available';
+            console.log('TimeIn/TimeOut not available from API:', { timeIn: data.timeIn, timeOut: data.timeOut });
+        }
+
         const mapIframe = document.getElementById('maplink');
         if (mapIframe && data.mapLink) {
             const srcMatch = data.mapLink.match(/src="([^"]+)"/);
@@ -213,7 +226,9 @@ async function fetchAndDisplayProperty() {
             reservationFee: data.reservationFee,
             packageCapacity: data.packageCapacity,
             maxCapacity: data.maxCapacity,
-            images: data.photoLinks || []
+            images: data.photoLinks || [],
+            timeIn: data.timeIn,
+            timeOut: data.timeOut
         };
 
         // Update guest counter limits based on API maxCapacity
@@ -221,6 +236,9 @@ async function fetchAndDisplayProperty() {
 
         // Setup Reserve button functionality
         setupReserveButton();
+
+        // Setup description toggle functionality
+        setupDescriptionToggle();
 
         // Listen for calendar date selection events
         document.addEventListener('datesSelected', function(e) {
@@ -262,6 +280,61 @@ function updateGuestCounterLimits(maxCapacity) {
         detail: { maxCapacity: maxCapacity }
     });
     document.dispatchEvent(updateEvent);
+}
+
+// Function to setup description text toggle functionality
+function setupDescriptionToggle() {
+    const descWrapper = document.getElementById('descWrapper');
+    const toggleText = document.getElementById('toggleText');
+    const description = document.getElementById('roomDescription');
+    
+    if (!descWrapper || !toggleText || !description) {
+        console.warn('Description toggle elements not found');
+        return;
+    }
+
+    // Check if the description content is short enough that it doesn't need toggling
+    const checkContentHeight = () => {
+        // Temporarily expand to measure full height
+        const originalMaxHeight = descWrapper.style.maxHeight;
+        descWrapper.style.maxHeight = 'none';
+        const fullHeight = description.scrollHeight;
+        descWrapper.style.maxHeight = originalMaxHeight;
+        
+        // If content fits within the collapsed height (6rem = 96px), hide the toggle
+        const collapsedHeight = 96; // 6rem in pixels
+        
+        if (fullHeight <= collapsedHeight) {
+            toggleText.style.display = 'none';
+        } else {
+            toggleText.style.display = 'block';
+            setupToggleHandler();
+        }
+    };
+
+    // Setup toggle click handler
+    const setupToggleHandler = () => {
+        let isExpanded = false;
+        
+        toggleText.addEventListener('click', (e) => {
+            e.preventDefault();
+            
+            if (isExpanded) {
+                // Collapse
+                descWrapper.style.maxHeight = '6rem';
+                toggleText.textContent = 'Read More';
+                isExpanded = false;
+            } else {
+                // Expand
+                descWrapper.style.maxHeight = description.scrollHeight + 'px';
+                toggleText.textContent = 'Read Less';
+                isExpanded = true;
+            }
+        });
+    };
+
+    // Check content height after a short delay to ensure content is loaded
+    setTimeout(checkContentHeight, 100);
 }
 
 // Function to setup Reserve button click handler
@@ -448,6 +521,12 @@ function navigateToConfirmReservation(propertyData, bookingData) {
     params.append('addGuestPrice', propertyData.additionalPax || '0');
     params.append('reservationFee', propertyData.reservationFee || '0');
     params.append('packageCapacity', propertyData.packageCapacity || '1');
+    
+    // Time data
+    params.append('timeIn', propertyData.timeIn || '');
+    params.append('timeOut', propertyData.timeOut || '');
+    
+    console.log('Passing time data to confirm reservation:', { timeIn: propertyData.timeIn, timeOut: propertyData.timeOut });
     
     // Navigate to confirm reservation page
     window.location.href = `../auth/confirm-reservation.html?${params.toString()}`;

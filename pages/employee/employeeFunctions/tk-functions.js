@@ -6,12 +6,21 @@ console.log('TK Functions loaded');
 
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
+// Global variables for message polling
+let messagePollingInterval = null;
+let currentSelectedTicketId = null;
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('TK Functions - DOM Content Loaded');
 
     debugLocalStorage();
     // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
     initializeTicketingFeatures();
+});
+
+// Clean up polling when page is unloaded
+window.addEventListener('beforeunload', () => {
+    stopMessagePolling();
 });
 
 function debugLocalStorage() {
@@ -135,6 +144,75 @@ function showAccessDeniedMessage() {
 
 // Export filterSidebarByPrivileges to global scope for universal skeleton
 window.filterSidebarByPrivileges = filterSidebarByPrivileges;
+
+// =========================
+// Message Polling Functions
+// =========================
+function startMessagePolling(ticketId) {
+    // Clear any existing polling interval
+    stopMessagePolling();
+    
+    currentSelectedTicketId = ticketId;
+    console.log('Starting message polling for ticket:', ticketId);
+    
+    // Poll every 5 seconds
+    messagePollingInterval = setInterval(async () => {
+        await refreshTicketMessages(ticketId);
+    }, 5000);
+}
+
+function stopMessagePolling() {
+    if (messagePollingInterval) {
+        clearInterval(messagePollingInterval);
+        messagePollingInterval = null;
+        console.log('Stopped message polling');
+    }
+    currentSelectedTicketId = null;
+}
+
+async function refreshTicketMessages(ticketId) {
+    if (!ticketId) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/tk/messages/${ticketId}`, {
+            method: 'GET',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            console.warn('Failed to fetch updated messages:', response.status);
+            return;
+        }
+        
+        const data = await response.json();
+        const messages = data.messages || [];
+        
+        // Update the messages area with new messages
+        updateMessagesArea(messages);
+        
+    } catch (error) {
+        console.warn('Error polling messages:', error);
+    }
+}
+
+function updateMessagesArea(messages) {
+    const messagesArea = document.querySelector('.flex-1.overflow-y-auto.px-10.py-6.space-y-6');
+    if (!messagesArea) return;
+    
+    // Store current scroll position
+    const wasScrolledToBottom = messagesArea.scrollHeight - messagesArea.scrollTop <= messagesArea.clientHeight + 5;
+    
+    // Clear and repopulate messages
+    messagesArea.innerHTML = '';
+    messages.forEach(msg => messagesArea.appendChild(createMessageElement(msg)));
+    
+    // Maintain scroll position (scroll to bottom if user was already at bottom)
+    if (wasScrolledToBottom) {
+        messagesArea.scrollTop = messagesArea.scrollHeight;
+    }
+}
 
 // =========================
 // Ticketing Features
@@ -338,6 +416,9 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
 
 function loadTicketDetails(ticket) {
     console.log('Loading ticket details for:', ticket);
+
+    // Start message polling for this ticket
+    startMessagePolling(ticket._id);
 
     // Reset compose box when switching tickets
     const composeEl = document.getElementById('messageBox');
@@ -593,6 +674,9 @@ document.getElementById("confirmResolveBtn")?.addEventListener("click", () => {
 
 
 function clearChatArea() {
+    // Stop message polling when clearing chat area
+    stopMessagePolling();
+
     const chatHeader = document.querySelector('.chat-header');
     if (chatHeader) {
         chatHeader.querySelector('p').textContent = 'No Ticket Selected';

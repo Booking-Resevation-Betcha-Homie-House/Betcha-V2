@@ -233,10 +233,18 @@ function populateBookingData(booking) {
             const checkInDate = new Date(booking.checkIn);
             const checkOutDate = new Date(booking.checkOut);
             
+            // Add 1 day to checkout date for display
+            const checkOutDatePlusOne = new Date(checkOutDate);
+            checkOutDatePlusOne.setDate(checkOutDatePlusOne.getDate() + 1);
+            
             populateElement('rsrvDate', formatDate(new Date(booking.createdAt)));
             populateElement('checkInDate', formatDate(checkInDate));
-            populateElement('checkOutDate', formatDate(checkOutDate));
+            populateElement('checkOutDate', formatDate(checkOutDatePlusOne));
         }
+        
+        // Times
+        populateElement('checkInTime', booking.timeIn || 'TBD');
+        populateElement('checkOutTime', booking.timeOut || 'TBD');
         
         // Guest information
         const totalGuests = 1 + (booking.additionalPax || 0);
@@ -601,11 +609,13 @@ function formatDate(date) {
         } else {
             dateObj = date;
         }
-        return dateObj.toLocaleDateString('en-GB', { 
-            day: 'numeric',
-            month: 'long', 
-            year: 'numeric'
-        });
+        
+        // Format as YYYY/MM/DD
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        
+        return `${year}/${month}/${day}`;
     } catch (error) {
         console.error('Error formatting date:', error);
         return 'Invalid Date';

@@ -1,11 +1,10 @@
-// Format a date as DD Month YYYY
+// Format a date as YYYY/MM/DD
 function formatDate(dateStr) {
   const date = new Date(dateStr);
-  return date.toLocaleDateString('en-GB', { 
-    day: 'numeric',
-    month: 'long', 
-    year: 'numeric'
-  });
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}/${month}/${day}`;
 }
 
 // Store booked and maintenance dates globally
@@ -219,61 +218,6 @@ document.addEventListener('DOMContentLoaded', () => {
   initializeSearchCalendar('calendarIdsearch');
 });
 
-// Function to fetch calendar data
-async function fetchCalendarData(propertyId) {
-  try {
-    console.log('Fetching calendar data for property:', propertyId);
-    const response = await fetch(`https://betcha-api.onrender.com/calendar/byProperty/${propertyId}`);
-    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-    const data = await response.json();
-    console.log('Calendar data received:', data);
-    
-    // Clear existing dates
-    bookedDates.clear();
-    maintenanceDates.clear();
-    
-    // Add booked dates to Set
-    if (data.calendar && data.calendar.booking) {
-      data.calendar.booking.forEach(booking => {
-        bookedDates.add(booking.date);
-      });
-    }
-    
-    // Add maintenance dates to Set
-    if (data.calendar && data.calendar.maintenance) {
-      data.calendar.maintenance.forEach(maintenance => {
-        maintenanceDates.add(maintenance.date);
-      });
-    }
-
-    console.log('Booked dates:', Array.from(bookedDates));
-    console.log('Maintenance dates:', Array.from(maintenanceDates));
-    
-    // Re-render all calendars
-    document.querySelectorAll(".calendar-instance").forEach(cal => {
-      const calendarContainer = cal.querySelector(".leftCalendar")?.parentElement;
-      if (calendarContainer && calendarContainer._renders) {
-        console.log('Re-rendering calendar with stored renders:', calendarContainer._renders.length);
-        // Call each stored render function
-        calendarContainer._renders.forEach(render => {
-          try {
-            render();
-          } catch (err) {
-            console.error('Error in calendar render:', err);
-          }
-        });
-      } else {
-        console.log('No stored renders found for calendar container');
-      }
-    });
-  } catch (err) {
-    console.error('Error fetching calendar data:', err);
-  }
-}
-
-// Make fetchCalendarData available globally
-window.fetchCalendarData = fetchCalendarData;
-
 document.addEventListener("DOMContentLoaded", () => {
   // Get property ID from URL
   const urlParams = new URLSearchParams(window.location.search);
@@ -294,7 +238,6 @@ document.addEventListener("DOMContentLoaded", () => {
     let selectedDates = new Set(); // Store multiple selected dates
     let selectionStart = null; // Start of date range
     let isRangeSelection = false; // Flag for range selection mode
-    let lastClickTime = 0; // For double click detection
 
     const leftLabel = calendarEl.querySelector(".leftMonthLabel");
     const rightLabel = calendarEl.querySelector(".rightMonthLabel");
