@@ -785,22 +785,13 @@ function createCheckinBookingElement(booking) {
     let guestId = booking.guestId || booking.customer?.guestId || '';
     if (!guestId && bookingId) {
         // If guestId is not available, try to get it from the individual booking API
-        console.log(`GuestId not found in main data for booking ${bookingId}, will fetch from individual API`);
     }
     
     // Enhanced transNo extraction
     let transNo = booking.transNo || booking.reservation?.paymentNo || '';
     if (!transNo && bookingId) {
-        console.log(`TransNo not found in main data for booking ${bookingId}, will fetch from individual API`);
+        // Will fetch from individual API if needed
     }
-    
-    console.log(`Extracted data for booking ${bookingId}:`, {
-        guestId: guestId || 'NOT_FOUND',
-        transNo: transNo || 'NOT_FOUND',
-        guestName,
-        propertyName,
-        status
-    });
     
     // Format dates for display
     const checkInFormatted = formatDate(checkInDate);
@@ -986,7 +977,6 @@ function openEndBookingModal(bookingId, propertyName, guestName, checkInDate, ch
                     if (!modal.dataset.propertyId && b.propertyId) {
                         modal.dataset.propertyId = b.propertyId;
                     }
-                    console.log('Backfilled modal dataset from booking API:', Object.fromEntries(Object.entries(modal.dataset)));
                 } else {
                     console.warn('Failed to backfill booking details:', resp.status);
                 }
@@ -1111,10 +1101,9 @@ async function handleEndBookingConfirm() {
         }
         
         // Optional UX feedback
-        try { alert('✅ Booking checked out successfully.'); } catch(_) {}
+        console.log('✅ Booking checked out successfully.');
     } catch (error) {
         console.error('Error during end booking confirmation:', error);
-        try { alert(`Error ending booking: ${error.message}`); } catch(_) {}
     }
 }
 
@@ -1200,8 +1189,6 @@ function initializeCheckinConfirmationModal() {
                 transNo: transNo || 'NOT_FOUND'
             });
             
-            console.log('Full button dataset:', Object.fromEntries(Object.entries(button.dataset)));
-            
             // Populate the modal with booking details
             populateCheckinConfirmModal(bookingId, propertyName, guestName, checkinDate, checkinTime, bookingStatus, guestId, transNo);
             
@@ -1210,7 +1197,6 @@ function initializeCheckinConfirmationModal() {
             if (modal) {
                 modal.classList.remove('hidden');
                 document.body.classList.add('modal-open');
-                console.log('Opening checkinConfirmModal manually');
                 
                 // Store guestId and transNo in modal dataset for later use
                 modal.dataset.guestId = guestId;
@@ -1250,12 +1236,6 @@ function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkin
     if (modal) {
         modal.dataset.guestId = guestId || '';
         modal.dataset.transNo = transNo || '';
-        
-        console.log('Modal dataset updated:', {
-            guestId: guestId || 'EMPTY',
-            transNo: transNo || 'EMPTY',
-            fullDataset: Object.fromEntries(Object.entries(modal.dataset))
-        });
     }
     
     // Store booking ID in the confirm button for later use
@@ -1304,8 +1284,6 @@ function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkin
             }
         }
     }
-    
-    console.log('Populated check-in confirmation modal for booking:', bookingId, 'Status:', bookingStatus);
 }
 
 // Function to initialize the customer report checkbox functionality for check-in modal
@@ -1334,10 +1312,9 @@ function initializeCheckinCustomerReportCheckbox() {
 
 // Function to process the final check-in confirmation
 async function processCheckinConfirmation(bookingId) {
-    console.log('Processing check-in confirmation for booking:', bookingId);
     
     if (!bookingId) {
-        alert('Error: No booking ID provided');
+        console.error('No booking ID provided');
         return;
     }
     
@@ -1364,7 +1341,6 @@ async function processCheckinConfirmation(bookingId) {
                 
                 // If guestId is missing, try to fetch it from the individual booking API
                 if (!guestId && bookingId) {
-                    console.log('GuestId missing, fetching from individual booking API...');
                     try {
                         const bookingResponse = await fetch(`${API_BASE_URL}/booking/${bookingId}`);
                         if (bookingResponse.ok) {
@@ -1372,7 +1348,6 @@ async function processCheckinConfirmation(bookingId) {
                             if (bookingData.booking) {
                                 guestId = bookingData.booking.guestId || '';
                                 transNo = transNo || bookingData.booking.transNo || '';
-                                console.log('Fetched from individual API:', { guestId, transNo });
                             }
                         }
                     } catch (fetchError) {
@@ -1387,8 +1362,6 @@ async function processCheckinConfirmation(bookingId) {
                         transNo: transNo,
                         reportedBy: 'PM Staff'
                     };
-                    
-                    console.log('Submitting customer report with data:', customerReportData);
                     
                     const reportResponse = await fetch(`${API_BASE_URL}/report`, {
                         method: 'POST',
@@ -1405,7 +1378,6 @@ async function processCheckinConfirmation(bookingId) {
                     console.log('Customer report submitted successfully');
                 } else {
                     console.warn('No guestId available for customer report even after API fetch');
-                    console.warn('Modal dataset contents:', modal ? Object.fromEntries(Object.entries(modal.dataset)) : 'MODAL_NOT_FOUND');
                 }
             } catch (error) {
                 console.error('Error submitting customer report:', error);
@@ -1418,16 +1390,15 @@ async function processCheckinConfirmation(bookingId) {
         
     } catch (error) {
         console.error('Error processing check-in confirmation:', error);
-        alert('Error confirming check-in. Please try again.');
+        console.error('Error confirming check-in. Please try again.');
     }
 }
 
 // Function to process the check-in cancellation
 async function processCheckinCancellation(bookingId) {
-    console.log('Processing check-in cancellation for booking:', bookingId);
 
     if (!bookingId) {
-        alert('Error: No booking ID provided for cancellation.');
+        console.error('No booking ID provided for cancellation.');
         return;
     }
 
@@ -1454,7 +1425,6 @@ async function processCheckinCancellation(bookingId) {
                 
                 // If guestId is missing, try to fetch it from the individual booking API
                 if (!guestId && bookingId) {
-                    console.log('GuestId missing, fetching from individual booking API...');
                     try {
                         const bookingResponse = await fetch(`${API_BASE_URL}/booking/${bookingId}`);
                         if (bookingResponse.ok) {
@@ -1462,7 +1432,6 @@ async function processCheckinCancellation(bookingId) {
                             if (bookingData.booking) {
                                 guestId = bookingData.booking.guestId || '';
                                 transNo = transNo || bookingData.booking.transNo || '';
-                                console.log('Fetched from individual API:', { guestId, transNo });
                             }
                         }
                     } catch (fetchError) {
@@ -1477,8 +1446,6 @@ async function processCheckinCancellation(bookingId) {
                         transNo: transNo,
                         reportedBy: 'PM Staff'
                     };
-                    
-                    console.log('Submitting customer report with data (cancellation):', customerReportData);
                     
                     const reportResponse = await fetch(`${API_BASE_URL}/report`, {
                         method: 'POST',
@@ -1527,20 +1494,18 @@ async function processCheckinCancellation(bookingId) {
             document.body.classList.remove('modal-open');
         }
 
-        alert(`✅ Check-in cancelled successfully!\n\nBooking ID: ${bookingId}`);
+        console.log(`✅ Check-in cancelled successfully! Booking ID: ${bookingId}`);
         loadTodaysCheckins(); // Refresh the data
 
     } catch (error) {
         console.error('Error during check-in cancellation:', error);
-        alert(`Error cancelling check-in: ${error.message}`);
+        console.error(`Error cancelling check-in: ${error.message}`);
     }
 }
 
 // Function to check booking status via API
 async function checkBookingStatus(bookingId, bookingElement) {
     try {
-        console.log('Checking status for booking:', bookingId);
-        
         const response = await fetch(`${API_BASE_URL}/booking/${bookingId}`, {
             method: 'GET',
             headers: {
@@ -1553,7 +1518,6 @@ async function checkBookingStatus(bookingId, bookingElement) {
         }
         
         const data = await response.json();
-        console.log('Booking status response:', data);
         
         if (data.booking && data.booking.status === 'Checked-In') {
             // Update the booking element to show "Confirmed"
@@ -1569,8 +1533,6 @@ async function checkBookingStatus(bookingId, bookingElement) {
 // Function to update booking status via PATCH API
 async function updateBookingStatus(bookingId, newStatus) {
     try {
-        console.log(`Updating booking ${bookingId} status to:`, newStatus);
-        
         const response = await fetch(`${API_BASE_URL}/booking/update-status/${bookingId}`, {
             method: 'PATCH',
             headers: {
@@ -1586,7 +1548,6 @@ async function updateBookingStatus(bookingId, newStatus) {
         }
         
         const data = await response.json();
-        console.log('Status update response:', data);
         
         // Close the modal first
         const modal = document.getElementById('checkinConfirmModal');
@@ -1596,7 +1557,7 @@ async function updateBookingStatus(bookingId, newStatus) {
         }
         
         // Show success message
-        alert(`✅ Check-in confirmed successfully!\n\nBooking ID: ${bookingId}\nStatus: ${newStatus}\n\nNext steps:\n• Guest has been checked in\n• Payment processed\n• Room access provided`);
+        console.log(`✅ Check-in confirmed successfully! Booking ID: ${bookingId}, Status: ${newStatus}`);
         
         // Refresh the check-in data after a short delay
         setTimeout(() => {
@@ -1605,7 +1566,7 @@ async function updateBookingStatus(bookingId, newStatus) {
         
     } catch (error) {
         console.error('Error updating booking status:', error);
-        alert('Error updating booking status. Please try again.');
+        console.error('Error updating booking status. Please try again.');
     }
 }
 
@@ -1680,25 +1641,24 @@ async function loadAdminsIntoCancelModal() {
 
 // Build request and POST to notify cancellation endpoint
 async function sendCancellationNoticeToAdmin() {
-    console.log('Sending cancellation notice to admin');
     try {
         // Simplified context-driven path (early return)
         const modal = document.getElementById('cancelBookingModal') || document.getElementById('checkinConfirmModal');
         const selectEl = document.getElementById('select-cancel-admin');
         const messageTextarea = document.getElementById('input-cancel-admin');
-        if (!modal || !selectEl || !messageTextarea) { alert('Missing fields.'); return; }
+        if (!modal || !selectEl || !messageTextarea) { console.error('Missing fields.'); return; }
 
         const bookingId = BookingContext.get().bookingId || resolveBookingId(modal);
-        if (!bookingId) { alert('Missing booking id. Open the booking card first.'); return; }
+        if (!bookingId) { console.error('Missing booking id. Open the booking card first.'); return; }
         const ctx = await BookingContext.hydrateFromBooking(bookingId);
-        if (!ctx.transNo) { alert('Missing transaction number. Open the booking card first.'); return; }
+        if (!ctx.transNo) { console.error('Missing transaction number. Open the booking card first.'); return; }
 
         const fromId = localStorage.getItem('employeeId') || localStorage.getItem('userId') || 'unknown-employee';
         const fromName = `${localStorage.getItem('firstName') || 'Employee'} ${localStorage.getItem('lastName') || ''}`.trim();
         const fromRole = 'employee';
         const toId = selectEl.value;
         const toName = 'admin';
-        if (!toId) { alert('Please select an admin to notify.'); return; }
+        if (!toId) { console.error('Please select an admin to notify.'); return; }
 
         const payload = {
             fromId,
@@ -1726,13 +1686,13 @@ async function sendCancellationNoticeToAdmin() {
             const text = await resp.text().catch(() => '');
             throw new Error(`Notify API failed: ${resp.status} ${resp.statusText}${text ? ` - ${text}` : ''}`);
         }
-        alert('✅ Cancellation notice sent to admin.');
+        console.log('✅ Cancellation notice sent to admin.');
         const cancelModal = document.getElementById('cancelBookingModal');
         if (cancelModal) { cancelModal.classList.add('hidden'); document.body.classList.remove('modal-open'); }
         return;
     } catch (err) {
         console.error('Error sending cancellation notice:', err);
-        alert(`Failed to send cancellation notice: ${err.message}`);
+        console.error(`Failed to send cancellation notice: ${err.message}`);
     }
 }
 
@@ -1946,9 +1906,11 @@ async function fetchPMCalendarOverview() {
             return;
         }
 
+        console.log('🔍 Fetching calendar data for property IDs:', propertyIds);
+
         // Call the calendar overview API
         const response = await fetch(`${API_BASE_URL}/calendar/byProperties`, {
-            method: 'GET',
+            method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -1973,7 +1935,8 @@ async function fetchPMCalendarOverview() {
 
 // Function to update PM calendar with booking and maintenance dates
 function updatePMCalendarWithDates(multiPropertyData) {
-    if (!multiPropertyData) {
+    if (!multiPropertyData || !multiPropertyData.calendar) {
+        console.warn('❌ No calendar data provided');
         return;
     }
 
@@ -1982,14 +1945,15 @@ function updatePMCalendarWithDates(multiPropertyData) {
     let allMaintenanceDates = [];
 
     // Process each property's calendar data
-    Object.values(multiPropertyData).forEach(propertyData => {
-        if (propertyData && propertyData.calendar) {
-            const booking = propertyData.calendar.booking || [];
-            const maintenance = propertyData.calendar.maintenance || [];
-
-            // Extract dates from booking and maintenance arrays
-            allBookedDates.push(...booking.map(b => b.date));
-            allMaintenanceDates.push(...maintenance.map(m => m.date));
+    multiPropertyData.calendar.forEach((propertyData, index) => {
+        if (propertyData.booking && Array.isArray(propertyData.booking)) {
+            const bookingDates = propertyData.booking.map(b => b.date);
+            allBookedDates.push(...bookingDates);
+        }
+        
+        if (propertyData.maintenance && Array.isArray(propertyData.maintenance)) {
+            const maintenanceDates = propertyData.maintenance.map(m => m.date);
+            allMaintenanceDates.push(...maintenanceDates);
         }
     });
 
@@ -2017,6 +1981,8 @@ function updatePMCalendarWithDates(multiPropertyData) {
             }
         });
         calendarInstance.dispatchEvent(event);
+    } else {
+        console.warn('❌ Calendar instance not found in DOM');
     }
 
     // Update the calendar legend with actual counts
@@ -2031,6 +1997,7 @@ function updatePMCalendarLegend(bookedCount, maintenanceCount) {
     if (!legendContainer) {
         // Create legend container if it doesn't exist
         const calendarContainer = document.querySelector('.calendar-instance').parentElement;
+        
         if (calendarContainer) {
             legendContainer = document.createElement('div');
             legendContainer.className = 'pm-calendar-legend mt-4';
@@ -2050,6 +2017,8 @@ function updatePMCalendarLegend(bookedCount, maintenanceCount) {
                 </div>
             `;
             calendarContainer.appendChild(legendContainer);
+        } else {
+            console.warn('❌ Calendar container not found, cannot create legend');
         }
     }
 
@@ -2064,6 +2033,8 @@ function updatePMCalendarLegend(bookedCount, maintenanceCount) {
         if (maintenanceLegend) {
             maintenanceLegend.textContent = `- Maintenance (${maintenanceCount})`;
         }
+    } else {
+        console.warn('❌ Legend container not available for update');
     }
 }
 

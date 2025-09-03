@@ -555,7 +555,7 @@
                 </span>
             </button>
         </div>
-        <div class="flex flex-col space-y-5 px-5 mb-5 flex-1">
+        <div class="flex flex-col space-y-5 px-5 mb-5 flex-1 overflow-y-auto">
           <div class="text-center mb-4">
             <svg class="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
@@ -591,7 +591,7 @@
           <!-- Customer Report Section -->
           <div class="space-y-3">
             <div class="flex items-center gap-3">
-              <input type="checkbox" id="include-customer-report-checkin" class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2">
+              <input type="checkbox" id="include-customer-report-checkin" class="w-4 h-4 accent-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-600 focus:ring-2">
               <label for="include-customer-report-checkin" class="text-sm font-medium text-neutral-700">
                 Include Customer Report (Optional)
               </label>
@@ -618,12 +618,7 @@
         </div>
         
         <div class="flex flex-col md:flex-row items-center py-5 gap-3">
-          <button type="button" data-close-modal
-          class="w-full btn rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden shadow-s order-2 md:order-1
-          hover:cursor-pointer active:scale-95 
-          transition-all duration-300 ease-in-out">
-              <span class="text-primary-text text-base md:text-lg">Close</span>
-          </button>
+        
           
           <!-- Cancel Button (Optional) -->
           <button type="button" id="cancel-booking-btn"
@@ -669,7 +664,7 @@
                   <input 
                       type="checkbox" 
                       id="include-customer-report" 
-                      class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
+                      class="w-4 h-4 accent-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-600 focus:ring-2"
                   >
                   <label for="include-customer-report" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300 cursor-pointer">
                       Include Customer Report (Optional)
@@ -698,7 +693,7 @@
                   <input 
                       type="checkbox" 
                       id="include-property-report" 
-                      class="w-4 h-4 text-primary bg-gray-100 border-gray-300 rounded focus:ring-primary focus:ring-2"
+                      class="w-4 h-4 accent-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-600 focus:ring-2"
                   >
                   <label for="include-property-report" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300 cursor-pointer">
                       Include Property Report (Optional)

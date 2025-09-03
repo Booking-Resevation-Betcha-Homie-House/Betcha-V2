@@ -512,7 +512,7 @@ async function loadAndPopulateTodayCheckins() {
     // Handle the actual API response structure - it's an array with message and booking objects
     if (Array.isArray(data)) {
       // Filter out message objects and keep only valid booking objects
-      const allBookings = data.filter(item => item._id && item.propertyId); // Changed bookingId to _id
+      const allBookings = data.filter(item => item.bookingId && item.propertyId);
       
       // Apply the same status filtering logic as the PM page
       const validBookings = allBookings.filter(booking => {
@@ -534,7 +534,7 @@ async function loadAndPopulateTodayCheckins() {
             statusLower.includes('checkout') ||
             statusLower.includes('checked-out') ||
             statusLower.includes('checked out') ||
-            statusLower.includes('complete') ||
+            statusLower === 'complete' ||
             statusLower.includes('finished') ||
             statusLower.includes('ended')) {
           
@@ -561,7 +561,10 @@ async function loadAndPopulateTodayCheckins() {
         const statusLower = booking.status.toString().toLowerCase();
         return !(statusLower === 'cancel' || statusLower === 'cancelled' || 
                 statusLower === 'checked-out' || statusLower === 'completed' ||
-                statusLower.includes('checkout') || statusLower.includes('complete'));
+                statusLower === 'finished' || statusLower === 'ended' ||
+                statusLower.includes('checkout') || statusLower.includes('checked-out') ||
+                statusLower.includes('checked out') || statusLower.includes('finished') ||
+                statusLower.includes('ended'));
       });
       
       populateTodayCheckins(validBookings);
@@ -658,31 +661,11 @@ function createCheckinElement(checkin) {
     }
   }
   
-  // Get status for display
-  const status = checkin.status || 'Unknown';
-  let statusColor = 'bg-blue-100 text-blue-800';
-  let statusText = status;
-  
-  // Determine status color and text
-  const statusLower = status.toString().toLowerCase();
-  if (statusLower.includes('pending') || statusLower.includes('reserved')) {
-    statusColor = 'bg-yellow-100 text-yellow-800';
-    statusText = 'Pending';
-  } else if (statusLower.includes('confirmed') || statusLower.includes('fully-paid')) {
-    statusColor = 'bg-green-100 text-green-800';
-    statusText = 'Confirmed';
-  } else if (statusLower.includes('checked-in')) {
-    statusColor = 'bg-green-100 text-green-800';
-    statusText = 'Checked-In';
-  }
-  
   checkinDiv.innerHTML = `
     <!-- Name + Property -->
     <div class="flex-1 min-w-0 flex flex-col gap-1 mb-2 sm:mb-0 text-center sm:text-left">
       <p class="text-sm font-medium text-neutral-800 truncate font-manrope">${guestName}</p>
       <p class="text-xs text-neutral-500 truncate">${propertyName}</p>
-      <!-- Status Badge -->
-      <span class="inline-block px-2 py-1 text-xs rounded-full ${statusColor} font-medium mt-1">${statusText}</span>
     </div>
 
     <!-- Dates -->
