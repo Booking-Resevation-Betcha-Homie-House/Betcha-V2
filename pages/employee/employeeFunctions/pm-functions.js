@@ -1297,6 +1297,11 @@ function initializeCheckinCustomerReportCheckbox() {
         const newCheckbox = customerCheckbox.cloneNode(true);
         customerCheckbox.parentNode.replaceChild(newCheckbox, customerCheckbox);
         
+        // Reset checkbox and textarea to default hidden state
+        newCheckbox.checked = false;
+        customerReportSection.classList.add('hidden');
+        customerReportTextarea.value = '';
+        
         // Add new event listener
         newCheckbox.addEventListener('change', function() {
             if (this.checked) {
@@ -1321,7 +1326,21 @@ async function processCheckinConfirmation(bookingId) {
     try {
         // Check if customer report checkbox is active
         const includeCustomerReport = document.getElementById('include-customer-report-checkin')?.checked || false;
-        const customerReportRemarks = includeCustomerReport ? (document.getElementById('input-customer-report-checkin')?.value || '') : '';
+        const customerReportRemarks = includeCustomerReport ? ((document.getElementById('input-customer-report-checkin')?.value || '').trim() || '') : '';
+
+        // If checkbox is checked but no remarks provided, block and show toast
+        if (includeCustomerReport && !customerReportRemarks) {
+            try {
+                if (window.showToastError) {
+                    window.showToastError('warning', 'Customer report required', 'Please add a message to the report before confirming check-in.');
+                }
+            } catch(_) {}
+            const section = document.getElementById('customer-report-section-checkin');
+            const textarea = document.getElementById('input-customer-report-checkin');
+            if (section) section.classList.remove('hidden');
+            if (textarea) textarea.focus();
+            return; // Do not proceed with check-in
+        }
         
         // If customer report checkbox is active and remarks are provided, call the /report API
         if (includeCustomerReport && customerReportRemarks) {
@@ -1405,7 +1424,21 @@ async function processCheckinCancellation(bookingId) {
     try {
         // Check if customer report checkbox is active
         const includeCustomerReport = document.getElementById('include-customer-report-checkin')?.checked || false;
-        const customerReportRemarks = includeCustomerReport ? (document.getElementById('input-customer-report-checkin')?.value || '') : '';
+        const customerReportRemarks = includeCustomerReport ? ((document.getElementById('input-customer-report-checkin')?.value || '').trim() || '') : '';
+
+        // If checkbox is checked but no remarks provided, block and show toast
+        if (includeCustomerReport && !customerReportRemarks) {
+            try {
+                if (window.showToastError) {
+                    window.showToastError('warning', 'Customer report required', 'Please add a message to the report before cancelling.');
+                }
+            } catch(_) {}
+            const section = document.getElementById('customer-report-section-checkin');
+            const textarea = document.getElementById('input-customer-report-checkin');
+            if (section) section.classList.remove('hidden');
+            if (textarea) textarea.focus();
+            return; // Do not proceed with cancellation
+        }
         
         // If customer report checkbox is active and remarks are provided, call the /report API
         if (includeCustomerReport && customerReportRemarks) {
@@ -1648,6 +1681,14 @@ async function sendCancellationNoticeToAdmin() {
         const messageTextarea = document.getElementById('input-cancel-admin');
         if (!modal || !selectEl || !messageTextarea) { console.error('Missing fields.'); return; }
 
+        // Require a non-empty message before proceeding
+        const messageValue = (messageTextarea.value || '').trim();
+        if (!messageValue) {
+            try { if (window.showToastError) window.showToastError('warning', 'Cancellation reason required', 'Please add a message before sending the cancellation.'); } catch(_) {}
+            messageTextarea.focus();
+            return;
+        }
+
         const bookingId = BookingContext.get().bookingId || resolveBookingId(modal);
         if (!bookingId) { console.error('Missing booking id. Open the booking card first.'); return; }
         const ctx = await BookingContext.hydrateFromBooking(bookingId);
@@ -1667,12 +1708,12 @@ async function sendCancellationNoticeToAdmin() {
             toId,
             toName,
             toRole: 'admin',
-            message: messageTextarea.value || 'Requesting approval to cancel a booking.',
+            message: messageValue,
             transNo: ctx.transNo,
             numberEwalletBank: ctx.ewallet || undefined,
             amountRefund: ctx.amountRefund || undefined,
             modeOfRefund: ctx.modeOfRefund || undefined,
-            reasonToGuest: messageTextarea.value || 'Cancellation notice',
+            reasonToGuest: messageValue,
             bookingId
         };
         Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
@@ -1795,7 +1836,7 @@ function initializeCalendarBookings() {
     // Listen for calendar date clicks
     document.addEventListener('click', function(e) {
         const dateElement = e.target.closest('[data-date]');
-        if (dateElement && !dateElement.classList.contains('cursor-not-allowed')) {
+        if (dateElement) {
             const selectedDate = dateElement.dataset.date;
             
             

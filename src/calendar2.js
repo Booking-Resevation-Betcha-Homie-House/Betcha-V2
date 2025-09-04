@@ -59,7 +59,7 @@ document.addEventListener("DOMContentLoaded", () => {
           classes += "bg-background text-black hover:bg-secondary";
         }
 
-        html += `<div class="${classes}" data-date="${dateStr}" ${isUnavailable ? 'style="pointer-events: none;"' : ''}>${d}</div>`;
+        html += `<div class="${classes}" data-date="${dateStr}">${d}</div>`;
       }
 
       html += "</div>";
@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Click listener for dates
     calendarEl.addEventListener("click", e => {
       const dateEl = e.target.closest("[data-date]");
-      if (dateEl && !dateEl.classList.contains("cursor-not-allowed")) {
+      if (dateEl) {
         const clickedDate = dateEl.dataset.date;
         
         // Single selection - replace previous selection

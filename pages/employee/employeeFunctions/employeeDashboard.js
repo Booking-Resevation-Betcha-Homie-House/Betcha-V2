@@ -610,7 +610,7 @@ function populateTodayCheckins(checkins) {
 // Create individual check-in element matching the existing HTML structure
 function createCheckinElement(checkin) {
   const checkinDiv = document.createElement('div');
-  checkinDiv.className = 'flex flex-col font-inter sm:flex-row sm:items-center justify-between bg-neutral-50 p-4 rounded-xl border border-neutral-200 hover:bg-neutral-100 transition cursor-pointer';
+  checkinDiv.className = 'flex flex-col font-inter sm:flex-row sm:items-center justify-between bg-neutral-50 p-4 rounded-xl border border-neutral-200 hover:bg-neutral-100 transition';
   
   // Get guest name using the correct field name
   const guestName = checkin.nameOfGuest || checkin.guestName || checkin.customerName || 'Guest User';
@@ -685,12 +685,7 @@ function createCheckinElement(checkin) {
     </div>
   `;
   
-  checkinDiv.addEventListener('click', () => {
-    localStorage.setItem('selectedBooking', JSON.stringify(checkin));
-    localStorage.setItem('redirectFromDashboard', 'true');
-    localStorage.setItem('openBookingModal', 'true');
-    window.location.href = 'pm.html';
-  });
+  // Removed click handler to prevent redirect/opening modal
   
   return checkinDiv;
 }
