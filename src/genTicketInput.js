@@ -131,6 +131,17 @@ document.addEventListener('DOMContentLoaded', () => {
         // Show success message
         window.showToastError('success', 'Ticket Created!', 'Your support ticket has been created successfully. You will be redirected shortly.');
         
+        // Audit: Log ticket creation
+        try {
+            const userId = localStorage.getItem('userId') || '';
+            const userType = localStorage.getItem('role') || localStorage.getItem('userType') || '';
+            if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logTicketCreation === 'function' && userId) {
+                window.AuditTrailFunctions.logTicketCreation(userId, userType.charAt(0).toUpperCase() + userType.slice(1));
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for ticket creation failed:', auditError);
+        }
+        
         // Reset form
         document.getElementById('generateTicketForm').reset();
         selectedEmployeeId = null;

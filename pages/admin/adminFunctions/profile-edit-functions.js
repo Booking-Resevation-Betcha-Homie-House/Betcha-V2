@@ -79,6 +79,14 @@
               if (body.email !== undefined) localStorage.setItem('email', body.email);
               if (body.minitial !== undefined) localStorage.setItem('middleInitial', body.minitial);
               
+              // Audit: profile updated (Admin)
+              try {
+                const uid = localStorage.getItem('userId') || '';
+                if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logProfileUpdate === 'function' && uid) {
+                  window.AuditTrailFunctions.logProfileUpdate(uid, 'Admin');
+                }
+              } catch (_) {}
+              
               // Upload profile picture if one was selected
               if (selectedFile) {
                 await uploadPfp(selectedFile);

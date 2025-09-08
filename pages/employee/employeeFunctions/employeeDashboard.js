@@ -367,7 +367,21 @@ function populateTransactions(transactions) {
     return;
   }
   
-  const sortedTransactions = transactions.sort((a, b) => new Date(b.checkIn) - new Date(a.checkIn));
+  // Sort by transaction number descending (e.g., "#000000073" -> 73). Fallback to checkIn date.
+  const getTransNoValue = (t) => {
+    const raw = t?.transNo ?? t?.transactionId ?? t?._id;
+    if (raw === undefined || raw === null) return -Infinity;
+    const str = String(raw);
+    const match = str.match(/\d+/g);
+    if (!match) return -Infinity;
+    return parseInt(match.join(''), 10);
+  };
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    const nb = getTransNoValue(b);
+    const na = getTransNoValue(a);
+    if (nb !== na) return nb - na;
+    return new Date(b.checkIn || 0) - new Date(a.checkIn || 0);
+  });
   
   const limitedTransactions = sortedTransactions.slice(0, 5);
   
@@ -524,13 +538,15 @@ async function loadAndPopulateTodayCheckins() {
         
         const statusLower = booking.status.toString().toLowerCase();
         
-        // Exclude cancelled, completed, and checked-out bookings
+        // Exclude cancelled, completed, checked-out, and any pending variants (e.g., "pending", "pending payment", "payment pending")
         if (statusLower === 'cancel' || 
             statusLower === 'cancelled' ||
             statusLower === 'checked-out' || 
             statusLower === 'completed' ||
             statusLower === 'finished' ||
             statusLower === 'ended' ||
+            statusLower === 'pending' ||
+            statusLower.includes('pending') ||
             statusLower.includes('checkout') ||
             statusLower.includes('checked-out') ||
             statusLower.includes('checked out') ||
@@ -541,7 +557,7 @@ async function loadAndPopulateTodayCheckins() {
           return false;
         }
         
-        // Include pending, reserved, confirmed, and checked-in bookings
+        // Include reserved, confirmed, and checked-in bookings
         return true;
       });
       
@@ -562,6 +578,7 @@ async function loadAndPopulateTodayCheckins() {
         return !(statusLower === 'cancel' || statusLower === 'cancelled' || 
                 statusLower === 'checked-out' || statusLower === 'completed' ||
                 statusLower === 'finished' || statusLower === 'ended' ||
+                statusLower === 'pending' || statusLower.includes('pending') ||
                 statusLower.includes('checkout') || statusLower.includes('checked-out') ||
                 statusLower.includes('checked out') || statusLower.includes('finished') ||
                 statusLower.includes('ended'));

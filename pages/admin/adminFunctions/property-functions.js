@@ -187,6 +187,22 @@ document.addEventListener('DOMContentLoaded', () => {
                 p.name && p.name.toLowerCase().includes(value)
             );
             
+            // Log property search audit if search term is not empty
+            if (value && value.length > 0) {
+                try {
+                    if (window.AuditTrailFunctions) {
+                        const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                        const userId = userData.userId || userData.user_id || 'unknown';
+                        const userType = userData.role || 'admin';
+                        window.AuditTrailFunctions.logPropertySearch(userId, userType).catch(auditError => {
+                            console.error('Audit trail error:', auditError);
+                        });
+                    }
+                } catch (auditError) {
+                    console.error('Audit trail error:', auditError);
+                }
+            }
+            
             // Ensure properties container is visible when searching
             const skeletonContainer = document.getElementById('skeleton-container');
             const propertiesContainer = document.getElementById('properties-container');

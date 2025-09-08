@@ -227,6 +227,8 @@ function populateBookingData(booking) {
         // Basic booking information
         populateElement('roomName', booking.propertyName || 'Property Name');
         populateElement('refID', booking.transNo || booking._id);
+        // Ensure copy button exists and is wired up
+        ensureCopyRefButton();
         
         // Dates
         if (booking.checkIn && booking.checkOut) {
@@ -288,6 +290,47 @@ function populateBookingData(booking) {
     }
 }
 
+// Create and wire a copy button next to Reference ID
+function ensureCopyRefButton() {
+    try {
+        const refElement = document.getElementById('refID');
+        if (!refElement) return;
+
+        let copyBtn = document.getElementById('copyRefBtn');
+        if (!copyBtn) {
+            copyBtn = document.createElement('button');
+            copyBtn.id = 'copyRefBtn';
+            copyBtn.type = 'button';
+            copyBtn.textContent = 'Copy';
+            refElement.insertAdjacentElement('afterend', copyBtn);
+        }
+        // Always apply current sizing/styles (also updates existing buttons)
+        copyBtn.className = 'px-2 py-0.5 ml-2 rounded-full border border-neutral-300 text-xs hover:border-primary hover:text-primary transition';
+
+        // Attach/refresh handler
+        copyBtn.onclick = async () => {
+            const text = refElement.textContent?.trim();
+            if (!text) return;
+            try {
+                await navigator.clipboard.writeText(text);
+                showToast('success', 'Copied', 'Reference ID copied to clipboard.', 1500);
+            } catch (e) {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.select();
+                document.execCommand('copy');
+                ta.remove();
+                showToast('success', 'Copied', 'Reference ID copied to clipboard.', 1500);
+            }
+        };
+    } catch (error) {
+        console.error('Error setting up copy button:', error);
+    }
+}
+
 // Function to calculate and display payment status
 function calculateAndDisplayPaymentStatus(booking) {
     try {
@@ -331,11 +374,8 @@ function calculateAndDisplayPaymentStatus(booking) {
         
         remainingBalance = (booking.totalFee || 0) - amountPaid;
         
-        // Format amount paid display with pending indicator
+        // Format amount paid display (badge now indicates status)
         let amountPaidText = amountPaid.toLocaleString();
-        if (pendingPayments.length > 0) {
-            amountPaidText += ` (Pending)`;
-        }
         
         // Update the amount paid element
         const amountPaidElement = document.getElementById('amountPaid');
@@ -347,11 +387,55 @@ function calculateAndDisplayPaymentStatus(booking) {
         
         // Handle payment button visibility and functionality
         handlePaymentButton(booking, remainingBalance, unpaidReservation, unpaidPackage);
+
+        // Update simple status badge beside Transaction summary
+        let status = 'Completed';
+        if (pendingPayments.length > 0) status = 'Pending';
+        else if (remainingBalance > 0 && (unpaidReservation || unpaidPackage)) status = 'Unpaid';
+        updateTransactionSummaryStatus(status);
         
     } catch (error) {
         console.error('Error calculating payment status:', error);
         populateElement('amountPaid', '0');
         populateElement('remainingBal', booking.totalFee?.toLocaleString() || '0');
+    }
+}
+
+// Create or update a small status badge near the Transaction summary title
+function updateTransactionSummaryStatus(status) {
+    try {
+        // Find heading paragraph containing 'Transaction summary'
+        let heading = Array.from(document.querySelectorAll('p'))
+            .find(p => p.textContent && p.textContent.trim().startsWith('Transaction summary'));
+        if (!heading) return;
+
+        // Ensure badge exists
+        let badge = document.getElementById('txnStatus');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.id = 'txnStatus';
+            badge.className = 'hidden text-xs px-2 py-0.5 rounded-full border ml-auto';
+            // Make heading a flex container for spacing, non-destructive
+            heading.classList.add('flex', 'items-center', 'gap-2');
+            heading.appendChild(badge);
+        }
+
+        // Reset styles
+        badge.classList.remove('hidden', 'bg-yellow-50', 'text-yellow-700', 'border-yellow-300',
+            'bg-green-50', 'text-green-700', 'border-green-300',
+            'bg-red-50', 'text-red-700', 'border-red-300');
+
+        if (status === 'Pending') {
+            badge.classList.add('bg-yellow-50', 'text-yellow-700', 'border-yellow-300');
+        } else if (status === 'Completed') {
+            badge.classList.add('bg-green-50', 'text-green-700', 'border-green-300');
+        } else {
+            badge.classList.add('bg-red-50', 'text-red-700', 'border-red-300');
+        }
+
+        badge.textContent = status;
+    } catch (e) {
+        console.error('Error updating Transaction summary status:', e);
     }
 }
 

@@ -34,6 +34,17 @@ async function handleLogin(email, password) {
             // Save user data to localStorage
             saveUserToLocalStorage(data.user, data.userType);
             
+            // Audit: user login
+            try {
+                const userId = localStorage.getItem('userId') || data.user?._id || '';
+                const type = (localStorage.getItem('role') || data.userType || '').toString();
+                if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logUserLogin === 'function' && userId) {
+                    window.AuditTrailFunctions.logUserLogin(userId, type.charAt(0).toUpperCase() + type.slice(1));
+                }
+            } catch (e) {
+                console.warn('Audit login failed:', e);
+            }
+            
             // Show success message
             showMessage(`Login successful! Redirecting to ${data.userType} dashboard...`, 'success');
             
@@ -60,6 +71,18 @@ async function handleLogin(email, password) {
         } else {
             // Login failed
             console.error('Login failed:', data);
+            
+            // Audit: Log failed login attempt
+            try {
+                const emailInput = document.querySelector('input[type="email"]');
+                const email = emailInput ? emailInput.value.trim() : 'unknown';
+                if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logFailedLogin === 'function') {
+                    window.AuditTrailFunctions.logFailedLogin(email, 'Guest');
+                }
+            } catch (auditError) {
+                console.warn('Audit trail for failed login failed:', auditError);
+            }
+            
             showMessage(data.message || 'Login failed. Please check your credentials.', 'error');
         }
     } catch (error) {

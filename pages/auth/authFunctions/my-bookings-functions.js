@@ -168,6 +168,7 @@ function setActiveBookingTab(index) {
     // Get tab buttons and content containers
     const tabBtns = document.querySelectorAll('.tab-btn');
     const containers = [
+        'allContainer',
         'pendingContainer',
         'rateContainer', 
         'completedContainer'
@@ -221,7 +222,9 @@ async function renderBookings(bookings, containerId) {
         
         // Create specific messages for each tab
         let emptyMessage = 'No bookings found';
-        if (containerId === 'pendingContainer') {
+        if (containerId === 'allContainer') {
+            emptyMessage = 'No Bookings';
+        } else if (containerId === 'pendingContainer') {
             emptyMessage = 'No Pending Bookings';
         } else if (containerId === 'rateContainer') {
             emptyMessage = 'No Bookings To Rate';
@@ -259,6 +262,8 @@ async function renderBookings(bookings, containerId) {
 function showSkeletonLoading() {
     const skeletonHTML = Array(3).fill(createSkeletonLoader()).join('');
     
+    const allContainer = document.getElementById('allContainer');
+    if (allContainer) allContainer.innerHTML = skeletonHTML;
     document.getElementById('pendingContainer').innerHTML = skeletonHTML;
     document.getElementById('rateContainer').innerHTML = skeletonHTML;
     document.getElementById('completedContainer').innerHTML = skeletonHTML;
@@ -324,11 +329,18 @@ async function fetchAndRenderBookings() {
 
         console.log('Categorized bookings:', categorizedBookings);
 
+        // Build All list and sort recent->oldest using createdAt fallback to checkIn
+        let all = [
+            ...(categorizedBookings.pending || []),
+            ...(categorizedBookings.toRate || []),
+            ...(categorizedBookings.completed || [])
+        ];
+        all.sort((a, b) => new Date(b.createdAt || b.checkIn) - new Date(a.createdAt || a.checkIn));
+
         // Keep skeleton loading while we fetch property photos
-        // Don't clear containers yet - skeleton is still showing
-        
-        // Render bookings in their respective tabs (async) - this will replace skeleton loading
+        // Render bookings in their respective tabs (async)
         await Promise.all([
+            renderBookings(all, 'allContainer'),
             renderBookings(categorizedBookings.pending, 'pendingContainer'),
             renderBookings(categorizedBookings.toRate, 'rateContainer'),
             renderBookings(categorizedBookings.completed, 'completedContainer')
@@ -361,7 +373,35 @@ async function fetchAndRenderBookings() {
 document.addEventListener('DOMContentLoaded', function() {
     console.log('My Bookings page loaded');
     
-    // Set initial active tab (Pending = index 0)
+    // Ensure All tab UI exists and set as default
+    (function ensureAllTabUI() {
+        try {
+            const pendingContainer = document.getElementById('pendingContainer');
+            if (pendingContainer && !document.getElementById('allContainer')) {
+                const allDiv = document.createElement('div');
+                allDiv.id = 'allContainer';
+                allDiv.className = 'flex-1 flex flex-col';
+                pendingContainer.parentNode.insertBefore(allDiv, pendingContainer);
+            }
+
+            const tabBtns = document.querySelectorAll('.tab-btn');
+            if (tabBtns && tabBtns.length > 0) {
+                const parent = tabBtns[0].parentNode;
+                const exists = Array.from(tabBtns).some(b => b.textContent.trim().toLowerCase() === 'all');
+                if (!exists) {
+                    const allBtn = document.createElement('button');
+                    allBtn.className = tabBtns[0].className + ' tab-btn';
+                    allBtn.textContent = 'All';
+                    parent.insertBefore(allBtn, tabBtns[0]);
+                    allBtn.addEventListener('click', () => setActiveBookingTab(0));
+                }
+            }
+        } catch (e) {
+            console.warn('All tab UI setup failed:', e);
+        }
+    })();
+
+    // Set initial active tab (All = index 0)
     setActiveBookingTab(0);
     
     // Add a small delay for skeleton loading effect

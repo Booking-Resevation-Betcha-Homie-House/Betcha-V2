@@ -92,6 +92,17 @@ async function fetchAndDisplayProperty() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
 
+        // Audit: Log property view
+        try {
+            const userId = localStorage.getItem('userId') || 'anonymous';
+            const userType = localStorage.getItem('role') || localStorage.getItem('userType') || 'Guest';
+            if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPropertyView === 'function') {
+                window.AuditTrailFunctions.logPropertyView(userId, userType.charAt(0).toUpperCase() + userType.slice(1));
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for property view failed:', auditError);
+        }
+
         ['photo1','photo2','photo3'].forEach((id, idx) => {
             const el = document.getElementById(id);
             if(el && data.photoLinks[idx]) {

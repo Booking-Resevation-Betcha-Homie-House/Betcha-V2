@@ -126,6 +126,16 @@ async function addEmployee() {
         // Show success message
         showSuccess('Employee added successfully!');
         
+        // Audit: Log employee creation
+        try {
+            const userId = localStorage.getItem('userId') || '';
+            if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logEmployeeCreation === 'function' && userId) {
+                window.AuditTrailFunctions.logEmployeeCreation(userId);
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for employee creation failed:', auditError);
+        }
+        
         // Reset form
         resetForm();
         

@@ -12,6 +12,14 @@ function saveUserToLocalStorage(userData) {
 // Function to handle login button click
 function handleLoginButton(userData) {
     saveUserToLocalStorage(userData);
+    // Audit: user registered (logged in right after registration flow)
+    try {
+        const uid = userData.userId || localStorage.getItem('userId') || '';
+        if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logUserRegistration === 'function' && uid) {
+            const role = (localStorage.getItem('role') || 'Guest');
+            window.AuditTrailFunctions.logUserRegistration(uid, role.charAt(0).toUpperCase() + role.slice(1));
+        }
+    } catch (_) {}
     window.location.href = '/pages/unauth/rooms.html';
 }
 
@@ -41,6 +49,14 @@ async function handleVerifyButton(userData) {
         
         // Save to localStorage and redirect
         saveUserToLocalStorage(userData);
+        // Audit: user registration verified
+        try {
+            const uid = userData.userId || localStorage.getItem('userId') || '';
+            if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logUserRegistration === 'function' && uid) {
+                const role = (localStorage.getItem('role') || 'Guest');
+                window.AuditTrailFunctions.logUserRegistration(uid, role.charAt(0).toUpperCase() + role.slice(1));
+            }
+        } catch (_) {}
         window.location.href = '/pages/unauth/rooms.html';
     } catch (error) {
         console.error('Error updating verification status:', error);

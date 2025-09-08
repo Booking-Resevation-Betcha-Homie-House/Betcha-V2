@@ -79,6 +79,20 @@ function resolveBookingId(rootEl) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
+    // Log system access audit for property management page
+    try {
+        if (window.AuditTrailFunctions) {
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const userId = userData.userId || userData.user_id || 'unknown';
+            const userType = userData.role || 'employee';
+            window.AuditTrailFunctions.logSystemAccess(userId, userType).catch(auditError => {
+                console.error('Audit trail error:', auditError);
+            });
+        }
+    } catch (auditError) {
+        console.error('Audit trail error:', auditError);
+    }
+    
     // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
     initializePropertyMonitoringFeatures();
 });
@@ -243,6 +257,20 @@ function hideSpecificSidebarItems(itemsToHide) {
 }
 
 function showAccessDeniedMessage() {
+    // Log unauthorized access attempt
+    try {
+        if (window.AuditTrailFunctions) {
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const userId = userData.userId || userData.user_id || 'unknown';
+            const userType = userData.role || 'employee';
+            window.AuditTrailFunctions.logUnauthorizedAccess(userId, userType).catch(auditError => {
+                console.error('Audit trail error:', auditError);
+            });
+        }
+    } catch (auditError) {
+        console.error('Audit trail error:', auditError);
+    }
+    
     const message = document.createElement('div');
     message.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
     message.innerHTML = `
@@ -612,8 +640,10 @@ function populateCheckinTab(checkinData) {
                 
                 if (shouldExcludeBooking(item)) return false;
                 
-                const isNotCheckedOut = !isCheckoutStatus(item.status);
-                return hasBookingFields && isNotCheckedOut;
+                const statusStr = (item.status || '').toString().toLowerCase();
+                const isNotCheckedOut = !isCheckoutStatus(statusStr);
+                const isNotPending = !(statusStr === 'pending' || statusStr.includes('pending'));
+                return hasBookingFields && isNotCheckedOut && isNotPending;
             });
         } else if (checkinData && checkinData.bookings && Array.isArray(checkinData.bookings)) {
             bookings = checkinData.bookings.filter(item => {
@@ -626,7 +656,8 @@ function populateCheckinTab(checkinData) {
                                       !status.includes('complete') &&
                                       !status.includes('finished') &&
                                       !status.includes('ended');
-                return hasBookingFields && isNotCheckedOut;
+                const isNotPending = !(status === 'pending' || status.includes('pending'));
+                return hasBookingFields && isNotCheckedOut && isNotPending;
             });
         } else if (checkinData && checkinData.data && Array.isArray(checkinData.data)) {
             bookings = checkinData.data.filter(item => {
@@ -639,7 +670,8 @@ function populateCheckinTab(checkinData) {
                                       !status.includes('complete') &&
                                       !status.includes('finished') &&
                                       !status.includes('ended');
-                return hasBookingFields && isNotCheckedOut;
+                const isNotPending = !(status === 'pending' || status.includes('pending'));
+                return hasBookingFields && isNotCheckedOut && isNotPending;
             });
         }
         
@@ -1090,6 +1122,17 @@ async function handleEndBookingConfirm() {
         const checkoutResult = await checkoutResponse.json();
         console.log('Checkout API success:', checkoutResult);
         
+        // Audit: Log check-out activity
+        try {
+            const userId = localStorage.getItem('userId') || '';
+            const userType = localStorage.getItem('role') || localStorage.getItem('userType') || '';
+            if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logCheckOut === 'function' && userId) {
+                window.AuditTrailFunctions.logCheckOut(userId, userType.charAt(0).toUpperCase() + userType.slice(1));
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for check-out failed:', auditError);
+        }
+        
         // Close modal and refresh
         modal.classList.add('hidden');
         document.body.classList.remove('modal-open');
@@ -1205,8 +1248,7 @@ function initializeCheckinConfirmationModal() {
                 console.error('checkinConfirmModal not found in DOM');
             }
             
-            // Initialize the customer report checkbox functionality
-            initializeCheckinCustomerReportCheckbox();
+            // Customer report UI removed; no initialization needed
             
             // Set up event listeners for the buttons
             const confirmBtn = document.getElementById('confirm-checkin-btn');
@@ -1286,35 +1328,6 @@ function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkin
     }
 }
 
-// Function to initialize the customer report checkbox functionality for check-in modal
-function initializeCheckinCustomerReportCheckbox() {
-    const customerCheckbox = document.getElementById('include-customer-report-checkin');
-    const customerReportSection = document.getElementById('customer-report-section-checkin');
-    const customerReportTextarea = document.getElementById('input-customer-report-checkin');
-    
-    if (customerCheckbox && customerReportSection && customerReportTextarea) {
-        // Remove existing event listeners to prevent duplicates
-        const newCheckbox = customerCheckbox.cloneNode(true);
-        customerCheckbox.parentNode.replaceChild(newCheckbox, customerCheckbox);
-        
-        // Reset checkbox and textarea to default hidden state
-        newCheckbox.checked = false;
-        customerReportSection.classList.add('hidden');
-        customerReportTextarea.value = '';
-        
-        // Add new event listener
-        newCheckbox.addEventListener('change', function() {
-            if (this.checked) {
-                customerReportSection.classList.remove('hidden');
-                customerReportTextarea.focus();
-            } else {
-                customerReportSection.classList.add('hidden');
-                customerReportTextarea.value = '';
-            }
-        });
-    }
-}
-
 // Function to process the final check-in confirmation
 async function processCheckinConfirmation(bookingId) {
     
@@ -1324,88 +1337,19 @@ async function processCheckinConfirmation(bookingId) {
     }
     
     try {
-        // Check if customer report checkbox is active
-        const includeCustomerReport = document.getElementById('include-customer-report-checkin')?.checked || false;
-        const customerReportRemarks = includeCustomerReport ? ((document.getElementById('input-customer-report-checkin')?.value || '').trim() || '') : '';
-
-        // If checkbox is checked but no remarks provided, block and show toast
-        if (includeCustomerReport && !customerReportRemarks) {
-            try {
-                if (window.showToastError) {
-                    window.showToastError('warning', 'Customer report required', 'Please add a message to the report before confirming check-in.');
-                }
-            } catch(_) {}
-            const section = document.getElementById('customer-report-section-checkin');
-            const textarea = document.getElementById('input-customer-report-checkin');
-            if (section) section.classList.remove('hidden');
-            if (textarea) textarea.focus();
-            return; // Do not proceed with check-in
-        }
-        
-        // If customer report checkbox is active and remarks are provided, call the /report API
-        if (includeCustomerReport && customerReportRemarks) {
-            try {
-                // Get guestId and transNo from modal dataset
-                const modal = document.getElementById('checkinConfirmModal');
-                let guestId = modal.dataset.guestId || '';
-                let transNo = modal.dataset.transNo || '';
-                
-                console.log('Customer report data check:', {
-                    includeCustomerReport,
-                    customerReportRemarks,
-                    guestId: guestId || 'NOT_FOUND',
-                    transNo: transNo || 'NOT_FOUND',
-                    modalDataset: modal ? Object.fromEntries(Object.entries(modal.dataset)) : 'MODAL_NOT_FOUND'
-                });
-                
-                // If guestId is missing, try to fetch it from the individual booking API
-                if (!guestId && bookingId) {
-                    try {
-                        const bookingResponse = await fetch(`${API_BASE_URL}/booking/${bookingId}`);
-                        if (bookingResponse.ok) {
-                            const bookingData = await bookingResponse.json();
-                            if (bookingData.booking) {
-                                guestId = bookingData.booking.guestId || '';
-                                transNo = transNo || bookingData.booking.transNo || '';
-                            }
-                        }
-                    } catch (fetchError) {
-                        console.error('Error fetching individual booking data:', fetchError);
-                    }
-                }
-                
-                if (guestId) {
-                    const customerReportData = {
-                        guestId: guestId,
-                        reason: customerReportRemarks,
-                        transNo: transNo,
-                        reportedBy: 'PM Staff'
-                    };
-                    
-                    const reportResponse = await fetch(`${API_BASE_URL}/report`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(customerReportData)
-                    });
-                    
-                    if (!reportResponse.ok) {
-                        throw new Error(`Customer Report API failed: ${reportResponse.status} ${reportResponse.statusText}`);
-                    }
-                    
-                    console.log('Customer report submitted successfully');
-                } else {
-                    console.warn('No guestId available for customer report even after API fetch');
-                }
-            } catch (error) {
-                console.error('Error submitting customer report:', error);
-                // Continue with check-in process even if report fails
-            }
-        }
-        
-        // Call API to update booking status to "Checked-In"
+        // Directly update booking status to "Checked-In" (customer report UI removed)
         await updateBookingStatus(bookingId, 'Checked-In');
+        
+        // Audit: Log check-in activity
+        try {
+            const userId = localStorage.getItem('userId') || '';
+            const userType = localStorage.getItem('role') || localStorage.getItem('userType') || '';
+            if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logCheckIn === 'function' && userId) {
+                window.AuditTrailFunctions.logCheckIn(userId, userType.charAt(0).toUpperCase() + userType.slice(1));
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for check-in failed:', auditError);
+        }
         
     } catch (error) {
         console.error('Error processing check-in confirmation:', error);
@@ -1422,117 +1366,38 @@ async function processCheckinCancellation(bookingId) {
     }
 
     try {
-        // Check if customer report checkbox is active
-        const includeCustomerReport = document.getElementById('include-customer-report-checkin')?.checked || false;
-        const customerReportRemarks = includeCustomerReport ? ((document.getElementById('input-customer-report-checkin')?.value || '').trim() || '') : '';
+        // Prepare context for cancellation request modal (admin approval flow)
+        BookingContext.set({ bookingId });
+        await BookingContext.hydrateFromBooking(bookingId);
 
-        // If checkbox is checked but no remarks provided, block and show toast
-        if (includeCustomerReport && !customerReportRemarks) {
-            try {
-                if (window.showToastError) {
-                    window.showToastError('warning', 'Customer report required', 'Please add a message to the report before cancelling.');
-                }
-            } catch(_) {}
-            const section = document.getElementById('customer-report-section-checkin');
-            const textarea = document.getElementById('input-customer-report-checkin');
-            if (section) section.classList.remove('hidden');
-            if (textarea) textarea.focus();
-            return; // Do not proceed with cancellation
-        }
-        
-        // If customer report checkbox is active and remarks are provided, call the /report API
-        if (includeCustomerReport && customerReportRemarks) {
-            try {
-                // Get guestId and transNo from modal dataset
-                const modal = document.getElementById('checkinConfirmModal');
-                let guestId = modal.dataset.guestId || '';
-                let transNo = modal.dataset.transNo || '';
-                
-                console.log('Customer report data check (cancellation):', {
-                    includeCustomerReport,
-                    customerReportRemarks,
-                    guestId: guestId || 'NOT_FOUND',
-                    transNo: transNo || 'NOT_FOUND',
-                    modalDataset: modal ? Object.fromEntries(Object.entries(modal.dataset)) : 'MODAL_NOT_FOUND'
-                });
-                
-                // If guestId is missing, try to fetch it from the individual booking API
-                if (!guestId && bookingId) {
-                    try {
-                        const bookingResponse = await fetch(`${API_BASE_URL}/booking/${bookingId}`);
-                        if (bookingResponse.ok) {
-                            const bookingData = await bookingResponse.json();
-                            if (bookingData.booking) {
-                                guestId = bookingData.booking.guestId || '';
-                                transNo = transNo || bookingData.booking.transNo || '';
-                            }
-                        }
-                    } catch (fetchError) {
-                        console.error('Error fetching individual booking data:', fetchError);
-                    }
-                }
-                
-                if (guestId) {
-                    const customerReportData = {
-                        guestId: guestId,
-                        reason: customerReportRemarks,
-                        transNo: transNo,
-                        reportedBy: 'PM Staff'
-                    };
-                    
-                    const reportResponse = await fetch(`${API_BASE_URL}/report`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify(customerReportData)
-                    });
-                    
-                    if (!reportResponse.ok) {
-                        throw new Error(`Customer Report API failed: ${reportResponse.status} ${reportResponse.statusText}`);
-                    }
-                    
-                    console.log('Customer report submitted successfully (cancellation)');
-                } else {
-                    console.warn('No guestId available for customer report');
-                }
-            } catch (error) {
-                console.error('Error submitting customer report (cancellation):', error);
-                // Continue with cancellation process even if report fails
-            }
-        }
-
-        // Call API to update the booking status to "Cancel"
-        const response = await fetch(`${API_BASE_URL}/booking/update-status/${bookingId}`, {
-            method: 'PATCH',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                status: 'Cancel'
-            })
-        });
-
-        if (!response.ok) {
-            throw new Error(`Cancellation failed: ${response.status} ${response.statusText}`);
-        }
-
-        const data = await response.json();
-        console.log('Booking cancelled successfully:', data);
-
-        // Close the modal
-        const modal = document.getElementById('checkinConfirmModal');
-        if (modal) {
-            modal.classList.add('hidden');
+        // Close the check-in confirm modal
+        const checkinModal = document.getElementById('checkinConfirmModal');
+        if (checkinModal) {
+            checkinModal.classList.add('hidden');
             document.body.classList.remove('modal-open');
         }
 
-        console.log(`✅ Check-in cancelled successfully! Booking ID: ${bookingId}`);
-        loadTodaysCheckins(); // Refresh the data
+        // Open the employee cancellation request modal
+        const cancelModal = document.getElementById('cancelBookingModal');
+        if (cancelModal) {
+            // Attach booking context to modal dataset for downstream use
+            cancelModal.dataset.bookingId = bookingId;
+            const ctx = BookingContext.get();
+            if (ctx.transNo) cancelModal.dataset.transNo = ctx.transNo;
+            if (ctx.guestId) cancelModal.dataset.guestId = ctx.guestId;
+
+            // Ensure admin list is loaded
+            try { await loadAdminsIntoCancelModal(); } catch(_) {}
+
+            // Show modal
+            cancelModal.classList.remove('hidden');
+            document.body.classList.add('modal-open');
+        } else {
+            console.warn('cancelBookingModal not found');
+        }
 
     } catch (error) {
-        console.error('Error during check-in cancellation:', error);
-        console.error(`Error cancelling check-in: ${error.message}`);
+        console.error('Error preparing cancellation request:', error);
     }
 }
 
@@ -1718,15 +1583,7 @@ async function sendCancellationNoticeToAdmin() {
         };
         Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
 
-        const resp = await fetch(`${API_BASE_URL}/notify/cancellation`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        if (!resp.ok) {
-            const text = await resp.text().catch(() => '');
-            throw new Error(`Notify API failed: ${resp.status} ${resp.statusText}${text ? ` - ${text}` : ''}`);
-        }
+        await window.notify.sendCancellation(payload);
         console.log('✅ Cancellation notice sent to admin.');
         const cancelModal = document.getElementById('cancelBookingModal');
         if (cancelModal) { cancelModal.classList.add('hidden'); document.body.classList.remove('modal-open'); }

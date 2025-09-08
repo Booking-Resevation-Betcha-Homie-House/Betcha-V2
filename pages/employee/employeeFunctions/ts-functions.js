@@ -201,7 +201,19 @@ function populateTransactionTab(tabContainer, transactions, tabType) {
         // Clear existing content
         tabContainer.innerHTML = '';
         
-        if (transactions.length === 0) {
+        // Sort by transaction number descending (e.g., "#000000072" -> 72)
+        const getTransNoValue = (t) => {
+            const raw = t?.transNo ?? t?.transactionNo ?? t?.trans_no ?? t?.transNO;
+            if (raw === undefined || raw === null) return -Infinity;
+            const str = String(raw);
+            const match = str.match(/\d+/g);
+            if (!match) return -Infinity;
+            // Join digits to support formats like "000000072"
+            return parseInt(match.join(''), 10);
+        };
+        const sorted = [...transactions].sort((a, b) => getTransNoValue(b) - getTransNoValue(a));
+        
+        if (sorted.length === 0) {
             // Show empty state
             tabContainer.innerHTML = `
                 <div class="flex flex-col items-center justify-center py-12 text-center">
@@ -216,7 +228,7 @@ function populateTransactionTab(tabContainer, transactions, tabType) {
         }
         
         // Create transaction items
-        transactions.forEach((transaction, index) => {
+        sorted.forEach((transaction, index) => {
             console.log(`Creating transaction element ${index + 1}:`, transaction);
             const transactionElement = createTransactionElement(transaction, tabType);
             tabContainer.appendChild(transactionElement);
@@ -931,6 +943,50 @@ async function approvePayment(paymentType, booking) {
         const data = await response.json();
         console.log(`${paymentType} payment approval response:`, data);
 
+        // Notify PMs for this property
+        try {
+            const propertyId = booking.propertyId || data?.booking?.propertyId || booking?.property?._id;
+            if (window.notify && propertyId) {
+                const message = `Reservation payment was ${paymentType === 'reservation' ? 'approved' : 'updated'} for transaction #${booking.transNo || data?.booking?.transNo || ''}.`;
+                console.log('[Notify][TS] Fan-out to PMs (approve)', { propertyId, message });
+                await window.notify.notifyEmployeesByProperty({
+                    propertyId,
+                    privilege: 'PM',
+                    buildMessageFor: () => ({ message })
+                });
+            }
+        } catch (e) {
+            console.warn('[Notify][TS] PM notify failed (approve):', e);
+        }
+
+        // Notify Guest about approval
+        try {
+            const guestId = booking.guestId || data?.booking?.guestId;
+            const guestName = booking.guestName || data?.booking?.guestName || 'Guest';
+            const transNo = booking.transNo || data?.booking?.transNo || '';
+            // Resolve current employee identity
+            const userDataRaw = localStorage.getItem('userData');
+            const emp = userDataRaw ? JSON.parse(userDataRaw) : {};
+            const fromId = emp?._id || localStorage.getItem('userId') || '';
+            const fromName = emp?.firstname && emp?.lastname ? `${emp.firstname} ${emp.lastname}` : (emp?.name || 'Employee');
+            if (window.notify && guestId && fromId) {
+                const message = `Your ${paymentType === 'reservation' ? 'reservation' : 'package'} payment has been approved for transaction #${transNo}.`;
+                console.log('[Notify][TS->Guest] Sending approval message', { toId: guestId, toName: guestName, message });
+                await window.notify.sendMessage({
+                    fromId,
+                    fromName,
+                    fromRole: 'employee',
+                    toId: guestId,
+                    toName: guestName,
+                    toRole: 'guest',
+                    message,
+                    category: 'payment-status'
+                });
+            }
+        } catch (e) {
+            console.warn('[Notify][TS->Guest] Guest notify failed (approve):', e);
+        }
+
 
 
         // Call payment checking API to update status
@@ -994,6 +1050,35 @@ async function declinePayment(paymentType, booking) {
             
             // Fetch updated booking data
             await fetchBookingDetails(booking._id, modal, booking);
+        }
+
+        // PM notifications are only sent on approvals; skip for declines
+
+        // Notify Guest about decline
+        try {
+            const guestId = booking.guestId;
+            const guestName = booking.guestName || 'Guest';
+            const transNo = booking.transNo || '';
+            const userDataRaw = localStorage.getItem('userData');
+            const emp = userDataRaw ? JSON.parse(userDataRaw) : {};
+            const fromId = emp?._id || localStorage.getItem('userId') || '';
+            const fromName = emp?.firstname && emp?.lastname ? `${emp.firstname} ${emp.lastname}` : (emp?.name || 'Employee');
+            if (window.notify && guestId && fromId) {
+                const message = `Your ${paymentType === 'reservation' ? 'reservation' : 'package'} payment has been declined for transaction #${transNo}.`;
+                console.log('[Notify][TS->Guest] Sending decline message', { toId: guestId, toName: guestName, message });
+                await window.notify.sendMessage({
+                    fromId,
+                    fromName,
+                    fromRole: 'employee',
+                    toId: guestId,
+                    toName: guestName,
+                    toRole: 'guest',
+                    message,
+                    category: 'payment-status'
+                });
+            }
+        } catch (e) {
+            console.warn('[Notify][TS->Guest] Guest notify failed (decline):', e);
         }
 
         // Reload the transaction list

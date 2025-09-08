@@ -1219,6 +1219,23 @@ async function initializeDeleteButton() {
                     
                     if (response.ok) {
                         const result = await response.json();
+                        
+                        // Log property status change audit
+                        try {
+                            if (window.AuditTrailFunctions) {
+                                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                                const userId = userData.userId || userData.user_id || 'unknown';
+                                const userType = userData.role || 'admin';
+                                if (nextStatus === 'Archived') {
+                                    await window.AuditTrailFunctions.logPropertyArchive(userId, userType, propertyId);
+                                } else {
+                                    await window.AuditTrailFunctions.logPropertyActivation(userId, userType, propertyId);
+                                }
+                            }
+                        } catch (auditError) {
+                            console.error('Audit trail error:', auditError);
+                        }
+                        
                         showSuccessMessage(`Property status set to ${nextStatus}!`);
                         // Update UI
                         document.getElementById('statusText').textContent = nextStatus;

@@ -73,7 +73,21 @@ class PropertyAPI {
                 body: JSON.stringify(data)
             });
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return await response.json();
+            const result = await response.json();
+            
+            // Log property update audit
+            try {
+                if (window.AuditTrailFunctions) {
+                    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                    const userId = userData.userId || userData.user_id || 'unknown';
+                    const userType = userData.role || 'admin';
+                    await window.AuditTrailFunctions.logPropertyUpdate(userId, userType, propertyId);
+                }
+            } catch (auditError) {
+                console.error('Audit trail error:', auditError);
+            }
+            
+            return result;
         } catch (error) {
             throw new Error(`Failed to update property: ${error.message}`);
         }
@@ -741,6 +755,23 @@ async function updatePropertyStatus(newStatus) {
     try {
         if (!currentPropertyId) throw new Error('Property ID not found');
         await PropertyAPI.updateProperty(currentPropertyId, { status: newStatus });
+        
+        // Log property status change audit
+        try {
+            if (window.AuditTrailFunctions) {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                const userId = userData.userId || userData.user_id || 'unknown';
+                const userType = userData.role || 'admin';
+                if (newStatus === 'Archived') {
+                    await window.AuditTrailFunctions.logPropertyArchive(userId, userType, currentPropertyId);
+                } else {
+                    await window.AuditTrailFunctions.logPropertyActivation(userId, userType, currentPropertyId);
+                }
+            }
+        } catch (auditError) {
+            console.error('Audit trail error:', auditError);
+        }
+        
         const selectedStatus = document.getElementById('selectedStatus');
         if (selectedStatus) selectedStatus.textContent = newStatus;
         updateArchiveButtonUI(newStatus);

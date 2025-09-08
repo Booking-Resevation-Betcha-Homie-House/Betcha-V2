@@ -7,6 +7,15 @@
         event.preventDefault();
         
         try {
+            // Audit: user logout (fire-and-forget)
+            try {
+                const userId = localStorage.getItem('userId') || '';
+                const userType = localStorage.getItem('role') || localStorage.getItem('userType') || '';
+                if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logUserLogout === 'function' && userId) {
+                    window.AuditTrailFunctions.logUserLogout(userId, (userType.charAt(0).toUpperCase() + userType.slice(1)) || 'Guest');
+                }
+            } catch (_) {}
+
             // Clear all localStorage data
             localStorage.clear();
             console.log('LocalStorage cleared successfully');

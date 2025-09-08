@@ -77,6 +77,18 @@ function initializeAdminProfile() {
  */
 async function initializeDashboard() {
     try {
+        // Log system access audit
+        try {
+            if (window.AuditTrailFunctions) {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                const userId = userData.userId || userData.user_id || 'unknown';
+                const userType = userData.role || 'admin';
+                await window.AuditTrailFunctions.logSystemAccess(userId, userType);
+            }
+        } catch (auditError) {
+            console.error('Audit trail error:', auditError);
+        }
+        
         // Fetch all dashboard data immediately without showing loading text
         await Promise.all([
             fetchSummaryData(),
@@ -1132,33 +1144,15 @@ window.sendGuestNotification = sendGuestNotification;
  */
 async function sendGuestNotification(notificationData) {
     try {
-        
-        const response = await fetch(`${API_BASE}/notify/message`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(notificationData)
-        });
+        const result = await window.notify.sendMessage(notificationData);
 
-        if (!response.ok) {
-            const errorText = await response.text().catch(() => 'Unknown error');
-            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
-        }
-
-        const result = await response.json();
-        
         // Show success message
         showNotificationSuccess('Guest notification sent successfully!');
-        
         return result;
         
     } catch (error) {
         console.error('Error sending guest notification:', error);
-        
-        // Show error message
         showNotificationError(`Failed to send notification: ${error.message}`);
-        
         throw error;
     }
 }
@@ -1456,6 +1450,18 @@ async function cancelBooking(bookingId) {
         }
         
         const result = await response.json();
+        
+        // Log booking cancellation audit
+        try {
+            if (window.AuditTrailFunctions) {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                const userId = userData.userId || userData.user_id || 'unknown';
+                const userType = userData.role || 'admin';
+                await window.AuditTrailFunctions.logBookingCancellation(userId, userType, bookingId);
+            }
+        } catch (auditError) {
+            console.error('Audit trail error:', auditError);
+        }
         
         // Show success message
         showNotificationSuccess('Booking cancelled successfully');
@@ -1818,10 +1824,5 @@ window.handleCancellationRequest = handleCancellationRequest;
 window.createCancellationActionButtons = createCancellationActionButtons;
 window.initializeCancellationManagement = initializeCancellationManagement;
 
-// Initialize cancellation management when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
-    // Wait for other dashboard elements to load
-    setTimeout(() => {
-        initializeCancellationManagement();
-    }, 1500);
-});
+// Note: Cancellation management is now centralized in src/admin-notifications.js
+// Do not initialize here to avoid duplicate event bindings and duplicate notifications.

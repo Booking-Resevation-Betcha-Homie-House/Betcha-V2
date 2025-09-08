@@ -11,6 +11,15 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show skeleton loading immediately
     showSkeletonLoading();
     
+    // Audit: payment initiation (page load implies intent to pay)
+    try {
+        const uid = localStorage.getItem('userId') || '';
+        const role = (localStorage.getItem('role') || 'Guest');
+        if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPaymentInitiation === 'function' && uid) {
+            window.AuditTrailFunctions.logPaymentInitiation(uid, role.charAt(0).toUpperCase() + role.slice(1));
+        }
+    } catch (_) {}
+    
     // Get booking ID and payment type from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const bookingId = urlParams.get('bookingId');
@@ -256,14 +265,40 @@ function addQRCodeDisplayArea(paymentContainer) {
 // Function to setup payment method selection handlers
 function setupPaymentMethodHandlers() {
     const paymentRadios = document.querySelectorAll('input[name="payment"]');
-    
+
+    function updateOptionStates() {
+        const anyChecked = Array.from(paymentRadios).some(r => r.checked);
+
+        paymentRadios.forEach(radio => {
+            const label = radio.closest('label');
+            if (!label) return;
+
+            if (anyChecked) {
+                if (radio.checked) {
+                    label.classList.remove('opacity-50', 'grayscale', 'pointer-events-none');
+                } else {
+                    label.classList.add('opacity-50', 'grayscale');
+                    // label.classList.add('pointer-events-none'); // optional hard lock
+                }
+            } else {
+                // No selection yet: everything looks normal
+                label.classList.remove('opacity-50', 'grayscale', 'pointer-events-none');
+            }
+        });
+    }
+
     paymentRadios.forEach(radio => {
         radio.addEventListener('change', function() {
             if (this.checked) {
                 showQRCode(this);
             }
+            // Always update visual states when a selection changes
+            updateOptionStates();
         });
     });
+
+    // Initialize option states on load (normal if none selected; gray others after selection)
+    updateOptionStates();
 }
 
 // Function to show QR code when payment method is selected
@@ -1522,6 +1557,54 @@ async function processPaymentConfirmation(bookingId, paymentType) {
             console.log('✅ Payment confirmation successful');
             showToastError('success', 'Payment Confirmed!', 'Your payment has been successfully processed.');
             
+            // Audit: payment completed
+            try {
+                const uid = localStorage.getItem('userId') || '';
+                const role = (localStorage.getItem('role') || 'Guest');
+                if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPaymentCompletion === 'function' && uid) {
+                    window.AuditTrailFunctions.logPaymentCompletion(uid, role.charAt(0).toUpperCase() + role.slice(1));
+                }
+            } catch (_) {}
+            
+            // Fire-and-forget notifications to TS and booking email
+            try {
+                const bookingObj = result?.booking || {};
+                const propertyId = bookingObj.propertyId || null;
+                const guestEmail = result?.guestEmail || localStorage.getItem('email') || '';
+                const amount = bookingObj.totalFee ?? null;
+                const unitName = bookingObj.propertyName || '';
+                const checkIn = bookingObj.checkIn || '';
+                const checkOut = bookingObj.checkOut || '';
+                const timeIn = bookingObj.timeIn || '';
+                const timeOut = bookingObj.timeOut || '';
+                const methodOfPayment = (getPaymentFormData()?.modeOfPayment) || '';
+                const typeOfPayment = paymentType || '';
+
+                if (window.notify && propertyId) {
+                    const notifyArgs = {
+                        propertyId,
+                        email: guestEmail,
+                        amount,
+                        typeOfPayment,
+                        methodOfPayment,
+                        unitName,
+                        checkIn,
+                        checkOut,
+                        timeIn,
+                        timeOut
+                    };
+                    console.log('[Notify] Triggering TS notification and booking email...', notifyArgs);
+                    window.notify
+                        .notifyPaymentCompletedToTS(notifyArgs)
+                        .then((res) => console.log('[Notify] Dispatched TS notifications result:', res))
+                        .catch((err) => console.error('[Notify] Dispatch failed:', err));
+                } else {
+                    console.warn('[Notify] Skipped: missing propertyId or notify service not loaded');
+                }
+            } catch (e) {
+                console.warn('notifyPaymentCompletedToTS failed:', e);
+            }
+            
             // Update the modal button to include bookingId in the URL
             const modalActionButton = document.getElementById('modalActionButton');
             if (modalActionButton) {
@@ -1555,12 +1638,30 @@ async function processPaymentConfirmation(bookingId, paymentType) {
             
             // Only show toast notification for errors, no modal
             showToastError('error', 'Payment Failed', errorMessage);
+
+            // Audit: payment failure
+            try {
+                const uid = localStorage.getItem('userId') || '';
+                const role = (localStorage.getItem('role') || 'Guest');
+                if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPaymentFailure === 'function' && uid) {
+                    window.AuditTrailFunctions.logPaymentFailure(uid, role.charAt(0).toUpperCase() + role.slice(1));
+                }
+            } catch (_) {}
         }
     } catch (error) {
         console.error('💥 Payment confirmation error:', error);
         
         // Only show toast notification for errors, no modal
         showToastError('error', 'Payment Error', 'An error occurred while processing your payment. Please try again.');
+
+        // Audit: payment failure
+        try {
+            const uid = localStorage.getItem('userId') || '';
+            const role = (localStorage.getItem('role') || 'Guest');
+            if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPaymentFailure === 'function' && uid) {
+                window.AuditTrailFunctions.logPaymentFailure(uid, role.charAt(0).toUpperCase() + role.slice(1));
+            }
+        } catch (_) {}
     } finally {
         hideFullscreenLoading();
     }

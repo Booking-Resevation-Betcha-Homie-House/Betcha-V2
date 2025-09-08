@@ -357,6 +357,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (response.ok) {
         alert('Property added successfully!');
+        
+        // Audit: Log property creation
+        try {
+            const userId = localStorage.getItem('userId') || '';
+            const userType = localStorage.getItem('role') || localStorage.getItem('userType') || '';
+            if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPropertyCreation === 'function' && userId) {
+                window.AuditTrailFunctions.logPropertyCreation(userId, userType.charAt(0).toUpperCase() + userType.slice(1));
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for property creation failed:', auditError);
+        }
+        
         window.location.href = 'property.html'; // Redirect or reset as needed
       } else {
         const error = await response.json().catch(() => ({}));

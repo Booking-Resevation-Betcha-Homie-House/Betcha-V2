@@ -120,6 +120,20 @@ function hideDashboardSections(privileges) {
 }
 
 function showAccessDeniedMessage() {
+    // Log unauthorized access attempt
+    try {
+        if (window.AuditTrailFunctions) {
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const userId = userData.userId || userData.user_id || 'unknown';
+            const userType = userData.role || 'employee';
+            window.AuditTrailFunctions.logUnauthorizedAccess(userId, userType).catch(auditError => {
+                console.error('Audit trail error:', auditError);
+            });
+        }
+    } catch (auditError) {
+        console.error('Audit trail error:', auditError);
+    }
+    
     const message = document.createElement('div');
     message.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-50';
     message.innerHTML = `
@@ -652,6 +666,18 @@ async function confirmResolve(ticketId) {
         if (!res.ok) throw new Error(data.message || "Failed to resolve ticket");
 
         console.log("Ticket resolved:", data);
+        
+        // Log ticket resolution audit
+        try {
+            if (window.AuditTrailFunctions) {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                const userId = userData.userId || userData.user_id || localStorage.getItem("userId") || 'unknown';
+                const userType = userData.role || 'employee';
+                await window.AuditTrailFunctions.logTicketResolution(userId, userType);
+            }
+        } catch (auditError) {
+            console.error('Audit trail error:', auditError);
+        }
 
         await fetchAndPopulateTickets();
 
@@ -738,6 +764,18 @@ async function sendReply(ticketId, message) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Reply failed");
         console.log("Reply sent:", data);
+        
+        // Log ticket update audit
+        try {
+            if (window.AuditTrailFunctions) {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                const userId = userData.userId || userData.user_id || localStorage.getItem("userId") || 'unknown';
+                const userType = userData.role || 'employee';
+                await window.AuditTrailFunctions.logTicketUpdate(userId, userType);
+            }
+        } catch (auditError) {
+            console.error('Audit trail error:', auditError);
+        }
     } catch (err) {
         console.error("Reply error:", err);
         // ❌ Show error feedback in bubble

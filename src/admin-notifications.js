@@ -172,6 +172,20 @@ document.addEventListener("DOMContentLoaded", () => {
                             if (valueEl && wrapper.dataset.number) valueEl.textContent = wrapper.dataset.number;
                         }
                     }
+
+                    // Reset action buttons to default state each time modal opens
+                    try {
+                        const approveBtn = document.getElementById('approveCancelBtn');
+                        if (approveBtn) {
+                            approveBtn.disabled = false;
+                            approveBtn.textContent = 'Approve';
+                        }
+                        const rejectBtn = document.getElementById('cancelRejectBtn');
+                        if (rejectBtn) {
+                            rejectBtn.disabled = false;
+                            rejectBtn.textContent = 'Reject';
+                        }
+                    } catch (_) {}
                 }
             } else {
                 const modal = document.getElementById('notifModal');
@@ -509,6 +523,17 @@ async function cancelBooking(bookingId) {
         
         const result = await response.json();
 
+        // Log booking cancellation audit
+        try {
+            if (window.AuditTrailFunctions) {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                const userId = userData.userId || userData.user_id || 'unknown';
+                const userType = userData.role || 'admin';
+                await window.AuditTrailFunctions.logBookingCancellation(userId, userType, bookingId);
+            }
+        } catch (auditError) {
+            console.error('Audit trail error:', auditError);
+        }
         
         // Show success message
         showNotificationSuccess('Booking cancelled successfully');
@@ -898,6 +923,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 // Send guest notification
                 await guestCancllationNotification();
+
+                // Close the send message modal on success
+                const reqModal = document.getElementById('cancelReqModal');
+                const closeBtn = reqModal?.querySelector('[data-close-modal]');
+                if (closeBtn) {
+                    closeBtn.click();
+                } else if (reqModal) {
+                    reqModal.classList.add('hidden');
+                }
                 
             } catch (error) {
                 console.error('❌ Error sending guest notification:', error);

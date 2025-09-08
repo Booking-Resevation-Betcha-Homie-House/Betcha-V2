@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audit Trail Integration Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+        }
+        button {
+            margin: 5px;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 3px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .log {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 3px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            white-space: pre-wrap;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Audit Trail Integration Test</h1>
+    
+    <div class="test-section info">
+        <h3>📋 Test Overview</h3>
+        <p>This test verifies that the audit trail functions are properly loaded and integrated into the application.</p>
+    </div>
+
+    <div class="test-section" id="loading-status">
+        <h3>🔍 Script Loading Status</h3>
+        <div id="loading-results"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧪 Function Tests</h3>
+        <button onclick="testLoginAudit()">Test Login Audit</button>
+        <button onclick="testLogoutAudit()">Test Logout Audit</button>
+        <button onclick="testPaymentAudit()">Test Payment Audit</button>
+        <button onclick="testPropertyAudit()">Test Property View Audit</button>
+        <button onclick="testProfileAudit()">Test Profile Update Audit</button>
+        <button onclick="testBookingAudit()">Test Booking Creation Audit</button>
+        <button onclick="testSecurityAudit()">Test Security Audit</button>
+        <button onclick="runAllTests()">🚀 Run All Tests</button>
+    </div>
+
+    <div class="test-section">
+        <h3>📊 Test Results</h3>
+        <div id="test-results" class="log"></div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔧 Debug Information</h3>
+        <div id="debug-info" class="log"></div>
+    </div>
+
+    <script src="pages/admin/adminFunctions/audit-trails-calls.js"></script>
+    <script>
+        let testResults = [];
+        let debugInfo = [];
+
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logMessage = `[${timestamp}] ${message}`;
+            
+            testResults.push({
+                time: timestamp,
+                message: message,
+                type: type
+            });
+            
+            updateDisplay();
+        }
+
+        function debugLog(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            debugInfo.push(`[${timestamp}] ${message}`);
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            const testResultsDiv = document.getElementById('test-results');
+            const debugDiv = document.getElementById('debug-info');
+            
+            testResultsDiv.textContent = testResults.map(r => 
+                `[${r.time}] ${r.type.toUpperCase()}: ${r.message}`
+            ).join('\n');
+            
+            debugDiv.textContent = debugInfo.join('\n');
+        }
+
+        function checkScriptLoading() {
+            const loadingDiv = document.getElementById('loading-results');
+            let html = '';
+            
+            // Check if audit trail functions are loaded
+            if (typeof window.AuditTrailFunctions !== 'undefined') {
+                html += '<div class="success">✅ AuditTrailFunctions object is loaded</div>';
+                
+                // Check individual functions
+                const functions = [
+                    'createAuditTrail',
+                    'logUserLogin',
+                    'logUserLogout',
+                    'logUserRegistration',
+                    'logPropertyView',
+                    'logBookingCreation',
+                    'logPaymentInitiation',
+                    'logProfileUpdate'
+                ];
+                
+                functions.forEach(func => {
+                    if (typeof window.AuditTrailFunctions[func] === 'function') {
+                        html += `<div class="success">✅ ${func} function is available</div>`;
+                    } else {
+                        html += `<div class="error">❌ ${func} function is missing</div>`;
+                    }
+                });
+                
+            } else {
+                html += '<div class="error">❌ AuditTrailFunctions object is not loaded</div>';
+            }
+            
+            loadingDiv.innerHTML = html;
+        }
+
+        // Set up fake user data for testing
+        function setupTestUser() {
+            localStorage.setItem('userId', 'test-user-123');
+            localStorage.setItem('userType', 'guest');
+            localStorage.setItem('role', 'guest');
+            debugLog('Test user data set in localStorage');
+        }
+
+        async function testLoginAudit() {
+            log('🔐 Testing login audit trail...', 'info');
+            setupTestUser();
+            
+            try {
+                if (window.AuditTrailFunctions && window.AuditTrailFunctions.logUserLogin) {
+                    const result = await window.AuditTrailFunctions.logUserLogin('test-user-123', 'Guest');
+                    log(`Login audit test completed. Result: ${JSON.stringify(result)}`, 'success');
+                } else {
+                    log('Login audit function not available', 'error');
+                }
+            } catch (error) {
+                log(`Login audit test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testLogoutAudit() {
+            log('🚪 Testing logout audit trail...', 'info');
+            setupTestUser();
+            
+            try {
+                if (window.AuditTrailFunctions && window.AuditTrailFunctions.logUserLogout) {
+                    const result = await window.AuditTrailFunctions.logUserLogout('test-user-123', 'Guest');
+                    log(`Logout audit test completed. Result: ${JSON.stringify(result)}`, 'success');
+                } else {
+                    log('Logout audit function not available', 'error');
+                }
+            } catch (error) {
+                log(`Logout audit test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testPaymentAudit() {
+            log('💳 Testing payment audit trail...', 'info');
+            setupTestUser();
+            
+            try {
+                if (window.AuditTrailFunctions && window.AuditTrailFunctions.logPaymentInitiation) {
+                    const result = await window.AuditTrailFunctions.logPaymentInitiation('test-user-123', 'Guest');
+                    log(`Payment audit test completed. Result: ${JSON.stringify(result)}`, 'success');
+                } else {
+                    log('Payment audit function not available', 'error');
+                }
+            } catch (error) {
+                log(`Payment audit test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testPropertyAudit() {
+            log('🏠 Testing property view audit trail...', 'info');
+            setupTestUser();
+            
+            try {
+                if (window.AuditTrailFunctions && window.AuditTrailFunctions.logPropertyView) {
+                    const result = await window.AuditTrailFunctions.logPropertyView('test-user-123', 'Guest');
+                    log(`Property view audit test completed. Result: ${JSON.stringify(result)}`, 'success');
+                } else {
+                    log('Property view audit function not available', 'error');
+                }
+            } catch (error) {
+                log(`Property view audit test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testProfileAudit() {
+            log('👤 Testing profile update audit trail...', 'info');
+            setupTestUser();
+            
+            try {
+                if (window.AuditTrailFunctions && window.AuditTrailFunctions.logProfileUpdate) {
+                    const result = await window.AuditTrailFunctions.logProfileUpdate('test-user-123', 'Guest');
+                    log(`Profile update audit test completed. Result: ${JSON.stringify(result)}`, 'success');
+                } else {
+                    log('Profile update audit function not available', 'error');
+                }
+            } catch (error) {
+                log(`Profile update audit test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testBookingAudit() {
+            log('📅 Testing booking creation audit trail...', 'info');
+            setupTestUser();
+            
+            try {
+                if (window.AuditTrailFunctions && window.AuditTrailFunctions.logBookingCreation) {
+                    const result = await window.AuditTrailFunctions.logBookingCreation('test-user-123', 'Guest');
+                    log(`Booking creation audit test completed. Result: ${JSON.stringify(result)}`, 'success');
+                } else {
+                    log('Booking creation audit function not available', 'error');
+                }
+            } catch (error) {
+                log(`Booking creation audit test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function testSecurityAudit() {
+            log('🔒 Testing security audit trail...', 'info');
+            
+            try {
+                if (window.AuditTrailFunctions && window.AuditTrailFunctions.logFailedLogin) {
+                    const result = await window.AuditTrailFunctions.logFailedLogin('unknown-user', 'Guest');
+                    log(`Security audit test completed. Result: ${JSON.stringify(result)}`, 'success');
+                } else {
+                    log('Security audit function not available', 'error');
+                }
+            } catch (error) {
+                log(`Security audit test failed: ${error.message}`, 'error');
+            }
+        }
+
+        async function runAllTests() {
+            log('🚀 Running all audit trail tests...', 'info');
+            testResults = []; // Clear previous results
+            
+            await testLoginAudit();
+            await new Promise(resolve => setTimeout(resolve, 500)); // Small delay
+            
+            await testLogoutAudit();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testPaymentAudit();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testPropertyAudit();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testProfileAudit();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testBookingAudit();
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            await testSecurityAudit();
+            
+            log('✅ All tests completed!', 'success');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            log('Audit Trail Integration Test Started', 'info');
+            checkScriptLoading();
+            
+            debugLog('Window object audit trail functions:');
+            if (window.AuditTrailFunctions) {
+                debugLog(`Available functions: ${Object.keys(window.AuditTrailFunctions).join(', ')}`);
+            } else {
+                debugLog('AuditTrailFunctions not found on window object');
+            }
+        });
+
+    </script>
+</body>
+</html>

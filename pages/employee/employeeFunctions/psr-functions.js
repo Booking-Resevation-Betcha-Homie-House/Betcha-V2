@@ -761,6 +761,20 @@ function generateExcelFile(data, fileName, reportType) {
     link.click();
     document.body.removeChild(link);
     
+    // Log data export audit
+    try {
+        if (window.AuditTrailFunctions) {
+            const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+            const userId = userData.userId || userData.user_id || 'unknown';
+            const userType = userData.role || 'employee';
+            window.AuditTrailFunctions.logDataExport(userId, userType).catch(auditError => {
+                console.error('Audit trail error:', auditError);
+            });
+        }
+    } catch (auditError) {
+        console.error('Audit trail error:', auditError);
+    }
+    
     console.log('Excel file downloaded:', fileName);
 }
 

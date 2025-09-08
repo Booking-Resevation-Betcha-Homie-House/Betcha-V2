@@ -43,6 +43,16 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             alert('Password updated successfully.');
+            
+            // Audit: Log password reset
+            try {
+                if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPasswordReset === 'function') {
+                    window.AuditTrailFunctions.logPasswordReset(email, 'Guest');
+                }
+            } catch (auditError) {
+                console.warn('Audit trail for password reset failed:', auditError);
+            }
+            
             window.location.replace('/pages/unauth/login.html');
         } catch (err) {
             console.error('Failed to update password:', err);

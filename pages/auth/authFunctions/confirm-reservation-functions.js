@@ -63,13 +63,36 @@ function setupConfirmButton() {
                 // Show success toast
                 showToastError('info', 'Booking Confirmed!', 'Your booking has been created successfully. Redirecting to payment...');
                 
+                // Audit: booking created
+                try {
+                    const uid = localStorage.getItem('userId') || bookingData.guestId;
+                    const role = localStorage.getItem('role') || 'Guest';
+                    if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logBookingCreation === 'function' && uid) {
+                        window.AuditTrailFunctions.logBookingCreation(uid, role.charAt(0).toUpperCase() + role.slice(1));
+                    }
+                } catch (e) {
+                    console.warn('Audit booking creation failed:', e);
+                }
+                
+                // Fire-and-forget: notify TS employees for this property
+                try {
+                    const propertyId = bookingData.propertyId;
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const propertyName = urlParams.get('propertyName') || '';
+                    if (window.notify && propertyId) {
+                        window.notify.notifyReservationConfirmedToTS({ propertyId, propertyName });
+                    }
+                } catch (e) {
+                    console.warn('notifyReservationConfirmedToTS failed:', e);
+                }
+                
                 // Redirect after 1 second with booking ID and payment type
                 setTimeout(() => {
                     const params = new URLSearchParams();
                     params.append('bookingId', bookingResult.bookingId);
                     params.append('paymentType', paymentType);
                     window.location.href = `confirm-payment.html?${params.toString()}`;
-                }, 1000);
+                }, 45000);
             } else {
                 showToastError('error', 'Booking Failed', bookingResult.message || 'Failed to create booking. Please try again.');
                 confirmButton.disabled = false;
@@ -97,7 +120,12 @@ function getBookingDataFromPage() {
     
     // Extract required data
     const propertyId = urlParams.get('propertyId');
-    const guestName = urlParams.get('guestName') || `${urlParams.get('firstName')} ${urlParams.get('lastName')}`.trim();
+    // Prefer name from localStorage; fallback to URL params; finally to 'Guest'
+    const firstNameLS = (localStorage.getItem('firstName') || '').trim();
+    const lastNameLS = (localStorage.getItem('lastName') || '').trim();
+    const nameFromLocalStorage = `${firstNameLS} ${lastNameLS}`.trim();
+    const nameFromUrl = (urlParams.get('guestName') || `${urlParams.get('firstName') || ''} ${urlParams.get('lastName') || ''}`).trim();
+    const guestName = nameFromLocalStorage || nameFromUrl;
     const guestCount = parseInt(urlParams.get('guestCount')) || 1;
     const checkInDate = urlParams.get('checkInDate');
     const checkOutDate = urlParams.get('checkOutDate');

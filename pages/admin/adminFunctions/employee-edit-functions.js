@@ -479,6 +479,23 @@ async function submitEmployeeUpdate() {
         
         const result = await response.json();
         
+        // Log employee update audit
+        try {
+            if (window.AuditTrailFunctions) {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                const userId = userData.userId || userData.user_id || 'unknown';
+                const userType = userData.role || 'admin';
+                await window.AuditTrailFunctions.logEmployeeUpdate(userId, userType, employeeId);
+                
+                // If roles were updated, log role assignment
+                if (updateData.role && updateData.role.length > 0) {
+                    await window.AuditTrailFunctions.logRoleAssignment(userId);
+                }
+            }
+        } catch (auditError) {
+            console.error('Audit trail error:', auditError);
+        }
+        
         // Handle profile picture update if a new one was selected
         await handleProfilePictureUpdate(employeeId);
         

@@ -218,6 +218,14 @@
             if (payload.phoneNumber !== undefined) localStorage.setItem('phoneNumber', payload.phoneNumber);
             if (payload.sex !== undefined) localStorage.setItem('sex', payload.sex);
 
+            // Audit: profile updated
+            try {
+                const uid = localStorage.getItem('userId') || '';
+                if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logProfileUpdate === 'function' && uid) {
+                    window.AuditTrailFunctions.logProfileUpdate(uid, 'Guest');
+                }
+            } catch (_) {}
+
             // Redirect back to profile or show success
             window.location.href = 'profile.html';
         } catch (error) {
