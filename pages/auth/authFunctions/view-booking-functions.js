@@ -16,7 +16,7 @@ function showToast(type, title, message, duration = 5000) {
     }
 
     const toastId = 'toast-' + Date.now();
-    
+
     // Set colors and icons based on type
     let bgColor = '';
     let borderColor = '';
@@ -55,11 +55,11 @@ function showToast(type, title, message, duration = 5000) {
             `;
             break;
         default:
-            bgColor = 'bg-gray-50';
-            borderColor = 'border-gray-200';
-            titleColor = 'text-gray-800';
+            bgColor = 'bg-neutral-50';
+            borderColor = 'border-neutral-200';
+            titleColor = 'text-neutral-800';
             iconHTML = `
-                <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
             `;
@@ -75,12 +75,12 @@ function showToast(type, title, message, duration = 5000) {
                     <p class="text-sm font-medium ${titleColor}">
                         ${title}
                     </p>
-                    <p class="mt-1 text-sm text-gray-600">
+                    <p class="mt-1 text-sm text-neutral-600">
                         ${message}
                     </p>
                 </div>
                 <div class="ml-4 flex-shrink-0 flex">
-                    <button onclick="this.closest('.toast-animation').remove()" class="rounded-md inline-flex text-gray-400 hover:text-gray-500 focus:outline-none">
+                    <button onclick="this.closest('.toast-animation').remove()" class="rounded-md inline-flex text-neutral-400 hover:text-neutral-500 focus:outline-none">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
@@ -91,7 +91,7 @@ function showToast(type, title, message, duration = 5000) {
     `;
 
     container.insertAdjacentHTML('beforeend', toastHTML);
-    
+
     // Trigger animation
     const toastElement = document.getElementById(toastId);
     setTimeout(() => {
@@ -117,27 +117,27 @@ function showToast(type, title, message, duration = 5000) {
 // Guard to prevent double execution
 let isInitialized = false;
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     if (isInitialized) {
         console.log('View Booking page already initialized, skipping...');
         return;
     }
-    
+
     isInitialized = true;
     console.log('View Booking page loaded');
-    
+
     // Get booking ID from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const bookingId = urlParams.get('bookingId');
-    
+
     console.log('Booking ID from URL:', bookingId);
-    
+
     if (!bookingId) {
         console.error('No booking ID found in URL');
         showError('Missing booking ID. Please navigate from a valid booking link.');
         return;
     }
-    
+
     // Fetch and populate booking data
     fetchAndPopulateBookingData(bookingId);
 });
@@ -146,12 +146,12 @@ document.addEventListener('DOMContentLoaded', function() {
 async function fetchBookingData(bookingId) {
     try {
         console.log('Fetching booking data for ID:', bookingId);
-        
+
         const response = await fetch(`https://betcha-api.onrender.com/booking/${bookingId}`);
         const result = await response.json();
-        
+
         console.log('Booking API Response:', result);
-        
+
         if (response.ok && result.booking) {
             return {
                 success: true,
@@ -176,19 +176,19 @@ async function fetchBookingData(bookingId) {
 async function fetchAndPopulateBookingData(bookingId) {
     try {
         showLoading(true);
-        
+
         const result = await fetchBookingData(bookingId);
-        
+
         if (result.success) {
             const booking = result.booking;
-            
+
             // Populate all booking data (including room name from propertyName)
             populateBookingData(booking);
-            
+
             console.log('Booking data loaded successfully.');
             console.log('Checking for images in booking data...');
             console.log('booking.photoLinks:', booking.photoLinks);
-            
+
             // Try to create carousel from booking data first (if it has images)
             let carouselCreated = false;
             if (booking.photoLinks && booking.photoLinks.length > 0) {
@@ -198,7 +198,7 @@ async function fetchAndPopulateBookingData(bookingId) {
             } else {
                 console.log('No photoLinks found in booking data');
             }
-            
+
             // Only try to fetch property details if we need more images or address
             // and we have a valid propertyId and haven't created carousel yet
             if (booking.propertyId && !carouselCreated) {
@@ -209,7 +209,7 @@ async function fetchAndPopulateBookingData(bookingId) {
                 console.log('Fetching only property address since carousel already created...');
                 await fetchPropertyAddress(booking.propertyId);
             }
-            
+
         } else {
             showError(result.message);
         }
@@ -229,61 +229,61 @@ function populateBookingData(booking) {
         populateElement('refID', booking.transNo || booking._id);
         // Ensure copy button exists and is wired up
         ensureCopyRefButton();
-        
+
         // Dates
         if (booking.checkIn && booking.checkOut) {
             const checkInDate = new Date(booking.checkIn);
             const checkOutDate = new Date(booking.checkOut);
-            
+
             // Add 1 day to checkout date for display
             const checkOutDatePlusOne = new Date(checkOutDate);
             checkOutDatePlusOne.setDate(checkOutDatePlusOne.getDate() + 1);
-            
+
             populateElement('rsrvDate', formatDate(new Date(booking.createdAt)));
             populateElement('checkInDate', formatDate(checkInDate));
             populateElement('checkOutDate', formatDate(checkOutDatePlusOne));
         }
-        
+
         // Times
         populateElement('checkInTime', booking.timeIn || 'TBD');
         populateElement('checkOutTime', booking.timeOut || 'TBD');
-        
+
         // Guest information
         const totalGuests = 1 + (booking.additionalPax || 0);
         populateElement('guestCount', `${totalGuests} Guest${totalGuests > 1 ? 's' : ''}`);
-        
+
         // Pricing information
         populateElement('pricePerDay', booking.packageFee?.toLocaleString() || '0');
         populateElement('daysOfStay', booking.numOfDays?.toString() || '0');
         populateElement('totalPriceDay', (booking.packageFee * booking.numOfDays)?.toLocaleString() || '0');
-        
+
         populateElement('addGuestPrice', booking.additionalPaxPrice?.toLocaleString() || '0');
         populateElement('addGuestCount', booking.additionalPax?.toString() || '0');
         populateElement('totalAddGuest', (booking.additionalPaxPrice * booking.additionalPax)?.toLocaleString() || '0');
-        
+
         populateElement('reservationFee', booking.reservationFee?.toLocaleString() || '0');
         populateElement('totalPrice', booking.totalFee?.toLocaleString() || '0');
-        
+
         // Payment status and amounts
         calculateAndDisplayPaymentStatus(booking);
-        
+
         // Payment details
         displayPaymentDetails();
-        
+
         // Store booking data globally for reschedule functionality
         currentBookingData = booking;
-        
+
         // Update reschedule helper text with booking duration
         updateRescheduleHelperText();
-        
+
         // Check reschedule eligibility and manage calendar state
         checkRescheduleEligibility(booking);
-        
+
         // Set up reschedule functionality if eligible
         setupRescheduleModal();
-        
+
         console.log('Booking data populated successfully');
-        
+
     } catch (error) {
         console.error('Error populating booking data:', error);
         showError('Error displaying booking information.');
@@ -302,10 +302,15 @@ function ensureCopyRefButton() {
             copyBtn.id = 'copyRefBtn';
             copyBtn.type = 'button';
             copyBtn.textContent = 'Copy';
+            copyBtn.innerHTML = `
+              <svg class="w-5 h-5 fill-primary-text" viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M11.875 1.25C12.2065 1.25 12.5245 1.3817 12.7589 1.61612C12.9933 1.85054 13.125 2.16848 13.125 2.5V10C13.125 10.3315 12.9933 10.6495 12.7589 10.8839C12.5245 11.1183 12.2065 11.25 11.875 11.25H10.625V12.5C10.625 12.8315 10.4933 13.1495 10.2589 13.3839C10.0245 13.6183 9.70652 13.75 9.375 13.75H3.125C2.79348 13.75 2.47554 13.6183 2.24112 13.3839C2.0067 13.1495 1.875 12.8315 1.875 12.5V5C1.875 4.66848 2.0067 4.35054 2.24112 4.11612C2.47554 3.8817 2.79348 3.75 3.125 3.75H4.375V2.5C4.375 2.16848 4.5067 1.85054 4.74112 1.61612C4.97554 1.3817 5.29348 1.25 5.625 1.25H11.875ZM9.375 5H3.125V12.5H9.375V5ZM6.25 9.375C6.41576 9.375 6.57473 9.44085 6.69194 9.55806C6.80915 9.67527 6.875 9.83424 6.875 10C6.875 10.1658 6.80915 10.3247 6.69194 10.4419C6.57473 10.5592 6.41576 10.625 6.25 10.625H5C4.83424 10.625 4.67527 10.5592 4.55806 10.4419C4.44085 10.3247 4.375 10.1658 4.375 10C4.375 9.83424 4.44085 9.67527 4.55806 9.55806C4.67527 9.44085 4.83424 9.375 5 9.375H6.25ZM11.875 2.5H5.625V3.75H9.375C9.70652 3.75 10.0245 3.8817 10.2589 4.11612C10.4933 4.35054 10.625 4.66848 10.625 5V10H11.875V2.5ZM7.5 6.875C7.6593 6.87518 7.81252 6.93617 7.92836 7.04553C8.04419 7.15489 8.1139 7.30435 8.12323 7.46337C8.13257 7.6224 8.08083 7.77899 7.97858 7.90115C7.87634 8.0233 7.73131 8.10181 7.57312 8.12063L7.5 8.125H5C4.8407 8.12482 4.68748 8.06383 4.57164 7.95447C4.45581 7.84511 4.3861 7.69565 4.37677 7.53663C4.36743 7.3776 4.41917 7.22101 4.52142 7.09885C4.62366 6.9767 4.76869 6.89819 4.92687 6.87937L5 6.875H7.5Z"/>
+              </svg>
+            `;
             refElement.insertAdjacentElement('afterend', copyBtn);
         }
         // Always apply current sizing/styles (also updates existing buttons)
-        copyBtn.className = 'px-2 py-0.5 ml-2 rounded-full border border-neutral-300 text-xs hover:border-primary hover:text-primary transition';
+        copyBtn.className = '!px-2 !py-0.5 ml-2 rounded-full hover:bg-neutral-200 active:scale-95 transition';
 
         // Attach/refresh handler
         copyBtn.onclick = async () => {
@@ -339,52 +344,52 @@ function calculateAndDisplayPaymentStatus(booking) {
         let remainingBalance = booking.totalFee || 0;
         let unpaidReservation = false;
         let unpaidPackage = false;
-        
+
         // Check reservation payment status
         if (booking.reservation) {
             if (booking.reservation.status === 'Completed') {
                 amountPaid += booking.reservationFee || 0;
-            } else if (booking.reservation.status === 'Pending' && 
-                       booking.reservation.modeOfPayment && 
-                       booking.reservation.modeOfPayment !== 'Pending') {
+            } else if (booking.reservation.status === 'Pending' &&
+                booking.reservation.modeOfPayment &&
+                booking.reservation.modeOfPayment !== 'Pending') {
                 amountPaid += booking.reservationFee || 0;
                 pendingPayments.push('Reservation');
-            } else if (booking.reservation.modeOfPayment === 'Pending' || 
-                       booking.reservation.modeOfPayment === 'on' ||
-                       !booking.reservation.modeOfPayment) {
+            } else if (booking.reservation.modeOfPayment === 'Pending' ||
+                booking.reservation.modeOfPayment === 'on' ||
+                !booking.reservation.modeOfPayment) {
                 unpaidReservation = true;
             }
         }
-        
+
         // Check package payment status
         if (booking.package) {
             const packageAmount = (booking.totalFee || 0) - (booking.reservationFee || 0);
             if (booking.package.status === 'Completed') {
                 amountPaid += packageAmount;
-            } else if (booking.package.status === 'Pending' && 
-                       booking.package.modeOfPayment && 
-                       booking.package.modeOfPayment !== 'Pending') {
+            } else if (booking.package.status === 'Pending' &&
+                booking.package.modeOfPayment &&
+                booking.package.modeOfPayment !== 'Pending') {
                 amountPaid += packageAmount;
                 pendingPayments.push('Package');
             } else if (booking.package.modeOfPayment === 'Pending' ||
-                       !booking.package.modeOfPayment) {
+                !booking.package.modeOfPayment) {
                 unpaidPackage = true;
             }
         }
-        
+
         remainingBalance = (booking.totalFee || 0) - amountPaid;
-        
+
         // Format amount paid display (badge now indicates status)
         let amountPaidText = amountPaid.toLocaleString();
-        
+
         // Update the amount paid element
         const amountPaidElement = document.getElementById('amountPaid');
         if (amountPaidElement) {
             amountPaidElement.textContent = amountPaidText;
         }
-        
+
         populateElement('remainingBal', Math.max(0, remainingBalance).toLocaleString());
-        
+
         // Handle payment button visibility and functionality
         handlePaymentButton(booking, remainingBalance, unpaidReservation, unpaidPackage);
 
@@ -393,7 +398,7 @@ function calculateAndDisplayPaymentStatus(booking) {
         if (pendingPayments.length > 0) status = 'Pending';
         else if (remainingBalance > 0 && (unpaidReservation || unpaidPackage)) status = 'Unpaid';
         updateTransactionSummaryStatus(status);
-        
+
     } catch (error) {
         console.error('Error calculating payment status:', error);
         populateElement('amountPaid', '0');
@@ -443,15 +448,15 @@ function updateTransactionSummaryStatus(status) {
 function handlePaymentButton(booking, remainingBalance, unpaidReservation, unpaidPackage) {
     const paymentButton = document.getElementById('paymentButton');
     if (!paymentButton) return;
-    
+
     // Show button only if there's remaining balance AND unpaid items
     if (remainingBalance > 0 && (unpaidReservation || unpaidPackage)) {
         paymentButton.style.display = 'flex';
-        
+
         // Determine payment type and update button text
         let paymentType = '';
         let buttonText = 'Pay balance';
-        
+
         if (unpaidReservation) {
             paymentType = 'Reservation';
             buttonText = 'Pay Reservation';
@@ -459,20 +464,20 @@ function handlePaymentButton(booking, remainingBalance, unpaidReservation, unpai
             paymentType = 'Package';
             buttonText = 'Pay Package';
         }
-        
+
         // Update button text
         const buttonSpan = paymentButton.querySelector('span');
         if (buttonSpan) {
             buttonSpan.textContent = buttonText;
         }
-        
+
         // Update onclick to pass correct parameters
         paymentButton.onclick = () => {
             window.location.href = `../auth/confirm-payment.html?paymentType=${paymentType}&bookingId=${booking._id}`;
         };
-        
+
         console.log('Payment button configured:', { paymentType, buttonText, bookingId: booking._id });
-        
+
     } else {
         // Hide button when no payment needed
         paymentButton.style.display = 'none';
@@ -490,21 +495,21 @@ function displayPaymentDetails() {
 async function fetchPropertyAddress(propertyId) {
     try {
         if (!propertyId) return;
-        
+
         const apiUrl = `https://betcha-api.onrender.com/property/display/${propertyId}`;
         const response = await fetch(apiUrl);
-        
+
         if (!response.ok) return;
-        
+
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) return;
-        
+
         const result = await response.json();
-        
+
         if (result && result.address) {
             populateElement('roomAddress', result.address);
         }
-        
+
     } catch (error) {
         console.error('Error fetching property address:', error);
     }
@@ -517,37 +522,37 @@ async function setupImageCarousel(propertyId) {
             console.warn('No property ID provided');
             return;
         }
-        
+
         const apiUrl = `https://betcha-api.onrender.com/property/display/${propertyId}`;
         const response = await fetch(apiUrl);
-        
+
         if (!response.ok) {
             if (response.status === 404) {
                 console.warn(`Property with ID ${propertyId} not found`);
             }
             return;
         }
-        
+
         const contentType = response.headers.get('content-type');
         if (!contentType || !contentType.includes('application/json')) {
             console.warn('Property API did not return JSON');
             return;
         }
-        
+
         const result = await response.json();
-        
+
         if (result) {
             // The property data is directly in the result, not nested in result.property
             if (result.address) {
                 populateElement('roomAddress', result.address);
             }
-            
+
             if (result.photoLinks && result.photoLinks.length > 0) {
                 createImageCarousel(result.photoLinks);
                 console.log('Carousel created from property API with', result.photoLinks.length, 'images');
             }
         }
-        
+
     } catch (error) {
         console.error('Error fetching property details:', error);
     }
@@ -560,14 +565,14 @@ function createImageCarousel(images) {
             console.warn('No images to display in carousel');
             return;
         }
-        
+
         // Find the image container
         const imageContainer = document.querySelector('.w-full.h-\\[200px\\].rounded-3xl.overflow-hidden.group');
         if (!imageContainer) {
             console.error('Image container not found');
             return;
         }
-        
+
         // Create carousel HTML
         const carouselHTML = `
             <div class="relative w-full h-full overflow-hidden">
@@ -589,16 +594,16 @@ function createImageCarousel(images) {
                 </div>
             </div>
         `;
-        
+
         // Replace the existing image div
         imageContainer.innerHTML = carouselHTML;
-        
+
         // Setup carousel functionality
         setupCarouselControls(images.length);
-        
+
         // Start auto-rotation
         startAutoCarousel(images.length);
-        
+
     } catch (error) {
         console.error('Error creating image carousel:', error);
     }
@@ -609,20 +614,20 @@ function setupCarouselControls(imageCount) {
     try {
         const track = document.querySelector('.carousel-track');
         const dots = document.querySelectorAll('.dot');
-        
+
         function updateDots(activeIndex) {
             dots.forEach(dot => dot.classList.remove('active'));
             if (dots[activeIndex]) {
                 dots[activeIndex].classList.add('active');
             }
         }
-        
+
         function goToSlide(index) {
             track.style.transform = `translateX(-${index * 100}%)`;
             updateDots(index);
             window.carouselCurrentIndex = index;
         }
-        
+
         // Dot click handlers
         dots.forEach((dot, index) => {
             dot.addEventListener('click', () => {
@@ -630,11 +635,11 @@ function setupCarouselControls(imageCount) {
                 resetAutoCarousel(imageCount);
             });
         });
-        
+
         // Store the goToSlide function globally so auto carousel can use it
         window.carouselGoToSlide = goToSlide;
         window.carouselCurrentIndex = 0;
-        
+
     } catch (error) {
         console.error('Error setting up carousel controls:', error);
     }
@@ -656,7 +661,7 @@ function getCurrentSlideIndex() {
 // Function to start auto carousel
 function startAutoCarousel(imageCount) {
     if (imageCount <= 1) return;
-    
+
     window.carouselInterval = setInterval(() => {
         const currentSlide = getCurrentSlideIndex();
         const nextSlide = (currentSlide + 1) % imageCount;
@@ -693,12 +698,12 @@ function formatDate(date) {
         } else {
             dateObj = date;
         }
-        
+
         // Format as YYYY/MM/DD
         const year = dateObj.getFullYear();
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getDate()).padStart(2, '0');
-        
+
         return `${year}/${month}/${day}`;
     } catch (error) {
         console.error('Error formatting date:', error);
@@ -715,8 +720,8 @@ function showLoading(show) {
                 <!-- Header Skeleton -->
                 <div class="w-full bg-white shadow-sm p-4">
                     <div class="flex items-center justify-between max-w-6xl mx-auto">
-                        <div class="h-8 w-24 bg-gray-200 rounded animate-pulse"></div>
-                        <div class="h-8 w-8 bg-gray-200 rounded-full animate-pulse"></div>
+                        <div class="h-8 w-24 bg-neutral-200 rounded animate-pulse"></div>
+                        <div class="h-8 w-8 bg-neutral-200 rounded-full animate-pulse"></div>
                     </div>
                 </div>
                 
@@ -726,23 +731,23 @@ function showLoading(show) {
                         <!-- Left Side - Image and Details -->
                         <div class="space-y-4">
                             <!-- Image Skeleton -->
-                            <div class="w-full h-[200px] bg-gray-200 rounded-3xl animate-pulse"></div>
+                            <div class="w-full h-[200px] bg-neutral-200 rounded-3xl animate-pulse"></div>
                             
                             <!-- Room Info Skeleton -->
                             <div class="space-y-3">
-                                <div class="h-6 w-3/4 bg-gray-200 rounded animate-pulse"></div>
-                                <div class="h-4 w-1/2 bg-gray-200 rounded animate-pulse"></div>
-                                <div class="h-4 w-2/3 bg-gray-200 rounded animate-pulse"></div>
+                                <div class="h-6 w-3/4 bg-neutral-200 rounded animate-pulse"></div>
+                                <div class="h-4 w-1/2 bg-neutral-200 rounded animate-pulse"></div>
+                                <div class="h-4 w-2/3 bg-neutral-200 rounded animate-pulse"></div>
                             </div>
                             
                             <!-- Booking Details Skeleton -->
                             <div class="space-y-2">
-                                <div class="h-5 w-1/3 bg-gray-200 rounded animate-pulse"></div>
+                                <div class="h-5 w-1/3 bg-neutral-200 rounded animate-pulse"></div>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <div class="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-                                    <div class="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-                                    <div class="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
-                                    <div class="h-4 w-full bg-gray-200 rounded animate-pulse"></div>
+                                    <div class="h-4 w-full bg-neutral-200 rounded animate-pulse"></div>
+                                    <div class="h-4 w-full bg-neutral-200 rounded animate-pulse"></div>
+                                    <div class="h-4 w-full bg-neutral-200 rounded animate-pulse"></div>
+                                    <div class="h-4 w-full bg-neutral-200 rounded animate-pulse"></div>
                                 </div>
                             </div>
                         </div>
@@ -751,40 +756,40 @@ function showLoading(show) {
                         <div class="space-y-4">
                             <!-- Payment Summary Skeleton -->
                             <div class="bg-white rounded-2xl p-4 space-y-3">
-                                <div class="h-5 w-1/2 bg-gray-200 rounded animate-pulse"></div>
+                                <div class="h-5 w-1/2 bg-neutral-200 rounded animate-pulse"></div>
                                 <div class="space-y-2">
                                     <div class="flex justify-between">
-                                        <div class="h-4 w-1/3 bg-gray-200 rounded animate-pulse"></div>
-                                        <div class="h-4 w-1/4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div class="h-4 w-1/3 bg-neutral-200 rounded animate-pulse"></div>
+                                        <div class="h-4 w-1/4 bg-neutral-200 rounded animate-pulse"></div>
                                     </div>
                                     <div class="flex justify-between">
-                                        <div class="h-4 w-1/3 bg-gray-200 rounded animate-pulse"></div>
-                                        <div class="h-4 w-1/4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div class="h-4 w-1/3 bg-neutral-200 rounded animate-pulse"></div>
+                                        <div class="h-4 w-1/4 bg-neutral-200 rounded animate-pulse"></div>
                                     </div>
                                     <div class="flex justify-between">
-                                        <div class="h-4 w-1/3 bg-gray-200 rounded animate-pulse"></div>
-                                        <div class="h-4 w-1/4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div class="h-4 w-1/3 bg-neutral-200 rounded animate-pulse"></div>
+                                        <div class="h-4 w-1/4 bg-neutral-200 rounded animate-pulse"></div>
                                     </div>
                                 </div>
                                 <div class="border-t pt-2">
                                     <div class="flex justify-between">
-                                        <div class="h-5 w-1/3 bg-gray-200 rounded animate-pulse"></div>
-                                        <div class="h-5 w-1/4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div class="h-5 w-1/3 bg-neutral-200 rounded animate-pulse"></div>
+                                        <div class="h-5 w-1/4 bg-neutral-200 rounded animate-pulse"></div>
                                     </div>
                                 </div>
                             </div>
                             
                             <!-- Payment Status Skeleton -->
                             <div class="bg-white rounded-2xl p-4 space-y-3">
-                                <div class="h-5 w-1/2 bg-gray-200 rounded animate-pulse"></div>
+                                <div class="h-5 w-1/2 bg-neutral-200 rounded animate-pulse"></div>
                                 <div class="space-y-2">
                                     <div class="flex justify-between">
-                                        <div class="h-4 w-1/3 bg-gray-200 rounded animate-pulse"></div>
-                                        <div class="h-4 w-1/4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div class="h-4 w-1/3 bg-neutral-200 rounded animate-pulse"></div>
+                                        <div class="h-4 w-1/4 bg-neutral-200 rounded animate-pulse"></div>
                                     </div>
                                     <div class="flex justify-between">
-                                        <div class="h-4 w-1/3 bg-gray-200 rounded animate-pulse"></div>
-                                        <div class="h-4 w-1/4 bg-gray-200 rounded animate-pulse"></div>
+                                        <div class="h-4 w-1/3 bg-neutral-200 rounded animate-pulse"></div>
+                                        <div class="h-4 w-1/4 bg-neutral-200 rounded animate-pulse"></div>
                                     </div>
                                 </div>
                             </div>
@@ -793,7 +798,7 @@ function showLoading(show) {
                 </div>
             </div>
         `;
-        
+
         // Add skeleton to body
         document.body.insertAdjacentHTML('beforeend', skeletonHTML);
         console.log('Loading...');
@@ -818,11 +823,11 @@ function showError(message) {
 function setupRescheduleModal() {
     try {
         console.log('Setting up reschedule modal...');
-        
+
         // Set up modal open event listener
         const rescheduleButton = document.querySelector('[data-modal-target="reschedModal"]');
         if (rescheduleButton && !rescheduleButton.disabled) {
-            rescheduleButton.addEventListener('click', function() {
+            rescheduleButton.addEventListener('click', function () {
                 // Initialize calendar when modal opens
                 setTimeout(() => {
                     initializeRescheduleCalendar();
@@ -836,9 +841,9 @@ function setupRescheduleModal() {
             // Remove any existing event listeners
             const newBtn = modalRescheduleBtn.cloneNode(true);
             modalRescheduleBtn.parentNode.replaceChild(newBtn, modalRescheduleBtn);
-            
+
             // Add new event listener
-            newBtn.addEventListener('click', function(e) {
+            newBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 handleReschedule();
             });
@@ -867,9 +872,9 @@ function calculateBookingDuration() {
         console.warn('No booking data or daysOfStay available for duration calculation');
         return 7; // Default fallback
     }
-    
+
     const duration = parseInt(currentBookingData.numOfDays, 10);
-    
+
     console.log('Current booking duration from daysOfStay:', duration, 'days');
     return duration;
 }
@@ -887,7 +892,7 @@ function updateRescheduleHelperText() {
 function initializeRescheduleCalendar() {
     try {
         console.log('Initializing standalone reschedule calendar...');
-        
+
         const calendarInstance = document.querySelector('#reschedModal .calendar-instance');
         if (!calendarInstance) {
             console.error('Reschedule calendar instance not found');
@@ -948,7 +953,7 @@ function initializeRescheduleCalendar() {
 function buildRescheduleCalendar(container, date, labelEl) {
     const year = date.getFullYear();
     const month = date.getMonth();
-    
+
     // Update month label
     labelEl.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
@@ -972,48 +977,48 @@ function buildRescheduleCalendar(container, date, labelEl) {
 
     // Add empty cells for days before the first of the month
     for (let i = 0; i < firstDay; i++) {
-      html += '<div></div>';
+        html += '<div></div>';
     }
 
     // Add days
     for (let day = 1; day <= totalDays; day++) {
-      // Create date string directly to avoid timezone issues
-      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-      const currentDateObj = new Date(dateStr + 'T12:00:00'); // Use noon to avoid timezone issues
-      const isDisabled = currentDateObj < new Date().setHours(0,0,0,0);
-      
-      console.log(`Day ${day} -> dateStr: ${dateStr}, currentDateObj: ${currentDateObj.toISOString()}`);
-      
-      const isSelected = (rescheduleSelectedStartDate && dateStr === rescheduleSelectedStartDate) ||
-                        (rescheduleSelectedEndDate && dateStr === rescheduleSelectedEndDate);
-      const isInRange = rescheduleSelectedStartDate && rescheduleSelectedEndDate &&
-                       dateStr > rescheduleSelectedStartDate && dateStr < rescheduleSelectedEndDate;
+        // Create date string directly to avoid timezone issues
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+        const currentDateObj = new Date(dateStr + 'T12:00:00'); // Use noon to avoid timezone issues
+        const isDisabled = currentDateObj < new Date().setHours(0, 0, 0, 0);
 
-      // Calculate if this date would exceed the current booking duration limit
-      let isOverLimit = false;
-      if (rescheduleSelectedStartDate && !rescheduleSelectedEndDate) {
-        const startDate = new Date(rescheduleSelectedStartDate + 'T12:00:00');
-        const daysDiff = Math.abs((currentDateObj - startDate) / (1000 * 60 * 60 * 24));
-        const maxDays = calculateBookingDuration();
-        isOverLimit = daysDiff > maxDays;
-      }
+        console.log(`Day ${day} -> dateStr: ${dateStr}, currentDateObj: ${currentDateObj.toISOString()}`);
 
-      let classes = 'w-full aspect-square text-xs flex items-center justify-center rounded cursor-pointer transition ';
-      
-      if (isDisabled) {
-        classes += 'bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-50';
-      } else if (isSelected) {
-        classes += 'bg-primary text-white font-bold';
-      } else if (isInRange) {
-        classes += 'bg-primary text-white font-bold';
-      } else if (isOverLimit) {
-        classes += 'bg-neutral-200 text-neutral-600 cursor-not-allowed opacity-50';
-      } else {
-        classes += 'bg-background text-black hover:bg-secondary';
-      }
+        const isSelected = (rescheduleSelectedStartDate && dateStr === rescheduleSelectedStartDate) ||
+            (rescheduleSelectedEndDate && dateStr === rescheduleSelectedEndDate);
+        const isInRange = rescheduleSelectedStartDate && rescheduleSelectedEndDate &&
+            dateStr > rescheduleSelectedStartDate && dateStr < rescheduleSelectedEndDate;
 
-      const tooltipText = isOverLimit ? `Exceeds booking duration of ${calculateBookingDuration()} days` : '';
-      html += `<div class="${classes}" data-reschedule-date="${dateStr}" ${isDisabled || isOverLimit ? 'style="pointer-events: none;"' : ''} ${tooltipText ? `title="${tooltipText}"` : ''}>${day}</div>`;
+        // Calculate if this date would exceed the current booking duration limit
+        let isOverLimit = false;
+        if (rescheduleSelectedStartDate && !rescheduleSelectedEndDate) {
+            const startDate = new Date(rescheduleSelectedStartDate + 'T12:00:00');
+            const daysDiff = Math.abs((currentDateObj - startDate) / (1000 * 60 * 60 * 24));
+            const maxDays = calculateBookingDuration();
+            isOverLimit = daysDiff > maxDays;
+        }
+
+        let classes = 'w-full aspect-square text-xs flex items-center justify-center rounded cursor-pointer transition ';
+
+        if (isDisabled) {
+            classes += 'bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-50';
+        } else if (isSelected) {
+            classes += 'bg-primary text-white font-bold';
+        } else if (isInRange) {
+            classes += 'bg-primary text-white font-bold';
+        } else if (isOverLimit) {
+            classes += 'bg-neutral-200 text-neutral-600 cursor-not-allowed opacity-50';
+        } else {
+            classes += 'bg-background text-black hover:bg-secondary';
+        }
+
+        const tooltipText = isOverLimit ? `Exceeds booking duration of ${calculateBookingDuration()} days` : '';
+        html += `<div class="${classes}" data-reschedule-date="${dateStr}" ${isDisabled || isOverLimit ? 'style="pointer-events: none;"' : ''} ${tooltipText ? `title="${tooltipText}"` : ''}>${day}</div>`;
     }
 
     html += '</div>';
@@ -1021,15 +1026,15 @@ function buildRescheduleCalendar(container, date, labelEl) {
 
     // Add click handlers to date buttons
     container.querySelectorAll('div[data-reschedule-date]').forEach(dateEl => {
-      if (!dateEl.style.pointerEvents) {
-        dateEl.addEventListener('click', () => handleRescheduleDateClick({ target: dateEl }));
-      }
+        if (!dateEl.style.pointerEvents) {
+            dateEl.addEventListener('click', () => handleRescheduleDateClick({ target: dateEl }));
+        }
     });
 }
 
 function handleRescheduleDateClick(event) {
     const dateStr = event.target.dataset.rescheduleDate;
-    
+
     // If clicking on the same start date when no end date selected, clear selection
     if (rescheduleSelectedStartDate === dateStr && !rescheduleSelectedEndDate) {
         rescheduleSelectedStartDate = null;
@@ -1038,7 +1043,7 @@ function handleRescheduleDateClick(event) {
         refreshRescheduleCalendars();
         return;
     }
-    
+
     // If clicking on the same end date, clear just the end date
     if (rescheduleSelectedEndDate === dateStr) {
         rescheduleSelectedEndDate = null;
@@ -1046,7 +1051,7 @@ function handleRescheduleDateClick(event) {
         refreshRescheduleCalendars();
         return;
     }
-    
+
     if (!rescheduleSelectedStartDate || (rescheduleSelectedStartDate && rescheduleSelectedEndDate)) {
         // Start new selection (clear any existing selection)
         rescheduleSelectedStartDate = dateStr;
@@ -1063,31 +1068,31 @@ function handleRescheduleDateClick(event) {
         const endDate = new Date(dateStr + 'T12:00:00');
         const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
         const maxDays = calculateBookingDuration();
-        
+
         // Check if the selection exceeds the current booking duration
         if (daysDiff > maxDays) {
             showToast('warning', 'Selection Limit', `You can only reschedule for ${maxDays} days (same as your current booking). Please select a shorter range.`);
             return;
         }
-        
+
         // Minimum stay validation (at least 1 night)
         if (daysDiff < 1) {
             showToast('warning', 'Invalid Selection', 'Check-out date must be after check-in date.');
             return;
         }
-        
+
         rescheduleSelectedEndDate = dateStr;
         updateRescheduleSelectedDateDisplay();
     }
-    
+
     // Log current selection state
-    console.log('Reschedule Date Selection:', { 
-        start: rescheduleSelectedStartDate, 
+    console.log('Reschedule Date Selection:', {
+        start: rescheduleSelectedStartDate,
         end: rescheduleSelectedEndDate,
-        days: rescheduleSelectedStartDate && rescheduleSelectedEndDate ? 
+        days: rescheduleSelectedStartDate && rescheduleSelectedEndDate ?
             Math.ceil((new Date(rescheduleSelectedEndDate + 'T12:00:00') - new Date(rescheduleSelectedStartDate + 'T12:00:00')) / (1000 * 60 * 60 * 24)) + 1 : 0
     });
-    
+
     refreshRescheduleCalendars();
 }
 
@@ -1115,7 +1120,7 @@ function refreshRescheduleCalendars() {
 function updateRescheduleSelectedDateDisplay() {
     const selectedStaticDate = document.getElementById('selectedStaticDate');
     const clearBtn = document.getElementById('clearSelectionBtn');
-    
+
     if (selectedStaticDate) {
         if (rescheduleSelectedStartDate && rescheduleSelectedEndDate) {
             const startDate = new Date(rescheduleSelectedStartDate);
@@ -1163,7 +1168,7 @@ async function handleReschedule() {
 
         // Generate array of dates from start to end
         const newBookingDates = generateDateRange(rescheduleSelectedStartDate, rescheduleSelectedEndDate);
-        
+
         console.log('Reschedule submit data:', {
             selectedStartDate: rescheduleSelectedStartDate,
             selectedEndDate: rescheduleSelectedEndDate,
@@ -1192,11 +1197,11 @@ async function handleReschedule() {
         if (response.ok) {
             // Success
             showToast('success', 'Reschedule Successful', 'Your booking has been rescheduled successfully.');
-            
+
             // Close modal
             const closeBtn = document.querySelector('#reschedModal [data-close-modal]');
             if (closeBtn) closeBtn.click();
-            
+
             // Refresh booking data
             const urlParams = new URLSearchParams(window.location.search);
             const bookingId = urlParams.get('bookingId');
@@ -1205,7 +1210,7 @@ async function handleReschedule() {
                     fetchAndPopulateBookingData(bookingId);
                 }, 1000);
             }
-            
+
         } else {
             // Error
             showToast('error', 'Reschedule Failed', result.message || 'Failed to reschedule booking. Please try again.');
@@ -1228,16 +1233,16 @@ async function handleReschedule() {
 function generateDateRange(startDate, endDate) {
     console.log('generateDateRange called with:', { startDate, endDate });
     const dates = [];
-    
+
     // Create dates at noon to avoid timezone issues
     const currentDate = new Date(startDate + 'T12:00:00');
     const end = new Date(endDate + 'T12:00:00');
-    
-    console.log('Date objects created:', { 
-        currentDate: currentDate.toISOString(), 
-        end: end.toISOString() 
+
+    console.log('Date objects created:', {
+        currentDate: currentDate.toISOString(),
+        end: end.toISOString()
     });
-    
+
     // Include both start and end dates
     while (currentDate <= end) {
         const dateStr = currentDate.toISOString().split('T')[0];
@@ -1245,7 +1250,7 @@ function generateDateRange(startDate, endDate) {
         console.log('Added date:', dateStr);
         currentDate.setDate(currentDate.getDate() + 1);
     }
-    
+
     console.log('Generated date range:', dates);
     return dates;
 }
@@ -1256,11 +1261,11 @@ function checkRescheduleEligibility(booking) {
         const currentDate = new Date();
         const createdDate = new Date(booking.createdAt);
         const checkInDate = new Date(booking.checkIn);
-        
+
         // Calculate days difference for both dates
         const daysSinceCreated = Math.floor((currentDate - createdDate) / (1000 * 60 * 60 * 24));
         const daysSinceCheckIn = Math.floor((currentDate - checkInDate) / (1000 * 60 * 60 * 24));
-        
+
         console.log('Reschedule eligibility check:', {
             createdDate: createdDate,
             checkInDate: checkInDate,
@@ -1268,13 +1273,13 @@ function checkRescheduleEligibility(booking) {
             daysSinceCreated: daysSinceCreated,
             daysSinceCheckIn: daysSinceCheckIn
         });
-        
+
         // Check if either the booking was created more than 5 days ago OR the check-in date is more than 5 days old
         const isEligible = daysSinceCreated <= 5 && daysSinceCheckIn <= 5;
-        
+
         // Get reschedule button
         const rescheduleButton = document.querySelector('[data-modal-target="reschedModal"]');
-        
+
         if (isEligible) {
             console.log('Booking is eligible for reschedule');
             if (rescheduleButton) {
@@ -1282,7 +1287,7 @@ function checkRescheduleEligibility(booking) {
                 rescheduleButton.disabled = false;
                 rescheduleButton.classList.remove('cursor-not-allowed', 'bg-neutral-200', 'border-neutral-300');
                 rescheduleButton.classList.add('hover:bg-primary/10', 'hover:border-primary', 'active:bg-primary/10', 'active:border-primary');
-                
+
                 // Restore original button text and styling
                 const buttonText = rescheduleButton.querySelector('span');
                 if (buttonText) {
@@ -1290,7 +1295,7 @@ function checkRescheduleEligibility(booking) {
                     buttonText.classList.remove('text-neutral-500');
                     buttonText.classList.add('group-hover:text-primary', 'group-active:text-primary');
                 }
-                
+
                 // Restore modal target attribute
                 rescheduleButton.setAttribute('data-modal-target', 'reschedModal');
             }
@@ -1302,7 +1307,7 @@ function checkRescheduleEligibility(booking) {
                 // Instead, style it to look disabled but keep it clickable
                 rescheduleButton.classList.add('cursor-not-allowed', 'bg-neutral-200', 'border-neutral-300');
                 rescheduleButton.classList.remove('hover:bg-primary/10', 'hover:border-primary', 'active:bg-primary/10', 'active:border-primary');
-                
+
                 // Update button text to indicate why it's disabled
                 const buttonText = rescheduleButton.querySelector('span');
                 if (buttonText) {
@@ -1310,25 +1315,25 @@ function checkRescheduleEligibility(booking) {
                     buttonText.classList.add('text-neutral-500');
                     buttonText.classList.remove('group-hover:text-primary', 'group-active:text-primary');
                 }
-                
+
                 // Remove modal target attribute to prevent modal from opening
                 rescheduleButton.removeAttribute('data-modal-target');
-                
+
                 // Add click handler to show toast instead of opening modal
-                rescheduleButton.addEventListener('click', function(e) {
+                rescheduleButton.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('Reschedule button clicked - showing toast');
-                    
+
                     // Show toast notification
                     showToast('warning', 'Reschedule Unavailable', 'This booking is more than 5 days old and cannot be rescheduled.');
                 });
             }
             disableCalendarInputs();
         }
-        
+
         return isEligible;
-        
+
     } catch (error) {
         console.error('Error checking reschedule eligibility:', error);
         return false;
@@ -1341,22 +1346,22 @@ function disableCalendarInputs() {
         // Wait for DOM to be fully loaded before manipulating calendar
         setTimeout(() => {
             const calendarInstances = document.querySelectorAll('.calendar-instance');
-            
+
             calendarInstances.forEach(instance => {
                 // Disable calendar container
                 instance.style.pointerEvents = 'none';
                 instance.style.opacity = '0.5';
-                
+
                 // Add disabled state styling
                 instance.classList.add('calendar-disabled');
-                
+
                 // Disable all buttons within the calendar
                 const buttons = instance.querySelectorAll('button');
                 buttons.forEach(button => {
                     button.disabled = true;
                     button.style.cursor = 'not-allowed';
                 });
-                
+
                 // Disable calendar cells if they exist
                 const calendarCells = instance.querySelectorAll('.calendar-day, .day, [data-day]');
                 calendarCells.forEach(cell => {
@@ -1365,7 +1370,7 @@ function disableCalendarInputs() {
                     cell.onclick = null; // Remove any existing click handlers
                 });
             });
-            
+
             // Show message in the reschedule modal if it exists
             const reschedModal = document.getElementById('reschedModal');
             if (reschedModal) {
@@ -1375,10 +1380,10 @@ function disableCalendarInputs() {
                     messageElement.classList.add('text-red-500');
                 }
             }
-            
+
             console.log('Calendar inputs disabled due to booking age');
         }, 100);
-        
+
     } catch (error) {
         console.error('Error disabling calendar inputs:', error);
     }
@@ -1390,22 +1395,22 @@ function enableCalendarInputs() {
         // Wait for DOM to be fully loaded before manipulating calendar
         setTimeout(() => {
             const calendarInstances = document.querySelectorAll('.calendar-instance');
-            
+
             calendarInstances.forEach(instance => {
                 // Enable calendar container
                 instance.style.pointerEvents = 'auto';
                 instance.style.opacity = '1';
-                
+
                 // Remove disabled state styling
                 instance.classList.remove('calendar-disabled');
-                
+
                 // Enable all buttons within the calendar
                 const buttons = instance.querySelectorAll('button');
                 buttons.forEach(button => {
                     button.disabled = false;
                     button.style.cursor = 'pointer';
                 });
-                
+
                 // Enable calendar cells if they exist
                 const calendarCells = instance.querySelectorAll('.calendar-day, .day, [data-day]');
                 calendarCells.forEach(cell => {
@@ -1413,7 +1418,7 @@ function enableCalendarInputs() {
                     cell.style.cursor = 'pointer';
                 });
             });
-            
+
             // Reset message in the reschedule modal if it exists
             const reschedModal = document.getElementById('reschedModal');
             if (reschedModal) {
@@ -1423,10 +1428,10 @@ function enableCalendarInputs() {
                     messageElement.classList.remove('text-red-500');
                 }
             }
-            
+
             console.log('Calendar inputs enabled');
         }, 100);
-        
+
     } catch (error) {
         console.error('Error enabling calendar inputs:', error);
     }

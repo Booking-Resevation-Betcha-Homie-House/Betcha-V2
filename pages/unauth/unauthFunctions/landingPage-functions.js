@@ -91,7 +91,7 @@ async function fetchAndDisplayFAQs() {
         data.Faq.forEach((faq) => {
             const faqElement = document.createElement('div');
             faqElement.innerHTML = `
-              <div class="rounded-3xl border-4 border-black bg-background text-primary-text w-full p-2 shadow-harsh shadow-primary-text md:p-5">
+              <div class="rounded-3xl border border-black bg-background text-primary-text w-full p-2 md:p-5">
                 <button onclick="toggleFaq(this)" class="w-full h-full flex justify-between items-center text-left hover:cursor-pointer">
                   <span class="font-bold text-lg font-manrope text-primary-text md:text-2xl">${faq.question}</span>
                   <svg class="icon w-6 h-6 text-primary-text transition-transform duration-300 ease-in-out" fill="none" stroke="currentColor" viewBox="0 0 24 24">

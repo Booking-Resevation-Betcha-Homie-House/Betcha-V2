@@ -23,10 +23,12 @@ body:not(.modal-open) {
   --font-manrope: "Manrope", sans-serif;
   --font-playfairDisplay: "Playfair Display", serif;
   --color-primary: #147B42;
-  --color-secondary: #B4CB68;
-  --color-background: #FAFAFA;
+  --color-secondary: #D2E1B4;
+  --color-accent: #e8a87d;
+  --color-background: #FDFDFD;
   --color-primary-text: #1C1C1C;
-  --color-secondary-text: #FAFAFA;
+  --color-secondary-text: #FFFFFF;
+  
   --color-muted: #9CA3AF;
   --shadow-harsh: 3px 5px 0 var(--color-primary-text);
 }
@@ -46,8 +48,8 @@ body:not(.modal-open) {
 }
 
 #scrolling-content {
-  animation: scroll 20s linear infinite;
-  --gap-scroll: 45px;
+  animation: scroll 50s linear infinite;
+  --gap-scroll: 50px;
   gap:var(--gap-scroll);
 }
 
@@ -263,4 +265,24 @@ body.modal-open {
 
 .notif-badge {
   @apply absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-semibold rounded-full px-1.5 h-4 min-w-[16px] flex items-center justify-center
+}
+
+.text-stroke {
+  text-shadow:
+      .5px 0 0 black,
+      -.5px 0 0 black,
+      0 .5px 0 black,
+      0 -.5px 0 black,
+      .5px .5px 0 black,
+      -.5px .5px 0 black,
+      .5px -.5px 0 black,
+      -.5px -.5px 0 black;
+}
+
+.radial-overlay {
+  background: radial-gradient(circle at 50% 60%, 
+    rgba(10, 60, 30, 0.85) 0%,    /* darker green, higher opacity */
+    rgba(10, 60, 30, 0.5) 40%,    /* darker green, mid opacity */
+    transparent 70%
+  );
 }

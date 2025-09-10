@@ -39,12 +39,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const value = typeof opt === 'object' ? opt.value : opt;
       
       li.textContent = displayText;
-      li.className = "px-4 py-2 hover:bg-neutral-100 active:bg-neutral-100 cursor-pointer font-normal";
+      li.className = "px-4 py-2 hover:bg-neutral-100 active:bg-neutral-100 cursor-pointer font-normal font-manrope";
       li.onclick = () => {
         // Store the actual value as a data attribute
         display.textContent = displayText;
         display.dataset.value = value;
-        display.classList.remove("text-gray-400");
+        display.classList.remove("text-neutral-400");
         display.classList.add("text-primary-text");
         list.classList.add("hidden");
         icon.classList.remove("rotate-180");
@@ -72,20 +72,31 @@ document.addEventListener('DOMContentLoaded', () => {
   setupDropdown("month", months, "Month");
   setupDropdown("day", days, "Day");
   setupDropdown("year", years, "Year");
-
-  window.goToStep2 = () => {
-  document.getElementById("step1").classList.add("hidden");
-  document.getElementById("step2").classList.remove("hidden");
-  document.getElementById("progress-bar").style.width = "100%";
-  document.getElementById("step-label").textContent = "Step 2 of 2";
-};
+  setupDropdown("ID", ["Passport", "Driver's License", "SSS ID", "TIN ID"], "Select valid ID");
 
 window.goToStep1 = () => {
+  document.getElementById("step3").classList.add("hidden");
   document.getElementById("step2").classList.add("hidden");
   document.getElementById("step1").classList.remove("hidden");
-  document.getElementById("progress-bar").style.width = "50%";
-  document.getElementById("step-label").textContent = "Step 1 of 2";
+  document.getElementById("progress-bar").style.width = "33.33%";
+  document.getElementById("step-label").textContent = "Step 1 of 3";
 };
+  window.goToStep2 = () => {
+  document.getElementById("step3").classList.add("hidden");
+  document.getElementById("step1").classList.add("hidden");
+  document.getElementById("step2").classList.remove("hidden");
+  document.getElementById("progress-bar").style.width = "66.66%";
+  document.getElementById("step-label").textContent = "Step 2 of 3";
+};
+window.goToStep3 = () => {
+  document.getElementById("step2").classList.add("hidden");
+  document.getElementById("step1").classList.add("hidden");
+  document.getElementById("step3").classList.remove("hidden");
+  document.getElementById("progress-bar").style.width = "100%";
+  document.getElementById("step-label").textContent = "Step 3 of 3";
+};
+
+
 
   //OTP non-numeric
   document.querySelectorAll('.otp-input').forEach(input => {

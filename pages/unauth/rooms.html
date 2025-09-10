@@ -36,7 +36,7 @@
             group-hover:shadow-lg transition-all duration-300 ease-in-out">
             
             <!-- Placeholder Text -->
-            <p class="font-manrope font-semibold text-neutral-500 text-xs md:text-sm truncate">
+            <p class="font-inter font-semibold text-neutral-500 text-xs md:text-sm truncate">
               <span class="block md:hidden">Search</span> <!-- mobile only -->
               <span class="hidden md:block">Got a destination in mind?</span> <!-- md and up -->
             </p>
@@ -154,7 +154,7 @@
           <!-- Right Hamburger + Profile -->
           <div class=" relative">
             <!-- Button to toggle dropdown -->
-            <div id="menuBtn" class="h-10 w-full aspect-square rounded-full bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
+            <div id="menuBtn" class="h-10 w-full aspect-square rounded-full border border-neutral-300 bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
             hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
             transition-all duration-300 ease-in-out">
               <!-- Profile Picture (hidden by default, shows over default icon when available) -->
@@ -219,11 +219,11 @@
     <section class="flex flex-col justify-center items-center mt-20 px-5">
       <div class="relative m-10 w-full h-[200px] rounded-3xl overflow-hidden bg-[url('/public/images/landingPageBG.jpg')] bg-cover bg-center
         md:w-[80%] md:h-[450px]" id="dashImg1">
-        <div class="absolute inset-0 backdrop-blur-xs bg-green-950/30 z-10 pointer-events-none"></div>
+        <div class="absolute inset-0 backdrop-blur-xs bg-green-950/50 z-10 pointer-events-none"></div>
         <div class="absolute inset-0 z-20 flex items-center justify-center" id="dashImg">
-            <div class="w-fit text-secondary-text text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-playfairDisplay italic font-bold text-center flex flex-col">
-            <span>Feel at Home,</span>
-            <span>Every Stay.</span>
+            <div class="w-fit text-secondary-text text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-playfairDisplay italic font-bold text-center flex flex-col text-stroke">
+              <span>Feel at Home,</span>
+              <span>Every Stay.</span>
             </div>
         </div>
       </div>
@@ -478,7 +478,7 @@
       </div>
 
       <!-- Bottom Bar -->
-      <div class="bg-secondary px-[10%] py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm text-primary">
+      <div class="bg-primary px-[10%] py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm text-secondary-text">
         <span>© 2025 <a href="#" class="hover:underline">Betcha</a>. All Rights Reserved.</span>
         <div class="flex mt-4 sm:mt-0 space-x-6">
           <a href="#" class="hover:underline">Privacy Policy</a>
