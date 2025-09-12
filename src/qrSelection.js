@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", () => {
     const radios = document.querySelectorAll('input[name="payment"]');
     const qrContainer = document.querySelector(".qr-container");
 
@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const qrSingle = radio.getAttribute("data-qr");
 
         if (qr1 && qr2) {
-          // Display 2 QR codes (for GCash)
+          
           qrContainer.innerHTML = `
             <div class="flex flex-col gap-2 items-center">
               <img src="${qr1}" alt="GCash QR 1" class="object-contain" />
@@ -17,10 +17,10 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
           `;
         } else if (qrSingle) {
-          // Display only 1 QR (for others)
+          
           qrContainer.innerHTML = `<img src="${qrSingle}" alt="Payment QR" class=" object-contain" />`;
         } else {
-          qrContainer.innerHTML = ''; // fallback
+          qrContainer.innerHTML = ''; 
         }
       });
     });

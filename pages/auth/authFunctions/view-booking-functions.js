@@ -1,15 +1,11 @@
-// View Booking Functions
-// This file handles fetching and populating booking data for the view-booking page
+﻿
 
-// Import centralized toast notification system
 import { showToastError } from '/src/toastNotification.js';
 
-// Use centralized toast function (alias for consistency with existing code)
 function showToast(type, title, message, duration = 5000) {
     return showToastError(type, title, message, duration);
 }
 
-// Guard to prevent double execution
 let isInitialized = false;
 
 document.addEventListener('DOMContentLoaded', function () {
@@ -21,7 +17,6 @@ document.addEventListener('DOMContentLoaded', function () {
     isInitialized = true;
     console.log('View Booking page loaded');
 
-    // Get booking ID from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const bookingId = urlParams.get('bookingId');
 
@@ -33,11 +28,9 @@ document.addEventListener('DOMContentLoaded', function () {
         return;
     }
 
-    // Fetch and populate booking data
     fetchAndPopulateBookingData(bookingId);
 });
 
-// Function to fetch booking data from API
 async function fetchBookingData(bookingId) {
     try {
         console.log('Fetching booking data for ID:', bookingId);
@@ -67,7 +60,6 @@ async function fetchBookingData(bookingId) {
     }
 }
 
-// Function to fetch and populate booking data
 async function fetchAndPopulateBookingData(bookingId) {
     try {
         showLoading(true);
@@ -77,14 +69,12 @@ async function fetchAndPopulateBookingData(bookingId) {
         if (result.success) {
             const booking = result.booking;
 
-            // Populate all booking data (including room name from propertyName)
             populateBookingData(booking);
 
             console.log('Booking data loaded successfully.');
             console.log('Checking for images in booking data...');
             console.log('booking.photoLinks:', booking.photoLinks);
 
-            // Try to create carousel from booking data first (if it has images)
             let carouselCreated = false;
             if (booking.photoLinks && booking.photoLinks.length > 0) {
                 createImageCarousel(booking.photoLinks);
@@ -94,13 +84,11 @@ async function fetchAndPopulateBookingData(bookingId) {
                 console.log('No photoLinks found in booking data');
             }
 
-            // Only try to fetch property details if we need more images or address
-            // and we have a valid propertyId and haven't created carousel yet
             if (booking.propertyId && !carouselCreated) {
                 console.log('Trying to fetch property details since no booking images...');
                 await setupImageCarousel(booking.propertyId);
             } else if (booking.propertyId && carouselCreated) {
-                // Just try to get the address if carousel already created
+
                 console.log('Fetching only property address since carousel already created...');
                 await fetchPropertyAddress(booking.propertyId);
             }
@@ -116,21 +104,18 @@ async function fetchAndPopulateBookingData(bookingId) {
     }
 }
 
-// Function to populate booking data in the UI
 function populateBookingData(booking) {
     try {
-        // Basic booking information
+
         populateElement('roomName', booking.propertyName || 'Property Name');
         populateElement('refID', booking.transNo || booking._id);
-        // Ensure copy button exists and is wired up
+
         ensureCopyRefButton();
 
-        // Dates
         if (booking.checkIn && booking.checkOut) {
             const checkInDate = new Date(booking.checkIn);
             const checkOutDate = new Date(booking.checkOut);
 
-            // Add 1 day to checkout date for display
             const checkOutDatePlusOne = new Date(checkOutDate);
             checkOutDatePlusOne.setDate(checkOutDatePlusOne.getDate() + 1);
 
@@ -139,15 +124,12 @@ function populateBookingData(booking) {
             populateElement('checkOutDate', formatDate(checkOutDatePlusOne));
         }
 
-        // Times
         populateElement('checkInTime', booking.timeIn || 'TBD');
         populateElement('checkOutTime', booking.timeOut || 'TBD');
 
-        // Guest information
         const totalGuests = 1 + (booking.additionalPax || 0);
         populateElement('guestCount', `${totalGuests} Guest${totalGuests > 1 ? 's' : ''}`);
 
-        // Pricing information
         populateElement('pricePerDay', booking.packageFee?.toLocaleString() || '0');
         populateElement('daysOfStay', booking.numOfDays?.toString() || '0');
         populateElement('totalPriceDay', (booking.packageFee * booking.numOfDays)?.toLocaleString() || '0');
@@ -159,22 +141,16 @@ function populateBookingData(booking) {
         populateElement('reservationFee', booking.reservationFee?.toLocaleString() || '0');
         populateElement('totalPrice', booking.totalFee?.toLocaleString() || '0');
 
-        // Payment status and amounts
         calculateAndDisplayPaymentStatus(booking);
 
-        // Payment details
         displayPaymentDetails();
 
-        // Store booking data globally for reschedule functionality
         currentBookingData = booking;
 
-        // Update reschedule helper text with booking duration
         updateRescheduleHelperText();
 
-        // Check reschedule eligibility and manage calendar state
         checkRescheduleEligibility(booking);
 
-        // Set up reschedule functionality if eligible
         setupRescheduleModal();
 
         console.log('Booking data populated successfully');
@@ -185,7 +161,6 @@ function populateBookingData(booking) {
     }
 }
 
-// Create and wire a copy button next to Reference ID
 function ensureCopyRefButton() {
     try {
         const refElement = document.getElementById('refID');
@@ -204,10 +179,9 @@ function ensureCopyRefButton() {
             `;
             refElement.insertAdjacentElement('afterend', copyBtn);
         }
-        // Always apply current sizing/styles (also updates existing buttons)
+
         copyBtn.className = '!px-2 !py-0.5 ml-2 rounded-full hover:bg-neutral-200 active:scale-95 transition';
 
-        // Attach/refresh handler
         copyBtn.onclick = async () => {
             const text = refElement.textContent?.trim();
             if (!text) return;
@@ -231,7 +205,6 @@ function ensureCopyRefButton() {
     }
 }
 
-// Function to calculate and display payment status
 function calculateAndDisplayPaymentStatus(booking) {
     try {
         let amountPaid = 0;
@@ -240,7 +213,6 @@ function calculateAndDisplayPaymentStatus(booking) {
         let unpaidReservation = false;
         let unpaidPackage = false;
 
-        // Check reservation payment status
         if (booking.reservation) {
             if (booking.reservation.status === 'Completed') {
                 amountPaid += booking.reservationFee || 0;
@@ -256,7 +228,6 @@ function calculateAndDisplayPaymentStatus(booking) {
             }
         }
 
-        // Check package payment status
         if (booking.package) {
             const packageAmount = (booking.totalFee || 0) - (booking.reservationFee || 0);
             if (booking.package.status === 'Completed') {
@@ -274,10 +245,8 @@ function calculateAndDisplayPaymentStatus(booking) {
 
         remainingBalance = (booking.totalFee || 0) - amountPaid;
 
-        // Format amount paid display (badge now indicates status)
         let amountPaidText = amountPaid.toLocaleString();
 
-        // Update the amount paid element
         const amountPaidElement = document.getElementById('amountPaid');
         if (amountPaidElement) {
             amountPaidElement.textContent = amountPaidText;
@@ -285,10 +254,8 @@ function calculateAndDisplayPaymentStatus(booking) {
 
         populateElement('remainingBal', Math.max(0, remainingBalance).toLocaleString());
 
-        // Handle payment button visibility and functionality
         handlePaymentButton(booking, remainingBalance, unpaidReservation, unpaidPackage);
 
-        // Update simple status badge beside Transaction summary
         let status = 'Completed';
         if (pendingPayments.length > 0) status = 'Pending';
         else if (remainingBalance > 0 && (unpaidReservation || unpaidPackage)) status = 'Unpaid';
@@ -301,26 +268,23 @@ function calculateAndDisplayPaymentStatus(booking) {
     }
 }
 
-// Create or update a small status badge near the Transaction summary title
 function updateTransactionSummaryStatus(status) {
     try {
-        // Find heading paragraph containing 'Transaction summary'
+
         let heading = Array.from(document.querySelectorAll('p'))
             .find(p => p.textContent && p.textContent.trim().startsWith('Transaction summary'));
         if (!heading) return;
 
-        // Ensure badge exists
         let badge = document.getElementById('txnStatus');
         if (!badge) {
             badge = document.createElement('span');
             badge.id = 'txnStatus';
             badge.className = 'hidden text-xs px-2 py-0.5 rounded-full border ml-auto';
-            // Make heading a flex container for spacing, non-destructive
+
             heading.classList.add('flex', 'items-center', 'gap-2');
             heading.appendChild(badge);
         }
 
-        // Reset styles
         badge.classList.remove('hidden', 'bg-yellow-50', 'text-yellow-700', 'border-yellow-300',
             'bg-green-50', 'text-green-700', 'border-green-300',
             'bg-red-50', 'text-red-700', 'border-red-300');
@@ -339,16 +303,13 @@ function updateTransactionSummaryStatus(status) {
     }
 }
 
-// Function to handle payment button visibility and functionality
 function handlePaymentButton(booking, remainingBalance, unpaidReservation, unpaidPackage) {
     const paymentButton = document.getElementById('paymentButton');
     if (!paymentButton) return;
 
-    // Show button only if there's remaining balance AND unpaid items
     if (remainingBalance > 0 && (unpaidReservation || unpaidPackage)) {
         paymentButton.style.display = 'flex';
 
-        // Determine payment type and update button text
         let paymentType = '';
         let buttonText = 'Pay balance';
 
@@ -360,13 +321,11 @@ function handlePaymentButton(booking, remainingBalance, unpaidReservation, unpai
             buttonText = 'Pay Package';
         }
 
-        // Update button text
         const buttonSpan = paymentButton.querySelector('span');
         if (buttonSpan) {
             buttonSpan.textContent = buttonText;
         }
 
-        // Update onclick to pass correct parameters
         paymentButton.onclick = () => {
             window.location.href = `../auth/confirm-payment.html?paymentType=${paymentType}&bookingId=${booking._id}`;
         };
@@ -374,19 +333,16 @@ function handlePaymentButton(booking, remainingBalance, unpaidReservation, unpai
         console.log('Payment button configured:', { paymentType, buttonText, bookingId: booking._id });
 
     } else {
-        // Hide button when no payment needed
+
         paymentButton.style.display = 'none';
         console.log('Payment button hidden - no payment needed');
     }
 }
 
-// Function to display payment details
 function displayPaymentDetails() {
-    // You can add logic here to display payment method details, 
-    // payment numbers, etc. based on the booking data
+
 }
 
-// Function to fetch only property address
 async function fetchPropertyAddress(propertyId) {
     try {
         if (!propertyId) return;
@@ -410,7 +366,6 @@ async function fetchPropertyAddress(propertyId) {
     }
 }
 
-// Function to setup image carousel (only for images and address)
 async function setupImageCarousel(propertyId) {
     try {
         if (!propertyId) {
@@ -437,7 +392,7 @@ async function setupImageCarousel(propertyId) {
         const result = await response.json();
 
         if (result) {
-            // The property data is directly in the result, not nested in result.property
+
             if (result.address) {
                 populateElement('roomAddress', result.address);
             }
@@ -453,7 +408,6 @@ async function setupImageCarousel(propertyId) {
     }
 }
 
-// Function to create image carousel
 function createImageCarousel(images) {
     try {
         if (!images || images.length === 0) {
@@ -461,14 +415,12 @@ function createImageCarousel(images) {
             return;
         }
 
-        // Find the image container
         const imageContainer = document.querySelector('.w-full.h-\\[200px\\].rounded-3xl.overflow-hidden.group');
         if (!imageContainer) {
             console.error('Image container not found');
             return;
         }
 
-        // Create carousel HTML
         const carouselHTML = `
             <div class="relative w-full h-full overflow-hidden">
                 <div id="imageCarousel" class="w-full h-full overflow-hidden">
@@ -490,13 +442,10 @@ function createImageCarousel(images) {
             </div>
         `;
 
-        // Replace the existing image div
         imageContainer.innerHTML = carouselHTML;
 
-        // Setup carousel functionality
         setupCarouselControls(images.length);
 
-        // Start auto-rotation
         startAutoCarousel(images.length);
 
     } catch (error) {
@@ -504,7 +453,6 @@ function createImageCarousel(images) {
     }
 }
 
-// Function to setup carousel controls
 function setupCarouselControls(imageCount) {
     try {
         const track = document.querySelector('.carousel-track');
@@ -523,7 +471,6 @@ function setupCarouselControls(imageCount) {
             window.carouselCurrentIndex = index;
         }
 
-        // Dot click handlers
         dots.forEach((dot, index) => {
             dot.addEventListener('click', () => {
                 goToSlide(index);
@@ -531,7 +478,6 @@ function setupCarouselControls(imageCount) {
             });
         });
 
-        // Store the goToSlide function globally so auto carousel can use it
         window.carouselGoToSlide = goToSlide;
         window.carouselCurrentIndex = 0;
 
@@ -540,7 +486,6 @@ function setupCarouselControls(imageCount) {
     }
 }
 
-// Function to show specific slide
 function showSlide(index) {
     if (window.carouselGoToSlide) {
         window.carouselGoToSlide(index);
@@ -548,12 +493,10 @@ function showSlide(index) {
     }
 }
 
-// Function to get current slide index
 function getCurrentSlideIndex() {
     return window.carouselCurrentIndex || 0;
 }
 
-// Function to start auto carousel
 function startAutoCarousel(imageCount) {
     if (imageCount <= 1) return;
 
@@ -561,10 +504,9 @@ function startAutoCarousel(imageCount) {
         const currentSlide = getCurrentSlideIndex();
         const nextSlide = (currentSlide + 1) % imageCount;
         showSlide(nextSlide);
-    }, 4000); // Change slide every 4 seconds
+    }, 4000); 
 }
 
-// Function to reset auto carousel
 function resetAutoCarousel(imageCount) {
     if (window.carouselInterval) {
         clearInterval(window.carouselInterval);
@@ -572,7 +514,6 @@ function resetAutoCarousel(imageCount) {
     startAutoCarousel(imageCount);
 }
 
-// Utility function to populate an element safely
 function populateElement(elementId, value) {
     const element = document.getElementById(elementId);
     if (element) {
@@ -582,19 +523,17 @@ function populateElement(elementId, value) {
     }
 }
 
-// Utility function to format date
 function formatDate(date) {
     try {
-        // Handle both Date objects and date strings
+
         let dateObj;
         if (typeof date === 'string') {
-            // Add time to avoid timezone issues
+
             dateObj = new Date(date + 'T12:00:00');
         } else {
             dateObj = date;
         }
 
-        // Format as YYYY/MM/DD
         const year = dateObj.getFullYear();
         const month = String(dateObj.getMonth() + 1).padStart(2, '0');
         const day = String(dateObj.getDate()).padStart(2, '0');
@@ -606,10 +545,9 @@ function formatDate(date) {
     }
 }
 
-// Utility function to show loading state
 function showLoading(show) {
     if (show) {
-        // Create skeleton loading overlay
+
         const skeletonHTML = `
             <div id="skeletonLoader" class="fixed inset-0 bg-background z-50 flex flex-col">
                 <!-- Header Skeleton -->
@@ -694,18 +632,17 @@ function showLoading(show) {
             </div>
         `;
 
-        // Add skeleton to body
         document.body.insertAdjacentHTML('beforeend', skeletonHTML);
         console.log('Loading...');
     } else {
-        // Remove skeleton after minimum display time
+
         setTimeout(() => {
             const skeleton = document.getElementById('skeletonLoader');
             if (skeleton) {
                 skeleton.remove();
             }
             console.log('Loading complete');
-        }, 500); // 0.5 seconds minimum display time
+        }, 500); 
     }
 }
 
@@ -714,30 +651,26 @@ function showError(message) {
     showToast('error', 'Error', message);
 }
 
-// Function to setup reschedule modal functionality
 function setupRescheduleModal() {
     try {
         console.log('Setting up reschedule modal...');
 
-        // Set up modal open event listener
         const rescheduleButton = document.querySelector('[data-modal-target="reschedModal"]');
         if (rescheduleButton && !rescheduleButton.disabled) {
             rescheduleButton.addEventListener('click', function () {
-                // Initialize calendar when modal opens
+
                 setTimeout(() => {
                     initializeRescheduleCalendar();
                 }, 100);
             });
         }
 
-        // Set up reschedule button in modal
         const modalRescheduleBtn = document.getElementById('rescheduleSubmitBtn');
         if (modalRescheduleBtn) {
-            // Remove any existing event listeners
+
             const newBtn = modalRescheduleBtn.cloneNode(true);
             modalRescheduleBtn.parentNode.replaceChild(newBtn, modalRescheduleBtn);
 
-            // Add new event listener
             newBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 handleReschedule();
@@ -750,22 +683,15 @@ function setupRescheduleModal() {
     }
 }
 
-// ==========================================
-// STANDALONE RESCHEDULE CALENDAR IMPLEMENTATION
-// This is completely independent from calendar.js/calendar2.js
-// ==========================================
-
-// Calendar state variables
 let rescheduleCalendarCurrentDate = new Date();
 let rescheduleSelectedStartDate = null;
 let rescheduleSelectedEndDate = null;
 let currentBookingData = null;
 
-// Function to calculate booking duration
 function calculateBookingDuration() {
     if (!currentBookingData || !currentBookingData.numOfDays) {
         console.warn('No booking data or daysOfStay available for duration calculation');
-        return 7; // Default fallback
+        return 7; 
     }
 
     const duration = parseInt(currentBookingData.numOfDays, 10);
@@ -774,7 +700,6 @@ function calculateBookingDuration() {
     return duration;
 }
 
-// Function to update reschedule helper text with booking duration
 function updateRescheduleHelperText() {
     const helperText = document.getElementById('rescheduleHelperText');
     if (helperText) {
@@ -783,7 +708,6 @@ function updateRescheduleHelperText() {
     }
 }
 
-// Function to initialize reschedule calendar
 function initializeRescheduleCalendar() {
     try {
         console.log('Initializing standalone reschedule calendar...');
@@ -806,22 +730,19 @@ function initializeRescheduleCalendar() {
             return;
         }
 
-        // Reset selection state
         rescheduleSelectedStartDate = null;
         rescheduleSelectedEndDate = null;
 
         function updateRescheduleCalendars() {
-            // Left calendar (current month)
+
             const leftMonth = new Date(rescheduleCalendarCurrentDate);
             buildRescheduleCalendar(leftCalendar, leftMonth, leftLabel);
 
-            // Right calendar (next month) 
             const rightMonth = new Date(rescheduleCalendarCurrentDate);
             rightMonth.setMonth(rightMonth.getMonth() + 1);
             buildRescheduleCalendar(rightCalendar, rightMonth, rightLabel);
         }
 
-        // Navigation event listeners
         if (prevBtn) {
             prevBtn.addEventListener('click', () => {
                 rescheduleCalendarCurrentDate.setMonth(rescheduleCalendarCurrentDate.getMonth() - 1);
@@ -836,7 +757,6 @@ function initializeRescheduleCalendar() {
             });
         }
 
-        // Initial render
         updateRescheduleCalendars();
         updateRescheduleSelectedDateDisplay();
 
@@ -849,14 +769,11 @@ function buildRescheduleCalendar(container, date, labelEl) {
     const year = date.getFullYear();
     const month = date.getMonth();
 
-    // Update month label
     labelEl.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-    // Get first day of month and total days
     const firstDay = new Date(year, month, 1).getDay();
     const totalDays = new Date(year, month + 1, 0).getDate();
 
-    // Create calendar HTML - matching calendar.js exactly
     let html = `
       <div class="grid grid-cols-7 gap-1 text-center font-manrope font-semibold border-b border-neutral-300 pb-1 mb-2">
         <div class="w-full aspect-square flex items-center justify-center text-xs">S</div>
@@ -870,16 +787,14 @@ function buildRescheduleCalendar(container, date, labelEl) {
       <div class="grid grid-cols-7 gap-1 text-center">
     `;
 
-    // Add empty cells for days before the first of the month
     for (let i = 0; i < firstDay; i++) {
         html += '<div></div>';
     }
 
-    // Add days
     for (let day = 1; day <= totalDays; day++) {
-        // Create date string directly to avoid timezone issues
+
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
-        const currentDateObj = new Date(dateStr + 'T12:00:00'); // Use noon to avoid timezone issues
+        const currentDateObj = new Date(dateStr + 'T12:00:00'); 
         const isDisabled = currentDateObj < new Date().setHours(0, 0, 0, 0);
 
         console.log(`Day ${day} -> dateStr: ${dateStr}, currentDateObj: ${currentDateObj.toISOString()}`);
@@ -889,7 +804,6 @@ function buildRescheduleCalendar(container, date, labelEl) {
         const isInRange = rescheduleSelectedStartDate && rescheduleSelectedEndDate &&
             dateStr > rescheduleSelectedStartDate && dateStr < rescheduleSelectedEndDate;
 
-        // Calculate if this date would exceed the current booking duration limit
         let isOverLimit = false;
         if (rescheduleSelectedStartDate && !rescheduleSelectedEndDate) {
             const startDate = new Date(rescheduleSelectedStartDate + 'T12:00:00');
@@ -919,7 +833,6 @@ function buildRescheduleCalendar(container, date, labelEl) {
     html += '</div>';
     container.innerHTML = html;
 
-    // Add click handlers to date buttons
     container.querySelectorAll('div[data-reschedule-date]').forEach(dateEl => {
         if (!dateEl.style.pointerEvents) {
             dateEl.addEventListener('click', () => handleRescheduleDateClick({ target: dateEl }));
@@ -930,7 +843,6 @@ function buildRescheduleCalendar(container, date, labelEl) {
 function handleRescheduleDateClick(event) {
     const dateStr = event.target.dataset.rescheduleDate;
 
-    // If clicking on the same start date when no end date selected, clear selection
     if (rescheduleSelectedStartDate === dateStr && !rescheduleSelectedEndDate) {
         rescheduleSelectedStartDate = null;
         rescheduleSelectedEndDate = null;
@@ -939,7 +851,6 @@ function handleRescheduleDateClick(event) {
         return;
     }
 
-    // If clicking on the same end date, clear just the end date
     if (rescheduleSelectedEndDate === dateStr) {
         rescheduleSelectedEndDate = null;
         updateRescheduleSelectedDateDisplay();
@@ -948,29 +859,27 @@ function handleRescheduleDateClick(event) {
     }
 
     if (!rescheduleSelectedStartDate || (rescheduleSelectedStartDate && rescheduleSelectedEndDate)) {
-        // Start new selection (clear any existing selection)
+
         rescheduleSelectedStartDate = dateStr;
         rescheduleSelectedEndDate = null;
         updateRescheduleSelectedDateDisplay();
     } else if (dateStr < rescheduleSelectedStartDate) {
-        // If clicked date is before start date, make it the new start date
+
         rescheduleSelectedStartDate = dateStr;
         rescheduleSelectedEndDate = null;
         updateRescheduleSelectedDateDisplay();
     } else {
-        // Complete the selection (clicked date is after start date)
+
         const startDate = new Date(rescheduleSelectedStartDate + 'T12:00:00');
         const endDate = new Date(dateStr + 'T12:00:00');
         const daysDiff = Math.ceil((endDate - startDate) / (1000 * 60 * 60 * 24));
         const maxDays = calculateBookingDuration();
 
-        // Check if the selection exceeds the current booking duration
         if (daysDiff > maxDays) {
             showToast('warning', 'Selection Limit', `You can only reschedule for ${maxDays} days (same as your current booking). Please select a shorter range.`);
             return;
         }
 
-        // Minimum stay validation (at least 1 night)
         if (daysDiff < 1) {
             showToast('warning', 'Invalid Selection', 'Check-out date must be after check-in date.');
             return;
@@ -980,7 +889,6 @@ function handleRescheduleDateClick(event) {
         updateRescheduleSelectedDateDisplay();
     }
 
-    // Log current selection state
     console.log('Reschedule Date Selection:', {
         start: rescheduleSelectedStartDate,
         end: rescheduleSelectedEndDate,
@@ -1001,11 +909,10 @@ function refreshRescheduleCalendars() {
     const rightLabel = calendarInstance.querySelector('.rightMonthLabel');
 
     if (leftCalendar && rightCalendar) {
-        // Left calendar (current month)
+
         const leftMonth = new Date(rescheduleCalendarCurrentDate);
         buildRescheduleCalendar(leftCalendar, leftMonth, leftLabel);
 
-        // Right calendar (next month) 
         const rightMonth = new Date(rescheduleCalendarCurrentDate);
         rightMonth.setMonth(rightMonth.getMonth() + 1);
         buildRescheduleCalendar(rightCalendar, rightMonth, rightLabel);
@@ -1033,7 +940,6 @@ function updateRescheduleSelectedDateDisplay() {
     }
 }
 
-// Clear selection function
 function clearRescheduleSelection() {
     rescheduleSelectedStartDate = null;
     rescheduleSelectedEndDate = null;
@@ -1041,27 +947,22 @@ function clearRescheduleSelection() {
     refreshRescheduleCalendars();
 }
 
-// Make clear function globally accessible
 window.clearRescheduleSelection = clearRescheduleSelection;
 
-// Function to handle reschedule API call
 async function handleReschedule() {
     try {
         console.log('Handling reschedule...');
 
-        // Validate that dates are selected
         if (!rescheduleSelectedStartDate || !rescheduleSelectedEndDate) {
             showToast('warning', 'Select Dates', 'Please select both check-in and check-out dates for reschedule.');
             return;
         }
 
-        // Validate that we have booking data
         if (!currentBookingData || !currentBookingData._id) {
             showToast('error', 'Error', 'Booking information not available. Please refresh the page.');
             return;
         }
 
-        // Generate array of dates from start to end
         const newBookingDates = generateDateRange(rescheduleSelectedStartDate, rescheduleSelectedEndDate);
 
         console.log('Reschedule submit data:', {
@@ -1071,12 +972,10 @@ async function handleReschedule() {
             newBookingDates: newBookingDates
         });
 
-        // Show loading state
         const rescheduleBtn = document.getElementById('rescheduleSubmitBtn');
         rescheduleBtn.disabled = true;
         rescheduleBtn.querySelector('span').textContent = 'Rescheduling...';
 
-        // Make API call
         const response = await fetch(`https://betcha-api.onrender.com/booking/update-dates/${currentBookingData._id}`, {
             method: 'PATCH',
             headers: {
@@ -1090,14 +989,12 @@ async function handleReschedule() {
         const result = await response.json();
 
         if (response.ok) {
-            // Success
+
             showToast('success', 'Reschedule Successful', 'Your booking has been rescheduled successfully.');
 
-            // Close modal
             const closeBtn = document.querySelector('#reschedModal [data-close-modal]');
             if (closeBtn) closeBtn.click();
 
-            // Refresh booking data
             const urlParams = new URLSearchParams(window.location.search);
             const bookingId = urlParams.get('bookingId');
             if (bookingId) {
@@ -1107,7 +1004,7 @@ async function handleReschedule() {
             }
 
         } else {
-            // Error
+
             showToast('error', 'Reschedule Failed', result.message || 'Failed to reschedule booking. Please try again.');
         }
 
@@ -1115,7 +1012,7 @@ async function handleReschedule() {
         console.error('Error during reschedule:', error);
         showToast('error', 'Network Error', 'Failed to connect to server. Please check your connection and try again.');
     } finally {
-        // Reset button state
+
         const rescheduleBtn = document.getElementById('rescheduleSubmitBtn');
         if (rescheduleBtn) {
             rescheduleBtn.disabled = false;
@@ -1124,12 +1021,10 @@ async function handleReschedule() {
     }
 }
 
-// Helper function to generate date range array
 function generateDateRange(startDate, endDate) {
     console.log('generateDateRange called with:', { startDate, endDate });
     const dates = [];
 
-    // Create dates at noon to avoid timezone issues
     const currentDate = new Date(startDate + 'T12:00:00');
     const end = new Date(endDate + 'T12:00:00');
 
@@ -1138,7 +1033,6 @@ function generateDateRange(startDate, endDate) {
         end: end.toISOString()
     });
 
-    // Include both start and end dates
     while (currentDate <= end) {
         const dateStr = currentDate.toISOString().split('T')[0];
         dates.push(dateStr);
@@ -1150,14 +1044,12 @@ function generateDateRange(startDate, endDate) {
     return dates;
 }
 
-// Function to check reschedule eligibility and manage calendar state
 function checkRescheduleEligibility(booking) {
     try {
         const currentDate = new Date();
         const createdDate = new Date(booking.createdAt);
         const checkInDate = new Date(booking.checkIn);
 
-        // Calculate days difference for both dates
         const daysSinceCreated = Math.floor((currentDate - createdDate) / (1000 * 60 * 60 * 24));
         const daysSinceCheckIn = Math.floor((currentDate - checkInDate) / (1000 * 60 * 60 * 24));
 
@@ -1169,21 +1061,18 @@ function checkRescheduleEligibility(booking) {
             daysSinceCheckIn: daysSinceCheckIn
         });
 
-        // Check if either the booking was created more than 5 days ago OR the check-in date is more than 5 days old
         const isEligible = daysSinceCreated <= 5 && daysSinceCheckIn <= 5;
 
-        // Get reschedule button
         const rescheduleButton = document.querySelector('[data-modal-target="reschedModal"]');
 
         if (isEligible) {
             console.log('Booking is eligible for reschedule');
             if (rescheduleButton) {
-                // Reset button to enabled state
+
                 rescheduleButton.disabled = false;
                 rescheduleButton.classList.remove('cursor-not-allowed', 'bg-neutral-200', 'border-neutral-300');
                 rescheduleButton.classList.add('hover:bg-primary/10', 'hover:border-primary', 'active:bg-primary/10', 'active:border-primary');
 
-                // Restore original button text and styling
                 const buttonText = rescheduleButton.querySelector('span');
                 if (buttonText) {
                     buttonText.textContent = 'Reschedule';
@@ -1191,19 +1080,16 @@ function checkRescheduleEligibility(booking) {
                     buttonText.classList.add('group-hover:text-primary', 'group-active:text-primary');
                 }
 
-                // Restore modal target attribute
                 rescheduleButton.setAttribute('data-modal-target', 'reschedModal');
             }
             enableCalendarInputs();
         } else {
             console.log('Booking is NOT eligible for reschedule - too old');
             if (rescheduleButton) {
-                // Don't set disabled=true as it prevents click events
-                // Instead, style it to look disabled but keep it clickable
+
                 rescheduleButton.classList.add('cursor-not-allowed', 'bg-neutral-200', 'border-neutral-300');
                 rescheduleButton.classList.remove('hover:bg-primary/10', 'hover:border-primary', 'active:bg-primary/10', 'active:border-primary');
 
-                // Update button text to indicate why it's disabled
                 const buttonText = rescheduleButton.querySelector('span');
                 if (buttonText) {
                     buttonText.textContent = 'Reschedule Unavailable';
@@ -1211,16 +1097,13 @@ function checkRescheduleEligibility(booking) {
                     buttonText.classList.remove('group-hover:text-primary', 'group-active:text-primary');
                 }
 
-                // Remove modal target attribute to prevent modal from opening
                 rescheduleButton.removeAttribute('data-modal-target');
 
-                // Add click handler to show toast instead of opening modal
                 rescheduleButton.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('Reschedule button clicked - showing toast');
 
-                    // Show toast notification
                     showToast('warning', 'Reschedule Unavailable', 'This booking is more than 5 days old and cannot be rescheduled.');
                 });
             }
@@ -1235,38 +1118,33 @@ function checkRescheduleEligibility(booking) {
     }
 }
 
-// Function to disable calendar inputs and interactions
 function disableCalendarInputs() {
     try {
-        // Wait for DOM to be fully loaded before manipulating calendar
+
         setTimeout(() => {
             const calendarInstances = document.querySelectorAll('.calendar-instance');
 
             calendarInstances.forEach(instance => {
-                // Disable calendar container
+
                 instance.style.pointerEvents = 'none';
                 instance.style.opacity = '0.5';
 
-                // Add disabled state styling
                 instance.classList.add('calendar-disabled');
 
-                // Disable all buttons within the calendar
                 const buttons = instance.querySelectorAll('button');
                 buttons.forEach(button => {
                     button.disabled = true;
                     button.style.cursor = 'not-allowed';
                 });
 
-                // Disable calendar cells if they exist
                 const calendarCells = instance.querySelectorAll('.calendar-day, .day, [data-day]');
                 calendarCells.forEach(cell => {
                     cell.style.pointerEvents = 'none';
                     cell.style.cursor = 'not-allowed';
-                    cell.onclick = null; // Remove any existing click handlers
+                    cell.onclick = null; 
                 });
             });
 
-            // Show message in the reschedule modal if it exists
             const reschedModal = document.getElementById('reschedModal');
             if (reschedModal) {
                 const messageElement = reschedModal.querySelector('.text-muted');
@@ -1284,29 +1162,25 @@ function disableCalendarInputs() {
     }
 }
 
-// Function to enable calendar inputs and interactions
 function enableCalendarInputs() {
     try {
-        // Wait for DOM to be fully loaded before manipulating calendar
+
         setTimeout(() => {
             const calendarInstances = document.querySelectorAll('.calendar-instance');
 
             calendarInstances.forEach(instance => {
-                // Enable calendar container
+
                 instance.style.pointerEvents = 'auto';
                 instance.style.opacity = '1';
 
-                // Remove disabled state styling
                 instance.classList.remove('calendar-disabled');
 
-                // Enable all buttons within the calendar
                 const buttons = instance.querySelectorAll('button');
                 buttons.forEach(button => {
                     button.disabled = false;
                     button.style.cursor = 'pointer';
                 });
 
-                // Enable calendar cells if they exist
                 const calendarCells = instance.querySelectorAll('.calendar-day, .day, [data-day]');
                 calendarCells.forEach(cell => {
                     cell.style.pointerEvents = 'auto';
@@ -1314,7 +1188,6 @@ function enableCalendarInputs() {
                 });
             });
 
-            // Reset message in the reschedule modal if it exists
             const reschedModal = document.getElementById('reschedModal');
             if (reschedModal) {
                 const messageElement = reschedModal.querySelector('.text-muted');

@@ -1,16 +1,15 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Initialize with empty arrays, will be populated by property-view.js
+﻿document.addEventListener("DOMContentLoaded", () => {
+  
   let unavailableDates = [];
   let bookedDates = [];
   let maintenanceDates = [];
-  let selectedDate = null; // Single selected date instead of Set
+  let selectedDate = null; 
 
   document.querySelectorAll(".calendar-instance").forEach(calendarEl => {
     let currentDate = new Date();
 
-    // Function to handle external date selection
     window.selectDate = (date) => {
-      selectedDate = date; // Set single date
+      selectedDate = date; 
       render();
     };
 
@@ -66,19 +65,16 @@ document.addEventListener("DOMContentLoaded", () => {
       return html;
     };
 
-    // Click listener for dates
     calendarEl.addEventListener("click", e => {
       const dateEl = e.target.closest("[data-date]");
       if (dateEl) {
         const clickedDate = dateEl.dataset.date;
-        
-        // Single selection - replace previous selection
+
         selectedDate = clickedDate;
 
-        // Dispatch custom event with selected date
         calendarEl.dispatchEvent(new CustomEvent('datesSelected', {
           detail: {
-            dates: [selectedDate] // Always send as array for compatibility
+            dates: [selectedDate] 
           },
           bubbles: true
         }));
@@ -87,7 +83,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // Month nav
     calendarEl.querySelector(".prevMonth").addEventListener("click", () => {
       currentDate.setMonth(currentDate.getMonth() - 1);
       render();
@@ -98,22 +93,18 @@ document.addEventListener("DOMContentLoaded", () => {
       render();
     });
 
-    // Listen for calendar data updates from property-view.js
     calendarEl.addEventListener("calendarDataUpdated", (event) => {
       console.log("📅 Calendar data update received in calendar2.js:", event.detail);
-      
-      // Update the date arrays
+
       bookedDates = event.detail.bookedDates || [];
       maintenanceDates = event.detail.maintenanceDates || [];
       unavailableDates = event.detail.allUnavailableDates || [];
       
       console.log("📅 Updated dates - Booked:", bookedDates, "Maintenance:", maintenanceDates);
-      
-      // Re-render the calendar with new data
+
       render();
     });
 
-    // Initial render
     render();
   });
 });

@@ -1,4 +1,4 @@
-// Function to create property card HTML
+﻿
 function createPropertyCard(property) {
     return `
             <a href="view-property.html?id=${property._id}" onmouseenter="console.log('Card hovered')" onmouseleave="console.log('Card left')">
@@ -32,7 +32,6 @@ function createPropertyCard(property) {
     `;
 }
 
-// Function to fetch and display properties by category
 async function fetchAndDisplayProperties() {
     console.log('fetchAndDisplayProperties called');
     try {
@@ -41,7 +40,6 @@ async function fetchAndDisplayProperties() {
         const data = await response.json();
         console.log('API response received:', data);
 
-        // Get all tab content containers
         const familyContainer = document.querySelector('#familyContent');
         const coupleContainer = document.querySelector('#coupleContent');
         const barkadaContainer = document.querySelector('#barkadaContent');
@@ -54,7 +52,6 @@ async function fetchAndDisplayProperties() {
             otherContainer: !!otherContainer
         });
 
-        // Update each category container
         if (familyContainer && data.family) {
             console.log('Populating family container with', data.family.length, 'properties');
             familyContainer.innerHTML = data.family.map(property => createPropertyCard(property)).join('');
@@ -76,7 +73,6 @@ async function fetchAndDisplayProperties() {
     }
 }
 
-// Function to create featured property card HTML
 function createFeaturedPropertyCard(property) {
     const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/public/images/unit01.jpg';
     return `
@@ -105,7 +101,6 @@ function createFeaturedPropertyCard(property) {
     `;
 }
 
-// Function to create skeleton loading cards
 function createSkeletonCards(count = 3) {
     return Array(count).fill(`
         <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden animate-pulse">
@@ -120,7 +115,6 @@ function createSkeletonCards(count = 3) {
     `).join('');
 }
 
-// Function to create ads banner skeleton loading
 function createAdsBannerSkeleton() {
     return `
         <div class="absolute inset-0 w-full h-full bg-neutral-100 animate-pulse"></div>
@@ -131,7 +125,6 @@ function createAdsBannerSkeleton() {
     `;
 }
 
-// Function to create hero section skeleton loading
 function createHeroSkeleton() {
     return `
         <div class="absolute inset-0 backdrop-blur-xs bg-green-950/20 z-10 pointer-events-none"></div>
@@ -144,10 +137,9 @@ function createHeroSkeleton() {
     `;
 }
 
-// Function to fetch and update the ads banner and featured properties
 async function updateAdsBanner() {
     try {
-        // Show skeleton loading for ads banner
+
         const adsBanner = document.querySelector('.relative.flex.flex-col.justify-center.items-center');
         const heroSection = document.querySelector('.relative.m-10.w-full.h-\\[200px\\]');
         
@@ -166,10 +158,8 @@ async function updateAdsBanner() {
         const response = await fetch('https://betcha-api.onrender.com/landing/display/68a735c07753114c9e87c793');
         const data = await response.json();
 
-        // Add delay for smooth loading animation
         await new Promise(resolve => setTimeout(resolve, 500));
 
-        // Update banner elements
         if (adsBanner) {
             adsBanner.innerHTML = `
                 <img id="imageBanner" src="${data.imageLink}" 
@@ -181,7 +171,6 @@ async function updateAdsBanner() {
             `;
         }
 
-        // Update hero section
         if (heroSection) {
             heroSection.innerHTML = `
                 <div class="absolute inset-0 backdrop-blur-xs bg-green-950/30 z-10 pointer-events-none"></div>
@@ -194,11 +183,9 @@ async function updateAdsBanner() {
             `;
         }
 
-        // Update featured properties
         if (thisMonthContainer && data.featured) {
             thisMonthContainer.innerHTML = data.featured.map(property => createFeaturedPropertyCard(property)).join('');
-            
-            // Reinitialize carousel after loading featured properties
+
             const wrapper = thisMonthContainer.closest('.carousel-wrapper');
             if (wrapper && window.initializeCarousel) {
                 window.initializeCarousel(wrapper);
@@ -209,7 +196,6 @@ async function updateAdsBanner() {
     }
 }
 
-// Function to fetch top properties
 async function fetchTopProperties() {
     try {
         const response = await fetch('https://betcha-api.onrender.com/booking/top-properties');
@@ -221,7 +207,6 @@ async function fetchTopProperties() {
     }
 }
 
-// Function to create popular property card HTML
 function createPopularPropertyCard(property) {
     const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/public/images/unit01.jpg';
     return `
@@ -250,7 +235,6 @@ function createPopularPropertyCard(property) {
     `;
 }
 
-// Function to populate popular rooms carousel
 async function populatePopularRooms() {
     const track = document.getElementById('popularProperty');
     
@@ -259,13 +243,11 @@ async function populatePopularRooms() {
         return;
     }
 
-    // Show skeleton loading
     track.innerHTML = createSkeletonCards(3);
 
     try {
         const properties = await fetchTopProperties();
-        
-        // Add delay for smooth loading animation
+
         await new Promise(resolve => setTimeout(resolve, 500));
 
         if (properties && properties.length > 0) {
@@ -273,7 +255,6 @@ async function populatePopularRooms() {
                 .map(({ property }) => createPopularPropertyCard(property))
                 .join('');
 
-            // Reinitialize carousel after loading content
             const wrapper = track.closest('.carousel-wrapper');
             if (wrapper && window.initializeCarousel) {
                 window.initializeCarousel(wrapper);
@@ -284,7 +265,6 @@ async function populatePopularRooms() {
     }
 }
 
-// Initialize all functions when the page loads
 document.addEventListener('DOMContentLoaded', () => {
     console.log('DOMContentLoaded event fired in rooms-functions.js');
     updateAdsBanner();

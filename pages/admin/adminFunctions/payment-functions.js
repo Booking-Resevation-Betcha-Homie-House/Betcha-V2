@@ -1,7 +1,6 @@
-// Payment functions for admin panel
+﻿
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
-// Constants for reusable styles and configurations
 const UI_STYLES = {
     button: {
         primary: "bg-primary text-white px-6 py-2 rounded-xl hover:bg-primary/90 transition-all duration-300",
@@ -11,7 +10,6 @@ const UI_STYLES = {
     state: "col-span-full flex flex-col items-center justify-center py-12"
 };
 
-// Utility function to get payment grid element
 function getPaymentGrid() {
     const grid = document.getElementById('paymentGrid');
     if (!grid) {
@@ -20,7 +18,6 @@ function getPaymentGrid() {
     return grid;
 }
 
-// Utility function to get payment skeleton element
 function getPaymentSkeleton() {
     const skeleton = document.getElementById('paymentSkeleton');
     if (!skeleton) {
@@ -29,7 +26,6 @@ function getPaymentSkeleton() {
     return skeleton;
 }
 
-// Function to show skeleton loading
 function showSkeleton() {
     const skeleton = getPaymentSkeleton();
     const grid = getPaymentGrid();
@@ -42,7 +38,6 @@ function showSkeleton() {
     }
 }
 
-// Function to hide skeleton loading
 function hideSkeleton() {
     const skeleton = getPaymentSkeleton();
     const grid = getPaymentGrid();
@@ -55,7 +50,6 @@ function hideSkeleton() {
     }
 }
 
-// Function to set payment grid content
 function setPaymentGridContent(content) {
     const paymentGrid = getPaymentGrid();
     if (paymentGrid) {
@@ -63,7 +57,6 @@ function setPaymentGridContent(content) {
     }
 }
 
-// Function to format date
 function formatDate(dateString) {
     const date = new Date(dateString);
     const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -72,27 +65,23 @@ function formatDate(dateString) {
     return `${month}/${day}/${year}`;
 }
 
-// Function to process Google Drive links to get thumbnail
 function getImageUrl(qrPhotoLink, category) {
-    // If we have a valid qrPhotoLink, use it
+
     if (qrPhotoLink && qrPhotoLink.trim() !== '') {
-        // If it's already a thumbnail link, use it directly
+
         if (qrPhotoLink.includes('thumbnail')) {
             return qrPhotoLink;
         }
-        
-        // If it's a Google Drive link, try to convert it to a thumbnail
+
         const driveFileIdMatch = qrPhotoLink.match(/\/d\/([a-zA-Z0-9-_]+)/);
         if (driveFileIdMatch) {
             const fileId = driveFileIdMatch[1];
             return `https://drive.google.com/thumbnail?id=${fileId}&sz=w400-h400`;
         }
-        
-        // If it's a regular URL, use it directly
+
         return qrPhotoLink;
     }
-    
-    // If no qrPhotoLink, use category-specific fallback images
+
     const categoryImages = {
         'gcash': '/images/qr-gcash1.png',
         'maya': '/images/qr-maya.png',
@@ -100,13 +89,11 @@ function getImageUrl(qrPhotoLink, category) {
         'union bank': '/images/qr-ub.png',
         'unionbank': '/images/qr-ub.png'
     };
-    
-    // Normalize category to lowercase and return image or default
+
     const normalizedCategory = category?.toLowerCase() || '';
     return categoryImages[normalizedCategory] || '/images/qr-gcash1.png';
 }
 
-// Function to create payment card HTML
 function createPaymentCard(payment) {
     const formattedDate = formatDate(payment.createdAt);
     const imageUrl = getImageUrl(payment.qrPhotoLink, payment.category);
@@ -149,7 +136,6 @@ function createPaymentCard(payment) {
     `;
 }
 
-// Function to load payment methods
 async function loadPaymentMethods() {
     try {
         showSkeleton();
@@ -163,7 +149,7 @@ async function loadPaymentMethods() {
         const payments = await response.json();
         
         if (payments && payments.length > 0) {
-            // Clear existing content and add payment cards
+
             const paymentGrid = getPaymentGrid();
             if (paymentGrid) {
                 paymentGrid.innerHTML = payments.map(payment => createPaymentCard(payment)).join('');
@@ -181,7 +167,6 @@ async function loadPaymentMethods() {
     }
 }
 
-// Function to show loading state
 function showLoadingState() {
     setPaymentGridContent(`
         <div class="${UI_STYLES.state}">
@@ -191,7 +176,6 @@ function showLoadingState() {
     `);
 }
 
-// Function to show empty state
 function showEmptyState() {
     const paymentGrid = getPaymentGrid();
     if (paymentGrid) {
@@ -212,7 +196,6 @@ function showEmptyState() {
     }
 }
 
-// Function to show error state
 function showErrorState() {
     const paymentGrid = getPaymentGrid();
     if (paymentGrid) {
@@ -233,14 +216,12 @@ function showErrorState() {
     }
 }
 
-// Function to handle edit payment
 function editPayment(paymentId) {
-    // Store the payment ID in sessionStorage to pass to edit page
+
     sessionStorage.setItem('editPaymentId', paymentId);
     window.location.href = 'payment-edit.html';
 }
 
-// Function to handle delete payment
 async function deletePayment(paymentId, paymentName) {
     if (!confirm(`Are you sure you want to delete "${paymentName}"? This action cannot be undone.`)) {
         return;
@@ -265,15 +246,13 @@ async function deletePayment(paymentId, paymentName) {
     }
 }
 
-// Function to handle search
 function setupSearch() {
     const searchInput = document.querySelector('input[placeholder="Search"]');
     if (searchInput) {
         searchInput.addEventListener('input', function(e) {
             const searchTerm = e.target.value.toLowerCase();
             const paymentCards = document.querySelectorAll('[data-payment-id]');
-            
-            // If we're searching and the skeleton is visible, hide it
+
             if (searchTerm) {
                 hideSkeleton();
             }
@@ -292,7 +271,6 @@ function setupSearch() {
     }
 }
 
-// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     const paymentGrid = getPaymentGrid();
     if (paymentGrid) {

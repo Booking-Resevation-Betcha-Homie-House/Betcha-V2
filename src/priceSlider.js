@@ -1,21 +1,18 @@
-document.addEventListener('DOMContentLoaded', () => {
-  // Range elements
+﻿document.addEventListener('DOMContentLoaded', () => {
+  
   const minRange = document.querySelector('#minRange');
   const maxRange = document.querySelector('#maxRange');
   const minPriceText = document.querySelector('#minPrice');
   const maxPriceText = document.querySelector('#maxPrice');
   const highlight = document.querySelector('#rangeHighlight');
 
-  // Number input elements
   const minPriceInput = document.querySelector('#input-minPrice');
   const maxPriceInput = document.querySelector('#input-maxPrice');
 
-  // Exit early if essential elements don't exist (e.g., on pages without price slider)
   if (!minRange || !maxRange) {
     return;
   }
 
-  // Set initial values for number inputs
   if (minPriceInput) minPriceInput.value = minRange.value;
   if (maxPriceInput) maxPriceInput.value = maxRange.value;
 
@@ -23,11 +20,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let min = parseInt(newMin);
     let max = parseInt(newMax);
 
-    // Enforce min/max constraints
     min = Math.max(parseInt(minRange.min), Math.min(parseInt(minRange.max), min));
     max = Math.max(parseInt(minRange.min), Math.min(parseInt(minRange.max), max));
 
-    // Prevent overlap
     if (min > max) {
       if (source === 'min') {
         min = max;
@@ -36,23 +31,19 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    // Update range inputs (if they weren't the source)
     if (source !== 'range') {
       minRange.value = min;
       maxRange.value = max;
     }
 
-    // Update number inputs (if they weren't the source)
     if (source !== 'input') {
       if (minPriceInput) minPriceInput.value = min;
       if (maxPriceInput) maxPriceInput.value = max;
     }
 
-    // Update the price display text
     if (minPriceText) minPriceText.textContent = min;
     if (maxPriceText) maxPriceText.textContent = max;
 
-    // Update highlight bar
     if (highlight) {
       const rangeWidth = minRange.max - minRange.min;
       const left = ((min - minRange.min) / rangeWidth) * 100;
@@ -61,12 +52,10 @@ document.addEventListener('DOMContentLoaded', () => {
       highlight.style.width = `${right - left}%`;
     }
 
-    // Dispatch change event for search state updates
     minRange.dispatchEvent(new Event('change'));
     maxRange.dispatchEvent(new Event('change'));
   }
 
-  // Range input listeners
   minRange.addEventListener('input', () => {
     updateValues(minRange.value, maxRange.value, 'range');
   });
@@ -75,13 +64,11 @@ document.addEventListener('DOMContentLoaded', () => {
     updateValues(minRange.value, maxRange.value, 'range');
   });
 
-  // Number input listeners
   if (minPriceInput) {
     minPriceInput.addEventListener('input', () => {
       updateValues(minPriceInput.value, maxPriceInput.value, 'input');
     });
 
-    // Handle empty input
     minPriceInput.addEventListener('blur', () => {
       if (!minPriceInput.value) {
         minPriceInput.value = minRange.min;
@@ -95,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
       updateValues(minPriceInput.value, maxPriceInput.value, 'input');
     });
 
-    // Handle empty input
     maxPriceInput.addEventListener('blur', () => {
       if (!maxPriceInput.value) {
         maxPriceInput.value = maxRange.max;
@@ -104,6 +90,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Initialize with default values
   updateValues(minRange.value, maxRange.value);
 });

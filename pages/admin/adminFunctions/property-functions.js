@@ -1,8 +1,5 @@
-// When a property is clicked the data should be passed to the property-view.html
+﻿
 
-/**
- * Initialize admin profile picture in navigation
- */
 function initializeAdminProfile() {
     try {
         const profilePicture = localStorage.getItem('pfplink') || '';
@@ -13,17 +10,16 @@ function initializeAdminProfile() {
             console.warn('Admin profile elements not found in DOM');
             return;
         }
-        
-        // If profile picture exists, show it
+
         if (profilePicture && profilePicture.trim() !== '') {
             adminProfileImgElement.src = profilePicture;
             adminProfileImgElement.classList.remove('hidden');
-            // Remove green background when showing profile picture
+
             menuBtnElement.classList.remove('bg-primary');
             menuBtnElement.classList.add('bg-transparent');
             console.log('Admin profile picture loaded:', profilePicture);
         } else {
-            // Keep default SVG icon visible with green background
+
             adminProfileImgElement.classList.add('hidden');
             menuBtnElement.classList.remove('bg-transparent');
             menuBtnElement.classList.add('bg-primary');
@@ -35,20 +31,16 @@ function initializeAdminProfile() {
     }
 }
 
-// Initialize profile when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeAdminProfile();
 });
 
-// Fetch and display properties in the property list grid
-
-// API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
-let allProperties = []; // Store fetched properties for searching
+let allProperties = []; 
 
 async function getAllProperties() {
-    // Only run if we're on a page that needs properties
+
     const skeletonContainer = document.getElementById('skeleton-container');
     const propertiesContainer = document.getElementById('properties-container');
     
@@ -57,30 +49,28 @@ async function getAllProperties() {
         return;
     }
 
-    // Show skeleton loading
     if (skeletonContainer) skeletonContainer.style.display = 'grid';
     if (propertiesContainer) propertiesContainer.style.display = 'none';
 
     try {
         const response = await fetch(`${API_BASE}/property/display`);
         const data = await response.json();
-        console.log('API Response:', data); // Debug: Log the full API response
+        console.log('API Response:', data); 
         if (Array.isArray(data)) {
-            allProperties = data; // Save for search
-            // Debug: Log the first property to see its structure
+            allProperties = data; 
+
             if (data.length > 0) {
                 console.log('First property structure:', data[0]);
                 console.log('First property photoLinks:', data[0].photoLinks);
             }
             renderProperties(allProperties);
-            
-            // Hide skeleton and show content
+
             if (skeletonContainer) skeletonContainer.style.display = 'none';
             if (propertiesContainer) propertiesContainer.style.display = 'grid';
         }
     } catch (error) {
         console.error('Failed to fetch properties:', error);
-        // Hide skeleton on error and show empty state or error message
+
         if (skeletonContainer) skeletonContainer.style.display = 'none';
         if (propertiesContainer) {
             propertiesContainer.style.display = 'grid';
@@ -97,7 +87,7 @@ async function getAllProperties() {
 }
 
 function renderProperties(properties) {
-    // Find the properties container
+
     const propertiesContainer = document.getElementById('properties-container');
     if (!propertiesContainer) return;
     propertiesContainer.innerHTML = '';
@@ -116,19 +106,16 @@ function renderProperties(properties) {
         propertyCard.href = `property-view.html?id=${property._id}`;
         propertyCard.className = "relative";
 
-        // Debug: Log the image URL being generated
         const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/public/images/unit01.jpg';
         console.log(`Property: ${property.name}, Image URL: ${imageUrl}`);
 
-        // Truncate text function for consistent card sizes
         const truncateText = (text, maxLength) => {
             if (!text) return '';
             return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
         };
 
-        // Truncate property name and address for consistent card sizes
-        const truncatedName = truncateText(property.name, 25); // Max 25 characters for name
-        const truncatedAddress = truncateText(`${property.address}, ${property.city}`, 40); // Max 40 characters for address
+        const truncatedName = truncateText(property.name, 25); 
+        const truncatedAddress = truncateText(`${property.address}, ${property.city}`, 40); 
 
         propertyCard.innerHTML = `
             <div class="bg-white rounded-3xl overflow-hidden shadow-md flex flex-col group
@@ -184,10 +171,8 @@ function renderProperties(properties) {
     });
 }
 
-// Run on page load
 window.addEventListener('DOMContentLoaded', getAllProperties);
 
-// Search functionality
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('property-search');
     if (searchInput) {
@@ -196,8 +181,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const filtered = allProperties.filter(p =>
                 p.name && p.name.toLowerCase().includes(value)
             );
-            
-            // Log property search audit if search term is not empty
+
             if (value && value.length > 0) {
                 try {
                     if (window.AuditTrailFunctions) {
@@ -212,8 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     console.error('Audit trail error:', auditError);
                 }
             }
-            
-            // Ensure properties container is visible when searching
+
             const skeletonContainer = document.getElementById('skeleton-container');
             const propertiesContainer = document.getElementById('properties-container');
             

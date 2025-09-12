@@ -1,4 +1,4 @@
-// Dashboard Skeleton Loading Controller
+﻿
 class DashboardSkeleton {
     constructor() {
         this.sidebarSkeleton = document.getElementById('sidebar-skeleton');
@@ -12,16 +12,14 @@ class DashboardSkeleton {
     }
 
     init() {
-        // Initialization complete - test controls removed for production
+
     }
 
-    // Show skeleton loading
     showSkeleton() {
         if (this.isSkeletonVisible) return;
         
         this.isSkeletonVisible = true;
-        
-        // Hide real content
+
         if (this.realSidebar) {
             this.realSidebar.classList.add('hidden');
         }
@@ -33,8 +31,7 @@ class DashboardSkeleton {
         if (this.gridContainer) {
             this.gridContainer.classList.add('hidden');
         }
-        
-        // Show skeleton
+
         if (this.sidebarSkeleton) {
             this.sidebarSkeleton.classList.remove('hidden');
         }
@@ -46,13 +43,11 @@ class DashboardSkeleton {
         console.log('Dashboard skeleton loading activated');
     }
 
-    // Hide skeleton loading
     hideSkeleton() {
         if (!this.isSkeletonVisible) return;
         
         this.isSkeletonVisible = false;
-        
-        // Hide skeleton
+
         if (this.sidebarSkeleton) {
             this.sidebarSkeleton.classList.add('hidden');
         }
@@ -60,8 +55,7 @@ class DashboardSkeleton {
         if (this.mainContentSkeleton) {
             this.mainContentSkeleton.classList.add('hidden');
         }
-        
-        // Show real content
+
         if (this.realSidebar) {
             this.realSidebar.classList.remove('hidden');
         }
@@ -77,7 +71,6 @@ class DashboardSkeleton {
         console.log('Dashboard skeleton loading deactivated');
     }
 
-    // Toggle skeleton (for testing)
     toggleSkeleton() {
         if (this.isSkeletonVisible) {
             this.hideSkeleton();
@@ -86,7 +79,6 @@ class DashboardSkeleton {
         }
     }
 
-    // Simulate loading process
     simulateLoading(duration = 3000) {
         this.showSkeleton();
         
@@ -97,23 +89,19 @@ class DashboardSkeleton {
         console.log(`Simulating loading for ${duration}ms`);
     }
 
-    // Auto-hide skeleton after content loads (integration with existing code)
     onContentLoaded() {
         this.hideSkeleton();
     }
 
-    // Show skeleton before content loads (integration with existing code)
     onContentLoading() {
         this.showSkeleton();
     }
 }
 
-// Initialize dashboard skeleton when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.dashboardSkeleton = new DashboardSkeleton();
 });
 
-// Export for module usage (if needed)
 if (typeof window !== 'undefined') {
     window.DashboardSkeleton = DashboardSkeleton;
 }

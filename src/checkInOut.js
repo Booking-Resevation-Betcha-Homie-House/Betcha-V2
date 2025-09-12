@@ -1,4 +1,4 @@
-document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", () => {
     const generateTimeOptions = () => {
       const times = [];
       for (let hour = 0; hour < 24; hour++) {
@@ -38,7 +38,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
       });
 
-      // Close on outside click
       document.addEventListener("click", (e) => {
         if (!btn.contains(e.target) && !list.contains(e.target)) {
           list.classList.add("hidden");

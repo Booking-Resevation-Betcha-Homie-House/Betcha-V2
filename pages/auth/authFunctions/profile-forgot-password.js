@@ -1,4 +1,4 @@
-'use strict';
+﻿'use strict';
 
 (function initProfileForgotPasswordModal() {
     let pendingEmail = '';
@@ -8,7 +8,7 @@
     document.addEventListener('DOMContentLoaded', () => {
         console.log('[DEBUG] DOM Content Loaded');
         injectModalsIfNeeded();
-        // Set up event listeners after a short delay to ensure modals are injected
+
         setTimeout(() => {
             setupEventListeners();
         }, 200);
@@ -77,8 +77,7 @@
 
         pendingEmail = email;
         console.log('[DEBUG] Pending email set to:', pendingEmail);
-        
-        // Attempt send OTP first. Only open OTP modal if sending succeeds.
+
         console.log('[DEBUG] Calling sendOtp()');
         sendOtp().then((sentOk) => {
             const forgotModal = document.getElementById('forgotPassModal');
@@ -98,7 +97,7 @@
                     if (firstOtpInput) firstOtpInput.focus();
                 }
             } else {
-                // Keep forgot modal open and show message
+
                 if (forgotModal) forgotModal.classList.remove('hidden');
                 const emailInput = document.getElementById('forgotEmailInput');
                 if (emailInput) emailInput.focus();
@@ -184,7 +183,7 @@
     function handleResendOtp() {
         const resendLink = document.getElementById('timer-resend-otp');
         if (resendLink && resendLink.classList.contains('disabled')) {
-            return; // Timer is still active
+            return; 
         }
         
         sendOtp();
@@ -233,8 +232,7 @@
                 if (value.length === 1 && index < otpInputs.length - 1) {
                     otpInputs[index + 1].focus();
                 }
-                
-                // Handle paste
+
                 if (value.length === 6) {
                     const digits = value.split('');
                     otpInputs.forEach((input, i) => {
@@ -325,13 +323,11 @@
           </div>
         </div>`;
 
-        // Append all created nodes (forgot modal + OTP modal)
         while (wrapper.firstChild) {
             document.body.appendChild(wrapper.firstChild);
         }
         console.log('[DEBUG] Modals injected successfully');
-        
-        // Bind OTP input functionality after modal is injected
+
         setTimeout(() => {
             console.log('[DEBUG] Binding OTP inputs...');
             bindOtpInputs();
@@ -350,5 +346,4 @@
         });
     }
 })();
-
 

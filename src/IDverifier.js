@@ -1,15 +1,12 @@
-document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", () => {
   const dropzone = document.getElementById("IDdropzone");
   const fileInput = document.getElementById("IDfileInput");
   const previewContainer = document.getElementById("IDpreviewContainer");
 
-  // Store uploaded files globally for OCR access
   window.uploadedIDFiles = [];
 
-  // Click dropzone to open file picker
   dropzone.addEventListener("click", () => fileInput.click());
 
-  // Handle drag & drop
   dropzone.addEventListener("dragover", (e) => {
     e.preventDefault();
     dropzone.classList.add("border-primary");
@@ -26,20 +23,17 @@ document.addEventListener("DOMContentLoaded", () => {
     handleFiles({ target: { files } });
   });
 
-  // Handle file input change
   fileInput.addEventListener("change", handleFiles);
 
   function handleFiles(event) {
     const files = event.target.files;
     previewContainer.innerHTML = "";
-    
-    // Clear previous files and store new ones
+
     window.uploadedIDFiles = [];
 
     Array.from(files).forEach((file) => {
       if (!file.type.startsWith("image/") || file.type === "image/svg+xml") return;
 
-      // Store the file for OCR access
       window.uploadedIDFiles.push(file);
 
       const reader = new FileReader();
@@ -62,10 +56,9 @@ document.addEventListener("DOMContentLoaded", () => {
           </button>
         `;
 
-        // Remove file preview on button click
         preview.querySelector(".remove-btn").addEventListener("click", (e) => {
           const fileName = e.currentTarget.dataset.fileName;
-          // Remove from stored files array
+          
           window.uploadedIDFiles = window.uploadedIDFiles.filter(f => f.name !== fileName);
           preview.remove();
         });
@@ -75,7 +68,5 @@ document.addEventListener("DOMContentLoaded", () => {
       reader.readAsDataURL(file);
     });
 
-    // Don't reset input value immediately, let OCR process access it first
-    // fileInput.value = ""; // Commented out to keep files accessible
   }
 });

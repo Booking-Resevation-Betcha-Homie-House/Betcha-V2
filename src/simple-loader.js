@@ -1,12 +1,9 @@
-// Simple loading component for admin and employee pages
-// - Shows a centered loading spinner with optional text
-// - Automatically hides on window 'load' or after a timeout
-// - Provides manual control via BetchaLoader object
+﻿
 
 (function () {
     const STYLE_ID = 'betcha-loader-style';
     const OVERLAY_ID = 'betcha-loader-overlay';
-    const MIN_VISIBLE_MS = 500; // keep loader visible for at least 0.5s
+    const MIN_VISIBLE_MS = 500; 
     let lastShowAt = 0;
 
     function injectStylesOnce() {
@@ -120,7 +117,7 @@
             buildOverlay();
             lastShowAt = Date.now();
         } catch (e) {
-            // non-fatal
+            
             console.warn('Betcha Loader: Could not show loader', e);
         }
     }
@@ -142,13 +139,11 @@
         }
     }
 
-    // Expose manual control
     window.BetchaLoader = { 
         show: showLoader, 
         hide: hideLoader 
     };
 
-    // Auto-run early, hide on load or timeout fallback
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', showLoader);
     } else {
@@ -156,12 +151,11 @@
     }
     
     window.addEventListener('load', hideLoader, { once: true });
-    setTimeout(hideLoader, 3000); // safety fallback
+    setTimeout(hideLoader, 3000); 
 
-    // Show loader on page navigations
     function shouldHandleLinkClick(event) {
         if (event.defaultPrevented) return false;
-        if (event.button !== 0) return false; // left click only
+        if (event.button !== 0) return false; 
         if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
         
         const anchor = event.target?.closest?.('a[href]');
@@ -174,7 +168,7 @@
         
         try {
             const url = new URL(href, window.location.href);
-            // Only same-origin navigations
+            
             if (url.origin !== window.location.origin) return false;
             return true;
         } catch (_) { 
@@ -184,16 +178,15 @@
 
     document.addEventListener('click', (e) => {
         if (shouldHandleLinkClick(e)) {
-            //showLoader();
+            
         }
     }, true);
 
-    // Also show loader as the page begins unloading
     window.addEventListener('beforeunload', () => {
         try { 
-            //showLoader(); 
+            
         } catch (_) { 
-            /* ignore */ 
+             
         }
     });
 })();

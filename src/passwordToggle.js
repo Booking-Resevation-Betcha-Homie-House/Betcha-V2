@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
 
   document.querySelectorAll('.toggle-password').forEach(button => {
     button.addEventListener('click', () => {
@@ -15,8 +15,6 @@ document.addEventListener('DOMContentLoaded', () => {
       const isPassword = input.type === 'password';
       input.type = isPassword ? 'text' : 'password';
 
-      // When password is hidden (type="password"), show open eye (to indicate "click to show")
-      // When password is visible (type="text"), show closed eye (to indicate "click to hide")
       eyeOpen.classList.toggle('hidden', !isPassword);
       eyeClosed.classList.toggle('hidden', isPassword);
     });

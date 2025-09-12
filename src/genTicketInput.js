@@ -1,18 +1,16 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
   console.log("Ticket dropdowns JS loaded");
 
-  // Import toast notification function
   import('/src/toastNotification.js').then(module => {
     window.showToastError = module.showToastError;
   }).catch(error => {
     console.warn('Could not load toast notifications:', error);
-    // Fallback to alert if toast fails to load
+    
     window.showToastError = function(type, title, message) {
       alert(`${title}: ${message}`);
     };
   });
 
-  // Global variable to store selected employee ID
   let selectedEmployeeId = null;
   let selectedCategory = null;
 
@@ -20,7 +18,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return str.charAt(0).toUpperCase() + str.slice(1);
   }
 
-  // Function to get user ID from localStorage (matches existing project pattern)
   function getUserId() {
     const userId = localStorage.getItem('userId') ||
                    localStorage.getItem('userID') ||
@@ -31,8 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
       console.log('Found user ID in localStorage:', userId);
       return userId;
     }
-    
-    // If no ID found, log all localStorage contents for debugging
+
     console.log('No user ID found. Current localStorage contents:');
     for (let i = 0; i < localStorage.length; i++) {
       const key = localStorage.key(i);
@@ -43,16 +39,13 @@ document.addEventListener('DOMContentLoaded', () => {
     return null;
   }
 
-  // Function to handle form submission
   function handleFormSubmission(event) {
     event.preventDefault();
-    
-    // Get form data
+
     const description = document.getElementById('description').value.trim();
     const otherConcernInput = document.getElementById('otherConcernInput');
     const otherConcern = otherConcernInput ? otherConcernInput.value.trim() : '';
-    
-    // Validation
+
     if (!selectedEmployeeId) {
       window.showToastError('warning', 'Agent Required', 'Please select a Customer Service Agent before creating a ticket.');
       return;
@@ -73,14 +66,12 @@ document.addEventListener('DOMContentLoaded', () => {
       window.showToastError('auth', 'Login Required', 'User not logged in. Please log in to create a ticket.');
       return;
     }
-    
-    // Determine final category
+
     let finalCategory = selectedCategory;
     if (selectedCategory === 'Others' && otherConcern) {
       finalCategory = otherConcern;
     }
-    
-    // Prepare API payload
+
     const ticketData = {
       category: finalCategory,
       customerServiceAgentId: selectedEmployeeId,
@@ -93,8 +84,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       ]
     };
-    
-    // Show loading state
+
     const submitBtn = event.target.querySelector('button[type="submit"]') || event.target;
     const originalBtnContent = submitBtn.innerHTML;
     submitBtn.disabled = true;
@@ -104,12 +94,10 @@ document.addEventListener('DOMContentLoaded', () => {
         <span>Creating ticket...</span>
       </div>
     `;
-    
-    // Call API
+
     createTicket(ticketData, submitBtn, originalBtnContent);
   }
 
-  // Function to create ticket via API
   async function createTicket(ticketData, submitBtn, originalBtnContent) {
     try {
       console.log('Creating ticket with data:', ticketData);
@@ -125,13 +113,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const result = await response.json();
       
       if (response.ok) {
-        // Success
+        
         console.log('Ticket created successfully:', result);
-        
-        // Show success message
+
         window.showToastError('success', 'Ticket Created!', 'Your support ticket has been created successfully. You will be redirected shortly.');
-        
-        // Audit: Log ticket creation
+
         try {
             const userId = localStorage.getItem('userId') || '';
             const userType = localStorage.getItem('role') || localStorage.getItem('userType') || '';
@@ -141,25 +127,22 @@ document.addEventListener('DOMContentLoaded', () => {
         } catch (auditError) {
             console.warn('Audit trail for ticket creation failed:', auditError);
         }
-        
-        // Reset form
+
         document.getElementById('generateTicketForm').reset();
         selectedEmployeeId = null;
         selectedCategory = null;
-        
-        // Reset dropdowns
+
         document.getElementById('selectedAgent').textContent = 'Select a Customer Service Agent';
         document.getElementById('selectedConcern').textContent = 'Select a Concern';
         document.getElementById('otherConcernWrapper').classList.add('hidden');
-        
-        // Redirect to support.html after 2 seconds
+
         setTimeout(() => {
           window.location.href = '/pages/auth/support.html';
           console.log('Redirecting to support page');
         }, 2000);
         
       } else {
-        // API error
+        
         console.error('API Error:', result);
         window.showToastError('error', 'Creation Failed', result.message || 'Failed to create ticket. Please try again.');
       }
@@ -168,13 +151,12 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Network Error:', error);
       window.showToastError('error', 'Network Error', 'Unable to connect to the server. Please check your connection and try again.');
     } finally {
-      // Restore button
+      
       submitBtn.disabled = false;
       submitBtn.innerHTML = originalBtnContent;
     }
   }
 
-  // Fetch TK employees from API
   async function fetchTKEmployees() {
     try {
       const response = await fetch('https://betcha-api.onrender.com/employee/privilege/tk');
@@ -197,12 +179,10 @@ document.addEventListener('DOMContentLoaded', () => {
     for (let i = 0; i < 3; i++) {
       const li = document.createElement("li");
       li.className = "px-4 py-3 flex items-center gap-3 animate-pulse";
-      
-      // Skeleton profile picture
+
       const skeletonImg = document.createElement("div");
       skeletonImg.className = "w-8 h-8 rounded-full bg-gray-300";
-      
-      // Skeleton text
+
       const skeletonText = document.createElement("div");
       skeletonText.className = "h-4 bg-gray-300 rounded flex-1";
       
@@ -219,7 +199,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const display = document.getElementById('selectedAgent');
     const icon = document.getElementById('agentDropdownIcon');
 
-    // Set initial loading text
     display.innerHTML = `
       <div class="flex items-center gap-2">
         <div class="w-4 h-4 border-2 border-gray-300 border-t-primary rounded-full animate-spin"></div>
@@ -227,22 +206,18 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `;
 
-    // Add skeleton loading initially
     const skeletonItems = createSkeletonLoader();
     skeletonItems.forEach(item => list.appendChild(item));
 
-    // Toggle open/close
     btn.addEventListener("click", () => {
       list.classList.toggle("hidden");
       icon.classList.toggle("rotate-180");
     });
 
-    // Fetch and populate TK employees
     fetchTKEmployees().then(employees => {
-      // Clear skeleton loading
-      list.innerHTML = '';
       
-      // Reset button text
+      list.innerHTML = '';
+
       display.textContent = "Select a Customer Service Agent";
       display.classList.add("text-muted");
       
@@ -258,18 +233,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const li = document.createElement("li");
         li.className = "px-4 py-3 hover:bg-neutral-100 cursor-pointer transition-all flex items-center gap-3";
 
-        // Create profile picture
         const img = document.createElement("img");
         img.className = "w-8 h-8 rounded-full object-cover";
         img.src = employee.pfplink || "https://via.placeholder.com/32x32?text=CS";
         img.alt = `${employee.firstname} ${employee.lastname}`;
-        
-        // Handle image load error
+
         img.onerror = () => {
           img.src = "https://via.placeholder.com/32x32?text=CS";
         };
 
-        // Create name text
         const nameSpan = document.createElement("span");
         nameSpan.textContent = `CS - ${employee.firstname} ${employee.lastname}`;
         nameSpan.className = "text-sm";
@@ -278,10 +250,9 @@ document.addEventListener('DOMContentLoaded', () => {
         li.appendChild(nameSpan);
 
         li.onclick = () => {
-          // Store the employee ID
-          selectedEmployeeId = employee._id;
           
-          // Update display
+          selectedEmployeeId = employee._id;
+
           display.innerHTML = `
             <div class="flex items-center gap-3">
               <img src="${employee.pfplink || "https://via.placeholder.com/32x32?text=CS"}" 
@@ -302,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
         list.appendChild(li);
       });
     }).catch(error => {
-      // Handle error case
+      
       list.innerHTML = '';
       display.textContent = "Error loading agents";
       display.classList.add("text-red-500");
@@ -322,7 +293,6 @@ document.addEventListener('DOMContentLoaded', () => {
       console.error('Error fetching TK employees:', error);
     });
 
-    // Close dropdown if clicked outside
     document.addEventListener("click", (e) => {
       if (!btn.contains(e.target) && !list.contains(e.target)) {
         list.classList.add("hidden");
@@ -337,16 +307,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const display = document.getElementById(`selected${capitalize(id)}`);
     const icon = document.getElementById(`${id}DropdownIcon`);
 
-    // Set initial text
     display.textContent = placeholder;
 
-    // Toggle open/close
     btn.addEventListener("click", () => {
       list.classList.toggle("hidden");
       icon.classList.toggle("rotate-180");
     });
 
-    // Fill dropdown list
     options.forEach(opt => {
       const li = document.createElement("li");
       li.textContent = opt;
@@ -359,7 +326,6 @@ document.addEventListener('DOMContentLoaded', () => {
         list.classList.add("hidden");
         icon.classList.remove("rotate-180");
 
-        // Store selected category
         if (id === "concern") {
           selectedCategory = opt;
           const otherInput = document.getElementById("otherConcernWrapper");
@@ -373,7 +339,6 @@ document.addEventListener('DOMContentLoaded', () => {
       list.appendChild(li);
     });
 
-    // Close dropdown if clicked outside
     document.addEventListener("click", (e) => {
       if (!btn.contains(e.target) && !list.contains(e.target)) {
         list.classList.add("hidden");
@@ -382,24 +347,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Function to get selected employee ID (can be called from other scripts)
   window.getSelectedEmployeeId = function() {
     return selectedEmployeeId;
   };
 
-  // Function to get selected category (can be called from other scripts)
   window.getSelectedCategory = function() {
     return selectedCategory;
   };
 
-  // Your dropdown data
   const concerns = ["Location", "Appliances", "Amenities", "Payment", "Others"];
 
-  // Initialize dropdowns
-  setupAgentDropdown(); // Custom setup for agent dropdown with API data
+  setupAgentDropdown(); 
   setupDropdown("concern", concerns, "Select a Concern");
 
-  // Add form submission handler
   const form = document.getElementById('generateTicketForm');
   if (form) {
     form.addEventListener('submit', handleFormSubmission);

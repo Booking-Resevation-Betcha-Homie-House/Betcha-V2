@@ -1,13 +1,11 @@
-// Employee Functions
-// API Base URL
+﻿
+
 const API_BASE = 'https://betcha-api.onrender.com';
 
 let employees = [];
 
-// Use full API URL
 const apiUrl = `${API_BASE}/employee/display`;
 
-// Initialize the employee manager when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
     try {
         await fetchEmployees();
@@ -28,13 +26,11 @@ async function fetchEmployees() {
         }
         
         employees = await response.json();
-        
-        // Handle case when API returns empty array
+
         if (!Array.isArray(employees)) {
             throw new Error('Invalid response format from API');
         }
 
-        // Debug: Log all unique status values
         const uniqueStatuses = [...new Set(employees.map(emp => emp.status))];
         console.log('Unique employee statuses from API:', uniqueStatuses);
         
@@ -45,8 +41,7 @@ async function fetchEmployees() {
 }
 
 function renderEmployees() {
-    
-    // Hide skeleton loading
+
     const skeletonLoading = document.getElementById('skeleton-loading');
     if (skeletonLoading) {
         skeletonLoading.style.display = 'none';
@@ -60,11 +55,9 @@ function renderEmployees() {
         return;
     }
 
-    // Clear existing content
     activeTab.querySelector('.grid').innerHTML = '';
     inactiveTab.querySelector('.grid').innerHTML = '';
 
-    // Separate active and inactive employees - be more flexible with status values
     const activeEmployees = employees.filter(emp => {
         const status = emp.status ? emp.status.toLowerCase() : 'active';
         return status === 'active' || !emp.status;
@@ -79,7 +72,6 @@ function renderEmployees() {
     console.log('Inactive employees:', inactiveEmployees.length);
     console.log('All employees statuses:', employees.map(emp => emp.status));
 
-    // Render active employees
     if (activeEmployees.length > 0) {
         activeEmployees.forEach(employee => {
             const employeeCard = createEmployeeCard(employee);
@@ -89,7 +81,6 @@ function renderEmployees() {
         activeTab.querySelector('.grid').innerHTML = createEmptyState('No active employees found');
     }
 
-    // Render inactive employees
     if (inactiveEmployees.length > 0) {
         inactiveEmployees.forEach(employee => {
             const employeeCard = createEmployeeCard(employee);
@@ -99,31 +90,24 @@ function renderEmployees() {
         inactiveTab.querySelector('.grid').innerHTML = createEmptyState('No inactive employees found');
     }
 
-    // Update tab counts
     updateTabCounts(activeEmployees.length, inactiveEmployees.length);
 
-    // Always show the active tab by default after rendering
-    // Small delay to ensure DOM is ready
     setTimeout(() => {
-        showTab(0); // Always show active tab by default
+        showTab(0); 
     }, 100);
 
-    // If no employees at all, show a message
     if (employees.length === 0) {
         activeTab.querySelector('.grid').innerHTML = createEmptyState('No employees found in the system');
         inactiveTab.querySelector('.grid').innerHTML = createEmptyState('No employees found in the system');
     }
 }
 
-// Function to handle tab switching
 function setActiveTab(tabIndex) {
     showTab(tabIndex);
 }
 
-// Make setActiveTab globally accessible
 window.setActiveTab = setActiveTab;
 
-// Make retryLoad globally accessible
 window.retryLoad = retryLoad;
 
 function showTab(tabIndex) {
@@ -131,16 +115,14 @@ function showTab(tabIndex) {
     const inactiveTab = document.getElementById('inactive-tab');
     const activeTabBtn = document.getElementById('active-employee-tab');
     const inactiveTabBtn = document.getElementById('inactive-employee-tab');
-    
-    // Hide all tabs
+
     if (activeTab) {
         activeTab.classList.add('hidden');
     }
     if (inactiveTab) {
         inactiveTab.classList.add('hidden');
     }
-    
-    // Remove active styles from all buttons
+
     if (activeTabBtn) {
         activeTabBtn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
         const activeSpan = activeTabBtn.querySelector('span');
@@ -158,10 +140,9 @@ function showTab(tabIndex) {
             inactiveSpan.classList.add('text-neutral-500');
         }
     }
-    
-    // Show selected tab and update button styles
+
     if (tabIndex === 0) {
-        // Show active employees tab
+
         if (activeTab) {
             activeTab.classList.remove('hidden');
         }
@@ -174,7 +155,7 @@ function showTab(tabIndex) {
             }
         }
     } else if (tabIndex === 1) {
-        // Show inactive employees tab
+
         if (inactiveTab) {
             inactiveTab.classList.remove('hidden');
         }
@@ -192,11 +173,9 @@ function showTab(tabIndex) {
 function createEmployeeCard(employee) {
     const card = document.createElement('a');
     card.href = `employee-view.html?id=${employee._id}`;
-    
-    // Get first letter of firstname for avatar
+
     const firstLetter = employee.firstname ? employee.firstname.charAt(0).toUpperCase() : '?';
-    
-    // Get role name
+
     const roleName = employee.role && employee.role.length > 0 ? employee.role[0].name : 'No Role';
 
     card.innerHTML = `
@@ -245,16 +224,13 @@ function createEmployeeCard(employee) {
     return card;
 }
 
-// Function to format employee name as "First Name Middle Initial and First Letter of their Surname"
 function formatEmployeeName(employee) {
     const firstName = employee.firstname || '';
     const middleInitial = employee.minitial || '';
     const lastName = employee.lastname || '';
-    
-    // Get first letter of surname
+
     const surnameFirstLetter = lastName.charAt(0) || '';
-    
-    // Format: "First Name Middle Initial. and First Letter of their Surname"
+
     if (firstName && middleInitial && surnameFirstLetter) {
         return `${firstName} ${middleInitial}. ${surnameFirstLetter}`;
     } else if (firstName && surnameFirstLetter) {
@@ -279,7 +255,7 @@ function createEmptyState(message) {
 }
 
 function updateTabCounts(activeCount, inactiveCount) {
-    // Update tab button text to show counts
+
     const activeTabBtn = document.querySelector('.tab-btn:first-child');
     const inactiveTabBtn = document.querySelector('.tab-btn:last-child');
     
@@ -293,7 +269,7 @@ function updateTabCounts(activeCount, inactiveCount) {
 }
 
 function setupEventListeners() {
-    // Search functionality
+
     const searchInput = document.querySelector('input[placeholder="Search"]');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
@@ -301,10 +277,9 @@ function setupEventListeners() {
         });
     }
 
-    // Add Employee button functionality - navigate to employee-add.html
     const addEmployeeBtn = document.querySelector('button[onclick*="employee-add.html"]');
     if (addEmployeeBtn) {
-        // Remove the onclick attribute to prevent conflicts
+
         addEmployeeBtn.removeAttribute('onclick');
         
         addEmployeeBtn.addEventListener('click', () => {
@@ -312,7 +287,6 @@ function setupEventListeners() {
         });
     }
 
-    // Tab button functionality
     const activeTabBtn = document.getElementById('active-employee-tab');
     const inactiveTabBtn = document.getElementById('inactive-employee-tab');
     
@@ -328,7 +302,7 @@ function setupEventListeners() {
 }
 
 function filterEmployees(searchTerm) {
-    // If search term is empty, show all employees
+
     if (!searchTerm.trim()) {
         renderEmployees();
         return;
@@ -353,11 +327,9 @@ function renderFilteredEmployees(filteredEmployees) {
     
     if (!activeTab || !inactiveTab) return;
 
-    // Clear existing content
     activeTab.querySelector('.grid').innerHTML = '';
     inactiveTab.querySelector('.grid').innerHTML = '';
 
-    // Separate filtered active and inactive employees using the same logic as renderEmployees
     const activeEmployees = filteredEmployees.filter(emp => {
         const status = emp.status ? emp.status.toLowerCase() : 'active';
         return status === 'active' || !emp.status;
@@ -368,7 +340,6 @@ function renderFilteredEmployees(filteredEmployees) {
         return status === 'archived' || status === 'inactive' || status === 'deactivated';
     });
 
-    // Render filtered active employees
     if (activeEmployees.length > 0) {
         activeEmployees.forEach(employee => {
             const employeeCard = createEmployeeCard(employee);
@@ -378,7 +349,6 @@ function renderFilteredEmployees(filteredEmployees) {
         activeTab.querySelector('.grid').innerHTML = createEmptyState('No active employees match your search');
     }
 
-    // Render filtered inactive employees
     if (inactiveEmployees.length > 0) {
         inactiveEmployees.forEach(employee => {
             const employeeCard = createEmployeeCard(employee);
@@ -388,18 +358,16 @@ function renderFilteredEmployees(filteredEmployees) {
         inactiveTab.querySelector('.grid').innerHTML = createEmptyState('No inactive employees match your search');
     }
 
-    // Update tab counts
     updateTabCounts(activeEmployees.length, inactiveEmployees.length);
 }
 
 function showErrorState(message) {
-    // Hide skeleton loading
+
     const skeletonLoading = document.getElementById('skeleton-loading');
     if (skeletonLoading) {
         skeletonLoading.style.display = 'none';
     }
 
-    // Show error state in the main content area
     const tabContents = document.getElementById('tab-contents');
     if (tabContents) {
         tabContents.innerHTML = `
@@ -421,7 +389,7 @@ function showErrorState(message) {
 
 async function retryLoad() {
     try {
-        // Show skeleton loading
+
         const skeletonLoading = document.getElementById('skeleton-loading');
         const activeTab = document.getElementById('active-tab');
         const inactiveTab = document.getElementById('inactive-tab');
@@ -443,5 +411,4 @@ async function retryLoad() {
         showErrorState('Failed to load employees again. Please check your connection and try again.');
     }
 }
-
 

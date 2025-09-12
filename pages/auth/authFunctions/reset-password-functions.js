@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('resetPassForm');
     const passwordInput = document.getElementById('password');
     const confirmInput = document.getElementById('confirmPassword');
@@ -43,8 +43,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             alert('Password updated successfully.');
-            
-            // Audit: Log password reset
+
             try {
                 if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPasswordReset === 'function') {
                     window.AuditTrailFunctions.logPasswordReset(email, 'Guest');
@@ -63,5 +62,4 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 });
-
 

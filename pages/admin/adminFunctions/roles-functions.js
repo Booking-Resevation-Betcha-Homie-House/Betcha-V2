@@ -1,13 +1,9 @@
-// Roles functionality for Admin panel
-// need roles validation 
-// Global variable to store all roles for filtering
-//
+﻿
+
 let allRoles = [];
 
-// API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
-// Utility functions for skeleton loading
 function getRolesSkeleton() {
     const skeleton = document.getElementById('rolesSkeleton');
     if (!skeleton) {
@@ -24,7 +20,6 @@ function getRolesGrid() {
     return grid;
 }
 
-// Function to show skeleton loading
 function showSkeleton() {
     const skeleton = getRolesSkeleton();
     const grid = getRolesGrid();
@@ -37,7 +32,6 @@ function showSkeleton() {
     }
 }
 
-// Function to hide skeleton loading
 function hideSkeleton() {
     const skeleton = getRolesSkeleton();
     const grid = getRolesGrid();
@@ -50,7 +44,6 @@ function hideSkeleton() {
     }
 }
 
-// Fetch all roles from the API
 async function fetchRoles() {
     try {
         const response = await fetch(`${API_BASE}/roles/display`, {
@@ -72,7 +65,6 @@ async function fetchRoles() {
     }
 }
 
-// Create HTML for a single role card
 function createRoleCard(role) {
     const privilegesPills = role.privileges.map(privilege => 
         `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-neutral-300/50 text-neutral-700 transition-all duration-200 ">${privilege}</span>`
@@ -125,7 +117,6 @@ function createRoleCard(role) {
     `;
 }
 
-// Populate the roles grid with data
 async function populateRoles(rolesToDisplay = null) {
     const rolesGrid = getRolesGrid();
     
@@ -134,18 +125,16 @@ async function populateRoles(rolesToDisplay = null) {
         return;
     }
 
-    // Show skeleton loading only if we're fetching new data
     if (!rolesToDisplay) {
         showSkeleton();
     }
 
     try {
         let roles = rolesToDisplay;
-        
-        // If no specific roles provided, fetch all roles
+
         if (!roles) {
             roles = await fetchRoles();
-            allRoles = roles; // Store for filtering
+            allRoles = roles; 
         }
         
         if (roles.length === 0) {
@@ -154,7 +143,6 @@ async function populateRoles(rolesToDisplay = null) {
             return;
         }
 
-        // Generate HTML for all roles
         const rolesHTML = roles.map(role => createRoleCard(role)).join('');
         rolesGrid.innerHTML = rolesHTML;
         hideSkeleton();
@@ -166,22 +154,18 @@ async function populateRoles(rolesToDisplay = null) {
     }
 }
 
-// Search functionality
 function searchRoles(searchTerm) {
     if (!allRoles || allRoles.length === 0) {
         return;
     }
 
-    // Hide skeleton when searching
     hideSkeleton();
 
     const filteredRoles = allRoles.filter(role => {
         const searchLower = searchTerm.toLowerCase();
-        
-        // Search in role name
+
         const nameMatch = role.name.toLowerCase().includes(searchLower);
-        
-        // Search in privileges
+
         const privilegeMatch = role.privileges.some(privilege => 
             privilege.toLowerCase().includes(searchLower)
         );
@@ -189,11 +173,9 @@ function searchRoles(searchTerm) {
         return nameMatch || privilegeMatch;
     });
 
-    // Populate with filtered results
     populateRoles(filteredRoles);
 }
 
-// Initialize search functionality
 function initializeSearch() {
     const searchInput = document.querySelector('input[placeholder="Search"]');
     const searchButton = document.getElementById('searchButton');
@@ -203,25 +185,22 @@ function initializeSearch() {
         return;
     }
 
-    // Function to perform search
     function performSearch() {
         const searchTerm = searchInput.value.trim();
         
         if (searchTerm === '') {
-            // If search is empty, show all roles
+
             populateRoles(allRoles);
         } else {
-            // Filter roles based on search term
+
             searchRoles(searchTerm);
         }
     }
 
-    // Add event listener for real-time search (input event)
     searchInput.addEventListener('input', function(e) {
         performSearch();
     });
 
-    // Add event listener for Enter key
     searchInput.addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -229,7 +208,6 @@ function initializeSearch() {
         }
     });
 
-    // Add event listener for search button click
     if (searchButton) {
         searchButton.addEventListener('click', function(e) {
             e.preventDefault();
@@ -238,14 +216,12 @@ function initializeSearch() {
     }
 }
 
-// Edit role function (placeholder for future implementation)
 function editRole(roleId) {
-    // Store the role ID in sessionStorage for the edit page
+
     sessionStorage.setItem('editRoleId', roleId);
     window.location.href = 'roles-edit.html';
 }
 
-// Delete role function
 async function deleteRole(roleId) {
     if (!confirm('Are you sure you want to delete this role?')) {
         return;
@@ -263,7 +239,6 @@ async function deleteRole(roleId) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Refresh the roles list
         await populateRoles();
         alert('Role deleted successfully!');
 
@@ -273,7 +248,6 @@ async function deleteRole(roleId) {
     }
 }
 
-// Initialize the page when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     populateRoles();
     initializeSearch();

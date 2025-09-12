@@ -1,15 +1,13 @@
-document.addEventListener("DOMContentLoaded", () => {
-  // Get shared elements
+﻿document.addEventListener("DOMContentLoaded", () => {
+  
   const guestSummary = document.getElementById("guestSummary");
   const confirmBtn = document.getElementById("confirmGuestCount");
   const modal = document.getElementById("guestCountModal");
   let currentGuestCount = 1;
   let isInitialized = false;
-  
-  // Make guest count globally accessible
+
   window.currentGuestCount = currentGuestCount;
 
-  // Function to initialize or reinitialize guest counters
   function initializeGuestCounters() {
     if (isInitialized) {
       console.log('Guest counters already initialized, skipping...');
@@ -37,10 +35,8 @@ document.addEventListener("DOMContentLoaded", () => {
       currentGuestCount = count;
       window.currentGuestCount = currentGuestCount;
 
-      // Update max display
       if (maxDisplay) maxDisplay.textContent = max;
 
-      // Use a closure to maintain the count for each counter
       (function(counterCount, counterMax, counterDisplay, counterDecrease, counterIncrease) {
         
         counterDecrease.addEventListener("click", function(e) {
@@ -53,8 +49,7 @@ document.addEventListener("DOMContentLoaded", () => {
             currentGuestCount = counterCount;
             window.currentGuestCount = currentGuestCount;
             console.log('New count after decrease:', counterCount);
-            
-            // Update all guest count displays
+
             document.querySelectorAll(".guestCount").forEach(display => {
               display.textContent = counterCount;
             });
@@ -71,8 +66,7 @@ document.addEventListener("DOMContentLoaded", () => {
             currentGuestCount = counterCount;
             window.currentGuestCount = currentGuestCount;
             console.log('New count after increase:', counterCount);
-            
-            // Update all guest count displays
+
             document.querySelectorAll(".guestCount").forEach(display => {
               display.textContent = counterCount;
             });
@@ -88,14 +82,11 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('Guest counters initialization complete');
   }
 
-  // Initialize guest counters
   initializeGuestCounters();
 
-  // Listen for updates from API data
   document.addEventListener('updateGuestLimit', (event) => {
     console.log('Guest limit update received:', event.detail.maxCapacity);
-    
-    // Just update the data-max attributes and max display, don't reinitialize everything
+
     document.querySelectorAll('.guest-counter').forEach(counter => {
       counter.setAttribute('data-max', event.detail.maxCapacity);
       const maxDisplay = counter.querySelector('.maxGuestNum');
@@ -107,23 +98,20 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log('Guest counter limits updated to:', event.detail.maxCapacity);
   });
 
-  // Handle confirm button click
   if (confirmBtn) {
     confirmBtn.addEventListener("click", () => {
-      // Update guest summary text
+      
       if (guestSummary) {
         guestSummary.textContent = `${currentGuestCount} ${currentGuestCount === 1 ? 'guest' : 'guests'}`;
       }
-      
-      // Close the modal and restore scrolling
+
       if (modal) {
         modal.classList.add("hidden");
-        document.body.classList.remove("modal-open"); // Remove scroll lock
+        document.body.classList.remove("modal-open"); 
       }
     });
   }
 
-  // Test function to debug guest counter functionality
   window.testGuestCounter = function() {
     console.log('Testing guest counter functionality...');
     console.log('Current guest count (global):', window.currentGuestCount);
@@ -143,8 +131,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const increaseBtn = counter.querySelector('.increaseGuest');
       console.log('Decrease button:', decreaseBtn);
       console.log('Increase button:', increaseBtn);
-      
-      // Test if clicking buttons actually work
+
       if (increaseBtn) {
         console.log('Testing increase button click...');
         increaseBtn.click();

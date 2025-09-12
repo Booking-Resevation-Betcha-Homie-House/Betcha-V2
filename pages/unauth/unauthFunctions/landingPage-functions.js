@@ -1,4 +1,4 @@
-console.log('Landing page functions loaded');
+﻿console.log('Landing page functions loaded');
 
 function toggleFaq(button) {
     const faqItem = button.closest("div");
@@ -57,7 +57,7 @@ async function fetchAndDisplayAdsBanner() {
             img.onload = function() { bannerImg.src = data.imageLink; };
             img.onerror = function() {
                 console.error('Failed to load banner image');
-                bannerImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+                bannerImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP
             };
             img.src = data.imageLink;
         }

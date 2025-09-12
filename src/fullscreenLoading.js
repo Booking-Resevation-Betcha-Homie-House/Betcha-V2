@@ -1,15 +1,13 @@
-// Fullscreen loading overlay with dark background
+﻿
 export function showFullscreenLoading(message = 'Loading') {
-    // Remove any existing loading overlays first
+    
     const existingOverlays = document.querySelectorAll('[id^="fullscreen-loading"]');
     existingOverlays.forEach(overlay => overlay.remove());
-    
-    // Create new loading overlay
+
     const loadingOverlay = document.createElement('div');
     loadingOverlay.id = 'fullscreen-loading-overlay';
     loadingOverlay.className = 'fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm';
-    
-    // Add the loading dots animation style
+
     const style = document.createElement('style');
     style.textContent = `
         @keyframes loadingDots {

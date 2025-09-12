@@ -1,5 +1,4 @@
-// Sidebar-only role-based filtering for employee pages
-// Reads roleID from localStorage, fetches privileges, and hides sidebar items by id
+﻿
 
 (function () {
 	async function fetchRolePrivileges(roleID) {
@@ -24,7 +23,7 @@
 			'sidebar-tk': ['TK'],
 			'sidebar-pm': ['PM'],
 			'sidebar-ts': ['TS'],
-			'sidebar-dashboard': ['PSR', 'PM', 'TS', 'TK'] // dashboard visible if user has any employee privilege
+			'sidebar-dashboard': ['PSR', 'PM', 'TS', 'TK'] 
 		};
 
 		Object.keys(sidebarPrivilegeMap).forEach((id) => {
@@ -60,5 +59,4 @@
 		initSidebarFilter();
 	}
 })();
-
 

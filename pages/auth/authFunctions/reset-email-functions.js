@@ -1,10 +1,10 @@
-'use strict';
+﻿'use strict';
 
 (function initResetEmailFlow() {
     const API_BASE_URL = 'https://betcha-api.onrender.com';
     let pendingEmail = '';
     let resendTimerId = null;
-    let resendRemaining = 0; // seconds
+    let resendRemaining = 0; 
 
     document.addEventListener('DOMContentLoaded', () => {
         const openBtn = document.getElementById('openOtpFlowBtn');
@@ -23,15 +23,15 @@
                     return;
                 }
                 pendingEmail = email;
-                // open modal
+
                 otpModal.classList.remove('hidden');
-                // Prepare OTP inputs and focus first
+
                 bindOtpInputs();
                 const firstOtp = document.querySelector('#emailOTPModal .otp-input');
                 if (firstOtp) firstOtp.focus();
-                // Immediately send OTP to the new email
+
                 sendOtp();
-                // Start cooldown
+
                 startResendCooldown(60);
             });
         }
@@ -41,7 +41,7 @@
 
         if (resendEl) {
             resendEl.addEventListener('click', async () => {
-                if (resendRemaining > 0) return; // ignore during cooldown
+                if (resendRemaining > 0) return; 
                 await sendOtp();
                 startResendCooldown(60);
             });
@@ -81,7 +81,7 @@
         }
 
         try {
-            // Verify OTP for the new email address
+
             const targetEmail = pendingEmail || '';
             if (!isValidEmail(targetEmail)) {
                 alert('Missing or invalid new email.');
@@ -98,7 +98,6 @@
                 throw new Error(`OTP verification failed: ${verifyResp.status} ${t}`);
             }
 
-            // OTP verified, now update email
             const userId = localStorage.getItem('userId') || '685009ff53a090e126b9e2b4';
             console.log('[Email Update] Updating user email for', userId, 'to', pendingEmail);
             const updateResp = await fetch(`${API_BASE_URL}/guest/update/${userId}`, {
@@ -111,7 +110,6 @@
                 throw new Error(`Failed to update email: ${updateResp.status} ${t}`);
             }
 
-            // Update local email for session and go back
             localStorage.setItem('email', pendingEmail);
             window.location.href = 'profile.html';
         } catch (e) {
@@ -168,12 +166,11 @@
         const inputs = Array.from(document.querySelectorAll('#emailOTPModal .otp-input'));
         if (inputs.length === 0) return;
 
-        // Handle paste of full code into any box
         inputs.forEach((input, idx) => {
             input.setAttribute('inputmode', 'numeric');
             input.setAttribute('maxlength', '1');
             input.addEventListener('input', () => {
-                // keep only last digit
+
                 input.value = (input.value || '').replace(/\D/g, '').slice(-1);
                 if (input.value && idx < inputs.length - 1) {
                     inputs[idx + 1].focus();
@@ -199,5 +196,4 @@
         });
     }
 })();
-
 

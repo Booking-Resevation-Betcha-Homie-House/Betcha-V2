@@ -1,4 +1,4 @@
-Chart.defaults.font.family = "'Manrope', sans-serif";
+﻿Chart.defaults.font.family = "'Manrope', sans-serif";
 
 const ctx = document.getElementById('topRoomsChart')?.getContext('2d');
 if (ctx) {
@@ -52,7 +52,6 @@ if (ctx) {
     }
   });
 
-  // Expose instance and an updater without changing design
   window.topRoomsChartInstance = instance;
   window.updateTopRoomsChart = function(labels, values) {
     try {

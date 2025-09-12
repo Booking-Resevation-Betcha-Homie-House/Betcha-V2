@@ -1,7 +1,7 @@
-document.addEventListener("DOMContentLoaded", () => {
+﻿document.addEventListener("DOMContentLoaded", () => {
   const descWrapper = document.getElementById("descWrapper");
   const toggleText = document.getElementById("toggleText");
-  const collapsedHeight = '6rem'; // ~3 lines, adjust as needed
+  const collapsedHeight = '6rem'; 
   const expandedHeight = descWrapper.scrollHeight + "px";
 
   let expanded = false;

@@ -1,4 +1,4 @@
-import { showFullscreenLoading, hideFullscreenLoading } from '/src/fullscreenLoading.js';
+﻿import { showFullscreenLoading, hideFullscreenLoading } from '/src/fullscreenLoading.js';
 import { validateReservationData, showToastError } from '/src/toastNotification.js';
 
 const amenityMapping = { 
@@ -63,7 +63,7 @@ const amenityMapping = {
     'highChair': { name: 'High Chair', iconType: '/svg/highChair.svg' },
     'kettle': { name: 'Kettle', iconType: '/svg/kettle.svg' },
     'fence': { name: 'Fence', iconType: '/svg/fence.svg' },
-    // Alternative naming patterns
+
     'refrigerator': { name: 'Refrigerator', iconType: '/svg/refrigerator.svg' },
     'washingmachine': { name: 'Washing Machine', iconType: '/svg/washer.svg' },
     'smokealarm': { name: 'Smoke Alarm', iconType: '/svg/smokeAlarm.svg' },
@@ -137,9 +137,8 @@ const amenityMapping = {
     default: { name: 'Other', iconType: '/svg/add.svg' }
 };
 
-// Global variable to store property data for reservation
 let currentPropertyData = null;
-// Global variable to store original map source from API
+
 let originalMapSource = null;
 
 function getAmenitySVGByMapping(amenity) {
@@ -147,8 +146,7 @@ function getAmenitySVGByMapping(amenity) {
     const foundKey = Object.keys(amenityMapping).find(key => {
         return key.replace(/\s+/g, '').replace(/[-_]/g, '').toLowerCase() === normalizedKey;
     });
-    
-    // Console log for debugging mismatches
+
     if (!foundKey) {
         console.warn(`🔍 AMENITY MISMATCH: "${amenity}" -> normalized: "${normalizedKey}" -> NO MATCH FOUND`);
         console.log('Available mapping keys:', Object.keys(amenityMapping));
@@ -160,11 +158,9 @@ function getAmenitySVGByMapping(amenity) {
     return result;
 }
 
-// Function to check and log all amenity mismatches and missing icons
 async function debugAmenities(apiAmenities, otherAmenities) {
     console.group('🔍 AMENITY DEBUG ANALYSIS');
-    
-    // Get list of available SVG files
+
     const availableSVGs = [
         '8ball.svg', 'add.svg', 'aircon.svg', 'backarrow.svg', 'backIcon.svg', 'balcony.svg', 
         'bath.svg', 'bed.svg', 'betcha logo.svg', 'Betcha.svg', 'bike.svg', 'bookingIcon.svg', 
@@ -188,8 +184,7 @@ async function debugAmenities(apiAmenities, otherAmenities) {
     
     console.log('📁 Available SVG files:', availableSVGs);
     console.log('🗂️ Current amenity mapping keys:', Object.keys(amenityMapping));
-    
-    // Store results for final summary
+
     const results = {
         matched: [],
         unmatched: [],
@@ -197,8 +192,7 @@ async function debugAmenities(apiAmenities, otherAmenities) {
         missingSVGs: [],
         suggestions: {}
     };
-    
-    // Check API amenities
+
     console.group('🔍 API AMENITIES ANALYSIS');
     if (apiAmenities && apiAmenities.length > 0) {
         console.log(`📊 Total API amenities: ${apiAmenities.length}`);
@@ -208,7 +202,7 @@ async function debugAmenities(apiAmenities, otherAmenities) {
             if (result.iconType === '/svg/add.svg') {
                 console.warn(`❌ No icon found for: "${amenity}"`);
                 results.unmatched.push(amenity);
-                // Suggest potential matches
+
                 const suggestions = availableSVGs.filter(svg => 
                     svg.toLowerCase().includes(amenity.toLowerCase().substring(0, 3)) ||
                     amenity.toLowerCase().includes(svg.replace('.svg', '').substring(0, 3))
@@ -225,8 +219,7 @@ async function debugAmenities(apiAmenities, otherAmenities) {
         console.log('❌ No API amenities found');
     }
     console.groupEnd();
-    
-    // Check other amenities
+
     console.group('🔍 OTHER AMENITIES ANALYSIS');
     if (otherAmenities && otherAmenities.length > 0) {
         console.log(`📊 Total other amenities: ${otherAmenities.length}`);
@@ -237,8 +230,7 @@ async function debugAmenities(apiAmenities, otherAmenities) {
         console.log('❌ No other amenities found');
     }
     console.groupEnd();
-    
-    // Check for unused mapping entries
+
     console.group('🔍 UNUSED MAPPING ENTRIES');
     const allAmenities = [...(apiAmenities || []), ...(otherAmenities || [])];
     const usedMappingKeys = [];
@@ -266,8 +258,7 @@ async function debugAmenities(apiAmenities, otherAmenities) {
         console.log('✅ All mapping entries are being used');
     }
     console.groupEnd();
-    
-    // Check for missing SVG files referenced in mapping
+
     console.group('🔍 MISSING SVG FILES');
     const missingSVGs = [];
     Object.entries(amenityMapping).forEach(([key, value]) => {
@@ -290,8 +281,7 @@ async function debugAmenities(apiAmenities, otherAmenities) {
         console.log('✅ All SVG files referenced in mapping exist');
     }
     console.groupEnd();
-    
-    // Final Summary
+
     console.group('📋 FINAL SUMMARY');
     console.log(`✅ Matched amenities: ${results.matched.length}`);
     console.log(`❌ Unmatched amenities: ${results.unmatched.length}`);
@@ -319,20 +309,18 @@ async function debugAmenities(apiAmenities, otherAmenities) {
     
     console.groupEnd();
     console.groupEnd();
-    
-    // Store results globally for inspection
+
     window.amenityDebugResults = results;
     console.log('💾 Debug results stored in window.amenityDebugResults for inspection');
 }
 
 function renderAmenities(apiAmenities, otherAmenities) {
-    // Debug amenities for mismatches and issues
+
     debugAmenities(apiAmenities, otherAmenities);
     
     const normalizedSet = new Set(apiAmenities.map(a => a.toLowerCase().replace(/[_-\s]+/g, '')));
     const modal = document.getElementById('ammenitiesModal');
-    
-    // First, populate the preview amenity list (first 3 amenities)
+
     const amenityList = document.getElementById('amenityList');
     if (amenityList && apiAmenities) {
         amenityList.innerHTML = '';
@@ -340,18 +328,17 @@ function renderAmenities(apiAmenities, otherAmenities) {
             const { name, iconType } = getAmenitySVGByMapping(amenity);
             const div = document.createElement('div');
             div.className = 'flex items-center gap-2';
-            
-            // Check if we have a proper icon or should use bullet
+
             const hasProperIcon = iconType && iconType !== '/svg/add.svg';
             
             if (hasProperIcon) {
-                // Use the icon image
+
                 div.innerHTML = `
                     <img src="${iconType}" alt="${name}" class="w-6 h-6">
                     <span class="font-roboto text-base text-primary-text">${name}</span>
                 `;
             } else {
-                // Use bullet point
+
                 div.innerHTML = `
                     <span class="w-6 h-6 flex items-center justify-center">
                         <span class="w-2 h-2 bg-black rounded-full"></span>
@@ -363,11 +350,9 @@ function renderAmenities(apiAmenities, otherAmenities) {
             amenityList.appendChild(div);
         });
     }
-    
-    // Then populate the modal
+
     if (!modal) return;
 
-    // Process each section and track if they have visible items
     modal.querySelectorAll('.px-2.md\\:px-3.mb-3.md\\:mb-5').forEach(section => {
         let hasVisibleItems = false;
         
@@ -382,14 +367,13 @@ function renderAmenities(apiAmenities, otherAmenities) {
             if (normalizedSet.has(normalizedId)) {
                 li.classList.remove('hidden');
                 if (amenityDiv) amenityDiv.classList.remove('hidden');
-                hasVisibleItems = true; // Mark section as having visible items
+                hasVisibleItems = true; 
             } else {
                 li.classList.add('hidden');
                 if (amenityDiv) amenityDiv.classList.add('hidden');
             }
         });
-        
-        // Hide or show the entire section based on whether it has visible items
+
         if (hasVisibleItems) {
             section.classList.remove('hidden');
         } else {
@@ -397,7 +381,6 @@ function renderAmenities(apiAmenities, otherAmenities) {
         }
     });
 
-    // Handle the Others section specifically
     const othersSection = document.querySelector('#ammenitiesModal .px-2.md\\:px-3.mb-3.md\\:mb-5:last-child');
     if (!othersSection) return;
 
@@ -438,7 +421,6 @@ async function fetchAndDisplayProperty() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
 
-        // Audit: Log property view
         try {
             const userId = localStorage.getItem('userId') || 'anonymous';
             const userType = localStorage.getItem('role') || localStorage.getItem('userType') || 'Guest';
@@ -452,19 +434,17 @@ async function fetchAndDisplayProperty() {
         ['photo1','photo2','photo3'].forEach((id, idx) => {
             const el = document.getElementById(id);
             if(el && data.photoLinks[idx]) {
-                // Clear existing content and add overflow hidden to container
+
                 el.innerHTML = '';
                 el.classList.add('overflow-hidden');
-                
-                // Create inner div for the background image that will scale
+
                 const photoDiv = document.createElement('div');
                 photoDiv.className = 'w-full h-full transition-transform duration-300 ease-in-out hover:scale-110';
                 photoDiv.style.backgroundImage = `url('${data.photoLinks[idx]}')`;
                 photoDiv.style.backgroundSize = 'cover';
                 photoDiv.style.backgroundPosition = 'center';
                 photoDiv.style.backgroundRepeat = 'no-repeat';
-                
-                // Add the photo div inside the container
+
                 el.appendChild(photoDiv);
             }
         });
@@ -473,28 +453,25 @@ async function fetchAndDisplayProperty() {
         if (allPhotoContainer && data.photoLinks) {
             allPhotoContainer.innerHTML = '';
             data.photoLinks.forEach((link, index) => {
-                // Create container div that maintains size
+
                 const containerDiv = document.createElement('div');
                 containerDiv.className = 'rounded-xl w-full h-100 cursor-pointer overflow-hidden shadow-md hover:shadow-lg transition-shadow duration-300 ease-in-out';
-                
-                // Create inner div for the background image that will scale
+
                 const photoDiv = document.createElement('div');
                 photoDiv.className = 'w-full h-full transition-transform duration-300 ease-in-out hover:scale-110';
                 photoDiv.style.backgroundImage = `url('${link}')`;
                 photoDiv.style.backgroundSize = 'cover';
                 photoDiv.style.backgroundPosition = 'center';
                 photoDiv.style.backgroundRepeat = 'no-repeat';
-                
-                // Add the photo div inside the container
+
                 containerDiv.appendChild(photoDiv);
                 
                 containerDiv.setAttribute('alt', `Room view ${index + 1}`);
                 containerDiv.setAttribute('data-image-index', index);
-                
-                // Optional: Add click handler for image viewing
+
                 containerDiv.addEventListener('click', () => {
                     console.log(`Clicked on image ${index + 1}:`, link);
-                    // You can add modal or lightbox functionality here
+
                 });
                 
                 allPhotoContainer.appendChild(containerDiv);
@@ -517,15 +494,14 @@ async function fetchAndDisplayProperty() {
             if(el) el.textContent = value || '';
         });
 
-        // Handle timeIn and timeOut data
         const timeInOutElement = document.getElementById('timeInOut');
         if (timeInOutElement && data.timeIn && data.timeOut) {
-            // Format the time display
+
             const formattedTime = `${data.timeIn} - ${data.timeOut}`;
             timeInOutElement.textContent = formattedTime;
             console.log('TimeIn and TimeOut from API:', data.timeIn, data.timeOut);
         } else if (timeInOutElement) {
-            // Fallback if timeIn/timeOut not available
+
             timeInOutElement.textContent = 'Time not available';
             console.log('TimeIn/TimeOut not available from API:', { timeIn: data.timeIn, timeOut: data.timeOut });
         }
@@ -535,19 +511,17 @@ async function fetchAndDisplayProperty() {
             const srcMatch = data.mapLink.match(/src="([^"]+)"/);
             if (srcMatch && srcMatch[1]) {
                 mapIframe.src = srcMatch[1];
-                // Store the original map source for directions toggle functionality
+
                 originalMapSource = srcMatch[1];
             }
         }
 
-        // Render amenities using the unified renderAmenities function
         if (typeof renderAmenities === "function") {
             const amenities = Array.isArray(data.amenities) ? data.amenities : [];
             const otherAmenities = Array.isArray(data.otherAmenities) ? data.otherAmenities : [];
             renderAmenities(amenities, otherAmenities);
         }
 
-        // Store property data globally for reservation
         currentPropertyData = {
             id: propertyId,
             name: data.name,
@@ -562,25 +536,19 @@ async function fetchAndDisplayProperty() {
             timeOut: data.timeOut
         };
 
-        // Update guest counter limits based on API maxCapacity
         updateGuestCounterLimits(data.maxCapacity);
 
-        // Setup Reserve button functionality
         setupReserveButton();
 
-        // Setup description toggle functionality
         setupDescriptionToggle();
 
-        // Listen for calendar date selection events
         document.addEventListener('datesSelected', function(e) {
             console.log('Dates selected event received:', e.detail);
-            // Update the reserve button state or do any additional setup
+
         });
 
-        // Store property data globally for directions functionality
         currentPropertyData = data;
-        
-        // Initialize directions button after property data is loaded
+
         setTimeout(() => {
             initializeDirectionsButton();
         }, 500);
@@ -592,7 +560,6 @@ async function fetchAndDisplayProperty() {
     }
 }
 
-// Function to update guest counter limits based on API maxCapacity
 function updateGuestCounterLimits(maxCapacity) {
     if (!maxCapacity || maxCapacity < 1) {
         console.warn('Invalid maxCapacity from API:', maxCapacity);
@@ -601,27 +568,22 @@ function updateGuestCounterLimits(maxCapacity) {
 
     console.log('Updating guest counter limits to:', maxCapacity);
 
-    // Update all guest counter containers
     document.querySelectorAll('.guest-counter').forEach(counter => {
-        // Update the data-max attribute
+
         counter.setAttribute('data-max', maxCapacity);
-        
-        // Update the display text for max guest number
+
         const maxGuestDisplay = counter.querySelector('.maxGuestNum');
         if (maxGuestDisplay) {
             maxGuestDisplay.textContent = maxCapacity;
         }
     });
 
-    // Update the guestCount.js functionality by triggering a re-initialization
-    // We need to dispatch a custom event to let guestCount.js know about the new limit
     const updateEvent = new CustomEvent('updateGuestLimit', {
         detail: { maxCapacity: maxCapacity }
     });
     document.dispatchEvent(updateEvent);
 }
 
-// Function to setup description text toggle functionality
 function setupDescriptionToggle() {
     const descWrapper = document.getElementById('descWrapper');
     const toggleText = document.getElementById('toggleText');
@@ -632,16 +594,14 @@ function setupDescriptionToggle() {
         return;
     }
 
-    // Check if the description content is short enough that it doesn't need toggling
     const checkContentHeight = () => {
-        // Temporarily expand to measure full height
+
         const originalMaxHeight = descWrapper.style.maxHeight;
         descWrapper.style.maxHeight = 'none';
         const fullHeight = description.scrollHeight;
         descWrapper.style.maxHeight = originalMaxHeight;
-        
-        // If content fits within the collapsed height (6rem = 96px), hide the toggle
-        const collapsedHeight = 96; // 6rem in pixels
+
+        const collapsedHeight = 96; 
         
         if (fullHeight <= collapsedHeight) {
             toggleText.style.display = 'none';
@@ -651,7 +611,6 @@ function setupDescriptionToggle() {
         }
     };
 
-    // Setup toggle click handler
     const setupToggleHandler = () => {
         let isExpanded = false;
         
@@ -659,12 +618,12 @@ function setupDescriptionToggle() {
             e.preventDefault();
             
             if (isExpanded) {
-                // Collapse
+
                 descWrapper.style.maxHeight = '6rem';
                 toggleText.textContent = 'Read More';
                 isExpanded = false;
             } else {
-                // Expand
+
                 descWrapper.style.maxHeight = description.scrollHeight + 'px';
                 toggleText.textContent = 'Read Less';
                 isExpanded = true;
@@ -672,11 +631,9 @@ function setupDescriptionToggle() {
         });
     };
 
-    // Check content height after a short delay to ensure content is loaded
     setTimeout(checkContentHeight, 100);
 }
 
-// Function to setup Reserve button click handler
 function setupReserveButton() {
     const reserveButton = document.getElementById('reserveButton');
     if (!reserveButton) {
@@ -685,12 +642,11 @@ function setupReserveButton() {
     }
 
     reserveButton.addEventListener('click', () => {
-        // First validate user authentication and verification
+
         if (!validateReservationData()) {
-            return; // Modal will be shown by validateReservationData
+            return; 
         }
 
-        // Get booking data from URL parameters (from search)
         const urlParams = new URLSearchParams(window.location.search);
         const bookingData = getBookingDataFromURL(urlParams);
         
@@ -703,20 +659,17 @@ function setupReserveButton() {
         if (!bookingData.checkInDate || !bookingData.checkOutDate) {
             console.error('Booking dates not available');
             console.log('Available booking data:', bookingData);
-            
-            // Show toast instead of alert
+
             showToastError('warning', 'Dates Required', 'Please select check-in and check-out dates using the calendar above before making a reservation.');
             return;
         }
 
-        // Additional validation for guest count
         const guestCount = window.currentGuestCount || bookingData.guestCount || 1;
         if (guestCount < 1) {
             showToastError('warning', 'Guest Count Required', 'Please select at least one guest for your reservation.');
             return;
         }
 
-        // Check if all required property data is present (from currentPropertyData, not bookingData)
         if (!currentPropertyData.name || !currentPropertyData.packagePrice) {
             console.log('Missing property data:', currentPropertyData);
             showToastError('error', 'Property Information Missing', 'Some property information is missing. Please refresh the page and try again.');
@@ -726,32 +679,27 @@ function setupReserveButton() {
         console.log('All validations passed. Proceeding with reservation...');
         console.log('Property data:', currentPropertyData);
         console.log('Booking data:', bookingData);
-        
-        // Navigate to confirm reservation with data
+
         navigateToConfirmReservation(currentPropertyData, bookingData);
     });
 }
 
-// Function to extract booking data from URL parameters
 function getBookingDataFromURL(urlParams) {
-    // Try URL parameters first
+
     let checkInDate = urlParams.get('checkIn');
     let checkOutDate = urlParams.get('checkOut');
     let guestCount = parseInt(urlParams.get('people')) || parseInt(urlParams.get('guests')) || parseInt(urlParams.get('guestCount')) || 1;
-    
-    // Debug: Log what we found in URL
+
     console.log('URL params - checkIn:', checkInDate, 'checkOut:', checkOutDate, 'people/guests:', guestCount);
-    
-    // If not found in URL, try to get from calendar system
+
     if (!checkInDate || !checkOutDate) {
-        // Check if dates are stored in window object from calendar
+
         if (window.selectedBookingDates && window.selectedBookingDates.length >= 2) {
             checkInDate = window.selectedBookingDates[0];
             checkOutDate = window.selectedBookingDates[window.selectedBookingDates.length - 1];
             console.log('Got dates from window.selectedBookingDates:', checkInDate, checkOutDate);
         }
-        
-        // Also try to get from input elements
+
         if (!checkInDate) {
             const checkInInput = document.getElementById('searchCheckIn') || document.querySelector('input[name="checkIn"]');
             if (checkInInput && checkInInput.value) {
@@ -768,15 +716,14 @@ function getBookingDataFromURL(urlParams) {
             }
         }
     }
-    
-    // Try to get guest count from various input elements if not in URL
+
     if (guestCount === 1) {
-        // First check if there's a global guest count from guestCount.js
+
         if (window.currentGuestCount && window.currentGuestCount > 1) {
             guestCount = window.currentGuestCount;
             console.log('Got guest count from window.currentGuestCount:', guestCount);
         }
-        // Then try the guestCount elements that store the actual selected count
+
         else {
             const guestCountElement = document.getElementById('guestCount') || 
                                     document.querySelector('.guestCount');
@@ -788,12 +735,11 @@ function getBookingDataFromURL(urlParams) {
                 }
             }
         }
-        
-        // Fallback to guestSummary text parsing
+
         if (guestCount === 1) {
             const guestSummary = document.getElementById('guestSummary');
             if (guestSummary && guestSummary.textContent && !guestSummary.textContent.includes('Add guests')) {
-                // Extract number from text like "2 guests" or "1 guest"
+
                 const match = guestSummary.textContent.match(/(\d+)/);
                 if (match && parseInt(match[1]) > 0) {
                     guestCount = parseInt(match[1]);
@@ -801,8 +747,7 @@ function getBookingDataFromURL(urlParams) {
                 }
             }
         }
-        
-        // Final fallback to other input elements
+
         if (guestCount === 1) {
             const guestInput = document.getElementById('searchGuestCount') || 
                               document.querySelector('input[name="guests"]') ||
@@ -830,58 +775,50 @@ function getBookingDataFromURL(urlParams) {
         checkInDate,
         checkOutDate,
         guestCount,
-        daysOfStay: Math.max(1, daysOfStay) // Ensure at least 1 day
+        daysOfStay: Math.max(1, daysOfStay) 
     };
     
     console.log('Final booking data:', bookingData);
     return bookingData;
 }
 
-// Function to handle navigation to confirm reservation
 function navigateToConfirmReservation(propertyData, bookingData) {
     const params = new URLSearchParams();
-    
-    // Property data
+
     params.append('propertyId', propertyData.id || '');
     params.append('propertyName', propertyData.name || '');
     params.append('propertyAddress', propertyData.address || '');
     if (propertyData.images && propertyData.images.length > 0) {
         params.append('images', encodeURIComponent(JSON.stringify(propertyData.images)));
     }
-    
-    // Booking data
+
     params.append('checkInDate', bookingData.checkInDate || '');
     params.append('checkOutDate', bookingData.checkOutDate || '');
     params.append('guestCount', bookingData.guestCount || '1');
     params.append('daysOfStay', bookingData.daysOfStay || '1');
-    
-    // Pricing data
+
     params.append('pricePerDay', propertyData.packagePrice || '0');
     params.append('addGuestPrice', propertyData.additionalPax || '0');
     params.append('reservationFee', propertyData.reservationFee || '0');
     params.append('packageCapacity', propertyData.packageCapacity || '1');
-    
-    // Time data
+
     params.append('timeIn', propertyData.timeIn || '');
     params.append('timeOut', propertyData.timeOut || '');
     
     console.log('Passing time data to confirm reservation:', { timeIn: propertyData.timeIn, timeOut: propertyData.timeOut });
-    
-    // Navigate to confirm reservation page
+
     window.location.href = `../auth/confirm-reservation.html?${params.toString()}`;
 }
 
 document.addEventListener('DOMContentLoaded', fetchAndDisplayProperty);
 
-// Function to initialize directions button functionality
 function initializeDirectionsButton() {
     const directionsButtonContainer = document.getElementById('directionsButtonContainer');
     const directionsBtn = document.getElementById('directionsBtn');
     const mapContainer = document.getElementById('mapContainer');
     
     if (!directionsButtonContainer || !directionsBtn || !mapContainer) return;
-    
-    // Show the directions button when property data is loaded
+
     if (currentPropertyData && (currentPropertyData.address || currentPropertyData.city)) {
         directionsButtonContainer.classList.remove('hidden');
         
@@ -889,14 +826,11 @@ function initializeDirectionsButton() {
     }
 }
 
-// Function to extract coordinates from mapLink
 function extractCoordinatesFromMapLink(mapLink) {
     if (!mapLink) return null;
     
     console.log('Attempting to extract coordinates from mapLink:', mapLink);
-    
-    // Try to extract coordinates from the mapLink
-    // Look for patterns like !3d14.716000285784096!2d121.05891147478252 (lat/lng)
+
     const coordMatch = mapLink.match(/!3d([0-9.-]+)!2d([0-9.-]+)/);
     if (coordMatch) {
         const lat = coordMatch[1];
@@ -904,8 +838,7 @@ function extractCoordinatesFromMapLink(mapLink) {
         console.log('Found coordinates using !3d!2d pattern:', { lat, lng });
         return { lat, lng };
     }
-    
-    // Also try patterns like @14.716000285784096,121.05891147478252
+
     const atCoordMatch = mapLink.match(/@([0-9.-]+),([0-9.-]+)/);
     if (atCoordMatch) {
         const lat = atCoordMatch[1];
@@ -913,17 +846,15 @@ function extractCoordinatesFromMapLink(mapLink) {
         console.log('Found coordinates using @ pattern:', { lat, lng });
         return { lat, lng };
     }
-    
-    // Try to extract from pb parameter (another Google Maps format)
+
     const pbMatch = mapLink.match(/!1d([0-9.-]+)!2d([0-9.-]+)!3d([0-9.-]+)/);
     if (pbMatch) {
-        const lat = pbMatch[3]; // 3d is usually latitude
-        const lng = pbMatch[2]; // 2d is usually longitude
+        const lat = pbMatch[3]; 
+        const lng = pbMatch[2]; 
         console.log('Found coordinates using pb pattern:', { lat, lng });
         return { lat, lng };
     }
-    
-    // Try to extract from query parameters
+
     const urlParams = new URL(mapLink.startsWith('http') ? mapLink : 'https://maps.google.com/' + mapLink);
     const ll = urlParams.searchParams.get('ll');
     if (ll) {
@@ -938,41 +869,36 @@ function extractCoordinatesFromMapLink(mapLink) {
     return null;
 }
 
-// Function to setup directions button functionality
 function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
     directionsBtn.onclick = () => {
-        // Debug: Log the mapLink to see what we're working with
+
         console.log('Property mapLink:', propertyData.mapLink);
-        
-        // Create the query for directions using coordinates + address for accuracy
+
         let directionsQuery;
-        
-        // Extract coordinates from mapLink for precise location
+
         const coordinates = propertyData.mapLink ? extractCoordinatesFromMapLink(propertyData.mapLink) : null;
         
         console.log('Extracted coordinates:', coordinates);
         
         if (coordinates && propertyData.address) {
-            // Use coordinates + address for most accurate matching
-            // This tells Google to find a location near these coordinates that matches the address
+
             directionsQuery = `${coordinates.lat},${coordinates.lng}+${encodeURIComponent(propertyData.address)}`;
             console.log('Using coordinates + address for precise location:', directionsQuery);
         } else if (coordinates) {
-            // Use just coordinates if address not available
+
             directionsQuery = `${coordinates.lat},${coordinates.lng}`;
             console.log('Using coordinates only:', directionsQuery);
         } else if (propertyData.address) {
-            // Fallback to full address only
+
             directionsQuery = encodeURIComponent(propertyData.address);
             console.log('Using full address only:', propertyData.address);
         } else {
-            // Final fallback
+
             directionsQuery = encodeURIComponent('Property Location');
         }
-        
-        // Get user's current location for accurate directions
+
         if (navigator.geolocation) {
-            // Show loading while getting location
+
             mapContainer.innerHTML = `
                 <div class="w-full h-full bg-neutral-100 flex items-center justify-center">
                     <div class="text-center">
@@ -986,13 +912,11 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                 (position) => {
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
-                    
-                    // Create directions URL with user location and our precise destination (driving mode)
+
                     const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                     
                     console.log('Generated directions URL:', directionsEmbedUrl);
-                    
-                    // Update the iframe with directions from user's actual location
+
                     mapContainer.innerHTML = `
                         <iframe src="${directionsEmbedUrl}" 
                             class="w-full h-full"
@@ -1005,8 +929,7 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                 },
                 (error) => {
                     console.error('Geolocation error:', error);
-                    
-                    // Use our precise destination for fallback (without user location, driving mode)
+
                     const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                     
                     console.log('Generated fallback directions URL:', fallbackEmbedUrl);
@@ -1029,11 +952,11 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                 {
                     enableHighAccuracy: true,
                     timeout: 10000,
-                    maximumAge: 300000 // 5 minutes
+                    maximumAge: 300000 
                 }
             );
         } else {
-            // Browser doesn't support geolocation, use fallback (satellite view, driving mode)
+
             const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
             
             console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
@@ -1053,18 +976,16 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                 </div>
             `;
         }
-        
-        // Update button text to indicate it's showing directions
+
         directionsBtn.innerHTML = `
             <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3"></path>
             </svg>
             View Property Location
         `;
-        
-        // Change button functionality to reset to original map
+
         directionsBtn.onclick = () => {
-            // Reload the original map using the stored source from API (satellite default)
+
             const mapSrc = originalMapSource || 
                 document.getElementById('maplink')?.src || 
                 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3858.9397163310573!2d121.05891147478252!3d14.716000285784096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b08c3aa74213%3A0x325214dc350bb0d1!2sSTI%20College%20Fairview!5e1!3m2!1sen!2sph!4v1752067526435!5m2!1sen!2sph';
@@ -1075,8 +996,7 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                     style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
                 </iframe>
             `;
-            
-            // Reset button text and functionality
+
             directionsBtn.innerHTML = `
                 <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
@@ -1084,16 +1004,14 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                 </svg>
                 Get Directions
             `;
-            
-            // Reset to original directions functionality
+
             setupDirectionsButton(directionsBtn, mapContainer, propertyData);
         };
     };
 }
 
-// Call this function after property data is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    // Add a small delay to ensure all elements are loaded
+
     setTimeout(initializeDirectionsButton, 1000);
 });
 

@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
   const thisYear = new Date().getFullYear();
 
@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const display = document.getElementById(`selected${capitalize(id)}`);
     const icon = document.getElementById(`${id}DropdownIcon`);
 
-    if (!btn || !list || !display || !icon) return; // Skip if element not found
+    if (!btn || !list || !display || !icon) return; 
 
     display.textContent = placeholder;
 

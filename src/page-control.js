@@ -1,116 +1,84 @@
-/**
- * Global Page Control System
- * Handles role-based access control and header modifications
- * 
- * Roles:
- * - admin: Access to admin folder pages, redirects to admin/dashboard.html
- * - employee: Access to employee folder pages, redirects to employee/dashboard.html  
- * - guest: Access to auth folder pages, redirects to unauth/rooms.html
- * - null/undefined: Access to unauth folder pages only, redirects to index.html for auth pages
- */
+﻿
 
 (function() {
     'use strict';
 
-    // Get user role from localStorage
     const userRole = localStorage.getItem('role');
-    
-    // Get current page path
+
     const currentPath = window.location.pathname;
-    
-    // Define page categories
+
     const pageCategories = {
-        admin: /\/pages\/admin\//,
-        employee: /\/pages\/employee\//,
-        auth: /\/pages\/auth\//,
-        unauth: /\/pages\/unauth\//,
+        admin: /\/pages\/admin\
+        employee: /\/pages\/employee\
+        auth: /\/pages\/auth\
+        unauth: /\/pages\/unauth\
         root: /^\/?(index\.html)?$/
     };
 
-    // Define default pages for each role
     const defaultPages = {
         admin: '/pages/admin/dashboard.html',
         employee: '/pages/employee/dashboard.html', 
         guest: '/pages/unauth/rooms.html'
     };
 
-    /**
-     * Determines if current page access is allowed for the user role
-     */
     function isPageAccessAllowed() {
-        // Root index.html is always accessible
+        
         if (pageCategories.root.test(currentPath)) {
             return true;
         }
 
-        // No role (unauthenticated user)
         if (!userRole) {
-            // Can only access unauth pages
+            
             if (pageCategories.unauth.test(currentPath)) {
                 return true;
             }
-            // Cannot access auth, admin, or employee pages
+            
             return false;
         }
 
-        // Admin role
         if (userRole === 'admin') {
-            // Can access admin pages and unauth pages
+            
             return pageCategories.admin.test(currentPath) || pageCategories.unauth.test(currentPath);
         }
 
-        // Employee role  
         if (userRole === 'employee') {
-            // Can access employee pages and unauth pages
+            
             return pageCategories.employee.test(currentPath) || pageCategories.unauth.test(currentPath);
         }
 
-        // Guest role
         if (userRole === 'guest') {
-            // Can access auth pages and unauth pages
+            
             return pageCategories.auth.test(currentPath) || pageCategories.unauth.test(currentPath);
         }
 
-        // Unknown role - deny access
         return false;
     }
 
-    /**
-     * Redirects user to appropriate page based on their role
-     */
     function redirectToRolePage() {
-        // If no role and trying to access auth pages, redirect to index
+        
         if (!userRole && pageCategories.auth.test(currentPath)) {
             window.location.href = '/index.html';
             return;
         }
 
-        // If user has role but is on wrong page category, redirect to their default page
         if (userRole && defaultPages[userRole]) {
             window.location.href = defaultPages[userRole];
             return;
         }
 
-        // If no role and not on unauth or root, redirect to index
         if (!userRole && !pageCategories.unauth.test(currentPath) && !pageCategories.root.test(currentPath)) {
             window.location.href = '/index.html';
             return;
         }
     }
 
-    /**
-     * Modifies header based on authentication status
-     */
     function modifyHeader() {
-        // Only modify header for unauth pages when user has no role
+        
         if (!userRole && pageCategories.unauth.test(currentPath)) {
             replaceWithHamburgerNavigation();
         }
     }
 
-    /**
-     * Replaces the entire navigation with hamburger menu navigation (from about-us.html)
-     */
     function replaceWithHamburgerNavigation() {
         const navbar = document.querySelector('#navbar, nav');
         
@@ -118,7 +86,7 @@
             const hamburgerNavHTML = `
                 <nav id="navbar" class="w-full flex flex-col items-center shadow-sm bg-white top-0 left-0 z-50">
                     <div class="w-full flex items-center justify-between py-4 px-4 md:px-10">
-                        <!-- Logo -->
+                        
                         <a href="/pages/unauth/rooms.html" class="flex w-fit h-[30px]">
                             <svg class="fill-primary h-full w-auto" viewBox="0 0 121 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M14.8039 7.93926C15.1414 7.59644 15.6926 7.60699 16.0146 7.9709C16.3211 8.30317 16.2907 8.83282 15.9739 9.15907H15.9724L15.9739 9.15988L14.8083 10.3436C14.6495 10.5048 14.3943 10.5048 14.231 10.3436L13.0655 9.15988C12.7383 8.8276 12.7227 8.26772 13.0507 7.93469C13.2146 7.7682 13.4291 7.69063 13.6383 7.69063C13.8475 7.69063 14.0671 7.77351 14.231 7.93926L14.5174 8.23012L14.8039 7.93926Z" />
@@ -132,9 +100,8 @@
                             </svg>
                         </a>
 
-                        <!-- Right Hamburger -->
                         <div class="relative">
-                            <!-- Button to toggle dropdown -->
+                            
                             <div id="menuBtn" class="h-10 w-full aspect-square rounded-full bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
                             hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
                             transition-all duration-300 ease-in-out">
@@ -143,7 +110,6 @@
                                 </svg>
                             </div>
 
-                            <!-- Dropdown menu -->
                             <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-52 border border-neutral-300 bg-white rounded-3xl shadow-lg py-5 px-3 z-50 text-sm font-manrope text-primary-text">
                                 <div class="space-y-1">
                                     <a href="/pages/unauth/rooms.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">Rooms</a>
@@ -159,17 +125,12 @@
                 </nav>
             `;
 
-            // Replace the navbar
             navbar.outerHTML = hamburgerNavHTML;
 
-            // Re-add dropdown functionality after replacement
             addDropdownFunctionality();
         }
     }
 
-    /**
-     * Adds dropdown functionality to the hamburger menu
-     */
     function addDropdownFunctionality() {
         const menuBtn = document.querySelector('#menuBtn');
         const dropdownMenu = document.querySelector('#dropdownMenu');
@@ -180,7 +141,6 @@
                 dropdownMenu.classList.toggle('hidden');
             });
 
-            // Close dropdown when clicking outside
             document.addEventListener('click', function(e) {
                 if (!menuBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
                     dropdownMenu.classList.add('hidden');
@@ -189,35 +149,27 @@
         }
     }
 
-    /**
-     * Main initialization function
-     */
     function init() {
-        // Check if page access is allowed
+        
         if (!isPageAccessAllowed()) {
             redirectToRolePage();
             return;
         }
 
-        // Modify header for unauthenticated users on unauth pages
         modifyHeader();
 
-        // Log current access for debugging
         console.log(`Page Control: User role '${userRole || 'none'}' accessing ${currentPath}`);
     }
 
-    // Run initialization when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
         init();
     }
 
-    // Re-run header modifications after a short delay to catch dynamically loaded content
     setTimeout(modifyHeader, 100);
     setTimeout(modifyHeader, 500);
 
-    // Export for testing/debugging
     window.PageControl = {
         userRole,
         currentPath,

@@ -1,11 +1,10 @@
-// Universal logout functionality for all pages (unauth, auth, admin, employee)
+﻿
 (function() {
     'use strict';
 
-    // Handle logout action
     function performLogout() {
         try {
-            // Audit: user logout (fire-and-forget) - if audit functions are available
+            
             try {
                 const userId = localStorage.getItem('userId') || '';
                 const userType = localStorage.getItem('role') || localStorage.getItem('userType') || '';
@@ -13,14 +12,12 @@
                     window.AuditTrailFunctions.logUserLogout(userId, (userType.charAt(0).toUpperCase() + userType.slice(1)) || 'Guest');
                 }
             } catch (_) {
-                // Silently fail if audit functions are not available
+                
             }
 
-            // Clear all localStorage data
             localStorage.clear();
             console.log('LocalStorage cleared successfully');
-            
-            // Clear sessionStorage as well for complete cleanup
+
             sessionStorage.clear();
             console.log('SessionStorage cleared successfully');
             
@@ -28,51 +25,43 @@
             console.warn('Failed to clear storage:', error);
         }
 
-        // Redirect to main page
-        // Determine the correct path based on current page location
         const currentPath = window.location.pathname;
         let redirectPath = '/index.html';
         
         if (currentPath.includes('/pages/')) {
-            // For pages in subdirectories, use relative path
+            
             redirectPath = '../../index.html';
         }
-        
-        // Redirect to the main page
+
         window.location.href = redirectPath;
     }
 
-    // Handle logout button/link click
     function handleLogoutClick(event) {
         event.preventDefault();
-        
-        // Show logout confirmation modal
+
         showLogoutModal();
     }
 
-    // Show logout confirmation modal
     function showLogoutModal() {
-        // Check if modal already exists
+        
         let modal = document.getElementById('logoutConfirmModal');
         if (!modal) {
-            // Create modal if it doesn't exist
+            
             createLogoutModal();
             modal = document.getElementById('logoutConfirmModal');
         }
-        
-        // Show the modal
+
         if (modal) {
             modal.classList.remove('hidden');
             modal.classList.add('flex');
         }
     }
 
-    // Create logout confirmation modal
     function createLogoutModal() {
         const modalHTML = `
         <div id="logoutConfirmModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end md:items-center justify-center hidden z-50">
             <div class="bg-background w-[400px] rounded-t-3xl overflow-hidden modal-animate md:rounded-3xl">
-                <!-- Close Button -->
+                
                 <div class="w-full p-5 flex justify-end">
                     <button id="logoutModalClose" class="cursor-pointer btn-round border-none hover:bg-neutral-300 flex items-center justify-center active:scale-95 transition-all duration-200">
                         <span>
@@ -82,13 +71,11 @@
                         </span>
                     </button>
                 </div>
-                
-                <!-- Modal Content -->
+
                 <div class="flex flex-col items-center gap-5 p-8 pt-0">
                     <h3 class="font-manrope text-primary-text font-bold text-xl text-center">Confirm Logout</h3>
                     <p class="font-roboto text-neutral-500 text-sm text-center">Are you sure you want to log out? You'll need to sign in again to access your account.</p>
-                    
-                    <!-- Action Buttons -->
+
                     <div class="flex flex-col gap-3 w-full mt-5">
                         <button id="confirmLogoutBtn" class="group relative rounded-full w-full bg-primary hover:bg-primary/90 flex items-center justify-center overflow-hidden hover:cursor-pointer active:scale-95 transition-all duration-300 ease-in-out py-3">
                             <span class="text-secondary-text text-sm font-medium group-hover:-translate-x-1 transition-transform duration-500 ease-in-out">
@@ -114,38 +101,32 @@
                 </div>
             </div>
         </div>`;
-        
-        // Add modal to body
+
         document.body.insertAdjacentHTML('beforeend', modalHTML);
-        
-        // Add event listeners
+
         const modal = document.getElementById('logoutConfirmModal');
         const closeBtn = document.getElementById('logoutModalClose');
         const confirmBtn = document.getElementById('confirmLogoutBtn');
         const cancelBtn = document.getElementById('cancelLogoutBtn');
-        
-        // Close modal functions
+
         const closeModal = () => {
             modal.classList.add('hidden');
             modal.classList.remove('flex');
         };
-        
-        // Event listeners
+
         closeBtn.addEventListener('click', closeModal);
         cancelBtn.addEventListener('click', closeModal);
         confirmBtn.addEventListener('click', () => {
             closeModal();
             performLogout();
         });
-        
-        // Close modal when clicking background
+
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 closeModal();
             }
         });
-        
-        // Close modal on Escape key
+
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
                 closeModal();
@@ -153,9 +134,8 @@
         });
     }
 
-    // Attach logout handlers to all logout buttons and links
     function attachLogoutHandlers() {
-        // Handle buttons with ID (admin/employee pages)
+        
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn && !logoutBtn.dataset.bound) {
             logoutBtn.addEventListener('click', handleLogoutClick);
@@ -163,7 +143,6 @@
             console.log('Logout button handler attached successfully');
         }
 
-        // Handle links with logout class (unauth/auth pages)
         const logoutLinks = document.querySelectorAll('.logout-link');
         logoutLinks.forEach(link => {
             if (!link.dataset.bound) {
@@ -173,7 +152,6 @@
             }
         });
 
-        // Handle any links with href="/logout" (fallback)
         const logoutHrefLinks = document.querySelectorAll('a[href="/logout"], a[href="logout"]');
         logoutHrefLinks.forEach(link => {
             if (!link.dataset.bound) {
@@ -184,14 +162,12 @@
         });
     }
 
-    // Initialize when DOM is ready
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', attachLogoutHandlers);
     } else {
         attachLogoutHandlers();
     }
 
-    // Expose functions for manual invocation if needed
     window.attachLogoutHandlers = attachLogoutHandlers;
     window.handleLogoutClick = handleLogoutClick;
     window.performLogout = performLogout;

@@ -1,12 +1,9 @@
-// Lightweight skeleton loader for employee pages
-// - Injects minimal CSS for shimmer effect once
-// - Shows a full-page overlay with placeholder blocks
-// - Automatically hides on window 'load' or after a timeout
+﻿
 
 (function () {
 	const STYLE_ID = 'betcha-skeleton-style';
 	const OVERLAY_ID = 'betcha-skeleton-overlay';
-    const MIN_VISIBLE_MS = 800; // keep skeleton visible for at least 0.3s
+    const MIN_VISIBLE_MS = 800; 
     let lastShowAt = 0;
 
 	function injectStylesOnce() {
@@ -152,7 +149,6 @@
 			`;
 		}
 
-		// generic fallback
 		return `
 			${header}
 			<div class="grid grid-2">
@@ -169,7 +165,7 @@
 			buildOverlay(getPageKey());
 			lastShowAt = Date.now();
 		} catch (e) {
-			// non-fatal
+			
 		}
 	}
 
@@ -185,22 +181,19 @@
 		}
 	}
 
-	// Expose manual control
 	window.BetchaSkeleton = { show: showSkeleton, hide: hideSkeleton };
 
-	// Auto-run early, hide on load or timeout fallback
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', showSkeleton);
 	} else {
 		showSkeleton();
 	}
 	window.addEventListener('load', hideSkeleton, { once: true });
-	setTimeout(hideSkeleton, 2500); // safety fallback
+	setTimeout(hideSkeleton, 2500); 
 
-	// Show skeleton on page navigations only
 	function shouldHandleLinkClick(event) {
 		if (event.defaultPrevented) return false;
-		if (event.button !== 0) return false; // left click only
+		if (event.button !== 0) return false; 
 		if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return false;
 		const anchor = event.target?.closest?.('a[href]');
 		if (!anchor) return false;
@@ -210,7 +203,7 @@
 		if (anchor.target && anchor.target !== '_self') return false;
 		try {
 			const url = new URL(href, window.location.href);
-			// Only same-origin navigations
+			
 			if (url.origin !== window.location.origin) return false;
 			return true;
 		} catch (_) { return false; }
@@ -222,10 +215,8 @@
 		}
 	}, true);
 
-	// Also show skeleton as the page begins unloading
 	window.addEventListener('beforeunload', () => {
-		try { showSkeleton(); } catch (_) { /* ignore */ }
+		try { showSkeleton(); } catch (_) {  }
 	});
 })();
-
 

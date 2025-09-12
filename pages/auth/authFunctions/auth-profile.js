@@ -1,6 +1,4 @@
-/**
- * Initialize auth profile picture in navigation
- */
+﻿
 function initializeAuthProfile() {
     try {
         const profilePicture = localStorage.getItem('pfplink') || '';
@@ -11,17 +9,16 @@ function initializeAuthProfile() {
             console.warn('Auth profile elements not found in DOM');
             return;
         }
-        
-        // If profile picture exists, show it
+
         if (profilePicture && profilePicture.trim() !== '') {
             authProfileImgElement.src = profilePicture;
             authProfileImgElement.classList.remove('hidden');
-            // Remove green background when showing profile picture
+
             menuBtnElement.classList.remove('bg-primary');
             menuBtnElement.classList.add('bg-transparent');
             console.log('Auth profile picture loaded:', profilePicture);
         } else {
-            // Keep default SVG icon visible with green background
+
             authProfileImgElement.classList.add('hidden');
             menuBtnElement.classList.remove('bg-transparent');
             menuBtnElement.classList.add('bg-primary');
@@ -33,7 +30,6 @@ function initializeAuthProfile() {
     }
 }
 
-// Initialize profile when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeAuthProfile();
 });

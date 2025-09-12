@@ -1,15 +1,12 @@
-//refractor or clean the code if possible
+﻿
 
-// ==================== CONSTANTS & GLOBALS ====================
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 let currentPropertyId = null;
 let currentPropertyImages = [];
 
-// ==================== INITIALIZATION ====================
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 Property Edit Functions - DOM loaded!');
-    
-    // Check if global amenity functions are available
+
     console.log('🔍 Checking global amenity functions availability:');
     console.log('  - window.getAmenityDisplayInfo:', typeof window.getAmenityDisplayInfo);
     console.log('  - window.getAmenityIcon:', typeof window.getAmenityIcon);
@@ -23,7 +20,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ==================== UTILITY FUNCTIONS ====================
 function getPropertyIdFromUrl() {
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('id');
@@ -53,7 +49,6 @@ function handleError(message, error = null) {
     showErrorMessage(message);
 }
 
-// ==================== API FUNCTIONS ====================
 class PropertyAPI {
     static async fetchProperty(propertyId) {
         try {
@@ -74,8 +69,7 @@ class PropertyAPI {
             });
             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
             const result = await response.json();
-            
-            // Log property update audit
+
             try {
                 if (window.AuditTrailFunctions) {
                     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -135,16 +129,13 @@ class PropertyAPI {
     }
 }
 
-// ==================== MAIN INITIALIZATION ====================
 async function initializePropertyEdit(propertyId) {
     try {
         currentPropertyId = propertyId;
-        
-        // Fetch and populate property data
+
         const propertyData = await PropertyAPI.fetchProperty(propertyId);
         populateForm(propertyData);
-        
-        // Initialize form functionality
+
         initializeFormComponents();
         
         console.log('✅ Property edit initialized successfully');
@@ -153,7 +144,6 @@ async function initializePropertyEdit(propertyId) {
     }
 }
 
-// ==================== FORM POPULATION ====================
 function populateForm(data) {
     populateBasicInfo(data);
     populateImages(data.photoLinks);
@@ -184,15 +174,13 @@ function populateBasicInfo(data) {
         }
     });
 
-    // Populate dropdowns
     populateDropdowns(data);
-    
-    // Populate time fields
+
     populateTimeFields(data);
 }
 
 function populateDropdowns(data) {
-    // Populate category dropdown
+
     if (data.category) {
         const categoryButton = document.getElementById('categoryDropdownBtn');
         const selectedCategory = document.getElementById('selectedCategory');
@@ -200,23 +188,21 @@ function populateDropdowns(data) {
             selectedCategory.textContent = data.category;
         }
     }
-    
-    // Update archive/activate button UI based on status instead of dropdown
+
     if (data.status) {
         updateArchiveButtonUI(data.status);
     }
 }
 
 function populateTimeFields(data) {
-    // Populate check-in time
+
     if (data.timeIn) {
         const checkInTimeText = document.getElementById('checkInTimeText');
         const checkInTimeInput = document.getElementById('checkInTimeInput');
         if (checkInTimeText) checkInTimeText.textContent = data.timeIn;
         if (checkInTimeInput) checkInTimeInput.value = data.timeIn;
     }
-    
-    // Populate check-out time
+
     if (data.timeOut) {
         const checkOutTimeText = document.getElementById('checkOutTimeText');
         const checkOutTimeInput = document.getElementById('checkOutTimeInput');
@@ -249,8 +235,7 @@ function populateImages(photoLinks) {
     if (!photoLinks || photoLinks.length === 0) return;
 
     currentPropertyImages = photoLinks;
-    
-    // Update main gallery display
+
     const photoSection = document.getElementById('PhotosSection');
     if (photoSection) {
         updateGalleryDisplay(photoLinks);
@@ -261,16 +246,13 @@ function updateGalleryDisplay(images) {
     const photoSection = document.getElementById('PhotosSection');
     if (!photoSection || !images.length) return;
 
-    // Clear existing content
     photoSection.innerHTML = '';
 
-    // Create main image
     const mainImage = document.createElement('div');
     mainImage.className = 'rounded-2xl bg-cover bg-center h-full col-span-1 sm:col-span-3';
     mainImage.style.backgroundImage = `url(${images[0]})`;
     photoSection.appendChild(mainImage);
 
-    // Create side images if available
     if (images.length > 1) {
         const sideContainer = document.createElement('div');
         sideContainer.className = 'hidden sm:grid sm:col-span-2 sm:grid-rows-2 sm:gap-3 h-full';
@@ -285,7 +267,6 @@ function updateGalleryDisplay(images) {
         photoSection.appendChild(sideContainer);
     }
 
-    // Add edit button
     addEditButton(photoSection);
 }
 
@@ -305,11 +286,9 @@ function addEditButton(container) {
 
 function populateAmenities(amenities, otherAmenities) {
     console.log('Populating amenities:', amenities, 'Other amenities:', otherAmenities);
-    
-    // Clear existing selections
+
     clearAmenitySelections();
-    
-    // Amenity mapping from data values to checkbox values
+
     const amenityMapping = {
         'wifi': 'wifi',
         'stove': 'stove', 
@@ -336,15 +315,13 @@ function populateAmenities(amenities, otherAmenities) {
         'toiletPaper': 'toiletPaper',
         'dryer': 'dryer'
     };
-    
-    // Populate standard amenities
+
     if (amenities && Array.isArray(amenities)) {
         amenities.forEach(amenity => {
-            // Try to find checkbox by mapped value or original value
+
             const mappedValue = amenityMapping[amenity] || amenity;
             let checkbox = document.querySelector(`input[type="checkbox"][value="${mappedValue}"]`);
-            
-            // If not found, try searching by name attribute
+
             if (!checkbox) {
                 checkbox = document.querySelector(`input[name*="[]"][value="${mappedValue}"]`);
             }
@@ -354,28 +331,24 @@ function populateAmenities(amenities, otherAmenities) {
                 console.log(`✅ Checked amenity: ${amenity} -> ${mappedValue}`);
             } else {
                 console.log(`❌ Amenity checkbox not found: ${amenity}`);
-                // Log all available checkboxes for debugging
+
                 const allCheckboxes = document.querySelectorAll('input[type="checkbox"]');
                 console.log('Available checkboxes:', Array.from(allCheckboxes).map(cb => cb.value));
             }
         });
     }
-    
-    // Handle other amenities if they exist
+
     if (otherAmenities && Array.isArray(otherAmenities) && otherAmenities.length > 0) {
         console.log('Other amenities found:', otherAmenities);
-        // Handle custom amenities if needed
+
     }
 
-    // Update the visual display
     updateAmenitiesDisplay(amenities || []);
 }
 
-// Update the amenities display section
 function updateAmenitiesDisplay(amenities) {
     console.log('Updating amenities display with:', amenities);
-    
-    // Find the amenities container by ID
+
     const container = document.getElementById('amenitiesDisplay');
     
     if (!container) {
@@ -384,11 +357,9 @@ function updateAmenitiesDisplay(amenities) {
     }
     
     console.log('Found amenities container:', container);
-    
-    // Clear existing display
+
     container.innerHTML = '';
-    
-    // If no amenities, show a message
+
     if (!amenities || amenities.length === 0) {
         container.innerHTML = `
             <li class="w-full p-2">
@@ -399,21 +370,19 @@ function updateAmenitiesDisplay(amenities) {
         `;
         return;
     }
-    
-    // Limit to 5 amenities and get user-friendly names and icons
+
     const displayAmenities = amenities.slice(0, 5);
-    
-    // Use global amenity functions if available, otherwise fall back to local mapping
+
     let amenityMapping = {};
     
     if (window.getAmenityDisplayInfo) {
-        // Use the global function to get display info
+
         displayAmenities.forEach(amenity => {
             const info = window.getAmenityDisplayInfo(amenity);
             amenityMapping[amenity] = { name: info.name, iconType: info.icon };
         });
     } else {
-        // Fallback mapping
+
         amenityMapping = {
             'wifi': { name: 'WiFi', iconType: 'wifi' },
             'ref': { name: 'Refrigerator', iconType: 'refrigerator' },
@@ -475,12 +444,10 @@ function updateAmenitiesDisplay(amenities) {
             'babyBath': { name: 'Baby Bath', iconType: 'babyBath' }
         };
     }
-    
-    // Add each amenity to the display
+
     displayAmenities.forEach(amenity => {
         const mapping = amenityMapping[amenity] || { name: amenity, iconType: 'default' };
-        
-        // Get the icon SVG - use global function if available, otherwise use local function
+
         let iconSvg;
         console.log(`🔍 Processing amenity "${amenity}" with mapping:`, mapping);
         
@@ -507,15 +474,13 @@ function updateAmenitiesDisplay(amenities) {
     console.log('Amenities display updated successfully - showing', displayAmenities.length, 'amenities');
 }
 
-// Function to get amenity icons from the modal - now using the same icons as property-view.js
 function getAmenityIconFromModal(iconType) {
-    // Use the global function from property-view.js if available, otherwise fall back to local mapping
+
     if (window.getAmenityIcon) {
         const iconPath = window.getAmenityIcon(iconType);
         return `<img src="${iconPath}" alt="${iconType}" class="h-5 fill-primary-text">`;
     }
-    
-    // Fallback icon mapping (comprehensive version)
+
     const iconMap = {
         'wifi': '/public/svg/wifi.svg',
         'refrigerator': '/public/svg/refrigerator.svg',
@@ -580,7 +545,7 @@ function getAmenityIconFromModal(iconType) {
 }
 
 function clearAmenitySelections() {
-    // Clear all checkboxes in the amenities modal
+
     document.querySelectorAll('#editAmmenitiesModal input[type="checkbox"]').forEach(checkbox => {
         checkbox.checked = false;
     });
@@ -623,7 +588,6 @@ function storePropertyId(propertyId) {
     }
 }
 
-// ==================== FORM COMPONENTS INITIALIZATION ====================
 function initializeFormComponents() {
     initializeModalSystem();
     initializeDropdowns();
@@ -632,7 +596,7 @@ function initializeFormComponents() {
 }
 
 function initializeModalSystem() {
-    // Modal triggers
+
     document.querySelectorAll('[data-modal-target]').forEach(trigger => {
         trigger.addEventListener('click', (e) => {
             e.preventDefault();
@@ -642,13 +606,12 @@ function initializeModalSystem() {
             if (modalId === 'editGalleryModal') {
                 initializeImageEditing();
             } else if (modalId === 'editAmmenitiesModal') {
-                // Let modal.js handle Alpine.js initialization for amenities modal
+
                 console.log('Amenities modal opened - Alpine.js handled by modal.js');
             }
         });
     });
 
-    // Modal close buttons
     document.querySelectorAll('[data-close-modal]').forEach(closeBtn => {
         closeBtn.addEventListener('click', (e) => {
             e.preventDefault();
@@ -657,7 +620,6 @@ function initializeModalSystem() {
         });
     });
 
-    // Close on backdrop click
     document.querySelectorAll('.modal').forEach(modal => {
         modal.addEventListener('click', (e) => {
             if (e.target === modal) hideModal(modal.id);
@@ -678,12 +640,10 @@ function setupDropdown(type, options) {
 
     if (!button || !list || !input || !display) return;
 
-    // Toggle dropdown
     button.addEventListener('click', () => {
         list.classList.toggle('hidden');
     });
 
-    // Handle option selection
     list.addEventListener('click', (e) => {
         if (e.target.tagName === 'LI') {
             const value = e.target.textContent.trim();
@@ -699,7 +659,6 @@ function setupTimeDropdowns() {
     setupTimeDropdown('checkOut');
 }
 
-// ==================== ARCHIVE/ACTIVATE TOGGLE ====================
 function initializeArchiveToggle() {
     const toggleBtn = document.getElementById('archiveToggleBtn');
     const toggleText = document.getElementById('archiveToggleText');
@@ -710,7 +669,6 @@ function initializeArchiveToggle() {
     const currentStatus = (selectedStatus?.textContent || '').trim();
     updateArchiveButtonUI(currentStatus);
 
-    // Always attach handler once
     if (!toggleBtn._archiveHandlerAttached) {
         toggleBtn.addEventListener('click', async () => {
             const statusNow = (document.getElementById('statusText')?.textContent || selectedStatus?.textContent || '').trim();
@@ -730,7 +688,7 @@ function updateArchiveButtonUI(status) {
     const isArchived = (status || '').toLowerCase() === 'archived';
 
     if (isArchived) {
-        // Make button prominent and actionable
+
         toggleBtn.classList.remove('bg-neutral-100', 'hover:bg-neutral-200');
         toggleBtn.classList.add('bg-emerald-100', 'hover:bg-emerald-200');
         toggleText.classList.remove('text-neutral-700');
@@ -740,7 +698,7 @@ function updateArchiveButtonUI(status) {
         toggleBtn.style.pointerEvents = 'auto';
         toggleBtn.style.opacity = '1';
     } else {
-        // In non-archived states, show as Archive but disabled (no archiving flow here)
+
         toggleBtn.classList.remove('bg-emerald-100', 'hover:bg-emerald-200');
         toggleBtn.classList.add('bg-neutral-100', 'hover:bg-neutral-200');
         toggleText.classList.remove('text-emerald-700');
@@ -756,8 +714,7 @@ async function updatePropertyStatus(newStatus) {
     try {
         if (!currentPropertyId) throw new Error('Property ID not found');
         await PropertyAPI.updateProperty(currentPropertyId, { status: newStatus });
-        
-        // Log property status change audit
+
         try {
             if (window.AuditTrailFunctions) {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -777,7 +734,7 @@ async function updatePropertyStatus(newStatus) {
         if (selectedStatus) selectedStatus.textContent = newStatus;
         updateArchiveButtonUI(newStatus);
         showSuccessMessage(`Status updated to ${newStatus}`);
-        // Redirect to properties list to match archive behavior
+
         setTimeout(() => { window.location.href = 'property.html'; }, 1500);
     } catch (error) {
         handleError('Failed to update status', error);
@@ -792,7 +749,6 @@ function setupTimeDropdown(type) {
 
     if (!button || !list || !input || !display) return;
 
-    // Generate time options if not already present
     if (list.children.length === 0) {
         generateTimeOptions().forEach(time => {
             const li = document.createElement('li');
@@ -802,12 +758,10 @@ function setupTimeDropdown(type) {
         });
     }
 
-    // Toggle dropdown
     button.addEventListener('click', () => {
         list.classList.toggle('hidden');
     });
 
-    // Handle option selection
     list.addEventListener('click', (e) => {
         if (e.target.tagName === 'LI') {
             const value = e.target.textContent.trim();
@@ -829,9 +783,8 @@ function generateTimeOptions() {
     return times;
 }
 
-// ==================== IMAGE UPLOAD FUNCTIONALITY ====================
 let selectedImageFiles = [];
-let imageUploadInitialized = false; // Prevent multiple initialization
+let imageUploadInitialized = false; 
 
 function initializeImageEditing() {
     if (imageUploadInitialized) {
@@ -844,8 +797,7 @@ function initializeImageEditing() {
         fileInput.addEventListener('change', handleImageSelection);
         imageUploadInitialized = true;
         console.log('Image upload functionality initialized');
-        
-        // Populate existing images in the modal
+
         populateGalleryModal();
     } else {
         console.warn('File input not found in edit gallery modal');
@@ -866,7 +818,6 @@ function populateGalleryModal() {
         return;
     }
 
-    // Clear existing images (except file input)
     const existingImages = gallery.querySelectorAll('.existing-image');
     existingImages.forEach(img => img.remove());
 
@@ -903,28 +854,23 @@ async function deleteExistingImage(imageUrl, buttonElement) {
 
     try {
         console.log('🗑️ Deleting image:', imageUrl);
-        
-        // Show loading state
+
         buttonElement.innerHTML = `
             <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
         `;
-        
-        // Call delete API with the full image URL
+
         await PropertyAPI.deleteImage(imageUrl);
-        
-        // Remove from current property images array
+
         currentPropertyImages = currentPropertyImages.filter(url => url !== imageUrl);
-        
-        // Remove the image container from DOM
+
         const imageContainer = buttonElement.closest('.existing-image');
         if (imageContainer) {
             imageContainer.remove();
         }
-        
-        // Update the main gallery display
+
         updateGalleryDisplay(currentPropertyImages);
         
         showSuccessMessage('Image deleted successfully!');
@@ -932,8 +878,7 @@ async function deleteExistingImage(imageUrl, buttonElement) {
     } catch (error) {
         console.error('Failed to delete image:', error);
         showErrorMessage('Failed to delete image');
-        
-        // Reset button state
+
         buttonElement.innerHTML = `
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -942,19 +887,16 @@ async function deleteExistingImage(imageUrl, buttonElement) {
     }
 }
 
-// Make function globally accessible for onclick handlers
 window.deleteExistingImage = deleteExistingImage;
 
 function handleImageSelection(e) {
     const files = Array.from(e.target.files);
     console.log('Files selected:', files.length);
     console.log('File details:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
-    
-    // Store files for later upload
+
     selectedImageFiles = [...selectedImageFiles, ...files];
     console.log('Total files in queue:', selectedImageFiles.length);
-    
-    // Show preview
+
     displayImagePreviews(files);
 }
 
@@ -989,16 +931,14 @@ function displayImagePreviews(files) {
 }
 
 function removeImagePreview(button, fileName) {
-    // Remove from selectedImageFiles array
+
     selectedImageFiles = selectedImageFiles.filter(file => file.name !== fileName);
-    
-    // Remove the preview element
+
     button.closest('.relative').remove();
     
     console.log('Removed image:', fileName, 'Remaining files:', selectedImageFiles.length);
 }
 
-// Make function globally accessible for onclick handlers
 window.removeImagePreview = removeImagePreview;
 
 async function uploadAllImages() {
@@ -1015,7 +955,6 @@ async function uploadAllImages() {
             formData.append('photos', file);
         });
 
-        // Try different API endpoint URLs
         const possibleUrls = [
             `${API_BASE_URL}/property/photos/append/${currentPropertyId}`,
             `${API_BASE_URL}/property/update/photos/${currentPropertyId}`,
@@ -1028,8 +967,7 @@ async function uploadAllImages() {
         
         let response = null;
         let lastError = null;
-        
-        // Try different URL and method combinations
+
         for (let urlIndex = 0; urlIndex < possibleUrls.length; urlIndex++) {
             for (let methodIndex = 0; methodIndex < possibleMethods.length; methodIndex++) {
                 const uploadUrl = possibleUrls[urlIndex];
@@ -1045,7 +983,7 @@ async function uploadAllImages() {
                         console.log(`✅ Success with ${method} ${uploadUrl}`);
                         break;
                     } else if (response.status !== 404 && response.status !== 405) {
-                        // If it's not a "not found" or "method not allowed", investigate further
+
                         console.log(`⚠️ API Error: ${response.status} for ${method} ${uploadUrl}`);
                         break;
                     }
@@ -1079,19 +1017,16 @@ async function uploadAllImages() {
         if (response.ok) {
             console.log('✅ Images uploaded successfully');
             showSuccessMessage('Images uploaded successfully!');
-            
-            // Clear selected files after successful upload
+
             selectedImageFiles = [];
-            
-            // Clear previews
+
             const gallery = document.querySelector('#editGalleryModal .grid');
             if (gallery) {
-                // Remove all preview elements except the file input label
+
                 const previews = gallery.querySelectorAll('.relative.group');
                 previews.forEach(preview => preview.remove());
             }
-            
-            // Refresh the property data to show new images
+
             await initializePropertyEdit(currentPropertyId);
             
         } else {
@@ -1104,9 +1039,8 @@ async function uploadAllImages() {
     }
 }
 
-// ==================== SAVE & DISCARD FUNCTIONALITY ====================
 function initializeSaveAndDiscardFunctionality() {
-    // Save functionality
+
     const saveButton = document.querySelector('[data-modal-target="confirmDetailsModal"]');
     if (saveButton) {
         saveButton.addEventListener('click', (e) => {
@@ -1117,7 +1051,6 @@ function initializeSaveAndDiscardFunctionality() {
         });
     }
 
-    // Confirm button in modal
     const confirmButton = document.getElementById('confirmUpdateButton');
     if (confirmButton) {
         confirmButton.onclick = () => {
@@ -1126,7 +1059,6 @@ function initializeSaveAndDiscardFunctionality() {
         };
     }
 
-    // Discard functionality
     const discardButton = document.querySelector('[data-modal-target="discardDetailsModal"]');
     if (discardButton) {
         discardButton.addEventListener('click', (e) => {
@@ -1135,7 +1067,6 @@ function initializeSaveAndDiscardFunctionality() {
         });
     }
 
-    // Confirm discard button in modal
     const confirmDiscardButton = document.getElementById('confirmDiscardButton');
     if (confirmDiscardButton) {
         confirmDiscardButton.onclick = () => {
@@ -1156,17 +1087,14 @@ async function handlePropertyUpdate() {
         
         console.log('🔄 Starting property update...');
 
-        // Update property data first
         await PropertyAPI.updateProperty(currentPropertyId, formData);
         console.log('✅ Property data updated successfully');
 
-        // Upload images if any (using simplified approach)
         if (hasNewImages) {
             console.log('📤 Uploading new images...');
             await uploadAllImages();
         }
 
-        // Redirect to property view page
         redirectToPropertyView();
         
     } catch (error) {
@@ -1174,22 +1102,21 @@ async function handlePropertyUpdate() {
     }
 }
 
-// ==================== FORM DATA COLLECTION ====================
 function collectFormData() {
     const formData = {
         name: getValue('input-prop-name'),
         city: getValue('input-prop-city'),
         address: getValue('input-prop-address'),
-        description: getValue('input-prop-desc'), // Fixed: was 'input-prop-description'
-        packagePrice: parseFloat(getValue('input-prop-packPrice')) || 0, // Fixed: was 'input-prop-price'
+        description: getValue('input-prop-desc'), 
+        packagePrice: parseFloat(getValue('input-prop-packPrice')) || 0, 
         reservationFee: parseFloat(getValue('input-prop-rsrvFee')) || 0,
         additionalPaxPrice: parseFloat(getValue('input-prop-addPaxPrice')) || 0,
         discount: parseFloat(getValue('input-prop-discount')) || 0,
         packageCapacity: parseInt(getValue('input-prop-packCap')) || 1,
-        maxCapacity: parseInt(getValue('input-prop-maxCap')) || 1, // Fixed: was 'input-prop-guests'
+        maxCapacity: parseInt(getValue('input-prop-maxCap')) || 1, 
         amenities: collectAmenities(),
         otherAmenities: collectCustomAmenities(),
-        mapLink: getValue('input-prop-mapLink') // Fixed: was 'input-prop-map'
+        mapLink: getValue('input-prop-mapLink') 
     };
     
     return formData;
@@ -1201,8 +1128,7 @@ function getValue(id) {
 }
 
 function collectAmenities() {
-    // Collect all checked amenity checkboxes inside the amenities modal,
-    // regardless of category grouping (e.g., essentials[], kitchenDining[], bathroom[], etc.)
+
     const modal = document.getElementById('editAmmenitiesModal');
     const scope = modal || document;
 
@@ -1211,13 +1137,12 @@ function collectAmenities() {
         .map(el => el.value)
         .filter(Boolean);
 
-    // Dedupe values
     const uniqueValues = Array.from(new Set(values));
     return uniqueValues;
 }
 
 function collectCustomAmenities() {
-    // Try to get from Alpine.js data first
+
     if (window.Alpine) {
         const amenitiesModal = document.querySelector('#editAmmenitiesModal [x-data]');
         
@@ -1229,19 +1154,16 @@ function collectCustomAmenities() {
             }
         }
     }
-    
-    // Fallback to DOM elements
+
     const domAmenities = Array.from(document.querySelectorAll('.custom-amenity-item span'))
         .map(span => span.textContent.trim());
-    
-    // Also try to get from the display container
+
     const displayItems = Array.from(document.querySelectorAll('#other-amenities-display li'))
         .map(li => li.textContent.trim());
     
     return domAmenities.length > 0 ? domAmenities : displayItems;
 }
 
-// ==================== VALIDATION ====================
 function validateForm() {
     const requiredFields = [
         { id: 'input-prop-name', label: 'Property Name' },
@@ -1270,7 +1192,6 @@ function validateForm() {
     return true;
 }
 
-// ==================== MODAL UTILITIES ====================
 function showModal(modalId) {
     const modal = document.getElementById(modalId);
     if (modal) modal.classList.remove('hidden');
@@ -1281,19 +1202,17 @@ function hideModal(modalId) {
     if (modal) modal.classList.add('hidden');
 }
 
-// ==================== REDIRECT FUNCTIONS ====================
 function redirectToPropertyView() {
     if (currentPropertyId) {
-        // Redirect to property view page with the current property ID
+
         window.location.href = `property-view.html?id=${currentPropertyId}`;
     } else {
-        // Fallback: redirect to properties list page
+
         console.warn('No property ID found, redirecting to properties list');
         window.location.href = 'property.html';
     }
 }
 
-// DOM manipulation utilities
 window.removeCustomAmenity = function(button) {
     button.closest('.custom-amenity-item').remove();
 };
@@ -1301,8 +1220,7 @@ window.removeCustomAmenity = function(button) {
 window.removeImage = function(button) {
     const imageElement = button.closest('.relative');
     const imageName = imageElement.querySelector('img').alt;
-    
-    // Remove from newImages array
+
     if (window.editGalleryData) {
         window.editGalleryData.newImages = window.editGalleryData.newImages.filter(
             img => img.name !== imageName
@@ -1312,7 +1230,6 @@ window.removeImage = function(button) {
     imageElement.remove();
 };
 
-// ==================== ALPINE.JS AMENITIES HANDLER ====================
 window.amenitiesHandler = function() {
     return {
         customAmenities: [],
@@ -1331,8 +1248,7 @@ window.amenitiesHandler = function() {
                 this.showError('Amenity name must be 50 characters or less');
                 return;
             }
-            
-            // Check for duplicates (case-insensitive)
+
             const exists = this.customAmenities.some(existing => 
                 existing.toLowerCase() === amenity.toLowerCase()
             );
@@ -1341,8 +1257,7 @@ window.amenitiesHandler = function() {
                 this.showError('This amenity has already been added');
                 return;
             }
-            
-            // Add the amenity
+
             this.customAmenities.push(amenity);
             this.newAmenity = '';
             
@@ -1358,18 +1273,16 @@ window.amenitiesHandler = function() {
         },
         
         showError(message) {
-            // You can customize this to show errors in your preferred way
+
             console.error('Amenity error:', message);
-            // Example: show in a toast or modal
+
             alert(message);
         },
-        
-        // Character count for the input
+
         get remainingChars() {
             return 50 - this.newAmenity.length;
         },
-        
-        // Check if add button should be disabled
+
         get canAdd() {
             return this.newAmenity.trim().length > 0 && 
                    this.newAmenity.length <= 50 && 

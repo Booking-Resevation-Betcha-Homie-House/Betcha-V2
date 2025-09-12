@@ -1,4 +1,4 @@
-// Function to save user data to localStorage
+﻿
 function saveUserToLocalStorage(userData) {
     localStorage.setItem('firstName', userData.firstName);
     localStorage.setItem('middleInitial', userData.middleInitial);
@@ -9,10 +9,9 @@ function saveUserToLocalStorage(userData) {
     localStorage.setItem('verified', userData.verified);
 }
 
-// Function to handle login button click
 function handleLoginButton(userData) {
     saveUserToLocalStorage(userData);
-    // Audit: user registered (logged in right after registration flow)
+
     try {
         const uid = userData.userId || localStorage.getItem('userId') || '';
         if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logUserRegistration === 'function' && uid) {
@@ -23,13 +22,12 @@ function handleLoginButton(userData) {
     window.location.href = '/pages/unauth/rooms.html';
 }
 
-// Function to handle verify button click
 async function handleVerifyButton(userData) {
-    // Open Sumsub verification in a new tab
+
     window.open('https://in.sumsub.com/websdk/p/sbx_uni_5lWlhioi8FNABcxg', '_blank');
 
     try {
-        // Update the verified status via API
+
         const response = await fetch('https://betcha-api.onrender.com/guest/update/' + userData.userId, {
             method: 'PUT',
             headers: {
@@ -44,12 +42,10 @@ async function handleVerifyButton(userData) {
             throw new Error('Failed to update verification status');
         }
 
-        // Update the verified status in the userData
         userData.verified = true;
-        
-        // Save to localStorage and redirect
+
         saveUserToLocalStorage(userData);
-        // Audit: user registration verified
+
         try {
             const uid = userData.userId || localStorage.getItem('userId') || '';
             if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logUserRegistration === 'function' && uid) {
@@ -63,15 +59,14 @@ async function handleVerifyButton(userData) {
     }
 }
 
-// Initialize event listeners when the document is ready
 document.addEventListener('DOMContentLoaded', () => {
     const loginButton = document.getElementById('loginButton');
     const verifyButton = document.getElementById('verifyButton');
 
     if (loginButton) {
         loginButton.addEventListener('click', () => {
-            // Get the user data from wherever it's available in your registration flow
-            const userData = window.registeredUserData; // You'll need to set this during registration
+
+            const userData = window.registeredUserData; 
             if (userData) {
                 handleLoginButton(userData);
             } else {
@@ -82,7 +77,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (verifyButton) {
         verifyButton.addEventListener('click', () => {
-            const userData = window.registeredUserData; // You'll need to set this during registration
+            const userData = window.registeredUserData; 
             if (userData) {
                 handleVerifyButton(userData);
             } else {

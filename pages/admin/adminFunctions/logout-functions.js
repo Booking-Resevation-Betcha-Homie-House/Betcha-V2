@@ -1,11 +1,11 @@
-// Handles logout across admin pages
+﻿
 (function() {
     function handleLogoutClick(event) {
         event.preventDefault();
         try {
             localStorage.clear();
         } catch (_) {}
-        // From pages/admin/* to project root index.html
+
         window.location.href = '../../index.html';
     }
 
@@ -17,11 +17,8 @@
         }
     }
 
-    // Expose for manual invocation if needed
     window.attachLogoutHandlers = attachLogoutHandlers;
 
-    // Auto-init
     document.addEventListener('DOMContentLoaded', attachLogoutHandlers);
 })();
-
 

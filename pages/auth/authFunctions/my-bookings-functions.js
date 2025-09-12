@@ -1,9 +1,7 @@
-// My Bookings JavaScript Functions
-// This file handles fetching and rendering booking cards dynamically
+﻿
 
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
-// Global variable to store categorized bookings
 let globalBookingsData = {
     all: [],
     pending: [],
@@ -11,18 +9,15 @@ let globalBookingsData = {
     completed: []
 };
 
-// Photo cache to avoid duplicate API calls
 const photoCache = new Map();
 
-// Function to process items with controlled concurrency
 async function processWithConcurrency(items, asyncFn, concurrency = 3) {
     const results = [];
     for (let i = 0; i < items.length; i += concurrency) {
         const batch = items.slice(i, i + concurrency);
         const batchResults = await Promise.all(batch.map(asyncFn));
         results.push(...batchResults);
-        
-        // Small delay between batches to be kind to the server
+
         if (i + concurrency < items.length) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
@@ -30,21 +25,18 @@ async function processWithConcurrency(items, asyncFn, concurrency = 3) {
     return results;
 }
 
-// Function to sort bookings by transaction number (descending - newest first)
 function sortBookingsByTransactionNumber(bookings) {
     return [...bookings].sort((a, b) => {
         const transA = a.transNo || '';
         const transB = b.transNo || '';
-        
-        // Extract numbers from transaction strings for proper numeric sorting
+
         const numA = parseInt(transA.replace(/\D/g, '')) || 0;
         const numB = parseInt(transB.replace(/\D/g, '')) || 0;
         
-        return numB - numA; // Descending order (newest first)
+        return numB - numA; 
     });
 }
 
-// Function to categorize bookings based on specific status requirements
 function categorizeBookingsByStatus(bookings) {
     console.log('🔄 Starting categorization for', bookings.length, 'bookings (pre-sorted by transaction number)');
     
@@ -57,8 +49,7 @@ function categorizeBookingsByStatus(bookings) {
     bookings.forEach((booking, index) => {
         const status = booking.status ? booking.status.trim() : '';
         const rating = booking.rating || 0;
-        
-        // Only log first few for performance
+
         if (index < 3) {
             console.log(`📊 Booking ${index + 1}:`, {
                 id: booking._id,
@@ -68,20 +59,19 @@ function categorizeBookingsByStatus(bookings) {
                 propertyName: booking.propertyName
             });
         }
-        
-        // Pending: 'Pending Payment', 'Reserved', 'Fully-Paid', 'Checked-In', 'Checked-Out'
+
         if (['Pending Payment', 'Reserved', 'Fully-Paid', 'Checked-In', 'Checked-Out'].includes(status)) {
             categorized.pending.push(booking);
         }
-        // To Rate: 'Completed' with rating = 0
+
         else if (status === 'Completed' && rating === 0) {
             categorized.toRate.push(booking);
         }
-        // Completed: 'Completed' (with rating > 0), 'Cancel'
+
         else if ((status === 'Completed' && rating > 0) || status === 'Cancel') {
             categorized.completed.push(booking);
         }
-        // Default to pending for unknown statuses
+
         else {
             categorized.pending.push(booking);
         }
@@ -96,7 +86,6 @@ function categorizeBookingsByStatus(bookings) {
     return categorized;
 }
 
-// Function to create skeleton loading cards
 function createSkeletonLoader() {
     return `
         <div class="relative rounded-2xl p-5 w-full h-auto md:h-[200px] flex flex-col md:flex-row gap-5 shadow-sm bg-white border border-neutral-200 animate-pulse overflow-hidden">
@@ -128,7 +117,6 @@ function createSkeletonLoader() {
     `;
 }
 
-// Function to format date
 function formatDate(dateString) {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', {
@@ -138,7 +126,6 @@ function formatDate(dateString) {
     });
 }
 
-// Function to get status styling
 function getStatusStyle(status) {
     const statusMap = {
         'pending': { bgColor: 'bg-yellow-100', textColor: 'text-yellow-600' },
@@ -158,13 +145,11 @@ function getStatusStyle(status) {
     return statusMap[status.toLowerCase()] || { bgColor: 'bg-gray-100', textColor: 'text-gray-600' };
 }
 
-// Function to create a booking card
 function createBookingCard(booking, propertyPhoto = null) {
     const statusStyle = getStatusStyle(booking.status);
     const checkInDate = formatDate(booking.checkIn);
     const checkOutDate = formatDate(booking.checkOut);
-    
-    // Use property photo if available, otherwise fallback
+
     const roomImage = propertyPhoto || '/images/unit03.jpg';
 
     return `
@@ -222,10 +207,8 @@ function createBookingCard(booking, propertyPhoto = null) {
     `;
 }
 
-// Function to fetch property photo
-// Optimized function to fetch property photo with caching
 async function fetchPropertyPhoto(propertyId) {
-    // Check cache first
+
     if (photoCache.has(propertyId)) {
         return photoCache.get(propertyId);
     }
@@ -240,48 +223,42 @@ async function fetchPropertyPhoto(propertyId) {
 
         if (!response.ok) {
             console.warn(`Failed to fetch property ${propertyId}: ${response.status}`);
-            photoCache.set(propertyId, null); // Cache the failure
+            photoCache.set(propertyId, null); 
             return null;
         }
 
         const data = await response.json();
-        
-        // Get the first photo if available
+
         const photo = data.photoLinks && data.photoLinks.length > 0 ? data.photoLinks[0] : null;
-        
-        // Cache the result
+
         photoCache.set(propertyId, photo);
         return photo;
         
     } catch (error) {
         console.warn(`Error fetching property ${propertyId}:`, error);
-        photoCache.set(propertyId, null); // Cache the failure
+        photoCache.set(propertyId, null); 
         return null;
     }
 }
 
-// Function to navigate to booking details
 function navigateToBooking(bookingId) {
     window.location.href = `view-booking.html?bookingId=${bookingId}`;
 }
 
-// Function to set active booking tab
 function setActiveBookingTab(index) {
     console.log(`🔄 Switching to tab ${index}`);
-    
-    // Get tab buttons and content containers
+
     const tabBtns = document.querySelectorAll('.tab-btn');
     const containers = [
-        'allContainer',      // Tab 0: All
-        'pendingContainer',  // Tab 1: Pending
-        'rateContainer',     // Tab 2: To Rate
-        'completedContainer' // Tab 3: Completed
+        'allContainer',      
+        'pendingContainer',  
+        'rateContainer',     
+        'completedContainer' 
     ];
     
     console.log(`📋 Available containers:`, containers);
     console.log(`🎯 Target container:`, containers[index]);
-    
-    // Update button styles
+
     tabBtns.forEach((btn, i) => {
         if (i === index) {
             btn.classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
@@ -292,7 +269,6 @@ function setActiveBookingTab(index) {
         }
     });
 
-    // Show selected content, hide others
     containers.forEach((containerId, i) => {
         const content = document.getElementById(containerId);
         if (content) {
@@ -309,12 +285,9 @@ function setActiveBookingTab(index) {
     });
 }
 
-// Override the global setActiveTab function for my-bookings page
 window.setActiveTab = setActiveBookingTab;
 window.navigateToBooking = navigateToBooking;
 
-// Function to render bookings for a specific tab
-// Optimized function to render bookings with sorting and complete loading
 async function renderBookings(bookings, containerId) {
     console.log(`🎨 renderBookings called for ${containerId} with ${bookings?.length || 0} bookings`);
     const container = document.getElementById(containerId);
@@ -325,8 +298,7 @@ async function renderBookings(bookings, containerId) {
 
     if (!bookings || bookings.length === 0) {
         console.log(`📭 No bookings for ${containerId}, showing empty message`);
-        
-        // Create specific messages for each tab
+
         let emptyMessage = 'No bookings found';
         if (containerId === 'pendingContainer') {
             emptyMessage = 'No Pending Bookings';
@@ -347,13 +319,11 @@ async function renderBookings(bookings, containerId) {
     }
 
     console.log(`🔢 Sorting ${bookings.length} bookings by transaction number...`);
-    
-    // Sort bookings by transaction number (newest first)
+
     const sortedBookings = sortBookingsByTransactionNumber(bookings);
     
     console.log(`🏗️ Loading photos for ${sortedBookings.length} bookings in ${containerId}...`);
-    
-    // Keep skeleton loading while fetching all photos with controlled concurrency
+
     const allBookingsWithPhotos = await processWithConcurrency(
         sortedBookings,
         async (booking) => {
@@ -365,25 +335,22 @@ async function renderBookings(bookings, containerId) {
                 return { booking, photo: null };
             }
         },
-        4 // Process 4 photos at a time
+        4 
     );
     
     console.log(`✅ All photos processed for ${containerId}, rendering complete cards...`);
-    
-    // Now render all cards at once with their photos
+
     const completeHTML = allBookingsWithPhotos
         .map(({ booking, photo }) => createBookingCard(booking, photo))
         .join('');
-    
-    // Replace skeleton with complete content all at once
+
     container.innerHTML = completeHTML;
     
     console.log(`🎉 Successfully rendered ${allBookingsWithPhotos.length} complete cards in ${containerId}`);
 }
 
-// Function to show skeleton loading
 function showSkeletonLoading() {
-    // Show more skeleton cards for better loading experience
+
     const skeletonHTML = Array(4).fill(createSkeletonLoader()).join('');
     
     document.getElementById('allContainer').innerHTML = skeletonHTML;
@@ -394,16 +361,14 @@ function showSkeletonLoading() {
     console.log('💀 Skeleton loading displayed across all tabs');
 }
 
-// Function to fetch and render bookings
 async function fetchAndRenderBookings() {
     const startTime = performance.now();
     console.log('🚀 Starting optimized booking fetch...');
     
     try {
-        // Show skeleton loading
+
         showSkeletonLoading();
 
-        // Get user ID from localStorage or URL params
         const userId = localStorage.getItem('userId') || new URLSearchParams(window.location.search).get('userId');
         
         if (!userId) {
@@ -412,7 +377,6 @@ async function fetchAndRenderBookings() {
 
         console.log('📡 Fetching bookings for user:', userId);
 
-        // Fetch bookings
         const response = await fetch(`${API_BASE_URL}/booking/guest/${userId}`, {
             method: 'GET',
             headers: {
@@ -428,10 +392,9 @@ async function fetchAndRenderBookings() {
         console.log('🔍 API Response received in', performance.now() - startTime, 'ms');
 
         let allBookingsArray = [];
-        
-        // Handle different API response structures efficiently
+
         if (data.message === 'Bookings grouped successfully.') {
-            // API returns pre-grouped: { message, pending: [], completed: [], rate: [] }
+
             console.log('📊 Processing pre-grouped API response');
             allBookingsArray = [
                 ...(data.pending || []),
@@ -439,11 +402,11 @@ async function fetchAndRenderBookings() {
                 ...(data.completed || [])
             ];
         } else if (data.success && data.data && Array.isArray(data.data)) {
-            // If data.data is an array of booking groups
+
             console.log('📋 Processing grouped booking data');
             allBookingsArray = data.data.flatMap(group => group.bookings || []);
         } else if (Array.isArray(data)) {
-            // If data is directly an array of bookings
+
             console.log('📄 Processing direct booking array');
             allBookingsArray = data;
         } else {
@@ -453,14 +416,11 @@ async function fetchAndRenderBookings() {
 
         console.log('📊 Total bookings found:', allBookingsArray.length);
 
-        // Sort all bookings once by transaction number
         const sortedBookings = sortBookingsByTransactionNumber(allBookingsArray);
         console.log('🔢 Bookings sorted by transaction number in', performance.now() - startTime, 'ms');
 
-        // Categorize the already sorted bookings
         const categorizedBookings = categorizeBookingsByStatus(sortedBookings);
 
-        // Store globally for tab switching (already sorted)
         globalBookingsData = {
             all: sortedBookings,
             pending: categorizedBookings.pending,
@@ -474,8 +434,7 @@ async function fetchAndRenderBookings() {
             toRate: globalBookingsData.toRate.length,
             completed: globalBookingsData.completed.length
         });
-        
-        // Render bookings in their respective tabs (already sorted)
+
         const renderStartTime = performance.now();
         await Promise.all([
             renderBookings(globalBookingsData.all, 'allContainer'),
@@ -490,8 +449,7 @@ async function fetchAndRenderBookings() {
 
     } catch (error) {
         console.error('❌ Error fetching bookings:', error);
-        
-        // Show error message in all tabs
+
         const errorHTML = `
             <div class="text-center py-10">
                 <p class="text-red-500 text-lg">Error loading bookings</p>
@@ -510,14 +468,11 @@ async function fetchAndRenderBookings() {
     }
 }
 
-// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 My Bookings page loaded');
-    
-    // Set initial active tab (All = index 0)
+
     setActiveBookingTab(0);
-    
-    // Start fetching immediately for better performance
+
     console.log('📡 Starting immediate data fetch...');
     fetchAndRenderBookings();
 });

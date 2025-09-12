@@ -1,5 +1,4 @@
-// Customer/Guest Notification System
-// Simplified notification viewing functionality for customers
+﻿
 
 document.addEventListener("DOMContentLoaded", () => {
   const dropdown = document.getElementById('notificationDropdown');
@@ -29,7 +28,6 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (_) {}
   };
 
-  // Resolve current customer user id from localStorage
   const resolveCurrentUserId = () => {
     return (
       localStorage.getItem('userId') ||
@@ -39,7 +37,6 @@ document.addEventListener("DOMContentLoaded", () => {
     );
   };
 
-  // Format to human-friendly PH time
   const formatDateTime = (item) => {
     if (item.dateTimePH) return item.dateTimePH;
     try {
@@ -51,7 +48,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return '';
   };
 
-  // Build notification DOM node for customers
   const buildNotifItem = (n) => {
     const wrapper = document.createElement('div');
     wrapper.className = `notification ${n.seen ? 'read' : 'unread'} cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out`;
@@ -83,7 +79,6 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
     `;
 
-    // Fill detailed modal on click
     wrapper.addEventListener('click', () => {
       suppressDropdownCloseOnce = true;
       
@@ -96,17 +91,14 @@ document.addEventListener("DOMContentLoaded", () => {
         if (senderEl) senderEl.textContent = wrapper.dataset.sender || '';
         if (dateEl) dateEl.textContent = wrapper.dataset.datetime || '';
         if (msgEl) msgEl.textContent = wrapper.dataset.message || '';
-        
-        // Open the modal
+
         modal.classList.remove('hidden');
         document.body.classList.add('modal-open');
       }
 
-      // Mark as read
       const id = wrapper.dataset.id || '';
       markAsReadInUI(id);
-      
-      // Mark notification as seen on server
+
       if (id) {
         fetch(`${API_BASE}/notify/seen/${id}`, {
           method: 'PATCH',
@@ -122,7 +114,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return wrapper;
   };
 
-  // Render notifications for customers
   const renderNotifications = (list) => {
     const readCache = getReadCache();
     const notifContainers = document.querySelectorAll('#notificationsContainer');
@@ -144,7 +135,6 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
-    // Update badge with unread count
     if (notifBadge) {
       const unread = list.filter((n) => {
         return !n.seen && !readCache.has(n._id);
@@ -155,7 +145,6 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   };
 
-  // Fetch notifications for current customer
   const fetchNotifications = async () => {
     const uid = resolveCurrentUserId();
     if (!uid) {
@@ -180,17 +169,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // Toggle dropdown
   bellBtn.addEventListener('click', (e) => {
     e.stopPropagation();
     dropdown.classList.toggle('hidden');
-    // Refresh when opened
+    
     if (!dropdown.classList.contains('hidden')) {
       fetchNotifications();
     }
   });
 
-  // Hide dropdown when clicking outside
   document.addEventListener('click', (e) => {
     const anyModalOpen = document.querySelector('.modal:not(.hidden)');
     if (anyModalOpen) return;
@@ -201,19 +188,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // When any modal closes, suppress the immediate outside-close once
   document.addEventListener('modalClosed', () => {
     suppressDropdownCloseOnce = true;
   });
 
-  // Initial fetch
   fetchNotifications();
-  
-  // Make fetchNotifications globally accessible for other scripts
+
   window.fetchNotifications = fetchNotifications;
 });
 
-// Mark a notification as read in UI
 function markAsReadInUI(notificationId) {
   try {
     const items = notificationId
@@ -224,10 +207,10 @@ function markAsReadInUI(notificationId) {
       if (item.classList.contains('unread')) {
         item.classList.remove('unread');
         item.classList.add('read');
-        // Remove the unread dot if present
+        
         const dot = item.querySelector('.dot-notif');
         if (dot) dot.remove();
-        // Gray out text
+        
         item.querySelectorAll('p').forEach((p) => {
           p.classList.remove('text-neutral-900', 'text-neutral-700');
           p.classList.add('text-neutral-400');
@@ -235,7 +218,6 @@ function markAsReadInUI(notificationId) {
       }
     });
 
-    // Decrement badge
     const badge = document.getElementById('notifBadge');
     if (badge && !badge.dataset._lockDecrement) {
       badge.dataset._lockDecrement = 'true';
@@ -246,7 +228,6 @@ function markAsReadInUI(notificationId) {
       setTimeout(() => { delete badge.dataset._lockDecrement; }, 100);
     }
 
-    // Persist read status
     const READ_CACHE_KEY = 'customerNotifReadIds';
     const addToReadCache = (id) => {
       if (!id) return;

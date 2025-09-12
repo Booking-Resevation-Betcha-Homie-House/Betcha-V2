@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -96,11 +96,10 @@
           </button>
           </div>
 
-          <!-- Notification + Hamburger-->
           <div class="flex gap-2 items-center shrink-0">
-            <!-- Notification Bell Dropdown -->
+            
             <div class="relative inline-block text-left">
-                <!-- Bell Icon -->
+                
                 <div class="relative">
                   <button id="notifBellBtnDesktop" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
                   hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
@@ -132,7 +131,6 @@
                   </span>
                 </div>
 
-                <!-- Dropdown Panel -->
                 <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-[400px] p-5 bg-white border border-neutral-300 rounded-3xl shadow-lg z-50">
                 <div class="mb-3">
                     <p class="font-semibold font-manrope text-lg text-primary-text">Notifications</p>
@@ -141,7 +139,6 @@
                 <div class="max-h-[400px] overflow-y-auto">
                     <div class="py-4 text-sm font-inter text-neutral-500">Today</div>
 
-                    <!-- NOTIFICATION ITEM -->
                     <div id="notificationsContainer" class="flex flex-col pb-4">
                     <div class="notification unread cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="notifModal">
                         <div class="flex items-start gap-2">
@@ -192,22 +189,20 @@
                 </div>
             </div>
 
-            <!-- Right Hamburger + Profile -->
             <div class="relative">
-                <!-- Button to toggle dropdown -->
+                
                 <div id="menuBtn" class="h-10 w-full aspect-square rounded-full bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
                 hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
                 transition-all duration-300 ease-in-out">
-                <!-- Profile Picture (hidden by default, shows over default icon when available) -->
+                
                 <img id="employeeProfileImg" class="w-full h-full object-cover rounded-full hidden" alt="Employee profile picture" />
-                <!-- Default SVG Icon -->
+                
                 <svg class="h-6 w-6 fill-secondary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 12C10.9 12 9.95833 11.6083 9.175 10.825C8.39167 10.0417 8 9.1 8 8C8 6.9 8.39167 5.95833 9.175 5.175C9.95833 4.39167 10.9 4 12 4C13.1 4 14.0417 4.39167 14.825 5.175C15.6083 5.95833 16 6.9 16 8C16 9.1 15.6083 10.0417 14.825 10.825C14.0417 11.6083 13.1 12 12 12ZM4 18V17.2C4 16.6333 4.146 16.1127 4.438 15.638C4.73 15.1633 5.11733 14.8007 5.6 14.55C6.63333 14.0333 7.68333 13.646 8.75 13.388C9.81667 13.13 10.9 13.0007 12 13C13.1 12.9993 14.1833 13.1287 15.25 13.388C16.3167 13.6473 17.3667 14.0347 18.4 14.55C18.8833 14.8 19.271 15.1627 19.563 15.638C19.855 16.1133 20.0007 16.634 20 17.2V18C20 18.55 19.8043 19.021 19.413 19.413C19.0217 19.805 18.5507 20.0007 18 20H6C5.45 20 4.97933 19.8043 4.588 19.413C4.19667 19.0217 4.00067 18.5507 4 18Z"/>
                 </svg>
 
                 </div>
 
-                <!-- Dropdown menu -->
                 <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-52 border border-neutral-300 bg-white rounded-3xl shadow-lg py-5 px-3 z-50 text-sm font-manrope text-primary-text">
                 <a href="profile.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">Profile</a>
                 <hr class="my-2 border-neutral-300">
@@ -265,7 +260,7 @@
               </div>
               <div class="tab-content hidden">
                 <div class="space-y-4 h-[600px] overflow-y-auto" id="checkout-tab-content">
-                  <!-- Checkout bookings will be populated dynamically -->
+                  
                 </div>
               </div>
             </div>
@@ -274,14 +269,12 @@
             <div class="calendar-instance flex flex-col justify-center items-center h-fit " data-calendar-id="1">
               <div class="w-full">
 
-                <!-- Navigation -->
                 <div class="flex justify-between items-center mb-4 px-2">
                   <button class="prevMonth !px-3 !py-1 rounded-full hover:bg-primary/10 text-sm text-primary-text">←</button>
                   <div class="text-sm font-manrope font-semibold text-primary-text">Calendar</div>
                   <button class="nextMonth !px-3 !py-1 rounded-full hover:bg-primary/10 text-sm text-primary-text">→</button>
                 </div>
 
-                <!-- Single Calendar -->
                 <div class="w-full rounded-lg p-3">
                   <p class="leftMonthLabel text-center font-semibold mb-2 text-sm text-primary-text"></p>
                   <div class="leftCalendar"></div>
@@ -302,16 +295,13 @@
           </div>
         </div>
 
-
-            
       </main>
     </div>
 
-    <!-- Notification Prev -->
     <div id="notifModalSmall" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center hidden overflow-hidden z-50">  
       <div class="w-full h-full bg-background modal-animate overflow-hidden flex flex-col 
         md:px-6 ">
-        <!-- Sticky top -->
+        
         <div class="w-full sticky top-0 z-50 flex items-center shadow-sm p-3 justify-between">
           <div class="flex gap-2 items-center">
             <button data-close-modal class="cursor-pointer btn-round border-none flex items-center justify-center active:scale-95 active:bg-primary/10">
@@ -330,15 +320,13 @@
           </div>
         </div>
 
-        <!-- SCROLLABLE NOTIF LIST -->
         <div class="flex-1 overflow-y-auto custom-scroll flex flex-col">
           <div class="py-2 text-sm font-manrope  bg-neutral-100 px-5 flex items-center">
             <span id="notifDate" class="font-manrope text-lg text-primary-text">Today</span>
           </div>
-          
-          <!-- NOTIF ITEM -->
+
           <div id="notificationsContainer" class="flex flex-col bg-white">
-            <!-- Unread Notification -->
+            
             <div class="notification unread cursor-pointer p-3 active:bg-primary/10" data-modal-target="notifModal">
               <div class="flex items-start gap-2 px-3">
                 <div>
@@ -356,7 +344,6 @@
               </div>
             </div>
 
-            <!-- Read Notifications -->
             <div class="notification read cursor-pointer p-3 active:bg-primary/10" data-modal-target="notifModal">
               <div class="flex items-start gap-2 px-3">
                 <div>
@@ -371,7 +358,6 @@
               </div>
             </div>
 
-            <!-- Another one -->
             <div class="notification read cursor-pointer p-3 active:bg-primary/10" data-modal-target="notifModal">
               <div class="flex items-start gap-2 px-3">
                 <div>
@@ -393,7 +379,6 @@
       </div>
     </div>
 
-    <!-- Notification Modal -->
     <div id="notifModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="w-full h-full bg-background p-10 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
         md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
@@ -418,7 +403,6 @@
         </div>
     </div>
 
-    <!-- Cancel Booking Modal -->
     <div id="cancelBookingModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
       <div class="w-full h-full bg-background px-5 pt-3 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
         md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
@@ -476,7 +460,6 @@
       </div>
     </div>
 
-    <!-- View Booking Modal -->
     <div id="viewBookingModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center hidden overflow-hidden z-50">
       <div class="w-full bg-background px-5 pt-3 rounded-t-3xl sm:rounded-3xl modal-animate overflow-hidden flex flex-col 
         md:px-6 md:max-w-lg lg:max-w-xl xl:max-w-3xl h-fit">
@@ -493,22 +476,19 @@
         </div>
         
         <div class="space-y-5 px-5 mb-5 font-inter">
-          <!-- Property Name -->
+          
           <div>
             <p class="text-lg md:text-xl font-bold font-manrpoe text-neutral-900 leading-tight">The Cozy Apartment</p>
             <p class="text-neutral-600 text-sm md:text-base">123 Sunshine Street, Manila</p>
           </div>
 
-          <!-- Divider -->
           <hr class="border-neutral-100">
 
-          <!-- Guest Info -->
           <div>
             <p class="text-neutral-500 text-xs tracking-wide font-medium">Guest Name</p>
             <p class="text-neutral-900 font-semibold">Juan Dela Cruz</p>
           </div>
 
-          <!-- Dates -->
           <div class="grid grid-cols-2 gap-4">
             <div>
               <p class="text-neutral-500 text-xs  tracking-wide font-medium">Check In</p>
@@ -521,8 +501,6 @@
           </div>
         </div>
 
-
-        <!-- Bottom nav -->
         <div class="flex flex-col md:flex-row items-center py-5 gap-3">
           <button type="button" data-close-modal
           class=" w-full btn rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden shadow-s order-2 md:order-1
@@ -543,7 +521,6 @@
       </div>
     </div>
 
-    <!-- Check-in Confirmation Modal -->
     <div id="checkinConfirmModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
       <div class="w-full h-full bg-background px-5 pt-3 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
         md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
@@ -588,9 +565,7 @@
               </div>
             </div>
           </div>
-          
-          <!-- Customer Report Section removed -->
-          
+
           <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
             <p class="text-blue-800 text-sm">
               <strong>Next Steps:</strong> After confirmation, please process payment and provide room access to the guest.
@@ -599,9 +574,7 @@
         </div>
         
         <div class="flex flex-col md:flex-row items-center py-5 gap-3">
-        
-          
-          <!-- Cancel Button (Optional) -->
+
           <button type="button" id="cancel-booking-btn"
           class="w-full btn rounded-full bg-red-600 flex items-center justify-center overflow-hidden shadow-sm order-1 md:order-2
           hover:cursor-pointer active:scale-95 hover:bg-red-700
@@ -619,7 +592,6 @@
       </div>
     </div>
 
-    <!-- Complete Booking Modal -->
     <div id="checkoutModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
       <div class="w-full h-full bg-background px-5 pt-3 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
         md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
@@ -638,8 +610,7 @@
             <h2 class="text-xl font-bold text-primary-text font-manrope">End Booking</h2>
             <p class="text-sm text-neutral-500 mt-1">Complete the checkout process and add any necessary remarks</p>
           </div>
-          
-          <!-- Customer Report Section -->
+
           <div class="flex flex-col gap-3 w-full group mb-3">
               <div class="flex items-center gap-2">
                   <input 
@@ -667,8 +638,7 @@
                   <p class="text-xs text-neutral-400 mt-1">This information is for internal reporting and will not be visible to customers.</p>
               </div>
           </div>
-          
-          <!-- Property Report Section -->
+
           <div class="flex flex-col gap-3 w-full group mb-3">
               <div class="flex items-center gap-2">
                   <input 
@@ -746,7 +716,7 @@
   <script defer src="../../src/calendar2.js"></script>
   <script defer src="./employeeFunctions/universalSkeleton.js"></script>
   <script defer src="./employeeFunctions/employee-profile.js"></script>
-  <!-- Global notification service (required by pm-functions sendCancellationNoticeToAdmin) -->
+  
   <script defer src="../../src/notifyService.js"></script>
   <script defer src="./employeeFunctions/pm-functions.js"></script>
 
