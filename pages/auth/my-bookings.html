@@ -3,10 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-               <a href="../../pages/unauth/about-us.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">About us</a>
-            <hr class="my-2 border-neutral-300">
-            <a href="#" class="logout-link block px-4 py-2 rounded-xl text-red-500 hover:bg-primary/10 font-semibold">Log Out</a>
-          </div>nk rel="stylesheet" href="/src/index.css">
+    <link rel="stylesheet" href="/src/index.css">
     <link rel="icon" type="image/png" href="/public/images/icon-betcha.png">
     <title>Betcha | My bookings</title>
     <script> window.chtlConfig = { chatbotId: "5433159853" } </script>
@@ -124,7 +121,6 @@
                     </div>
                   </div>
                 </div>
-                
               </div>
             </div>
           </div>
@@ -151,10 +147,10 @@
             <a href="../auth/my-bookings.html" class="block px-4 py-2 rounded-xl hover:bg-primary/10 hover:text-primary">My bookings</a>
             <hr class="my-2 border-neutral-300">
             <a href="../auth/support.html" class="block px-4 py-2 rounded-xl hover:bg-primary/10 hover:text-primary">Send a ticket</a>
-            <a href="faqs.html" class="block px-4 py-2 rounded-xl hover:bg-primary/10 hover:text-primary">FAQs</a>
-            <a href="about-us.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">About us</a>
+            <a href="../unauth/faqs.html" class="block px-4 py-2 rounded-xl hover:bg-primary/10 hover:text-primary">FAQs</a>
+            <a href="../unauth/about-us.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">About us</a>
             <hr class="my-2 border-neutral-300">
-            <a href="/logout" class="block px-4 py-2 rounded-xl text-red-500 hover:bg-primary/10 font-semibold">Log Out</a>
+            <a href="#" class="logout-link block px-4 py-2 rounded-xl text-red-500 hover:bg-primary/10 font-semibold">Log Out</a>
           </div>
         </div>
       </div>
@@ -232,7 +228,12 @@
             </div>
           </div>
 
-          <div id="tab-contents" class="w-full flex-1 flex">
+          <div id="tab-contents" class="w-full flex-1">
+            <!-- All Bookings Tab -->
+            <div class="tab-content space-y-3 w-full" id="allContainer">
+              <!-- All booking cards will be dynamically generated here -->
+            </div>
+            
             <!-- Pending Bookings Tab -->
             <div class="tab-content hidden space-y-3 w-full" id="pendingContainer">
               <!-- Booking cards will be dynamically generated here -->

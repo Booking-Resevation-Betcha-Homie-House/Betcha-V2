@@ -650,6 +650,15 @@
         </div>
     </div>
 
+    <script>
+        // Check if user has guest role and redirect to rooms page
+        document.addEventListener('DOMContentLoaded', function() {
+            const userRole = localStorage.getItem('role');
+            if (userRole === 'guest') {
+                window.location.href = 'rooms.html';
+            }
+        });
+    </script>
     <script defer src="../admin/adminFunctions/audit-trails-calls.js"></script>
     <script defer src="../../src/IDverifier.js"></script>
     <script defer src="../../src/modal.js"></script>
