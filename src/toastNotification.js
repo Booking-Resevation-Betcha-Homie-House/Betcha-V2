@@ -156,7 +156,14 @@ export function validateReservationData() {
     // Check if user is logged in
     const userId = localStorage.getItem('userId');
     if (!userId) {
-        toast.show('auth', 'Login Required', 'Please log in to your account before making a reservation.');
+        // Show the noAccountModal instead of toast
+        const noAccountModal = document.getElementById('noAccountModal');
+        if (noAccountModal) {
+            noAccountModal.classList.remove('hidden');
+        } else {
+            // Fallback to toast if modal is not found
+            toast.show('auth', 'Login Required', 'Please log in to your account before making a reservation.');
+        }
         return false;
     }
 
