@@ -4,7 +4,7 @@
 // Import toast notifications
 import { showToastError } from '/src/toastNotification.js';
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', async function() {
     console.log('Confirm Reservation page loaded');
     
     // Get data from URL parameters
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Populate the page with data
     if (reservationData) {
         populateReservationData(reservationData);
-        setupImageCarousel();
+        await setupImageCarousel(); // Make this async
     } else {
         console.warn('No reservation data found in URL');
         // You might want to redirect back or show an error message
@@ -238,9 +238,9 @@ function getReservationDataFromURL(urlParams) {
 // Function to populate the page with reservation data
 function populateReservationData(data) {
     try {
-        // Room details
-        updateElementText('roomName', data.propertyName || 'Room Name');
-        updateElementText('roomAdress', data.propertyAddress || 'Address');
+        // Room details with character limits
+        updateElementText('roomName', truncateText(data.propertyName || 'Room Name', 30));
+        updateElementText('roomAdress', truncateText(data.propertyAddress || 'Address', 40));
         
         // Booking details
         updateElementText('checkInDate', formatDate(data.checkInDate) || 'Date');
@@ -266,6 +266,12 @@ function populateReservationData(data) {
     } catch (error) {
         console.error('Error populating reservation data:', error);
     }
+}
+
+// Helper function to truncate text if it exceeds character limit
+function truncateText(text, maxLength = 50) {
+    if (!text || text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
 }
 
 // Helper function to update element text content
@@ -296,7 +302,7 @@ function formatDate(dateString) {
 }
 
 // Function to setup image carousel
-function setupImageCarousel() {
+async function setupImageCarousel() {
     const imageContainer = document.getElementById('propertyImageContainer');
     
     if (!imageContainer) {
@@ -304,23 +310,46 @@ function setupImageCarousel() {
         return;
     }
     
-    // Get reservation data from URL again to access images
+    // Get property ID from URL to fetch images from API
     const urlParams = new URLSearchParams(window.location.search);
-    const imagesParam = urlParams.get('images');
+    const propertyId = urlParams.get('propertyId');
     
-    let images = [];
-    if (imagesParam) {
-        try {
-            images = JSON.parse(decodeURIComponent(imagesParam));
-        } catch (error) {
-            console.error('Error parsing images from URL:', error);
-        }
+    console.log('Property ID for images:', propertyId); // Debug log
+    
+    if (!propertyId) {
+        console.warn('No property ID found in URL');
+        setupPlaceholderImage(imageContainer);
+        return;
     }
     
-    if (images && images.length > 0) {
-        setupCarouselWithImages(imageContainer, images);
-    } else {
-        // Fallback: try to fetch images from API or use placeholder
+    try {
+        // Fetch property data from API to get photoLinks
+        const apiUrl = `https://betcha-api.onrender.com/property/display/${propertyId}`;
+        console.log('Fetching property images from API:', apiUrl);
+        
+        const response = await fetch(apiUrl);
+        
+        if (!response.ok) {
+            throw new Error(`API request failed with status: ${response.status}`);
+        }
+        
+        const propertyData = await response.json();
+        console.log('Property data received:', propertyData);
+        
+        const images = propertyData.photoLinks || [];
+        console.log('Photo links from API:', images);
+        
+        if (images && images.length > 0) {
+            console.log('Setting up carousel with', images.length, 'images from API');
+            setupCarouselWithImages(imageContainer, images);
+        } else {
+            console.log('No photoLinks found in API response, setting up placeholder');
+            setupPlaceholderImage(imageContainer);
+        }
+        
+    } catch (error) {
+        console.error('Error fetching property images from API:', error);
+        console.log('Falling back to placeholder image');
         setupPlaceholderImage(imageContainer);
     }
 }
@@ -336,7 +365,8 @@ function setupCarouselWithImages(container, images) {
                 ${images.map((image, index) => `
                     <div class="w-full h-full flex-shrink-0 overflow-hidden">
                         <img src="${image}" alt="Room Image ${index + 1}" 
-                             class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500">
+                             class="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                             onerror="this.parentElement.innerHTML='<div class=\\'w-full h-full bg-gradient-to-br from-neutral-300 to-neutral-400 flex items-center justify-center\\'>    <div class=\\'text-center\\'>        <svg class=\\'w-12 h-12 text-neutral-500 mx-auto mb-2\\' fill=\\'currentColor\\' viewBox=\\'0 0 20 20\\'>            <path fill-rule=\\'evenodd\\' d=\\'M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z\\' clip-rule=\\'evenodd\\'/></svg>        <p class=\\'text-neutral-600 text-xs\\'>Image not available</p>    </div></div>'" />
                     </div>
                 `).join('')}
             </div>
@@ -398,11 +428,15 @@ function setupCarouselAutoScroll(container, imageCount) {
 
 // Function to setup placeholder image
 function setupPlaceholderImage(container) {
+    console.log('Setting up placeholder image'); // Debug log
     container.innerHTML = `
         <div class="w-full h-full bg-gradient-to-br from-neutral-300 to-neutral-400 flex items-center justify-center">
-            <svg class="w-16 h-16 text-neutral-500" fill="currentColor" viewBox="0 0 20 20">
-                <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
-            </svg>
+            <div class="text-center">
+                <svg class="w-16 h-16 text-neutral-500 mx-auto mb-2" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M4 3a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V5a2 2 0 00-2-2H4zm12 12H4l4-8 3 6 2-4 3 6z" clip-rule="evenodd"/>
+                </svg>
+                <p class="text-neutral-600 text-sm font-medium">Property Image</p>
+            </div>
         </div>
     `;
 }
@@ -461,13 +495,10 @@ function setupFormValidation() {
 function navigateToConfirmReservation(propertyData, bookingData) {
     const params = new URLSearchParams();
     
-    // Property data
+    // Property data (removed images parameter - now fetched from API)
     params.append('propertyId', propertyData.id || '');
     params.append('propertyName', propertyData.name || '');
     params.append('propertyAddress', propertyData.address || '');
-    if (propertyData.images && propertyData.images.length > 0) {
-        params.append('images', encodeURIComponent(JSON.stringify(propertyData.images)));
-    }
     
     // Booking data
     params.append('checkInDate', bookingData.checkInDate || '');

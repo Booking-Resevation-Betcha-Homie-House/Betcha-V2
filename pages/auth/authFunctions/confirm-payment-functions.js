@@ -18,7 +18,9 @@ document.addEventListener('DOMContentLoaded', function() {
         if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPaymentInitiation === 'function' && uid) {
             window.AuditTrailFunctions.logPaymentInitiation(uid, role.charAt(0).toUpperCase() + role.slice(1));
         }
-    } catch (_) {}
+    } catch (error) {
+        console.warn('Audit trail logging failed:', error);
+    }
     
     // Get booking ID and payment type from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
@@ -1116,61 +1118,26 @@ function setupFileDropOCR() {
         return;
     }
     
-    console.log('✅ All OCR elements found - setting up event listeners...');
-    
-    // Test file input functionality
-    console.log('🧪 Testing file input element:', {
-        type: fileInput.type,
-        accept: fileInput.accept,
-        multiple: fileInput.multiple,
-        hidden: fileInput.hidden,
-        disabled: fileInput.disabled
-    });
+    console.log('✅ All OCR elements found - setting up drag & drop and preview watcher...');
     
     // Store the last selected files for OCR processing
     let lastSelectedFiles = [];
     
-    // Override the file input's onchange to capture files
+    // Setup drag and drop functionality
+    setupDragAndDrop(dropzone, fileInput);
+    
+    // Listen to file input changes to capture files for OCR
     fileInput.addEventListener('change', function(e) {
-        console.log('🔥 File input intercepted:', e.target.files.length, 'files');
+        console.log('🔥 File input changed:', e.target.files.length, 'files');
         if (e.target.files.length > 0) {
             lastSelectedFiles = Array.from(e.target.files);
             console.log('💾 Stored files for OCR:', lastSelectedFiles.map(f => f.name));
         }
-    }, true); // Use capture to run before other handlers
-    
-    // Also add a regular listener to catch any missed events
-    fileInput.addEventListener('input', function(e) {
-        console.log('📥 File input event:', e.target.files.length, 'files');
-        if (e.target.files.length > 0) {
-            lastSelectedFiles = Array.from(e.target.files);
-            console.log('💾 Stored files via input event for OCR:', lastSelectedFiles.map(f => f.name));
-        }
     });
     
-    // Poll the file input periodically to catch any changes we might miss
-    let lastFileCount = 0;
-    setInterval(() => {
-        if (fileInput.files.length !== lastFileCount) {
-            lastFileCount = fileInput.files.length;
-            if (fileInput.files.length > 0) {
-                lastSelectedFiles = Array.from(fileInput.files);
-                console.log('� Polling detected files:', lastSelectedFiles.map(f => f.name));
-            }
-        }
-    }, 500);
-    
-    // Setup MutationObserver to watch for preview div creation
+    // Setup preview div watcher to trigger OCR when preview appears
     setupPreviewDivWatcher(previewContainer, transactionInput, () => lastSelectedFiles[0]);
     
-    // Setup drag and drop functionality only (no click handlers to avoid double file picker)
-    setupDragAndDropOnly(dropzone, previewContainer, transactionInput, (files) => {
-        lastSelectedFiles = Array.from(files);
-        console.log('💾 Stored dragged files for OCR:', lastSelectedFiles.map(f => f.name));
-    });
-    
-    // Don't setup manual file input listeners since the existing system works
-    // and we don't want double file picker dialogs
     console.log('✅ OCR system ready - will trigger automatically when preview div appears');
 }
 
@@ -1184,6 +1151,7 @@ function setupPreviewDivWatcher(previewContainer, transactionInput, getLastFile)
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType === Node.ELEMENT_NODE) {
                         // Check if this is the preview div we're looking for
+                        // Updated to match the actual imageInput.js structure
                         const isPreviewDiv = node.classList && 
                             node.classList.contains('flex') &&
                             node.classList.contains('items-center') &&
@@ -1193,7 +1161,6 @@ function setupPreviewDivWatcher(previewContainer, transactionInput, getLastFile)
                             node.classList.contains('border') &&
                             node.classList.contains('border-neutral-300') &&
                             node.classList.contains('rounded-lg') &&
-                            node.classList.contains('bg-gray-50') &&
                             node.classList.contains('mb-5');
                         
                         if (isPreviewDiv) {
@@ -1243,10 +1210,10 @@ function setupPreviewDivWatcher(previewContainer, transactionInput, getLastFile)
     console.log('✅ Preview div watcher setup complete');
 }
 
-function setupDragAndDropOnly(dropzone, previewContainer, transactionInput, onFilesDropped) {
+function setupDragAndDrop(dropzone, fileInput) {
     console.log('🔧 Setting up drag and drop functionality...');
     
-    // Handle drag and drop
+    // Handle drag and drop events
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1275,14 +1242,12 @@ function setupDragAndDropOnly(dropzone, previewContainer, transactionInput, onFi
         e.stopPropagation();
         console.log('🎯 Files dropped! Event target:', e.target);
         console.log('🎯 DataTransfer files count:', e.dataTransfer.files.length);
-        console.log('🎯 DataTransfer files:', e.dataTransfer.files);
         
         dropzone.classList.remove('border-primary', 'bg-primary/5');
         
         if (e.dataTransfer.files.length > 0) {
             const files = Array.from(e.dataTransfer.files);
-            onFilesDropped(files);
-            handleDroppedFiles(files);
+            handleDroppedFiles(files, fileInput);
         } else {
             console.error('❌ No files in dataTransfer');
         }
@@ -1291,70 +1256,92 @@ function setupDragAndDropOnly(dropzone, previewContainer, transactionInput, onFi
     console.log('✅ Drag and drop setup complete');
 }
 
-async function handleDroppedFiles(files) {
+function handleDroppedFiles(files, fileInput) {
     console.log('🔥 handleDroppedFiles called with:', files.length, 'files');
+    
     if (!files || files.length === 0) {
         console.log('❌ No files to process');
         return;
     }
     
     try {
-        for (let file of files) {
-            console.log('📄 Processing dropped file:', file.name, 'Type:', file.type);
-            
+        // Filter for image files only
+        const imageFiles = files.filter(file => {
             if (!file.type.startsWith('image/')) {
-                console.log('❌ Invalid file type:', file.type);
-                showToastError('error', 'Invalid File', 'Please select only image files.');
-                continue;
+                console.log('❌ Invalid file type:', file.type, 'for file:', file.name);
+                showToastError('error', 'Invalid File', `${file.name} is not an image file. Please select only image files.`);
+                return false;
             }
-            
-            console.log('✅ Valid image file dropped:', file.name);
-            
-            // The file will be stored by onFilesDropped callback
-            // The preview div will be created by the existing file handling system
-            // and our MutationObserver will detect it and trigger OCR automatically
-            
-            // For drag and drop, we might need to trigger the existing file handling
-            // by setting the files on the file input
-            const fileInput = document.getElementById('fileInput');
-            if (fileInput) {
-                // Create a new FileList-like object
-                const dataTransfer = new DataTransfer();
-                dataTransfer.items.add(file);
-                fileInput.files = dataTransfer.files;
-                
-                // Trigger change event to let existing handlers process the file
-                const changeEvent = new Event('change', { bubbles: true });
-                fileInput.dispatchEvent(changeEvent);
-                
-                console.log('📤 Triggered existing file processing for:', file.name);
-            }
+            return true;
+        });
+        
+        if (imageFiles.length === 0) {
+            console.log('❌ No valid image files found');
+            return;
         }
+        
+        console.log('✅ Valid image files:', imageFiles.map(f => f.name));
+        
+        // Set the files to the file input to trigger existing file handling
+        const dataTransfer = new DataTransfer();
+        imageFiles.forEach(file => {
+            dataTransfer.items.add(file);
+        });
+        
+        fileInput.files = dataTransfer.files;
+        
+        // Trigger change event to let existing handlers process the files
+        const changeEvent = new Event('change', { bubbles: true });
+        fileInput.dispatchEvent(changeEvent);
+        
+        console.log('📤 Triggered existing file processing for dropped files');
+        
     } catch (error) {
         console.error('Error processing dropped files:', error);
-        showToastError('error', 'Processing Error', 'Failed to process the dropped image.');
+        showToastError('error', 'Processing Error', 'Failed to process the dropped images.');
     }
 }
 
+
+
 function extractFileInfoFromPreview(previewDiv) {
     console.log('🔍 Extracting file info from preview div...');
+    console.log('🔍 Preview div structure:', previewDiv.outerHTML);
     
-    // Look for image elements or file data in the preview
+    // Look for image elements in the preview (imageInput.js creates img with data URL)
     const img = previewDiv.querySelector('img');
-    const fileName = previewDiv.querySelector('[data-filename]')?.textContent || 
+    
+    // Extract filename from the paragraph element (imageInput.js structure)
+    const fileNameElement = previewDiv.querySelector('p.text-sm.font-semibold');
+    const fileName = fileNameElement?.textContent?.trim() || 
                     previewDiv.textContent.match(/[\w\-. ]+\.(jpg|jpeg|png|webp)/i)?.[0] ||
                     'uploaded-image.jpg';
     
-    if (img && img.src.startsWith('blob:')) {
-        console.log('📸 Found blob image in preview');
-        return {
-            blobUrl: img.src,
-            fileName: fileName,
-            element: previewDiv
-        };
+    console.log('📸 Found image:', !!img);
+    console.log('📝 Extracted filename:', fileName);
+    
+    if (img && img.src) {
+        console.log('📸 Found image with src:', img.src.substring(0, 50) + '...');
+        
+        // If it's a data URL (base64), we need to convert it to a blob
+        if (img.src.startsWith('data:')) {
+            console.log('🔄 Converting data URL to blob...');
+            return {
+                dataUrl: img.src,
+                fileName: fileName,
+                element: previewDiv
+            };
+        } else if (img.src.startsWith('blob:')) {
+            console.log('📸 Found blob image in preview');
+            return {
+                blobUrl: img.src,
+                fileName: fileName,
+                element: previewDiv
+            };
+        }
     }
     
-    // If we can't find a blob, we might need to get the file from the file input
+    // Fallback: try to get the file from the file input
     const fileInput = document.getElementById('fileInput');
     if (fileInput && fileInput.files.length > 0) {
         console.log('📁 Using file from input element');
@@ -1375,6 +1362,14 @@ async function triggerOCRFromPreview(fileInfo, transactionInput) {
         showFullscreenLoading('Processing Image');
         
         let file = fileInfo.file;
+        
+        // If we have a data URL (base64), convert it to a file
+        if (fileInfo.dataUrl && !file) {
+            console.log('🔄 Converting data URL to file...');
+            const response = await fetch(fileInfo.dataUrl);
+            const blob = await response.blob();
+            file = new File([blob], fileInfo.fileName, { type: blob.type });
+        }
         
         // If we have a blob URL, convert it to a file
         if (fileInfo.blobUrl && !file) {
@@ -1564,7 +1559,9 @@ async function processPaymentConfirmation(bookingId, paymentType) {
                 if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPaymentCompletion === 'function' && uid) {
                     window.AuditTrailFunctions.logPaymentCompletion(uid, role.charAt(0).toUpperCase() + role.slice(1));
                 }
-            } catch (_) {}
+            } catch (error) {
+                console.warn('Audit trail logging failed:', error);
+            }
             
             // Fire-and-forget notifications to TS and booking email
             try {
@@ -1646,7 +1643,9 @@ async function processPaymentConfirmation(bookingId, paymentType) {
                 if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPaymentFailure === 'function' && uid) {
                     window.AuditTrailFunctions.logPaymentFailure(uid, role.charAt(0).toUpperCase() + role.slice(1));
                 }
-            } catch (_) {}
+            } catch (error) {
+                console.warn('Audit trail logging failed:', error);
+            }
         }
     } catch (error) {
         console.error('💥 Payment confirmation error:', error);
@@ -1661,7 +1660,9 @@ async function processPaymentConfirmation(bookingId, paymentType) {
             if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPaymentFailure === 'function' && uid) {
                 window.AuditTrailFunctions.logPaymentFailure(uid, role.charAt(0).toUpperCase() + role.slice(1));
             }
-        } catch (_) {}
+        } catch (error) {
+            console.warn('Audit trail logging failed:', error);
+        }
     } finally {
         hideFullscreenLoading();
     }

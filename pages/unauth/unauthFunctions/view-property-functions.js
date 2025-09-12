@@ -559,7 +559,14 @@ async function fetchAndDisplayProperty() {
             maxCapacity: data.maxCapacity,
             images: data.photoLinks || [],
             timeIn: data.timeIn,
-            timeOut: data.timeOut
+            timeOut: data.timeOut,
+            // Include additional fields that might be needed for directions functionality
+            mapLink: data.mapLink,
+            city: data.city,
+            category: data.category,
+            description: data.description,
+            rating: data.rating,
+            photoLinks: data.photoLinks || []
         };
 
         // Update guest counter limits based on API maxCapacity
@@ -577,9 +584,6 @@ async function fetchAndDisplayProperty() {
             // Update the reserve button state or do any additional setup
         });
 
-        // Store property data globally for directions functionality
-        currentPropertyData = data;
-        
         // Initialize directions button after property data is loaded
         setTimeout(() => {
             initializeDirectionsButton();
@@ -841,13 +845,23 @@ function getBookingDataFromURL(urlParams) {
 function navigateToConfirmReservation(propertyData, bookingData) {
     const params = new URLSearchParams();
     
-    // Property data
-    params.append('propertyId', propertyData.id || '');
+    // Property data (ensure propertyId is properly set)
+    const propertyId = propertyData.id || propertyData.propertyId || '';
+    
+    // Debug: Log the property data to see what we're working with
+    console.log('Navigating to confirm reservation with property data:', propertyData);
+    console.log('Property ID being passed:', propertyId);
+    
+    // Validation: Ensure we have a property ID
+    if (!propertyId) {
+        console.error('No property ID found in property data:', propertyData);
+        showToastError('error', 'Navigation Error', 'Property ID is missing. Please refresh the page and try again.');
+        return;
+    }
+    
+    params.append('propertyId', propertyId);
     params.append('propertyName', propertyData.name || '');
     params.append('propertyAddress', propertyData.address || '');
-    if (propertyData.images && propertyData.images.length > 0) {
-        params.append('images', encodeURIComponent(JSON.stringify(propertyData.images)));
-    }
     
     // Booking data
     params.append('checkInDate', bookingData.checkInDate || '');
@@ -867,8 +881,12 @@ function navigateToConfirmReservation(propertyData, bookingData) {
     
     console.log('Passing time data to confirm reservation:', { timeIn: propertyData.timeIn, timeOut: propertyData.timeOut });
     
+    // Debug: Log the final URL
+    const finalUrl = `../auth/confirm-reservation.html?${params.toString()}`;
+    console.log('Final navigation URL:', finalUrl);
+    
     // Navigate to confirm reservation page
-    window.location.href = `../auth/confirm-reservation.html?${params.toString()}`;
+    window.location.href = finalUrl;
 }
 
 document.addEventListener('DOMContentLoaded', fetchAndDisplayProperty);
