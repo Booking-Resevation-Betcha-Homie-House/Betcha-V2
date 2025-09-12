@@ -524,7 +524,7 @@
             <button id="directionsBtn" class="w-full bg-primary hover:brightness-90 hover:shadow-lg py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer" style="color: white !important;" onmouseover="this.style.filter='brightness(0.85)'" onmouseout="this.style.filter=''">
               <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 616 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 0 1 6 0z"></path>
               </svg>
               Get Directions
             </button>
@@ -640,24 +640,456 @@
     </div>
 
     <!-- Ammenities Modal -->
+    <!-- Ammenities Modal -->
     <div id="ammenitiesModal" class="modal fixed inset-0 z-50 bg-black/50 flex items-center justify-center hidden">
-      <div class="bg-background w-full h-full rounded-none overflow-hidden flex flex-col modal-animate
-      md:max-h-[80%] md:rounded-3xl md:max-w-3xl">
+      <div class="bg-background w-full h-full rounded-none overflow-hidden flex flex-col modal-animate md:max-h-[80%] md:rounded-3xl md:max-w-6xl md:min-w-[700px] md:w-auto md:h-auto">
         
-        <div class="w-full p-5 sticky top-0 z-10 bg-background flex justify-end">
-          <button data-close-modal class="cursor-pointer btn-round border-none  hover:bg-neutral-300 flex items-center justify-center active:scale-95">
+        <!-- Header -->
+        <div class="w-full sticky top-0 z-50 flex items-center justify-between p-3">
+          <div class="w-8"></div> <!-- Spacer for centering the title -->
+          
+          <button data-close-modal class="group cursor-pointer btn-round border-none flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all duration-300 ease-in-out">
             <span>
-              <svg class="h-5 w-auto fill-primary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg class="h-5 w-5 fill-primary-text group-hover:fill-primary-text transition-all duration-500 ease-in-out" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path fill-rule="evenodd" clip-rule="evenodd" d="M12 14.1221L17.303 19.4251C17.5844 19.7065 17.966 19.8646 18.364 19.8646C18.7619 19.8646 19.1436 19.7065 19.425 19.4251C19.7064 19.1437 19.8645 18.7621 19.8645 18.3641C19.8645 17.9662 19.7064 17.5845 19.425 17.3031L14.12 12.0001L19.424 6.69711C19.5632 6.55778 19.6737 6.39238 19.749 6.21036C19.8244 6.02834 19.8631 5.83326 19.8631 5.63626C19.8631 5.43926 19.8242 5.2442 19.7488 5.06221C19.6733 4.88022 19.5628 4.71488 19.4235 4.57561C19.2841 4.43634 19.1187 4.32588 18.9367 4.25054C18.7547 4.17519 18.5596 4.13644 18.3626 4.13648C18.1656 4.13653 17.9706 4.17538 17.7886 4.25081C17.6066 4.32624 17.4412 4.43678 17.302 4.57611L12 9.87911L6.69697 4.57611C6.55867 4.43278 6.3932 4.31843 6.21024 4.23973C6.02727 4.16103 5.83046 4.11956 5.63129 4.11774C5.43212 4.11591 5.23459 4.15377 5.05021 4.22911C4.86583 4.30444 4.6983 4.41574 4.55739 4.55652C4.41649 4.69729 4.30503 4.86471 4.22952 5.04902C4.15401 5.23333 4.11597 5.43083 4.1176 5.63C4.11924 5.82917 4.16053 6.02602 4.23905 6.20906C4.31758 6.3921 4.43177 6.55767 4.57497 6.69611L9.87997 12.0001L4.57597 17.3041C4.43277 17.4425 4.31858 17.6081 4.24005 17.7912C4.16153 17.9742 4.12024 18.1711 4.1186 18.3702C4.11697 18.5694 4.15501 18.7669 4.23052 18.9512C4.30603 19.1355 4.41749 19.3029 4.55839 19.4437C4.6993 19.5845 4.86683 19.6958 5.05121 19.7711C5.23559 19.8464 5.43312 19.8843 5.63229 19.8825C5.83146 19.8807 6.02827 19.8392 6.21124 19.7605C6.3942 19.6818 6.55967 19.5674 6.69797 19.4241L12 14.1221Z"/>
               </svg>
-            </span>
+            </span> 
           </button>
         </div>
-        <div class="flex-1 overflow-y-auto px-5 pb-5">
-          <div class="w-[80%] mx-auto flex flex-col gap-4" id="amenitiesModal">
-            <p class="font-manrope text-3xl text-primary-text font-medium mb-5">Included Perks</p>
 
-            <!-- Ammenities List -->
+        <div class="flex-1 overflow-y-auto px-3 md:px-5 pb-5" id="amenityModal1">
+          <div class="w-full md:w-[90%] mx-auto flex flex-col gap-3 md:gap-4">
+            <p class="font-manrope text-3xl text-primary-text font-medium mb-5">Included Perks</p>
+            
+            <!-- Essentials Category -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Essentials</p>
+              <ul class="flex flex-col gap-3" id="essentialsList">
+                <li id="amenity-wifi" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/wifi.svg" alt="WiFi" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">WiFi</span>
+                  </div>
+                </li>
+                <li id="amenity-aircon" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/aircon.svg" alt="Air Conditioning" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Air Conditioning</span>
+                  </div>
+                </li>
+                <li id="amenity-bedset" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/bed.svg" alt="Complete Bed Set" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Complete Bed Set</span>
+                  </div>
+                </li>
+                <li id="amenity-hanger" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/hanger.svg" alt="Hangers" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Hangers</span>
+                  </div>
+                </li>
+                <li id="amenity-hairdryer" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/hairDryer.svg" alt="Hair Dryer" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Hair Dryer</span>
+                  </div>
+                </li>
+                <li id="amenity-iron" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/iron.svg" alt="Iron" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Iron</span>
+                  </div>
+                </li>
+                <li id="amenity-extrapillowblanket" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/extraPillowsBlanket.svg" alt="Extra Pillows & Blankets" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Extra Pillows & Blankets</span>
+                  </div>
+                </li>
+                <li id="amenity-towel" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/towel.svg" alt="Towel" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Towel</span>
+                  </div>
+                </li>
+              </ul> 
+            </div>
+
+            <!-- Kitchen & Dining Category -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Kitchen & Dining</p>
+              <ul class="flex flex-col gap-3" id="kitchenDiningList">
+                <li id="amenity-microwave" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/microwave.svg" alt="Microwave" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Microwave</span>
+                  </div>
+                </li>
+                <li id="amenity-stove" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/stove.svg" alt="Stove" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Stove</span>
+                  </div>
+                </li>
+                <li id="amenity-oven" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/oven.svg" alt="Oven" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Oven</span>
+                  </div>
+                </li>
+                <li id="amenity-coffeemaker" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/coffeeMaker.svg" alt="Coffee Maker" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Coffee Maker</span>
+                  </div>
+                </li>
+                <li id="amenity-toaster" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/toaster.svg" alt="Toaster" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Toaster</span>
+                  </div>
+                </li>
+                <li id="amenity-potspans" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/pan.svg" alt="Pots & Pans" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Pots & Pans</span>
+                  </div>
+                </li>
+                <li id="amenity-spices" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/salt.svg" alt="Spices" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Spices</span>
+                  </div>
+                </li>
+                <li id="amenity-dishescutlery" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/dishes.svg" alt="Dishes & Cutlery" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Dishes & Cutlery</span>
+                  </div>
+                </li>
+                <li id="amenity-diningtable" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/diningtable.svg" alt="Dining Table" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Dining Table</span>
+                  </div>
+                </li>
+                <li id="amenity-ref" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/refrigerator.svg" alt="Refrigerator" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Refrigerator</span>
+                  </div>
+                </li>
+              </ul> 
+            </div>
+
+            <!-- Bathroom Category -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Bathroom</p>
+              <ul class="flex flex-col gap-3" id="bathroomList">
+                <li id="amenity-shower" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/shower.svg" alt="Shower" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Shower</span>
+                  </div>
+                </li>
+                <li id="amenity-bathtub" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/bath.svg" alt="Bathtub" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Bathtub</span>
+                  </div>
+                </li>
+                <li id="amenity-shampoo" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/shampoo.svg" alt="Shampoo" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Shampoo</span>
+                  </div>
+                </li>
+                <li id="amenity-soap" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/soap.svg" alt="Soap" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Soap</span>
+                  </div>
+                </li>
+                <li id="amenity-toilet" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/toilet.svg" alt="Toilet" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Toilet</span>
+                  </div>
+                </li>
+                <li id="amenity-toiletpaper" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/toiletPaper.svg" alt="Toilet Paper" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Toilet Paper</span>
+                  </div>
+                </li>
+              </ul> 
+            </div>
+            
+            <!-- Laundry Category -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Laundry</p>
+              <ul class="flex flex-col gap-3" id="laundryList">
+                <li id="amenity-washer" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/washer.svg" alt="Washer" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Washer</span>
+                  </div>
+                </li>
+                <li id="amenity-dryer" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/dryer.svg" alt="Dryer" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Dryer</span>
+                  </div>
+                </li>
+                <li id="amenity-dryingrack" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/hanger.svg" alt="Drying Rack" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Drying Rack</span>
+                  </div>
+                </li>
+                <li id="amenity-ironboard" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/ironBoard.svg" alt="Iron Board" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Iron Board</span>
+                  </div>
+                </li>
+                <li id="amenity-cleaningproduct" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/detergent.svg" alt="Cleaning Products" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Cleaning Products</span>
+                  </div>
+                </li>
+              </ul> 
+            </div>
+
+            <!-- Safety & Security Category -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Safety & Security</p>
+              <ul class="flex flex-col gap-3" id="safetySecurityList">
+                <li id="amenity-smokealarm" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/smokeAlarm.svg" alt="Smoke Alarm" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Smoke Alarm</span>
+                  </div>
+                </li>
+                <li id="amenity-fireextinguisher" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/fireExtinguisher.svg" alt="Fire Extinguisher" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Fire Extinguisher</span>
+                  </div>
+                </li>
+                <li id="amenity-firstaidkit" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/firstAidKit.svg" alt="First Aid Kit" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">First Aid Kit</span>
+                  </div>
+                </li>
+                <li id="amenity-cctv" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/cctv.svg" alt="CCTV" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">CCTV</span>
+                  </div>
+                </li>
+                <li id="amenity-smartlock" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/smartLock.svg" alt="Smart Lock" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Smart Lock</span>
+                  </div>
+                </li>
+                <li id="amenity-guard" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/guard.svg" alt="Security Guard" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Security Guard</span>
+                  </div>
+                </li>
+                <li id="amenity-stairgate" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/gate.svg" alt="Stair Gate" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Stair Gate</span>
+                  </div>
+                </li>
+              </ul> 
+            </div>
+
+            <!-- Entertainment Category -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Entertainment</p>
+              <ul class="flex flex-col gap-3" id="entertainmentList">
+                <li id="amenity-tv" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/tv.svg" alt="TV" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">TV</span>
+                  </div>
+                </li>
+                <li id="amenity-streaming" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/tv.svg" alt="Streaming Services" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Streaming Services</span>
+                  </div>
+                </li>
+                <li id="amenity-soundsystem" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/speaker.svg" alt="Sound System" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Sound System</span>
+                  </div>
+                </li>
+                <li id="amenity-consolegames" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/console.svg" alt="Gaming Console" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Gaming Console</span>
+                  </div>
+                </li>
+                <li id="amenity-boardgames" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/chess.svg" alt="Board Games" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Board Games</span>
+                  </div>
+                </li>
+                <li id="amenity-cardgames" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/card.svg" alt="Card Games" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Card Games</span>
+                  </div>
+                </li>
+                <li id="amenity-billiard" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/8ball.svg" alt="Billiard Table" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Billiard Table</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Parking & Transport Category -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Parking & Transport</p>
+              <ul class="flex flex-col gap-3" id="parkingTransportList">
+                <li id="amenity-freeparking" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/parkring.svg" alt="Free Parking" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Free Parking</span>
+                  </div>
+                </li>
+                <li id="amenity-paidparking" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/parkring.svg" alt="Paid Parking" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Paid Parking</span>
+                  </div>
+                </li>
+                <li id="amenity-bike" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/bike.svg" alt="Bicycle" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Bicycle</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Outdoor & Nature Category -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Outdoor & Nature</p>
+              <ul class="flex flex-col gap-3" id="outdoorNatureList">
+                <li id="amenity-balcony" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/balcony.svg" alt="Balcony" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Balcony</span>
+                  </div>
+                </li>
+                <li id="amenity-garden" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/garden.svg" alt="Garden" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Garden</span>
+                  </div>
+                </li>
+                <li id="amenity-grill" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/grill.svg" alt="Grill" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Grill</span>
+                  </div>
+                </li>
+                <li id="amenity-firepit" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/firePit.svg" alt="Fire Pit" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Fire Pit</span>
+                  </div>
+                </li>
+                <li id="amenity-pool" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/pool.svg" alt="Swimming Pool" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Swimming Pool</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Pets Category -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Pets</p>
+              <ul class="flex flex-col gap-3" id="petsList">
+                <li id="amenity-petsallowed" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/petPaw.svg" alt="Pets Allowed" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Pets Allowed</span>
+                  </div>
+                </li>
+                <li id="amenity-petsnotallowed" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/petPaw.svg" alt="No Pets" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">No Pets</span>
+                  </div>
+                </li>
+                <li id="amenity-petbowls" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/bowl.svg" alt="Pet Bowls" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Pet Bowls</span>
+                  </div>
+                </li>
+                <li id="amenity-petbed" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/bed.svg" alt="Pet Bed" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Pet Bed</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Family Friendly Category -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Family Friendly</p>
+              <ul class="flex flex-col gap-3" id="familyFriendlyList">
+                <li id="amenity-crib" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/crib.svg" alt="Crib" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Crib</span>
+                  </div>
+                </li>
+                <li id="amenity-babybath" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/bath.svg" alt="Baby Bath" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">Baby Bath</span>
+                  </div>
+                </li>
+                <li id="amenity-highchair" class="hidden">
+                  <div class="flex gap-3 items-center">
+                    <img src="/svg/highChair.svg" alt="High Chair" class="w-6 h-6">
+                    <span class="font-inter text-primary-text">High Chair</span>
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <!-- Other Amenities Container -->
+            <div class="px-2 md:px-3 mb-3 md:mb-5">
+              <p class="font-manrope text-xl md:text-2xl text-primary-text">Others</p>
+              <ul class="flex flex-col gap-3" id="othersList">
+                <!-- Other amenities will be populated here by JavaScript -->
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
             <div class="px-3 mb-5" >
               <p class="font-manrope text-2xl text-primary-text">Essentials</p>
               <ul class="flex flex-wrap list-none">

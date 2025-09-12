@@ -1,7 +1,141 @@
 import { showFullscreenLoading, hideFullscreenLoading } from '/src/fullscreenLoading.js';
 import { validateReservationData, showToastError } from '/src/toastNotification.js';
 
-const amenityMapping = { 'wifi': { name: 'WiFi', iconType: '/svg/wifi.svg' }, 'ref': { name: 'Refrigerator', iconType: '/svg/refrigerator.svg' }, 'bathtub': { name: 'Bathtub', iconType: '/svg/bath.svg' }, 'washer': { name: 'Washer', iconType: '/svg/washer.svg' }, 'streaming': { name: 'Streaming Services', iconType: '/svg/tv.svg' }, 'smokeAlarm': { name: 'Smoke Alarm', iconType: '/svg/smokeAlarm.svg' }, 'freeParking': { name: 'Free Parking', iconType: '/svg/parking.svg' }, 'balcony': { name: 'Balcony', iconType: '/svg/balcony.svg' }, 'allowed': { name: 'Pets Allowed', iconType: '/svg/pets.svg' }, 'crib': { name: 'Crib', iconType: '/svg/crib.svg' }, 'aircon': { name: 'Air Conditioning', iconType: '/svg/aircon.svg' }, 'bedset': { name: 'Complete Bed', iconType: '/svg/bed.svg' }, 'hanger': { name: 'Hangers', iconType: '/svg/hanger.svg' }, 'hairDryer': { name: 'Hair Dryer', iconType: '/svg/hairDryer.svg' }, 'iron': { name: 'Iron', iconType: '/svg/iron.svg' }, 'extraPillowBlanket': { name: 'Extra Pillows & Blankets', iconType: '/svg/pillow.svg' }, 'towel': { name: 'Towel', iconType: '/svg/towel.svg' }, 'microwave': { name: 'Microwave', iconType: '/svg/microwave.svg' }, 'stove': { name: 'Stove', iconType: '/svg/stove.svg' }, 'oven': { name: 'Oven', iconType: '/svg/oven.svg' }, 'coffeeMaker': { name: 'Coffee Maker', iconType: '/svg/coffeeMaker.svg' }, 'toaster': { name: 'Toaster', iconType: '/svg/toaster.svg' }, 'PotsPans': { name: 'Pots & Pans', iconType: '/svg/pots.svg' }, 'spices': { name: 'Spices', iconType: '/svg/spices.svg' }, 'dishesCutlery': { name: 'Dishes & Cutlery', iconType: '/svg/dishes.svg' }, 'diningTable': { name: 'Dining Table', iconType: '/svg/diningtable.svg' }, 'shower': { name: 'Shower', iconType: '/svg/shower.svg' }, 'shampoo': { name: 'Shampoo', iconType: '/svg/shampoo.svg' }, 'soap': { name: 'Soap', iconType: '/svg/soap.svg' }, 'toilet': { name: 'Toilet', iconType: '/svg/toilet.svg' }, 'toiletPaper': { name: 'Toilet Paper', iconType: '/svg/toiletPaper.svg' }, 'dryer': { name: 'Dryer', iconType: '/svg/dryer.svg' }, 'dryingRack': { name: 'Drying Rack', iconType: '/svg/dryingRack.svg' }, 'ironBoard': { name: 'Iron Board', iconType: '/svg/ironBoard.svg' }, 'cleaningProduct': { name: 'Cleaning Products', iconType: '/svg/cleaning.svg' }, 'tv': { name: 'TV', iconType: '/svg/tv.svg' }, 'soundSystem': { name: 'Sound System', iconType: '/svg/speaker.svg' }, 'consoleGames': { name: 'Gaming Console', iconType: '/svg/console.svg' }, 'boardGames': { name: 'Board Games', iconType: '/svg/chess.svg' }, 'cardGames': { name: 'Card Games', iconType: '/svg/card.svg' }, 'billiard': { name: 'Billiard Table', iconType: '/svg/billiard.svg' }, 'fireExtinguisher': { name: 'Fire Extinguisher', iconType: '/svg/danger.svg' }, 'firstAidKit': { name: 'First Aid Kit', iconType: '/svg/firstAid.svg' }, 'cctv': { name: 'CCTV', iconType: '/svg/cctv.svg' }, 'smartLock': { name: 'Smart Lock', iconType: '/svg/smartLock.svg' }, 'guard': { name: 'Security Guard', iconType: '/svg/guard.svg' }, 'stairGate': { name: 'Stair Gate', iconType: '/svg/gate.svg' }, 'paidParking': { name: 'Paid Parking', iconType: '/svg/parking.svg' }, 'bike': { name: 'Bicycle', iconType: '/svg/bike.svg' }, 'garden': { name: 'Garden', iconType: '/svg/garden.svg' }, 'grill': { name: 'Grill', iconType: '/svg/grill.svg' }, 'firePit': { name: 'Fire Pit', iconType: '/svg/firePit.svg' }, 'pool': { name: 'Swimming Pool', iconType: '/svg/pool.svg' }, 'petsAllowed': { name: 'Pets Allowed', iconType: '/svg/pets.svg' }, 'petsNotAllowed': { name: 'No Pets', iconType: '/svg/pets.svg' }, 'petBowls': { name: 'Pet Bowls', iconType: '/svg/bowl.svg' }, 'petBed': { name: 'Pet Bed', iconType: '/svg/bed.svg' }, 'babyBath': { name: 'Baby Bath', iconType: '/svg/bath.svg' }, default: { name: 'Other', iconType: '/svg/plus.svg' }};
+const amenityMapping = { 
+    'wifi': { name: 'WiFi', iconType: '/svg/wifi.svg' }, 
+    'ref': { name: 'Refrigerator', iconType: '/svg/refrigerator.svg' }, 
+    'bathtub': { name: 'Bathtub', iconType: '/svg/bath.svg' }, 
+    'washer': { name: 'Washer', iconType: '/svg/washer.svg' }, 
+    'streaming': { name: 'Streaming Services', iconType: '/svg/tv.svg' }, 
+    'smokeAlarm': { name: 'Smoke Alarm', iconType: '/svg/smokeAlarm.svg' }, 
+    'freeParking': { name: 'Free Parking', iconType: '/svg/parkring.svg' }, 
+    'balcony': { name: 'Balcony', iconType: '/svg/balcony.svg' }, 
+    'allowed': { name: 'Pets Allowed', iconType: '/svg/petPaw.svg' }, 
+    'crib': { name: 'Crib', iconType: '/svg/crib.svg' }, 
+    'aircon': { name: 'Air Conditioning', iconType: '/svg/aircon.svg' }, 
+    'bedset': { name: 'Complete Bed', iconType: '/svg/bed.svg' }, 
+    'hanger': { name: 'Hangers', iconType: '/svg/hanger.svg' }, 
+    'hairDryer': { name: 'Hair Dryer', iconType: '/svg/hairDryer.svg' }, 
+    'iron': { name: 'Iron', iconType: '/svg/iron.svg' }, 
+    'extraPillowBlanket': { name: 'Extra Pillows & Blankets', iconType: '/svg/extraPillowsBlanket.svg' }, 
+    'towel': { name: 'Towel', iconType: '/svg/towel.svg' }, 
+    'microwave': { name: 'Microwave', iconType: '/svg/microwave.svg' }, 
+    'stove': { name: 'Stove', iconType: '/svg/stove.svg' }, 
+    'oven': { name: 'Oven', iconType: '/svg/oven.svg' }, 
+    'coffeeMaker': { name: 'Coffee Maker', iconType: '/svg/coffeeMaker.svg' }, 
+    'toaster': { name: 'Toaster', iconType: '/svg/toaster.svg' }, 
+    'PotsPans': { name: 'Pots & Pans', iconType: '/svg/pan.svg' }, 
+    'spices': { name: 'Spices', iconType: '/svg/salt.svg' }, 
+    'dishesCutlery': { name: 'Dishes & Cutlery', iconType: '/svg/dishes.svg' }, 
+    'diningTable': { name: 'Dining Table', iconType: '/svg/diningtable.svg' }, 
+    'shower': { name: 'Shower', iconType: '/svg/shower.svg' }, 
+    'shampoo': { name: 'Shampoo', iconType: '/svg/shampoo.svg' }, 
+    'soap': { name: 'Soap', iconType: '/svg/soap.svg' }, 
+    'toilet': { name: 'Toilet', iconType: '/svg/toilet.svg' }, 
+    'toiletPaper': { name: 'Toilet Paper', iconType: '/svg/toiletPaper.svg' }, 
+    'dryer': { name: 'Dryer', iconType: '/svg/dryer.svg' }, 
+    'dryingRack': { name: 'Drying Rack', iconType: '/svg/hanger.svg' }, 
+    'ironBoard': { name: 'Iron Board', iconType: '/svg/ironBoard.svg' }, 
+    'cleaningProduct': { name: 'Cleaning Products', iconType: '/svg/detergent.svg' }, 
+    'tv': { name: 'TV', iconType: '/svg/tv.svg' }, 
+    'soundSystem': { name: 'Sound System', iconType: '/svg/speaker.svg' }, 
+    'consoleGames': { name: 'Gaming Console', iconType: '/svg/console.svg' }, 
+    'boardGames': { name: 'Board Games', iconType: '/svg/chess.svg' }, 
+    'cardGames': { name: 'Card Games', iconType: '/svg/card.svg' }, 
+    'billiard': { name: 'Billiard Table', iconType: '/svg/8ball.svg' }, 
+    'fireExtinguisher': { name: 'Fire Extinguisher', iconType: '/svg/fireExtinguisher.svg' }, 
+    'firstAidKit': { name: 'First Aid Kit', iconType: '/svg/firstAidKit.svg' }, 
+    'cctv': { name: 'CCTV', iconType: '/svg/cctv.svg' }, 
+    'smartLock': { name: 'Smart Lock', iconType: '/svg/smartLock.svg' }, 
+    'guard': { name: 'Security Guard', iconType: '/svg/guard.svg' }, 
+    'stairGate': { name: 'Stair Gate', iconType: '/svg/gate.svg' }, 
+    'paidParking': { name: 'Paid Parking', iconType: '/svg/parkring.svg' }, 
+    'bike': { name: 'Bicycle', iconType: '/svg/bike.svg' }, 
+    'garden': { name: 'Garden', iconType: '/svg/garden.svg' }, 
+    'grill': { name: 'Grill', iconType: '/svg/grill.svg' }, 
+    'firePit': { name: 'Fire Pit', iconType: '/svg/firePit.svg' }, 
+    'pool': { name: 'Swimming Pool', iconType: '/svg/pool.svg' }, 
+    'petsAllowed': { name: 'Pets Allowed', iconType: '/svg/petPaw.svg' }, 
+    'petsNotAllowed': { name: 'No Pets', iconType: '/svg/petPaw.svg' }, 
+    'petBowls': { name: 'Pet Bowls', iconType: '/svg/bowl.svg' }, 
+    'petBed': { name: 'Pet Bed', iconType: '/svg/bed.svg' }, 
+    'babyBath': { name: 'Baby Bath', iconType: '/svg/bath.svg' }, 
+    'highChair': { name: 'High Chair', iconType: '/svg/highChair.svg' },
+    'kettle': { name: 'Kettle', iconType: '/svg/kettle.svg' },
+    'fence': { name: 'Fence', iconType: '/svg/fence.svg' },
+    // Alternative naming patterns
+    'refrigerator': { name: 'Refrigerator', iconType: '/svg/refrigerator.svg' },
+    'washingmachine': { name: 'Washing Machine', iconType: '/svg/washer.svg' },
+    'smokealarm': { name: 'Smoke Alarm', iconType: '/svg/smokeAlarm.svg' },
+    'freeparking': { name: 'Free Parking', iconType: '/svg/parkring.svg' },
+    'parking': { name: 'Parking', iconType: '/svg/parkring.svg' },
+    'petsallowed': { name: 'Pets Allowed', iconType: '/svg/petPaw.svg' },
+    'pets': { name: 'Pets Allowed', iconType: '/svg/petPaw.svg' },
+    'airconditioning': { name: 'Air Conditioning', iconType: '/svg/aircon.svg' },
+    'ac': { name: 'Air Conditioning', iconType: '/svg/aircon.svg' },
+    'bed': { name: 'Bed', iconType: '/svg/bed.svg' },
+    'hangers': { name: 'Hangers', iconType: '/svg/hanger.svg' },
+    'hairdryer': { name: 'Hair Dryer', iconType: '/svg/hairDryer.svg' },
+    'extrapillowsblankets': { name: 'Extra Pillows & Blankets', iconType: '/svg/extraPillowsBlanket.svg' },
+    'pillows': { name: 'Extra Pillows & Blankets', iconType: '/svg/extraPillowsBlanket.svg' },
+    'blankets': { name: 'Extra Pillows & Blankets', iconType: '/svg/extraPillowsBlanket.svg' },
+    'towels': { name: 'Towels', iconType: '/svg/towel.svg' },
+    'coffeemaker': { name: 'Coffee Maker', iconType: '/svg/coffeeMaker.svg' },
+    'coffee': { name: 'Coffee Maker', iconType: '/svg/coffeeMaker.svg' },
+    'potspans': { name: 'Pots & Pans', iconType: '/svg/pan.svg' },
+    'pots': { name: 'Pots & Pans', iconType: '/svg/pan.svg' },
+    'pans': { name: 'Pots & Pans', iconType: '/svg/pan.svg' },
+    'cookware': { name: 'Pots & Pans', iconType: '/svg/pan.svg' },
+    'dishescutlery': { name: 'Dishes & Cutlery', iconType: '/svg/dishes.svg' },
+    'dishes': { name: 'Dishes & Cutlery', iconType: '/svg/dishes.svg' },
+    'cutlery': { name: 'Dishes & Cutlery', iconType: '/svg/dishes.svg' },
+    'diningtable': { name: 'Dining Table', iconType: '/svg/diningtable.svg' },
+    'table': { name: 'Dining Table', iconType: '/svg/diningtable.svg' },
+    'toiletpaper': { name: 'Toilet Paper', iconType: '/svg/toiletPaper.svg' },
+    'dryingrack': { name: 'Drying Rack', iconType: '/svg/hanger.svg' },
+    'ironboard': { name: 'Iron Board', iconType: '/svg/ironBoard.svg' },
+    'ironing': { name: 'Iron Board', iconType: '/svg/ironBoard.svg' },
+    'cleaningproducts': { name: 'Cleaning Products', iconType: '/svg/detergent.svg' },
+    'cleaning': { name: 'Cleaning Products', iconType: '/svg/detergent.svg' },
+    'detergent': { name: 'Cleaning Products', iconType: '/svg/detergent.svg' },
+    'television': { name: 'TV', iconType: '/svg/tv.svg' },
+    'smarttv': { name: 'Smart TV', iconType: '/svg/tv.svg' },
+    'soundsystem': { name: 'Sound System', iconType: '/svg/speaker.svg' },
+    'speaker': { name: 'Sound System', iconType: '/svg/speaker.svg' },
+    'speakers': { name: 'Sound System', iconType: '/svg/speaker.svg' },
+    'consolegames': { name: 'Gaming Console', iconType: '/svg/console.svg' },
+    'console': { name: 'Gaming Console', iconType: '/svg/console.svg' },
+    'gaming': { name: 'Gaming Console', iconType: '/svg/console.svg' },
+    'boardgames': { name: 'Board Games', iconType: '/svg/chess.svg' },
+    'games': { name: 'Board Games', iconType: '/svg/chess.svg' },
+    'cardgames': { name: 'Card Games', iconType: '/svg/card.svg' },
+    'cards': { name: 'Card Games', iconType: '/svg/card.svg' },
+    'billiards': { name: 'Billiard Table', iconType: '/svg/8ball.svg' },
+    'swimmingpool': { name: 'Swimming Pool', iconType: '/svg/pool.svg' },
+    'fireextinguisher': { name: 'Fire Extinguisher', iconType: '/svg/fireExtinguisher.svg' },
+    'firstaidkit': { name: 'First Aid Kit', iconType: '/svg/firstAidKit.svg' },
+    'firstaid': { name: 'First Aid Kit', iconType: '/svg/firstAidKit.svg' },
+    'camera': { name: 'CCTV', iconType: '/svg/cctv.svg' },
+    'security': { name: 'CCTV', iconType: '/svg/cctv.svg' },
+    'smartlock': { name: 'Smart Lock', iconType: '/svg/smartLock.svg' },
+    'lock': { name: 'Smart Lock', iconType: '/svg/smartLock.svg' },
+    'securityguard': { name: 'Security Guard', iconType: '/svg/guard.svg' },
+    'stairgate': { name: 'Stair Gate', iconType: '/svg/gate.svg' },
+    'gate': { name: 'Gate', iconType: '/svg/gate.svg' },
+    'paidparking': { name: 'Paid Parking', iconType: '/svg/parkring.svg' },
+    'bicycle': { name: 'Bicycle', iconType: '/svg/bike.svg' },
+    'grilling': { name: 'Grill', iconType: '/svg/grill.svg' },
+    'bbq': { name: 'Grill', iconType: '/svg/grill.svg' },
+    'barbecue': { name: 'Grill', iconType: '/svg/grill.svg' },
+    'firepit': { name: 'Fire Pit', iconType: '/svg/firePit.svg' },
+    'petsnotallowed': { name: 'No Pets', iconType: '/svg/petPaw.svg' },
+    'nopets': { name: 'No Pets', iconType: '/svg/petPaw.svg' },
+    'petbowls': { name: 'Pet Bowls', iconType: '/svg/bowl.svg' },
+    'petbed': { name: 'Pet Bed', iconType: '/svg/bed.svg' },
+    'babybath': { name: 'Baby Bath', iconType: '/svg/bath.svg' },
+    'highchair': { name: 'High Chair', iconType: '/svg/highChair.svg' },
+    default: { name: 'Other', iconType: '/svg/add.svg' }
+};
 
 // Global variable to store property data for reservation
 let currentPropertyData = null;
@@ -13,16 +147,228 @@ function getAmenitySVGByMapping(amenity) {
     const foundKey = Object.keys(amenityMapping).find(key => {
         return key.replace(/\s+/g, '').replace(/[-_]/g, '').toLowerCase() === normalizedKey;
     });
-    return amenityMapping[foundKey] || { name: amenity, iconType: '/svg/plus.svg' };
+    
+    // Console log for debugging mismatches
+    if (!foundKey) {
+        console.warn(`🔍 AMENITY MISMATCH: "${amenity}" -> normalized: "${normalizedKey}" -> NO MATCH FOUND`);
+        console.log('Available mapping keys:', Object.keys(amenityMapping));
+        return { name: amenity, iconType: '/svg/add.svg' };
+    }
+    
+    const result = amenityMapping[foundKey];
+    console.log(`✅ AMENITY MATCHED: "${amenity}" -> "${foundKey}" -> ${result.name} (${result.iconType})`);
+    return result;
+}
+
+// Function to check and log all amenity mismatches and missing icons
+async function debugAmenities(apiAmenities, otherAmenities) {
+    console.group('🔍 AMENITY DEBUG ANALYSIS');
+    
+    // Get list of available SVG files
+    const availableSVGs = [
+        '8ball.svg', 'add.svg', 'aircon.svg', 'backarrow.svg', 'backIcon.svg', 'balcony.svg', 
+        'bath.svg', 'bed.svg', 'betcha logo.svg', 'Betcha.svg', 'bike.svg', 'bookingIcon.svg', 
+        'bowl.svg', 'calendar.svg', 'camera.svg', 'card.svg', 'cctv.svg', 'check.svg', 'chess.svg', 
+        'closeIcon.svg', 'coffeeMaker.svg', 'console.svg', 'crib.svg', 'danger.svg', 'dashboard.svg', 
+        'delete.svg', 'detergent.svg', 'diningtable.svg', 'dishes.svg', 'done.svg', 'door.svg', 
+        'dropdown.svg', 'dryer.svg', 'edit.svg', 'emailIcon.svg', 'extraPillowsBlanket.svg', 
+        'eye-closed.svg', 'eye-open.svg', 'facebook-circle 1.svg', 'faqs.svg', 'fence.svg', 
+        'fireExtinguisher.svg', 'firePit.svg', 'firstAidKit.svg', 'furniture 1.svg', 'gallery.svg', 
+        'garden.svg', 'gate.svg', 'grill.svg', 'guard.svg', 'hairDryer.svg', 'hanger.svg', 
+        'highChair.svg', 'house.svg', 'ic_round-email.svg', 'iron.svg', 'ironBoard.svg', 'kettle.svg', 
+        'list.svg', 'locationIcon.svg', 'locked.svg', 'lock_hole.svg', 'menu.svg', 'microwave.svg', 
+        'mingcute_arrow-right-line.svg', 'nextIcon.svg', 'otherpayment.svg', 'oven.svg', 'page.svg', 
+        'pan.svg', 'parkring.svg', 'passIcon.svg', 'person.svg', 'person2.svg', 'peso.svg', 
+        'petPaw.svg', 'phoneIcon.svg', 'pool.svg', 'price.svg', 'PSR.svg', 'refrigerator.svg', 
+        'role.svg', 'salt.svg', 'send.svg', 'sex.svg', 'shampoo.svg', 'shower.svg', 'smartLock.svg', 
+        'smokeAlarm.svg', 'soap.svg', 'solar_phone-bold.svg', 'speaker.svg', 'star.svg', 'stove.svg', 
+        'tk.svg', 'toaster.svg', 'toilet.svg', 'toiletPaper.svg', 'towel.svg', 'TS.svg', 'tv.svg', 
+        'unavailable.svg', 'unlocked.svg', 'washer.svg', 'wifi.svg'
+    ];
+    
+    console.log('📁 Available SVG files:', availableSVGs);
+    console.log('🗂️ Current amenity mapping keys:', Object.keys(amenityMapping));
+    
+    // Store results for final summary
+    const results = {
+        matched: [],
+        unmatched: [],
+        unusedMappings: [],
+        missingSVGs: [],
+        suggestions: {}
+    };
+    
+    // Check API amenities
+    console.group('🔍 API AMENITIES ANALYSIS');
+    if (apiAmenities && apiAmenities.length > 0) {
+        console.log(`📊 Total API amenities: ${apiAmenities.length}`);
+        apiAmenities.forEach((amenity, index) => {
+            console.log(`${index + 1}. "${amenity}"`);
+            const result = getAmenitySVGByMapping(amenity);
+            if (result.iconType === '/svg/add.svg') {
+                console.warn(`❌ No icon found for: "${amenity}"`);
+                results.unmatched.push(amenity);
+                // Suggest potential matches
+                const suggestions = availableSVGs.filter(svg => 
+                    svg.toLowerCase().includes(amenity.toLowerCase().substring(0, 3)) ||
+                    amenity.toLowerCase().includes(svg.replace('.svg', '').substring(0, 3))
+                );
+                if (suggestions.length > 0) {
+                    console.log(`💡 Potential SVG matches:`, suggestions);
+                    results.suggestions[amenity] = suggestions;
+                }
+            } else {
+                results.matched.push({ amenity, mapping: result });
+            }
+        });
+    } else {
+        console.log('❌ No API amenities found');
+    }
+    console.groupEnd();
+    
+    // Check other amenities
+    console.group('🔍 OTHER AMENITIES ANALYSIS');
+    if (otherAmenities && otherAmenities.length > 0) {
+        console.log(`📊 Total other amenities: ${otherAmenities.length}`);
+        otherAmenities.forEach((amenity, index) => {
+            console.log(`${index + 1}. "${amenity}"`);
+        });
+    } else {
+        console.log('❌ No other amenities found');
+    }
+    console.groupEnd();
+    
+    // Check for unused mapping entries
+    console.group('🔍 UNUSED MAPPING ENTRIES');
+    const allAmenities = [...(apiAmenities || []), ...(otherAmenities || [])];
+    const usedMappingKeys = [];
+    
+    allAmenities.forEach(amenity => {
+        const normalizedKey = amenity.replace(/\s+/g, '').replace(/[-_]/g, '').toLowerCase();
+        const foundKey = Object.keys(amenityMapping).find(key => {
+            return key.replace(/\s+/g, '').replace(/[-_]/g, '').toLowerCase() === normalizedKey;
+        });
+        if (foundKey) {
+            usedMappingKeys.push(foundKey);
+        }
+    });
+    
+    const unusedMappingKeys = Object.keys(amenityMapping).filter(key => 
+        !usedMappingKeys.includes(key) && key !== 'default'
+    );
+    
+    results.unusedMappings = unusedMappingKeys;
+    
+    if (unusedMappingKeys.length > 0) {
+        console.log('🗑️ Unused mapping entries (not in API response):', unusedMappingKeys);
+        console.log('These can potentially be removed from amenityMapping');
+    } else {
+        console.log('✅ All mapping entries are being used');
+    }
+    console.groupEnd();
+    
+    // Check for missing SVG files referenced in mapping
+    console.group('🔍 MISSING SVG FILES');
+    const missingSVGs = [];
+    Object.entries(amenityMapping).forEach(([key, value]) => {
+        if (value.iconType && value.iconType !== '/svg/add.svg') {
+            const svgFileName = value.iconType.replace('/svg/', '');
+            if (!availableSVGs.includes(svgFileName)) {
+                missingSVGs.push({ key, iconType: value.iconType, svgFileName });
+            }
+        }
+    });
+    
+    results.missingSVGs = missingSVGs;
+    
+    if (missingSVGs.length > 0) {
+        console.warn('❌ Missing SVG files referenced in mapping:');
+        missingSVGs.forEach(item => {
+            console.warn(`- ${item.key}: ${item.iconType} (file: ${item.svgFileName})`);
+        });
+    } else {
+        console.log('✅ All SVG files referenced in mapping exist');
+    }
+    console.groupEnd();
+    
+    // Final Summary
+    console.group('📋 FINAL SUMMARY');
+    console.log(`✅ Matched amenities: ${results.matched.length}`);
+    console.log(`❌ Unmatched amenities: ${results.unmatched.length}`);
+    console.log(`🗑️ Unused mappings: ${results.unusedMappings.length}`);
+    console.log(`📁 Missing SVG files: ${results.missingSVGs.length}`);
+    
+    if (results.unmatched.length > 0) {
+        console.group('❌ UNMATCHED AMENITIES TO FIX:');
+        results.unmatched.forEach(amenity => {
+            console.log(`- "${amenity}"`);
+            if (results.suggestions[amenity]) {
+                console.log(`  Suggestions: ${results.suggestions[amenity].join(', ')}`);
+            }
+        });
+        console.groupEnd();
+    }
+    
+    if (results.unusedMappings.length > 0) {
+        console.group('🗑️ UNUSED MAPPINGS TO REMOVE:');
+        results.unusedMappings.forEach(key => {
+            console.log(`- "${key}": ${JSON.stringify(amenityMapping[key])}`);
+        });
+        console.groupEnd();
+    }
+    
+    console.groupEnd();
+    console.groupEnd();
+    
+    // Store results globally for inspection
+    window.amenityDebugResults = results;
+    console.log('💾 Debug results stored in window.amenityDebugResults for inspection');
 }
 
 function renderAmenities(apiAmenities, otherAmenities) {
+    // Debug amenities for mismatches and issues
+    debugAmenities(apiAmenities, otherAmenities);
+    
     const normalizedSet = new Set(apiAmenities.map(a => a.toLowerCase().replace(/[_-\s]+/g, '')));
     const modal = document.getElementById('ammenitiesModal');
+    
+    // First, populate the preview amenity list (first 3 amenities)
+    const amenityList = document.getElementById('amenityList');
+    if (amenityList && apiAmenities) {
+        amenityList.innerHTML = '';
+        apiAmenities.slice(0, 3).forEach(amenity => {
+            const { name, iconType } = getAmenitySVGByMapping(amenity);
+            const div = document.createElement('div');
+            div.className = 'flex items-center gap-2';
+            
+            // Check if we have a proper icon or should use bullet
+            const hasProperIcon = iconType && iconType !== '/svg/add.svg';
+            
+            if (hasProperIcon) {
+                // Use the icon image
+                div.innerHTML = `
+                    <img src="${iconType}" alt="${name}" class="w-6 h-6">
+                    <span class="font-roboto text-base text-primary-text">${name}</span>
+                `;
+            } else {
+                // Use bullet point
+                div.innerHTML = `
+                    <span class="w-6 h-6 flex items-center justify-center">
+                        <span class="w-2 h-2 bg-black rounded-full"></span>
+                    </span>
+                    <span class="font-roboto text-base text-primary-text">${name}</span>
+                `;
+            }
+            
+            amenityList.appendChild(div);
+        });
+    }
+    
+    // Then populate the modal
     if (!modal) return;
 
     // Process each section and track if they have visible items
-    modal.querySelectorAll('.px-3.mb-5').forEach(section => {
+    modal.querySelectorAll('.px-2.md\\:px-3.mb-3.md\\:mb-5').forEach(section => {
         let hasVisibleItems = false;
         
         section.querySelectorAll('li[id]').forEach(li => {
@@ -51,10 +397,11 @@ function renderAmenities(apiAmenities, otherAmenities) {
         }
     });
 
-    const othersSection = document.querySelector('#ammenitiesModal .px-3.mb-5:last-child');
+    // Handle the Others section specifically
+    const othersSection = document.querySelector('#ammenitiesModal .px-2.md\\:px-3.mb-3.md\\:mb-5:last-child');
     if (!othersSection) return;
 
-    const list = othersSection.querySelector('ul.grid');
+    const list = othersSection.querySelector('ul');
     if (!list) return;
 
     list.innerHTML = '';
@@ -62,7 +409,7 @@ function renderAmenities(apiAmenities, otherAmenities) {
     if (otherAmenities && otherAmenities.length > 0) {
         otherAmenities.forEach(item => {
             const li = document.createElement('li');
-            li.className = 'flex items-center gap-2';
+            li.className = 'flex items-center gap-3';
             li.innerHTML = `
                 <span class="w-6 h-6 flex items-center justify-center">
                     <span class="w-2 h-2 bg-black rounded-full"></span>
@@ -71,9 +418,6 @@ function renderAmenities(apiAmenities, otherAmenities) {
             `;
             list.appendChild(li);
         });
-        // Remove grid layout for stacked items
-        list.classList.remove('grid');
-        list.classList.add('flex', 'flex-col', 'gap-1');
         othersSection.classList.remove('hidden');
     } else {
         othersSection.classList.add('hidden');
@@ -196,37 +540,7 @@ async function fetchAndDisplayProperty() {
             }
         }
 
-        const amenityList = document.getElementById('amenityList');
-        if (amenityList && data.amenities) {
-            amenityList.innerHTML = '';
-            data.amenities.slice(0, 3).forEach(amenity => {
-                const { name, iconType } = getAmenitySVGByMapping(amenity);
-                const div = document.createElement('div');
-                div.className = 'flex items-center gap-2';
-                
-                // Check if we have a proper icon or should use bullet
-                const hasProperIcon = iconType && iconType !== '/svg/plus.svg';
-                
-                if (hasProperIcon) {
-                    // Use the icon image
-                    div.innerHTML = `
-                        <img src="${iconType}" alt="${name}" class="w-6 h-6">
-                        <span class="font-roboto text-base text-primary-text">${name}</span>
-                    `;
-                } else {
-                    // Use bullet point
-                    div.innerHTML = `
-                        <span class="w-6 h-6 flex items-center justify-center">
-                            <span class="w-2 h-2 bg-black rounded-full"></span>
-                        </span>
-                        <span class="font-roboto text-base text-primary-text">${name}</span>
-                    `;
-                }
-                
-                amenityList.appendChild(div);
-            });
-        }
-
+        // Render amenities using the unified renderAmenities function
         if (typeof renderAmenities === "function") {
             const amenities = Array.isArray(data.amenities) ? data.amenities : [];
             const otherAmenities = Array.isArray(data.otherAmenities) ? data.otherAmenities : [];
@@ -564,7 +878,6 @@ function initializeDirectionsButton() {
     const directionsButtonContainer = document.getElementById('directionsButtonContainer');
     const directionsBtn = document.getElementById('directionsBtn');
     const mapContainer = document.getElementById('mapContainer');
-    const fullAddressElement = document.getElementById('fulladd');
     
     if (!directionsButtonContainer || !directionsBtn || !mapContainer) return;
     
@@ -674,8 +987,8 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
                     
-                    // Create directions URL with user location and our precise destination
-                    const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite`;
+                    // Create directions URL with user location and our precise destination (driving mode)
+                    const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                     
                     console.log('Generated directions URL:', directionsEmbedUrl);
                     
@@ -693,8 +1006,8 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                 (error) => {
                     console.error('Geolocation error:', error);
                     
-                    // Use our precise destination for fallback (without user location)
-                    const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite`;
+                    // Use our precise destination for fallback (without user location, driving mode)
+                    const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                     
                     console.log('Generated fallback directions URL:', fallbackEmbedUrl);
                     
@@ -720,8 +1033,8 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                 }
             );
         } else {
-            // Browser doesn't support geolocation, use fallback (satellite view)
-            const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite`;
+            // Browser doesn't support geolocation, use fallback (satellite view, driving mode)
+            const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
             
             console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
             
@@ -767,7 +1080,7 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
             directionsBtn.innerHTML = `
                 <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 616 0z"></path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 0 1 6 0z"></path>
                 </svg>
                 Get Directions
             `;

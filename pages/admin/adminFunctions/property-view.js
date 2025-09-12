@@ -384,8 +384,8 @@ function populateBasicInfo(data) {
                                 const userLat = position.coords.latitude;
                                 const userLng = position.coords.longitude;
                                 
-                                // Create directions URL with user location and our precise destination (satellite view)
-                                const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite`;
+                                // Create directions URL with user location and our precise destination (satellite view, driving mode)
+                                const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                                 
                                 console.log('Generated directions URL:', directionsEmbedUrl);
                                 
@@ -403,8 +403,8 @@ function populateBasicInfo(data) {
                             (error) => {
                                 console.error('Geolocation error:', error);
                                 
-                                // Use our precise destination for fallback (without user location) with satellite view
-                                const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite`;
+                                // Use simple maps.google.com URL for fallback (no API key needed)
+                                const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                                 
                                 console.log('Generated fallback directions URL:', fallbackEmbedUrl);
                                 
@@ -430,8 +430,8 @@ function populateBasicInfo(data) {
                             }
                         );
                     } else {
-                        // Browser doesn't support geolocation, use fallback with satellite view
-                        const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite`;
+                        // Browser doesn't support geolocation, use simple maps.google.com URL (no API key needed)
+                        const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                         
                         console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
                         
@@ -468,7 +468,7 @@ function populateBasicInfo(data) {
                         directionsBtn.innerHTML = `
                             <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 616 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 0 1 6 0z"></path>
                             </svg>
                             Get Directions
                         `;
@@ -526,8 +526,8 @@ function populateBasicInfo(data) {
                                     const userLat = position.coords.latitude;
                                     const userLng = position.coords.longitude;
                                     
-                                    // Create directions URL with user location and our precise destination (satellite view)
-                                    const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite`;
+                                    // Create directions URL with user location and our precise destination (driving mode)
+                                    const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                                     
                                     console.log('Generated directions URL:', directionsEmbedUrl);
                                     
@@ -545,8 +545,8 @@ function populateBasicInfo(data) {
                                 (error) => {
                                     console.error('Geolocation error:', error);
                                     
-                                    // Use our precise destination for fallback (without user location) with satellite view
-                                    const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite`;
+                                    // Use simple maps.google.com URL for fallback (no API key needed)
+                                    const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                                     
                                     console.log('Generated fallback directions URL:', fallbackEmbedUrl);
                                     
@@ -572,8 +572,8 @@ function populateBasicInfo(data) {
                                 }
                             );
                         } else {
-                            // Browser doesn't support geolocation, use fallback with satellite view
-                            const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite`;
+                            // Browser doesn't support geolocation, use simple maps.google.com URL (no API key needed)
+                            const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                             
                             console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
                             
@@ -605,7 +605,7 @@ function populateBasicInfo(data) {
                             directionsBtn.innerHTML = `
                                 <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 616 0z"></path>
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 0 1 6 0z"></path>
                                 </svg>
                                 Get Directions
                             `;
@@ -895,13 +895,14 @@ function populateOtherAmenities(otherAmenities) {
             
             otherAmenities.forEach(amenity => {
                 const amenityInfo = getAmenityDisplayInfo(amenity);
-                const iconPath = getAmenityIcon(amenityInfo.icon);
                 
                 const li = document.createElement('li');
                 li.className = 'p-2';
                 li.innerHTML = `
                     <div class="flex gap-3 items-center">
-                        <img src="${iconPath}" alt="${amenityInfo.name}" class="h-5 w-5 fill-primary-text">
+                        <span class="w-5 h-5 flex items-center justify-center">
+                            <span class="w-2 h-2 bg-black rounded-full"></span>
+                        </span>
                         <span class="font-inter text-primary-text">${amenityInfo.name}</span>
                     </div>
                 `;
