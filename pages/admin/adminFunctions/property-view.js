@@ -6,6 +6,55 @@
 // API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
+// Function to extract coordinates from mapLink
+function extractCoordinatesFromMapLink(mapLink) {
+    if (!mapLink) return null;
+    
+    console.log('Attempting to extract coordinates from mapLink:', mapLink);
+    
+    // Try to extract coordinates from the mapLink
+    // Look for patterns like !3d14.716000285784096!2d121.05891147478252 (lat/lng)
+    const coordMatch = mapLink.match(/!3d([0-9.-]+)!2d([0-9.-]+)/);
+    if (coordMatch) {
+        const lat = coordMatch[1];
+        const lng = coordMatch[2];
+        console.log('Found coordinates using !3d!2d pattern:', { lat, lng });
+        return { lat, lng };
+    }
+    
+    // Also try patterns like @14.716000285784096,121.05891147478252
+    const atCoordMatch = mapLink.match(/@([0-9.-]+),([0-9.-]+)/);
+    if (atCoordMatch) {
+        const lat = atCoordMatch[1];
+        const lng = atCoordMatch[2];
+        console.log('Found coordinates using @ pattern:', { lat, lng });
+        return { lat, lng };
+    }
+    
+    // Try to extract from pb parameter (another Google Maps format)
+    const pbMatch = mapLink.match(/!1d([0-9.-]+)!2d([0-9.-]+)!3d([0-9.-]+)/);
+    if (pbMatch) {
+        const lat = pbMatch[3]; // 3d is usually latitude
+        const lng = pbMatch[2]; // 2d is usually longitude
+        console.log('Found coordinates using pb pattern:', { lat, lng });
+        return { lat, lng };
+    }
+    
+    // Try to extract from query parameters
+    const urlParams = new URL(mapLink.startsWith('http') ? mapLink : 'https://maps.google.com/' + mapLink);
+    const ll = urlParams.searchParams.get('ll');
+    if (ll) {
+        const [lat, lng] = ll.split(',');
+        if (lat && lng) {
+            console.log('Found coordinates using ll parameter:', { lat, lng });
+            return { lat, lng };
+        }
+    }
+    
+    console.log('No coordinates found in mapLink');
+    return null;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Get property ID from URL parameters or use default
     const urlParams = new URLSearchParams(window.location.search);
@@ -289,22 +338,33 @@ function populateBasicInfo(data) {
                 directionsButtonContainer.classList.remove('hidden');
                 
                 directionsBtn.onclick = () => {
-                    // Create the Google Maps directions URL for embedding
+                    // Debug: Log the mapLink to see what we're working with
+                    console.log('Property mapLink:', data.mapLink);
+                    
+                    // Create the query for directions using coordinates + address for accuracy
                     let directionsQuery;
                     
-                    if (data.mapLink.startsWith('http')) {
-                        // If it's already a URL, extract location or use the link
-                        directionsQuery = data.mapLink;
-                    } else {
-                        // If it's coordinates or address, format for directions
-                        directionsQuery = encodeURIComponent(data.mapLink);
-                    }
+                    // Extract coordinates from mapLink for precise location
+                    const coordinates = data.mapLink ? extractCoordinatesFromMapLink(data.mapLink) : null;
                     
-                    // Use address and city for more accurate directions if available
-                    if (data.address && data.city) {
-                        directionsQuery = encodeURIComponent(`${data.address}, ${data.city}`);
+                    console.log('Extracted coordinates:', coordinates);
+                    
+                    if (coordinates && data.address) {
+                        // Use coordinates + address for most accurate matching
+                        // This tells Google to find a location near these coordinates that matches the address
+                        directionsQuery = `${coordinates.lat},${coordinates.lng}+${encodeURIComponent(data.address)}`;
+                        console.log('Using coordinates + address for precise location:', directionsQuery);
+                    } else if (coordinates) {
+                        // Use just coordinates if address not available
+                        directionsQuery = `${coordinates.lat},${coordinates.lng}`;
+                        console.log('Using coordinates only:', directionsQuery);
                     } else if (data.address) {
+                        // Fallback to full address only
                         directionsQuery = encodeURIComponent(data.address);
+                        console.log('Using full address only:', data.address);
+                    } else {
+                        // Final fallback
+                        directionsQuery = encodeURIComponent('Property Location');
                     }
                     
                     // Get user's current location for accurate directions
@@ -324,8 +384,10 @@ function populateBasicInfo(data) {
                                 const userLat = position.coords.latitude;
                                 const userLng = position.coords.longitude;
                                 
-                                // Create directions URL with actual user location
-                                const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed`;
+                                // Create directions URL with user location and our precise destination (satellite view)
+                                const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite`;
+                                
+                                console.log('Generated directions URL:', directionsEmbedUrl);
                                 
                                 // Update the iframe with directions from user's actual location
                                 mapContainer.innerHTML = `
@@ -340,13 +402,16 @@ function populateBasicInfo(data) {
                             },
                             (error) => {
                                 console.error('Geolocation error:', error);
-                                // Fallback to generic directions if geolocation fails
-                                const fallbackEmbedUrl = `https://maps.google.com/maps?q=directions+to+${directionsQuery}&output=embed`;
+                                
+                                // Use our precise destination for fallback (without user location) with satellite view
+                                const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite`;
+                                
+                                console.log('Generated fallback directions URL:', fallbackEmbedUrl);
                                 
                                 mapContainer.innerHTML = `
                                     <div class="w-full h-full bg-neutral-100 flex flex-col">
                                         <div class="p-2 bg-yellow-100 text-yellow-800 text-center text-xs">
-                                            <p>Location access denied. Showing general directions.</p>
+                                            <p>Location access denied. Showing property location.</p>
                                         </div>
                                         <iframe src="${fallbackEmbedUrl}" 
                                             class="w-full flex-1"
@@ -365,13 +430,15 @@ function populateBasicInfo(data) {
                             }
                         );
                     } else {
-                        // Browser doesn't support geolocation, use fallback
-                        const fallbackEmbedUrl = `https://maps.google.com/maps?q=directions+to+${directionsQuery}&output=embed`;
+                        // Browser doesn't support geolocation, use fallback with satellite view
+                        const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite`;
+                        
+                        console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
                         
                         mapContainer.innerHTML = `
                             <div class="w-full h-full bg-neutral-100 flex flex-col">
                                 <div class="p-2 bg-blue-100 text-blue-800 text-center text-xs">
-                                    <p>Geolocation not supported. Showing general directions.</p>
+                                    <p>Geolocation not supported. Showing property location.</p>
                                 </div>
                                 <iframe src="${fallbackEmbedUrl}" 
                                     class="w-full flex-1"
@@ -414,19 +481,32 @@ function populateBasicInfo(data) {
                 // Function to setup directions button (for reuse)
                 function setupDirectionsButton() {
                     directionsBtn.onclick = () => {
-                        // Same directions logic as above...
+                        // Debug: Log the mapLink to see what we're working with
+                        console.log('Property mapLink:', data.mapLink);
+                        
+                        // Create the query for directions using coordinates + address for accuracy
                         let directionsQuery;
                         
-                        if (data.mapLink.startsWith('http')) {
-                            directionsQuery = data.mapLink;
-                        } else {
-                            directionsQuery = encodeURIComponent(data.mapLink);
-                        }
+                        // Extract coordinates from mapLink for precise location
+                        const coordinates = data.mapLink ? extractCoordinatesFromMapLink(data.mapLink) : null;
                         
-                        if (data.address && data.city) {
-                            directionsQuery = encodeURIComponent(`${data.address}, ${data.city}`);
+                        console.log('Extracted coordinates:', coordinates);
+                        
+                        if (coordinates && data.address) {
+                            // Use coordinates + address for most accurate matching
+                            directionsQuery = `${coordinates.lat},${coordinates.lng}+${encodeURIComponent(data.address)}`;
+                            console.log('Using coordinates + address for precise location:', directionsQuery);
+                        } else if (coordinates) {
+                            // Use just coordinates if address not available
+                            directionsQuery = `${coordinates.lat},${coordinates.lng}`;
+                            console.log('Using coordinates only:', directionsQuery);
                         } else if (data.address) {
+                            // Fallback to full address only
                             directionsQuery = encodeURIComponent(data.address);
+                            console.log('Using full address only:', data.address);
+                        } else {
+                            // Final fallback
+                            directionsQuery = encodeURIComponent('Property Location');
                         }
                         
                         // Get user's current location for accurate directions
@@ -446,8 +526,10 @@ function populateBasicInfo(data) {
                                     const userLat = position.coords.latitude;
                                     const userLng = position.coords.longitude;
                                     
-                                    // Create directions URL with actual user location
-                                    const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed`;
+                                    // Create directions URL with user location and our precise destination (satellite view)
+                                    const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite`;
+                                    
+                                    console.log('Generated directions URL:', directionsEmbedUrl);
                                     
                                     // Update the iframe with directions from user's actual location
                                     mapContainer.innerHTML = `
@@ -462,13 +544,16 @@ function populateBasicInfo(data) {
                                 },
                                 (error) => {
                                     console.error('Geolocation error:', error);
-                                    // Fallback to generic directions if geolocation fails
-                                    const fallbackEmbedUrl = `https://maps.google.com/maps?q=directions+to+${directionsQuery}&output=embed`;
+                                    
+                                    // Use our precise destination for fallback (without user location) with satellite view
+                                    const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite`;
+                                    
+                                    console.log('Generated fallback directions URL:', fallbackEmbedUrl);
                                     
                                     mapContainer.innerHTML = `
                                         <div class="w-full h-full bg-neutral-100 flex flex-col">
                                             <div class="p-2 bg-yellow-100 text-yellow-800 text-center text-xs">
-                                                <p>Location access denied. Showing general directions.</p>
+                                                <p>Location access denied. Showing property location.</p>
                                             </div>
                                             <iframe src="${fallbackEmbedUrl}" 
                                                 class="w-full flex-1"
@@ -487,13 +572,15 @@ function populateBasicInfo(data) {
                                 }
                             );
                         } else {
-                            // Browser doesn't support geolocation, use fallback
-                            const fallbackEmbedUrl = `https://maps.google.com/maps?q=directions+to+${directionsQuery}&output=embed`;
+                            // Browser doesn't support geolocation, use fallback with satellite view
+                            const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite`;
+                            
+                            console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
                             
                             mapContainer.innerHTML = `
                                 <div class="w-full h-full bg-neutral-100 flex flex-col">
                                     <div class="p-2 bg-blue-100 text-blue-800 text-center text-xs">
-                                        <p>Geolocation not supported. Showing general directions.</p>
+                                        <p>Geolocation not supported. Showing property location.</p>
                                     </div>
                                     <iframe src="${fallbackEmbedUrl}" 
                                         class="w-full flex-1"
