@@ -5,6 +5,13 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
+  // Helper function to truncate text with ellipsis
+  function truncateText(text, maxLength) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+  }
+
   // Function to create property card HTML
   function createPropertyCard(property) {
     return `
@@ -16,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
           </div>
           <div class="flex flex-col items-start mx-3">
             <div class="flex justify-between items-center w-full">
-              <p class="font-roboto text-primary-text">${property.name}</p>
+              <p class="font-roboto text-primary-text">${truncateText(property.name, 25)}</p>
               <div class="flex items-center gap-1">
                 <svg class="w-auto h-3 fill-primary-text" viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
                   <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
@@ -28,7 +35,7 @@ document.addEventListener('DOMContentLoaded', function () {
               <svg class="w-auto h-3.5 fill-muted" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
                 <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
               </svg>
-              <p class="font-roboto text-muted text-sm">${property.city}</p>
+              <p class="font-roboto text-muted text-sm">${truncateText(property.city, 20)}</p>
             </div>
             <p class="font-roboto text-primary-text">₱ <span class="font-roboto text-primary-text">${property.packagePrice.toLocaleString()}</span> <span class="font-roboto text-muted">/ day</span></p>
           </div>

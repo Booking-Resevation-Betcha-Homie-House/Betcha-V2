@@ -1,5 +1,12 @@
 console.log('Landing page functions loaded');
 
+// Helper function to truncate text with ellipsis
+function truncateText(text, maxLength) {
+    if (!text) return '';
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength) + '...';
+}
+
 function toggleFaq(button) {
     const faqItem = button.closest("div");
     const content = faqItem.querySelector(".faq-content");
@@ -141,10 +148,10 @@ async function fetchAndDisplayFeaturedUnits() {
             if (ratingSpan) ratingSpan.textContent = unit.rating || '0.0';
 
             const propertyName = unitCard.querySelector('h2.text-2xl');
-            if (propertyName) propertyName.textContent = unit.name || 'Property name';
+            if (propertyName) propertyName.textContent = truncateText(unit.name || 'Property name', 30);
 
             const location = unitCard.querySelector('p.font-roboto.text-secondary-text.text-sm');
-            if (location) location.textContent = `${unit.address}, ${unit.city}`;
+            if (location) location.textContent = truncateText(`${unit.address}, ${unit.city}`, 35);
 
             const cardContent = unitCard.querySelector('.relative.z-20');
             if (cardContent) {
