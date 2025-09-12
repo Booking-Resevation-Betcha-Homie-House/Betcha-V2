@@ -1,5 +1,5 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
-  
+document.addEventListener('DOMContentLoaded', () => {
+  //FAQs
   function toggleFaq(button) {
     const faqItem = button.closest("div");
     const content = faqItem.querySelector(".faq-content");
@@ -27,6 +27,7 @@
   }
   window.toggleFaq = toggleFaq;
 
+  // Populate FAQs from API
   const faqContainer = document.querySelector('.w-full.space-y-4');
   if (faqContainer) {
     fetchFAQsAndRender(faqContainer);
@@ -39,6 +40,7 @@
       const data = await resp.json();
       const list = Array.isArray(data?.allFAQ) ? data.allFAQ : [];
 
+      // Clear existing static items
       container.innerHTML = '';
 
       if (list.length === 0) {

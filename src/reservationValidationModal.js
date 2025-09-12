@@ -1,4 +1,4 @@
-﻿
+// Reservation Validation Modal
 class ReservationValidationModal {
     constructor() {
         this.modal = null;
@@ -6,36 +6,41 @@ class ReservationValidationModal {
     }
 
     createModal() {
-        
+        // Remove existing modal if it exists
         const existingModal = document.getElementById('reservationValidationModal');
         if (existingModal) {
             existingModal.remove();
         }
 
+        // Create modal HTML
         const modalHTML = `
             <div id="reservationValidationModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
                 <div class="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 p-6 relative animate-fade-in">
-                    
+                    <!-- Close button -->
                     <button id="closeValidationModal" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                         </svg>
                     </button>
 
+                    <!-- Modal content -->
                     <div class="text-center">
-                        
+                        <!-- Icon container -->
                         <div id="validationIconContainer" class="mx-auto flex items-center justify-center w-16 h-16 rounded-full mb-4">
-                            
+                            <!-- Icon will be inserted here -->
                         </div>
 
+                        <!-- Title -->
                         <h3 id="validationTitle" class="text-lg font-semibold text-gray-900 mb-2">
                             Reservation Not Available
                         </h3>
 
+                        <!-- Message -->
                         <p id="validationMessage" class="text-gray-600 mb-6">
                             Please complete the required information before proceeding.
                         </p>
 
+                        <!-- Action buttons -->
                         <div class="flex justify-center space-x-3">
                             <button id="validationOkButton" class="px-8 py-3 bg-primary text-white rounded-full hover:bg-primary/90 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 font-medium">
                                 OK
@@ -46,9 +51,11 @@ class ReservationValidationModal {
             </div>
         `;
 
+        // Add modal to body
         document.body.insertAdjacentHTML('beforeend', modalHTML);
         this.modal = document.getElementById('reservationValidationModal');
 
+        // Add event listeners
         this.setupEventListeners();
     }
 
@@ -57,6 +64,7 @@ class ReservationValidationModal {
         const okBtn = document.getElementById('validationOkButton');
         const modal = this.modal;
 
+        // Close modal handlers
         const closeModal = () => {
             this.hide();
         };
@@ -64,12 +72,14 @@ class ReservationValidationModal {
         closeBtn.addEventListener('click', closeModal);
         okBtn.addEventListener('click', closeModal);
 
+        // Close on backdrop click
         modal.addEventListener('click', (e) => {
             if (e.target === modal) {
                 closeModal();
             }
         });
 
+        // Close on Escape key
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && !modal.classList.contains('hidden')) {
                 closeModal();
@@ -82,9 +92,11 @@ class ReservationValidationModal {
         const titleElement = document.getElementById('validationTitle');
         const messageElement = document.getElementById('validationMessage');
 
+        // Set content
         titleElement.textContent = title;
         messageElement.textContent = message;
 
+        // Set icon and colors based on type
         let iconHTML = '';
         let containerClasses = '';
 
@@ -130,30 +142,35 @@ class ReservationValidationModal {
                 `;
         }
 
+        // Update icon container
         iconContainer.className = `mx-auto flex items-center justify-center w-16 h-16 rounded-full mb-4 ${containerClasses}`;
         iconContainer.innerHTML = iconHTML;
 
+        // Show modal
         this.modal.classList.remove('hidden');
-        document.body.style.overflow = 'hidden'; 
+        document.body.style.overflow = 'hidden'; // Prevent background scroll
     }
 
     hide() {
         if (this.modal) {
             this.modal.classList.add('hidden');
-            document.body.style.overflow = ''; 
+            document.body.style.overflow = ''; // Restore scroll
         }
     }
 }
 
+// Validation functions
 export function validateReservationData() {
     const modal = new ReservationValidationModal();
-
+    
+    // Check if user is logged in
     const userId = localStorage.getItem('userId');
     if (!userId) {
         modal.show('auth', 'Login Required', 'Please log in to your account before making a reservation.');
         return false;
     }
 
+    // Check if user is verified
     const userVerified = localStorage.getItem('verified');
     if (userVerified !== 'true') {
         modal.show('auth', 'Account Verification Required', 'Please verify your account before making a reservation. Check your email for verification instructions.');
@@ -168,6 +185,7 @@ export function showValidationError(type, title, message) {
     modal.show(type, title, message);
 }
 
+// CSS for animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes fade-in {

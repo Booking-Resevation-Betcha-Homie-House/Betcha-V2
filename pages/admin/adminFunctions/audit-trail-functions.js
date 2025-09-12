@@ -1,16 +1,19 @@
-﻿
+// Audit Trail Functions
 let auditData = [];
 let filteredData = [];
-let customerData = []; 
-let customerNameMap = new Map(); 
+let customerData = []; // Store customer data for name mapping
+let customerNameMap = new Map(); // Map userId to customer name
 
+// Fetch audit trail data from API
 async function fetchAuditTrails() {
     try {
-
+        // Show loading state for the current active tab
         showLoadingState();
-
+        
+        // Add a small delay to ensure skeleton is visible
         await new Promise(resolve => setTimeout(resolve, 200));
-
+        
+        // Fetch both audit trails and customer data
         const [auditResponse, customerResponse] = await Promise.all([
             fetch('https://betcha-api.onrender.com/audit/getAll'),
             fetch('https://betcha-api.onrender.com/guest/display')
@@ -26,7 +29,8 @@ async function fetchAuditTrails() {
         
         auditData = await auditResponse.json();
         filteredData = [...auditData];
-
+        
+        // Process customer data if available
         if (customerResponse.ok) {
             customerData = await customerResponse.json();
             createCustomerNameMap();
@@ -35,16 +39,23 @@ async function fetchAuditTrails() {
         console.log('Fetched audit data:', auditData);
         console.log('Available user types:', [...new Set(auditData.map(item => item.userType))]);
         console.log('Fetched customer data:', customerData);
-
+        
+        // Debug: Show sample audit item structure
         if (auditData.length > 0) {
             console.log('Sample audit item structure:', auditData[0]);
             console.log('All refNo values:', auditData.map(item => ({ refNo: item.refNo, type: typeof item.refNo })));
         }
-
+        
+        // Don't render immediately - wait for tab system to initialize
+        // The setActiveAuditTab will be called by the DOMContentLoaded event
+        
+        // Update search functionality
         console.log('Setting up search functionality...');
         setupSearch();
         console.log('Search setup completed');
-
+        
+        // Don't hide loading state here - let the filtering/rendering functions handle it
+        
     } catch (error) {
         console.error('Error fetching audit trails:', error);
         hideLoadingState();
@@ -52,6 +63,7 @@ async function fetchAuditTrails() {
     }
 }
 
+// Create a mapping from userId to customer name
 function createCustomerNameMap() {
     customerNameMap.clear();
     customerData.forEach(customer => {
@@ -63,6 +75,7 @@ function createCustomerNameMap() {
     console.log('Created customer name map:', customerNameMap);
 }
 
+// Get display name for a user (customer name if available, otherwise userId)
 function getDisplayName(userId, userType) {
     if (userType === 'Guest' && customerNameMap.has(userId)) {
         return customerNameMap.get(userId);
@@ -70,6 +83,7 @@ function getDisplayName(userId, userType) {
     return userId || 'N/A';
 }
 
+// Filter data by user type
 function filterByUserType(userType) {
     console.log('=== FILTERING DEBUG ===');
     console.log('Filtering by user type:', userType);
@@ -90,7 +104,8 @@ function filterByUserType(userType) {
     console.log('Filtered data count:', filteredData.length);
     console.log('Filtered data sample:', filteredData.slice(0, 2));
     console.log('=== END FILTERING DEBUG ===');
-
+    
+    // If no data for this user type, show appropriate message
     if (filteredData.length === 0) {
         showNoDataMessage(userType);
     } else {
@@ -98,6 +113,7 @@ function filterByUserType(userType) {
     }
 }
 
+// Render audit trails in the current tab
 function renderAuditTrails() {
     console.log('=== RENDERING DEBUG ===');
     console.log('Rendering audit trails with filtered data count:', filteredData.length);
@@ -130,7 +146,8 @@ function renderAuditTrails() {
             gridContainer.appendChild(auditCard);
             console.log(`Added audit card ${auditIndex + 1} to grid`);
         });
-
+        
+        // Hide skeleton and show content
         hideLoadingState();
     } else {
         console.log(`No grid container found for tab ${tabIndex}`);
@@ -139,8 +156,9 @@ function renderAuditTrails() {
     console.log('=== END RENDERING DEBUG ===');
 }
 
+// Create individual audit trail card
 function createAuditCard(audit) {
-
+    // Format date
     let formattedDate = 'N/A';
     try {
         const dateString = audit.dateTimePH || audit.dateTime;
@@ -161,6 +179,7 @@ function createAuditCard(audit) {
         console.error('Error formatting date:', error);
     }
 
+    // Map Guest to Customer for display
     const displayUserType = audit.userType === 'Guest' ? 'Customer' : audit.userType;
 
     return `
@@ -200,6 +219,9 @@ function createAuditCard(audit) {
     `;
 }
 
+
+
+// Setup search functionality
 function setupSearch() {
     const searchInput = document.getElementById('audit-search');
     if (searchInput) {
@@ -214,6 +236,7 @@ function setupSearch() {
     }
 }
 
+// Perform search on audit data
 function performSearch(searchTerm) {
     console.log('=== SEARCH DEBUG ===');
     console.log('Search term:', searchTerm);
@@ -222,14 +245,16 @@ function performSearch(searchTerm) {
     
     if (!searchTerm.trim()) {
         console.log('Empty search term, showing current filtered data');
-
+        // If search is empty, show current filtered data
         renderAuditTrails();
         return;
     }
-
+    
+    // Search across ALL audit data, not just filtered data
     const searchResults = auditData.filter(audit => {
         const displayName = getDisplayName(audit.userId, audit.userType);
-
+        
+        // Convert all values to strings for safe searching
         const activityStr = audit.activity ? String(audit.activity).toLowerCase() : '';
         const userIdStr = audit.userId ? String(audit.userId).toLowerCase() : '';
         const displayNameStr = displayName ? String(displayName).toLowerCase() : '';
@@ -265,10 +290,12 @@ function performSearch(searchTerm) {
     
     console.log('Search results count:', searchResults.length);
     console.log('=== END SEARCH DEBUG ===');
-
+    
+    // Render search results
     renderSearchResults(searchResults);
 }
 
+// Render search results
 function renderSearchResults(results) {
     console.log('=== RENDERING SEARCH RESULTS DEBUG ===');
     console.log('Rendering search results:', results.length);
@@ -301,7 +328,8 @@ function renderSearchResults(results) {
             gridContainer.appendChild(auditCard);
             console.log(`Added search result card ${auditIndex + 1} to grid`);
         });
-
+        
+        // Hide skeleton and show content
         hideLoadingState();
     } else {
         console.log(`No grid container found for tab ${tabIndex}`);
@@ -310,6 +338,7 @@ function renderSearchResults(results) {
     console.log('=== END RENDERING SEARCH RESULTS DEBUG ===');
 }
 
+// Get current active tab index
 function getCurrentTabIndex() {
     const tabContents = document.querySelectorAll('#tab-contents .tab-content');
     for (let i = 0; i < tabContents.length; i++) {
@@ -317,9 +346,10 @@ function getCurrentTabIndex() {
             return i;
         }
     }
-    return 0; 
+    return 0; // Default to first tab
 }
 
+// Get tab-specific element IDs
 function getTabElementIds(tabIndex) {
     const tabNames = ['Admin', 'Employee', 'Customer'];
     const tabName = tabNames[tabIndex] || 'Admin';
@@ -329,6 +359,7 @@ function getTabElementIds(tabIndex) {
     };
 }
 
+// Show loading state with skeleton
 function showLoadingState() {
     const tabIndex = getCurrentTabIndex();
     const elementIds = getTabElementIds(tabIndex);
@@ -340,6 +371,7 @@ function showLoadingState() {
     if (contentContainer) contentContainer.classList.add('hidden');
 }
 
+// Hide skeleton and show content
 function hideLoadingState() {
     const tabIndex = getCurrentTabIndex();
     const elementIds = getTabElementIds(tabIndex);
@@ -351,24 +383,26 @@ function hideLoadingState() {
     if (contentContainer) contentContainer.classList.remove('hidden');
 }
 
+// Show no data message
 function showNoDataMessage(userType) {
     const tabIndex = getCurrentTabIndex();
     const elementIds = getTabElementIds(tabIndex);
     const gridContainer = document.getElementById(elementIds.content);
     
     if (gridContainer) {
-
+        // Map Guest to Customer for display
         const displayUserType = userType === 'Guest' ? 'Customer' : userType;
         gridContainer.innerHTML = `
             <div class="col-span-full flex items-center justify-center h-32">
                 <p class="text-neutral-500 text-center">No audit trails found for ${displayUserType} users.</p>
             </div>
         `;
-
+        // Hide skeleton and show content
         hideLoadingState();
     }
 }
 
+// Show error message
 function showErrorMessage(message) {
     const tabIndex = getCurrentTabIndex();
     const elementIds = getTabElementIds(tabIndex);
@@ -391,11 +425,12 @@ function showErrorMessage(message) {
                 </div>
             </div>
         `;
-
+        // Hide skeleton and show content
         hideLoadingState();
     }
 }
 
+// Enhanced tab switching function for audit trails
 function setActiveAuditTab(tabIndex) {
     console.log('=== TAB SWITCHING DEBUG ===');
     console.log('Switching to tab index:', tabIndex);
@@ -405,7 +440,8 @@ function setActiveAuditTab(tabIndex) {
     
     console.log('Found tab buttons:', tabButtons.length);
     console.log('Found tab contents:', tabContents.length);
-
+    
+    // Remove active state from all buttons and their spans
     tabButtons.forEach(btn => {
         btn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
         const span = btn.querySelector('span');
@@ -414,9 +450,11 @@ function setActiveAuditTab(tabIndex) {
             span.classList.add('text-neutral-500');
         }
     });
-
+    
+    // Hide all tab contents
     tabContents.forEach(content => content.classList.add('hidden'));
-
+    
+    // Activate selected tab
     if (tabButtons[tabIndex]) {
         console.log(`Activating tab button ${tabIndex}`);
         tabButtons[tabIndex].classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
@@ -431,17 +469,18 @@ function setActiveAuditTab(tabIndex) {
         console.log(`Showing tab content ${tabIndex}`);
         tabContents[tabIndex].classList.remove('hidden');
     }
-
+    
+    // Filter data based on selected tab
     let userType;
     switch(tabIndex) {
-        case 0: 
+        case 0: // Admin tab
             userType = 'Admin';
             break;
-        case 1: 
+        case 1: // Employee tab
             userType = 'Employee';
             break;
-        case 2: 
-            userType = 'Guest'; 
+        case 2: // Customer tab
+            userType = 'Guest'; // Map Customer tab to Guest userType for filtering
             break;
         default:
             userType = 'All';
@@ -449,24 +488,30 @@ function setActiveAuditTab(tabIndex) {
     
     console.log(`Filtering for user type: ${userType}`);
     console.log('=== END TAB SWITCHING DEBUG ===');
-
+    
+    // Show skeleton loading for the new tab
     showLoadingState();
-
+    
+    // Add a small delay to ensure skeleton is visible before filtering
     setTimeout(() => {
         filterByUserType(userType);
     }, 100);
 }
 
+// Initialize audit trail functionality
 document.addEventListener('DOMContentLoaded', function() {
     console.log('=== DOM CONTENT LOADED DEBUG ===');
-
+    
+    // Check if search input exists
     const searchInput = document.getElementById('audit-search');
     console.log('Search input found on DOM load:', !!searchInput);
-
+    
+    // Initialize the Admin tab first (this sets up the correct tab visibility)
     setActiveAuditTab(0);
-
+    
+    // Then fetch audit trails (this will show skeleton and load data)
     fetchAuditTrails().then(() => {
-
+        // Double-check search setup after tab initialization
         console.log('Double-checking search setup after tab initialization...');
         setupSearch();
     });
@@ -474,6 +519,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('=== END DOM CONTENT LOADED DEBUG ===');
 });
 
+// Export functions for global use
 window.auditTrailFunctions = {
     fetchAuditTrails,
     filterByUserType,

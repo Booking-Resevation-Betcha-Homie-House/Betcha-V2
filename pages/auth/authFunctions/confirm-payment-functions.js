@@ -1,13 +1,17 @@
-﻿
+// Confirm Payment Functions
+// This file handles fetching booking data and populating the confirm-payment page
 
+// Import toast notifications
 import { showToastError } from '/src/toastNotification.js';
 import { showFullscreenLoading, hideFullscreenLoading } from '/src/fullscreenLoading.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Confirm Payment page loaded');
-
+    
+    // Show skeleton loading immediately
     showSkeletonLoading();
-
+    
+    // Audit: payment initiation (page load implies intent to pay)
     try {
         const uid = localStorage.getItem('userId') || '';
         const role = (localStorage.getItem('role') || 'Guest');
@@ -15,7 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
             window.AuditTrailFunctions.logPaymentInitiation(uid, role.charAt(0).toUpperCase() + role.slice(1));
         }
     } catch (_) {}
-
+    
+    // Get booking ID and payment type from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const bookingId = urlParams.get('bookingId');
     const paymentType = urlParams.get('paymentType');
@@ -28,17 +33,22 @@ document.addEventListener('DOMContentLoaded', function() {
         showToastError('error', 'Missing Booking ID', 'No booking ID found. Please go back and try again.');
         return;
     }
-
+    
+    // Fetch and populate booking data
     fetchAndPopulateBookingData(bookingId, paymentType);
-
+    
+    // Fetch and populate payment methods
     fetchAndPopulatePaymentMethods();
-
+    
+    // Setup OCR file drop functionality
     console.log('🔧 Setting up OCR file drop functionality...');
     setupFileDropOCR();
-
+    
+    // Setup payment confirmation functionality
     setupPaymentConfirmation(bookingId, paymentType);
 });
 
+// Function to fetch payment methods from API
 async function fetchPaymentMethods() {
     try {
         console.log('Fetching payment methods...');
@@ -68,6 +78,7 @@ async function fetchPaymentMethods() {
     }
 }
 
+// Function to fetch and populate payment methods
 async function fetchAndPopulatePaymentMethods() {
     try {
         const result = await fetchPaymentMethods();
@@ -76,22 +87,26 @@ async function fetchAndPopulatePaymentMethods() {
             populatePaymentMethods(result.paymentMethods);
         } else {
             console.error('Failed to load payment methods:', result.message);
-
+            // Don't show error toast for payment methods as it's not critical
+            // Keep the static payment methods as fallback
         }
     } catch (error) {
         console.error('Error in fetchAndPopulatePaymentMethods:', error);
-
+        // Keep the static payment methods as fallback
     }
 }
 
+// Function to group payment methods by category
 function groupPaymentMethodsByCategory(paymentMethods) {
     const allowedCategories = ['GCash', 'Maya', 'GoTyme', 'Union Bank', 'Other'];
     const grouped = {};
-
+    
+    // Initialize groups
     allowedCategories.forEach(category => {
         grouped[category] = [];
     });
-
+    
+    // Group payment methods
     paymentMethods.forEach(method => {
         const category = method.category;
         if (allowedCategories.includes(category)) {
@@ -102,13 +117,15 @@ function groupPaymentMethodsByCategory(paymentMethods) {
     return grouped;
 }
 
+// Function to populate payment methods on the page
 function populatePaymentMethods(paymentMethods) {
     console.log('Populating payment methods:', paymentMethods);
     
     try {
-
+        // Group payment methods by category
         const groupedMethods = groupPaymentMethodsByCategory(paymentMethods);
-
+        
+        // Find the payment methods container - look for the div that contains payment methods
         let paymentContainer = null;
         const containers = document.querySelectorAll('div');
         for (let container of containers) {
@@ -125,22 +142,26 @@ function populatePaymentMethods(paymentMethods) {
             console.warn('Payment methods container not found');
             return;
         }
-
+        
+        // Find the existing payment method labels (after the "Select payment method" text)
         const existingLabels = paymentContainer.querySelectorAll('label[for^="payment-"]');
-
+        
+        // Remove existing payment method labels
         existingLabels.forEach(label => label.remove());
-
+        
+        // Create new payment method options
         let paymentMethodsHtml = '';
         
         Object.entries(groupedMethods).forEach(([category, methods]) => {
             if (methods.length > 0) {
-
+                // Show all methods for each category, not just the first one
                 methods.forEach((method, index) => {
                     const categoryId = category.toLowerCase().replace(/\s+/g, '');
-                    const methodId = `${categoryId}-${index + 1}`; 
+                    const methodId = `${categoryId}-${index + 1}`; // Add index to make unique IDs
                     const categoryName = category;
                     const methodName = method.paymentName || category;
-
+                    
+                    // Get the logo image
                     const logoSrc = getPaymentLogo(category);
                     
                     paymentMethodsHtml += `
@@ -170,7 +191,8 @@ function populatePaymentMethods(paymentMethods) {
                 });
             }
         });
-
+        
+        // Insert the new payment methods HTML after the "Select payment method:" paragraph
         const selectText = Array.from(paymentContainer.querySelectorAll('p')).find(p => 
             p.textContent.includes('Select payment method:')
         );
@@ -179,19 +201,23 @@ function populatePaymentMethods(paymentMethods) {
             selectText.insertAdjacentHTML('afterend', paymentMethodsHtml);
             console.log('Payment methods inserted after "Select payment method:" paragraph');
         } else {
-
+            // Fallback: insert at the beginning of the container if we can't find the paragraph
             console.warn('Could not find "Select payment method:" paragraph, inserting at container start');
             paymentContainer.insertAdjacentHTML('afterbegin', paymentMethodsHtml);
         }
-
+        
+        // Add QR code display area after payment methods
         addQRCodeDisplayArea(paymentContainer);
-
+        
+        // Setup payment method selection handlers
         setupPaymentMethodHandlers();
         
         console.log('Payment methods populated successfully');
-
+        
+        // Store payment methods globally for use in other functions
         window.currentPaymentMethods = groupedMethods;
-
+        
+        // Hide skeleton loading for payment methods after they're populated
         hidePaymentMethodsSkeleton();
         
     } catch (error) {
@@ -200,6 +226,7 @@ function populatePaymentMethods(paymentMethods) {
     }
 }
 
+// Function to get payment logo based on category
 function getPaymentLogo(category) {
     const logoMap = {
         'GCash': '/public/images/gcash.png',
@@ -212,8 +239,9 @@ function getPaymentLogo(category) {
     return logoMap[category] || '/public/images/payment-default.png';
 }
 
+// Function to add QR code display area
 function addQRCodeDisplayArea(paymentContainer) {
-
+    // Check if QR display area already exists
     if (document.getElementById('qrCodeDisplayArea')) {
         return;
     }
@@ -234,6 +262,7 @@ function addQRCodeDisplayArea(paymentContainer) {
     paymentContainer.insertAdjacentHTML('beforeend', qrDisplayHtml);
 }
 
+// Function to setup payment method selection handlers
 function setupPaymentMethodHandlers() {
     const paymentRadios = document.querySelectorAll('input[name="payment"]');
 
@@ -249,10 +278,10 @@ function setupPaymentMethodHandlers() {
                     label.classList.remove('opacity-50', 'grayscale', 'pointer-events-none');
                 } else {
                     label.classList.add('opacity-50', 'grayscale');
-
+                    // label.classList.add('pointer-events-none'); // optional hard lock
                 }
             } else {
-
+                // No selection yet: everything looks normal
                 label.classList.remove('opacity-50', 'grayscale', 'pointer-events-none');
             }
         });
@@ -263,14 +292,16 @@ function setupPaymentMethodHandlers() {
             if (this.checked) {
                 showQRCode(this);
             }
-
+            // Always update visual states when a selection changes
             updateOptionStates();
         });
     });
 
+    // Initialize option states on load (normal if none selected; gray others after selection)
     updateOptionStates();
 }
 
+// Function to show QR code when payment method is selected
 function showQRCode(selectedRadio) {
     const qrDisplayArea = document.getElementById('qrCodeDisplayArea');
     const qrCodeImage = document.getElementById('qrCodeImage');
@@ -282,7 +313,7 @@ function showQRCode(selectedRadio) {
     }
     
     try {
-
+        // Get QR code and payment method name from the selected radio button
         const qrData = selectedRadio.getAttribute('data-qr');
         const paymentName = selectedRadio.getAttribute('data-payment-name');
         const paymentId = selectedRadio.getAttribute('data-payment-id');
@@ -292,17 +323,21 @@ function showQRCode(selectedRadio) {
             qrDisplayArea.classList.add('hidden');
             return;
         }
-
+        
+        // Update QR code image
         qrCodeImage.src = qrData;
         qrCodeImage.onerror = function() {
             console.error('Failed to load QR code image');
-            this.src = '/public/images/qr-placeholder.png'; 
+            this.src = '/public/images/qr-placeholder.png'; // Fallback image
         };
-
+        
+        // Update payment method name
         paymentMethodName.textContent = paymentName || 'Selected Payment Method';
-
+        
+        // Show the QR display area
         qrDisplayArea.classList.remove('hidden');
-
+        
+        // Store selected payment info globally
         window.selectedPaymentMethod = {
             id: paymentId,
             name: paymentName,
@@ -311,7 +346,8 @@ function showQRCode(selectedRadio) {
         };
         
         console.log('QR code displayed for payment method:', paymentName);
-
+        
+        // Scroll to QR code area smoothly
         qrDisplayArea.scrollIntoView({ 
             behavior: 'smooth', 
             block: 'nearest' 
@@ -323,6 +359,7 @@ function showQRCode(selectedRadio) {
     }
 }
 
+// Function to fetch booking data from API
 async function fetchBookingData(bookingId) {
     try {
         console.log('Fetching booking data for ID:', bookingId);
@@ -335,7 +372,8 @@ async function fetchBookingData(bookingId) {
         
         if (response.ok) {
             console.log('Booking data fetched successfully:', result);
-
+            
+            // Check if the response has the expected structure
             if (result.booking) {
                 console.log('Found booking object in response.booking');
                 return {
@@ -371,6 +409,7 @@ async function fetchBookingData(bookingId) {
     }
 }
 
+// Function to check if a specific payment type has already been made
 function checkIfPaymentAlreadyMade(booking, paymentType) {
     try {
         console.log('🔍 Checking payment status for:', paymentType);
@@ -383,7 +422,8 @@ function checkIfPaymentAlreadyMade(booking, paymentType) {
         });
         
         if (paymentType === 'Reservation') {
-
+            // Check if reservation payment is made
+            // Payment is made if modeOfPayment is NOT "Pending" (means payment method was used)
             const reservationPaid = booking.reservation && 
                                   booking.reservation.modeOfPayment && 
                                   booking.reservation.modeOfPayment !== 'Pending';
@@ -397,7 +437,8 @@ function checkIfPaymentAlreadyMade(booking, paymentType) {
             return reservationPaid;
             
         } else if (paymentType === 'Package') {
-
+            // Check if package payment is made
+            // Payment is made if modeOfPayment is NOT "Pending" (means payment method was used)
             const packagePaid = booking.package && 
                               booking.package.modeOfPayment && 
                               booking.package.modeOfPayment !== 'Pending';
@@ -411,7 +452,7 @@ function checkIfPaymentAlreadyMade(booking, paymentType) {
             return packagePaid;
             
         } else if (paymentType === 'Full-Payment') {
-
+            // For full payment, check if both reservation and package payments are made
             const reservationPaid = booking.reservation && 
                                   booking.reservation.modeOfPayment && 
                                   booking.reservation.modeOfPayment !== 'Pending';
@@ -440,6 +481,7 @@ function checkIfPaymentAlreadyMade(booking, paymentType) {
     }
 }
 
+// Function to fetch and populate booking data
 async function fetchAndPopulateBookingData(bookingId, paymentType) {
     try {
         const result = await fetchBookingData(bookingId);
@@ -447,7 +489,8 @@ async function fetchAndPopulateBookingData(bookingId, paymentType) {
         if (result.success) {
             console.log('✅ Booking data loaded successfully');
             console.log('🔍 Full booking object received:', JSON.stringify(result.booking, null, 2));
-
+            
+            // Check if the requested payment type is already paid
             const isAlreadyPaid = checkIfPaymentAlreadyMade(result.booking, paymentType);
             
             console.log(`💳 Payment check result for ${paymentType}:`, isAlreadyPaid);
@@ -457,7 +500,8 @@ async function fetchAndPopulateBookingData(bookingId, paymentType) {
                 console.log('📍 Redirect URL:', `view-booking.html?bookingId=${bookingId}`);
                 
                 showToastError('success', 'Already Paid!', `${paymentType} has already been paid for this booking. Redirecting to booking details...`);
-
+                
+                // Redirect back to view-booking after a short delay to show the toast
                 console.log('🔄 Initiating redirect...');
                 setTimeout(() => {
                     window.location.href = `view-booking.html?bookingId=${bookingId}`;
@@ -467,10 +511,11 @@ async function fetchAndPopulateBookingData(bookingId, paymentType) {
             
             console.log('✅ Payment not yet made, proceeding to populate payment form');
             populatePaymentData(result.booking, paymentType);
-
+            
+            // Hide skeleton loading after data is populated
             setTimeout(() => {
                 hideSkeletonLoading();
-            }, 500); 
+            }, 500); // Small delay to ensure smooth transition
         } else {
             console.error('❌ Failed to load booking data:', result.message);
             hideSkeletonLoading();
@@ -483,12 +528,18 @@ async function fetchAndPopulateBookingData(bookingId, paymentType) {
     }
 }
 
+// Function to populate payment data on the page
 function populatePaymentData(booking, paymentType) {
     try {
         console.log('Populating payment data:', booking, 'Payment type:', paymentType);
         console.log('Raw booking object keys:', Object.keys(booking));
         console.log('Raw booking object:', JSON.stringify(booking, null, 2));
-
+        
+        // Only populate elements that exist in the HTML
+        // Let's check the actual field names from your API sample:
+        // From your API sample, the fields should be:
+        // packageFee: 1, reservationFee: 100, additionalPaxPrice: 100, additionalPax: 2, numOfDays: 3, totalFee: 302.97
+        
         const packageFee = booking.packageFee || 0;
         const reservationFee = booking.reservationFee || 0;
         const additionalPaxPrice = booking.additionalPaxPrice || 0;
@@ -519,14 +570,18 @@ function populatePaymentData(booking, paymentType) {
             discountValue: discount,
             discountPercentage: calculateDiscountPercentage(booking)
         });
-
+        
+        // Determine the amount to pay based on payment type
         const amountToPay = getPaymentAmount(booking, paymentType);
-
+        
+        // Calculate discount percentage if discount exists
         const discountPercentage = calculateDiscountPercentage(booking);
         const discountAmount = calculateDiscountAmount(booking);
-
+        
+        // Update payment type indicator
         updatePaymentTypeIndicator(paymentType, amountToPay);
-
+        
+        // Populate price elements that exist in HTML
         populateElement('pricePerDay', packageFee.toLocaleString());
         populateElement('daysOfStay', numOfDays.toString());
         populateElement('totalPriceDay', (packageFee * numOfDays).toLocaleString());
@@ -536,7 +591,8 @@ function populatePaymentData(booking, paymentType) {
         populateElement('totalAddGuest', (additionalPaxPrice * additionalPax).toLocaleString());
         
         populateElement('reservationFee', reservationFee.toLocaleString());
-
+        
+        // Handle discount display
         console.log('🎨 Processing discount display:', { 
             originalDiscount: discount, 
             discountPercentage, 
@@ -545,8 +601,9 @@ function populatePaymentData(booking, paymentType) {
         
         const discountSection = document.getElementById('discountSection');
         console.log('🔍 Discount section element found:', !!discountSection);
-
-        const DEVELOPMENT_MODE = false; 
+        
+        // FOR TESTING: Always show discount with mock data if no real discount exists
+        const DEVELOPMENT_MODE = false; // Set to false in production
         const mockDiscount = 50;
         const mockDiscountPercentage = 10.5;
         
@@ -554,7 +611,8 @@ function populatePaymentData(booking, paymentType) {
             console.log('✅ Discount found, showing discount section');
             populateElement('discount', discountAmount.toLocaleString());
             populateElement('discountPercentage', `${discountPercentage}%`);
-
+            
+            // Show discount section
             if (discountSection) {
                 discountSection.style.display = 'flex';
                 console.log('✅ Discount section made visible');
@@ -563,14 +621,15 @@ function populatePaymentData(booking, paymentType) {
             console.log('🔧 Development mode: showing mock discount');
             populateElement('discount', mockDiscount.toLocaleString());
             populateElement('discountPercentage', `${mockDiscountPercentage}%`);
-
+            
+            // Show discount section with mock data
             if (discountSection) {
                 discountSection.style.display = 'flex';
                 console.log('✅ Mock discount section made visible');
             }
         } else {
             console.log('❌ No discount found, hiding discount section');
-
+            // Hide discount section if no discount
             if (discountSection) {
                 discountSection.style.display = 'none';
                 console.log('✅ Discount section hidden');
@@ -592,7 +651,8 @@ function populatePaymentData(booking, paymentType) {
             amountToPay,
             paymentType
         });
-
+        
+        // Ensure input fields are visible after data population
         ensureInputFieldsVisible();
         
     } catch (error) {
@@ -601,6 +661,7 @@ function populatePaymentData(booking, paymentType) {
     }
 }
 
+// Function to ensure input fields are visible
 function ensureInputFieldsVisible() {
     console.log('🔧 Ensuring input fields are visible...');
     
@@ -608,15 +669,17 @@ function ensureInputFieldsVisible() {
     inputIds.forEach(inputId => {
         const input = document.getElementById(inputId);
         if (input) {
-
+            // Remove any display: none styling
             input.style.display = '';
-
+            
+            // Check if it's still hidden by computed styles
             const computedStyle = window.getComputedStyle(input);
             if (computedStyle.display === 'none') {
                 input.style.display = 'block';
                 console.log(`🔧 Force displayed ${inputId} as block`);
             }
-
+            
+            // Make sure it's not hidden by visibility
             if (computedStyle.visibility === 'hidden') {
                 input.style.visibility = 'visible';
                 console.log(`🔧 Force set visibility for ${inputId}`);
@@ -633,6 +696,7 @@ function ensureInputFieldsVisible() {
     });
 }
 
+// Helper function to populate an element safely
 function populateElement(elementId, value) {
     const element = document.getElementById(elementId);
     if (element) {
@@ -643,6 +707,7 @@ function populateElement(elementId, value) {
     }
 }
 
+// Function to update payment type indicator
 function updatePaymentTypeIndicator(paymentType, amountToPay) {
     try {
         const paymentTypeElement = document.getElementById('paymentType');
@@ -669,11 +734,12 @@ function updatePaymentTypeIndicator(paymentType, amountToPay) {
     }
 }
 
+// Function to get payment amount based on type
 function getPaymentAmount(booking, paymentType) {
     if (paymentType === 'Reservation') {
         return booking.reservationFee || 0;
     } else if (paymentType === 'Package') {
-
+        // Package amount = (packageFee × days) + (additionalPaxPrice × additionalPax)
         const packageFee = booking.packageFee || 0;
         const numOfDays = booking.numOfDays || 1;
         const additionalPaxPrice = booking.additionalPaxPrice || 0;
@@ -690,11 +756,12 @@ function getPaymentAmount(booking, paymentType) {
         
         return packageTotal;
     } else {
-
+        // For full payment, use totalFee
         return booking.totalFee || 0;
     }
 }
 
+// Function to calculate discount percentage
 function calculateDiscountPercentage(booking) {
     try {
         const discount = booking.discount || 0;
@@ -703,19 +770,24 @@ function calculateDiscountPercentage(booking) {
         if (discount === 0 || totalFee === 0) {
             return 0;
         }
-
+        
+        // Check if discount is already a percentage (typically less than 100)
+        // or if it's an absolute amount (typically larger than 100)
         if (discount <= 100) {
-
+            // Discount is likely already a percentage
             console.log('Discount appears to be a percentage:', discount);
             return discount;
         } else {
-
+            // Discount is an absolute amount, calculate percentage
             console.log('Discount appears to be an absolute amount:', discount);
-
+            
+            // Calculate the original total before discount
             const originalTotal = totalFee + discount;
-
+            
+            // Calculate percentage: (discount / originalTotal) * 100
             const percentage = (discount / originalTotal) * 100;
-
+            
+            // Round to 1 decimal place
             const roundedPercentage = Math.round(percentage * 10) / 10;
             
             console.log('Discount percentage calculation (absolute):', {
@@ -734,6 +806,7 @@ function calculateDiscountPercentage(booking) {
     }
 }
 
+// Function to calculate discount amount from percentage
 function calculateDiscountAmount(booking) {
     try {
         const discount = booking.discount || 0;
@@ -742,9 +815,13 @@ function calculateDiscountAmount(booking) {
         if (discount === 0 || totalFee === 0) {
             return 0;
         }
-
+        
+        // Check if discount is already a percentage or absolute amount
         if (discount <= 100) {
-
+            // Discount is a percentage, calculate the amount
+            // We need to calculate based on the original total before discount
+            // If totalFee is after discount: originalTotal = totalFee / (1 - discount/100)
+            // But it's safer to calculate: discountAmount = totalFee * (discount / (100 - discount))
             const discountAmount = totalFee * (discount / (100 - discount));
             
             console.log('Discount amount calculation (from percentage):', {
@@ -755,7 +832,7 @@ function calculateDiscountAmount(booking) {
             
             return Math.round(discountAmount);
         } else {
-
+            // Discount is already an absolute amount
             console.log('Discount is already an absolute amount:', discount);
             return discount;
         }
@@ -765,6 +842,7 @@ function calculateDiscountAmount(booking) {
     }
 }
 
+// Export functions for use in other scripts
 window.fetchBookingData = fetchBookingData;
 window.populatePaymentData = populatePaymentData;
 window.getPaymentAmount = getPaymentAmount;
@@ -773,9 +851,11 @@ window.populatePaymentMethods = populatePaymentMethods;
 window.showQRCode = showQRCode;
 window.checkIfPaymentAlreadyMade = checkIfPaymentAlreadyMade;
 
+// Skeleton loading functions
 function showSkeletonLoading() {
     console.log('🔄 Showing skeleton loading...');
-
+    
+    // Create skeleton loading styles if not already present
     if (!document.getElementById('skeleton-styles')) {
         const style = document.createElement('style');
         style.id = 'skeleton-styles';
@@ -823,10 +903,12 @@ function showSkeletonLoading() {
         `;
         document.head.appendChild(style);
     }
-
+    
+    // Add skeleton loading to payment type section
     addSkeletonToElement('paymentType', 'skeleton-text-lg', '60%');
     addSkeletonToElement('paymentTypeDescription', 'skeleton-text', '80%');
-
+    
+    // Add skeleton loading to price elements
     const priceElements = [
         'pricePerDay', 'daysOfStay', 'totalPriceDay',
         'addGuestPrice', 'addGuestCount', 'totalAddGuest',
@@ -836,22 +918,26 @@ function showSkeletonLoading() {
     priceElements.forEach(elementId => {
         addSkeletonToElement(elementId, 'skeleton-text', '50%');
     });
-
+    
+    // Add skeleton loading to payment methods container
     const paymentContainer = document.querySelector('.flex.flex-col.p-5');
     if (paymentContainer) {
         const existingPaymentMethods = paymentContainer.querySelectorAll('label[for^="payment-"]');
         existingPaymentMethods.forEach(method => method.style.display = 'none');
-
+        
+        // Add skeleton payment method cards
         for (let i = 0; i < 5; i++) {
             const skeletonCard = document.createElement('div');
             skeletonCard.className = 'skeleton skeleton-card payment-method-skeleton';
             paymentContainer.appendChild(skeletonCard);
         }
     }
-
+    
+    // Add skeleton loading to form inputs
     addSkeletonToInput('transactionNumber');
     addSkeletonToInput('bankAccountNumber');
-
+    
+    // Add skeleton loading to confirm button
     const confirmButton = document.getElementById('confirmPaymentButton1');
     if (confirmButton) {
         confirmButton.style.display = 'none';
@@ -864,7 +950,8 @@ function showSkeletonLoading() {
 
 function hideSkeletonLoading() {
     console.log('✅ Hiding skeleton loading...');
-
+    
+    // Debug: Check current state of input fields before restoration
     const transactionInput = document.getElementById('transactionNumber');
     const bankAccountInput = document.getElementById('bankAccountNumber');
     console.log('🔍 Input fields before restoration:', {
@@ -879,7 +966,8 @@ function hideSkeletonLoading() {
             visible: bankAccountInput?.offsetParent !== null
         }
     });
-
+    
+    // Remove skeleton classes and restore original content
     document.querySelectorAll('.skeleton').forEach(element => {
         if (element.classList.contains('payment-method-skeleton') || 
             element.classList.contains('confirm-button-skeleton') ||
@@ -892,7 +980,8 @@ function hideSkeletonLoading() {
             element.style.height = '';
         }
     });
-
+    
+    // Restore input fields visibility
     const inputIds = ['transactionNumber', 'bankAccountNumber'];
     inputIds.forEach(inputId => {
         const input = document.getElementById(inputId);
@@ -903,26 +992,31 @@ function hideSkeletonLoading() {
             console.warn(`❌ Input not found: ${inputId}`);
         }
     });
-
+    
+    // Restore payment methods visibility
     const paymentContainer = document.querySelector('.flex.flex-col.p-5');
     if (paymentContainer) {
         const existingPaymentMethods = paymentContainer.querySelectorAll('label[for^="payment-"]');
         existingPaymentMethods.forEach(method => method.style.display = '');
     }
-
+    
+    // Restore confirm button
     const confirmButton = document.getElementById('confirmPaymentButton1');
     if (confirmButton) {
         confirmButton.style.display = '';
     }
-
+    
+    // Remove skeleton payment method cards
     document.querySelectorAll('.payment-method-skeleton').forEach(skeleton => {
         skeleton.remove();
     });
-
+    
+    // Remove skeleton button
     document.querySelectorAll('.confirm-button-skeleton').forEach(skeleton => {
         skeleton.remove();
     });
-
+    
+    // Final check: Verify input fields are visible
     setTimeout(() => {
         const transactionInput = document.getElementById('transactionNumber');
         const bankAccountInput = document.getElementById('bankAccountNumber');
@@ -940,7 +1034,8 @@ function hideSkeletonLoading() {
                 computedDisplay: bankAccountInput ? window.getComputedStyle(bankAccountInput).display : 'N/A'
             }
         });
-
+        
+        // Force show if they're still hidden
         if (transactionInput && window.getComputedStyle(transactionInput).display === 'none') {
             transactionInput.style.display = 'block';
             console.log('🔧 Force showed transactionNumber input');
@@ -949,7 +1044,8 @@ function hideSkeletonLoading() {
             bankAccountInput.style.display = 'block';
             console.log('🔧 Force showed bankAccountNumber input');
         }
-
+        
+        // Call the dedicated function to ensure input fields are visible
         ensureInputFieldsVisible();
     }, 100);
 }
@@ -976,7 +1072,7 @@ function addSkeletonToInput(elementId) {
         const skeletonInput = document.createElement('div');
         skeletonInput.className = 'skeleton skeleton-input input-skeleton';
         skeletonInput.style.width = '100%';
-        skeletonInput.setAttribute('data-original-input', elementId); 
+        skeletonInput.setAttribute('data-original-input', elementId); // Add identifier for debugging
         element.parentNode.insertBefore(skeletonInput, element);
         console.log(`✅ Skeleton added for ${elementId}, original input hidden`);
     } else {
@@ -986,11 +1082,13 @@ function addSkeletonToInput(elementId) {
 
 function hidePaymentMethodsSkeleton() {
     console.log('✅ Hiding payment methods skeleton...');
-
+    
+    // Remove skeleton payment method cards
     document.querySelectorAll('.payment-method-skeleton').forEach(skeleton => {
         skeleton.remove();
     });
-
+    
+    // Restore payment methods visibility
     const paymentContainer = document.querySelector('.flex.flex-col.p-5');
     if (paymentContainer) {
         const existingPaymentMethods = paymentContainer.querySelectorAll('label[for^="payment-"]');
@@ -1019,7 +1117,8 @@ function setupFileDropOCR() {
     }
     
     console.log('✅ All OCR elements found - setting up event listeners...');
-
+    
+    // Test file input functionality
     console.log('🧪 Testing file input element:', {
         type: fileInput.type,
         accept: fileInput.accept,
@@ -1027,17 +1126,20 @@ function setupFileDropOCR() {
         hidden: fileInput.hidden,
         disabled: fileInput.disabled
     });
-
+    
+    // Store the last selected files for OCR processing
     let lastSelectedFiles = [];
-
+    
+    // Override the file input's onchange to capture files
     fileInput.addEventListener('change', function(e) {
         console.log('🔥 File input intercepted:', e.target.files.length, 'files');
         if (e.target.files.length > 0) {
             lastSelectedFiles = Array.from(e.target.files);
             console.log('💾 Stored files for OCR:', lastSelectedFiles.map(f => f.name));
         }
-    }, true); 
-
+    }, true); // Use capture to run before other handlers
+    
+    // Also add a regular listener to catch any missed events
     fileInput.addEventListener('input', function(e) {
         console.log('📥 File input event:', e.target.files.length, 'files');
         if (e.target.files.length > 0) {
@@ -1045,7 +1147,8 @@ function setupFileDropOCR() {
             console.log('💾 Stored files via input event for OCR:', lastSelectedFiles.map(f => f.name));
         }
     });
-
+    
+    // Poll the file input periodically to catch any changes we might miss
     let lastFileCount = 0;
     setInterval(() => {
         if (fileInput.files.length !== lastFileCount) {
@@ -1056,26 +1159,31 @@ function setupFileDropOCR() {
             }
         }
     }, 500);
-
+    
+    // Setup MutationObserver to watch for preview div creation
     setupPreviewDivWatcher(previewContainer, transactionInput, () => lastSelectedFiles[0]);
-
+    
+    // Setup drag and drop functionality only (no click handlers to avoid double file picker)
     setupDragAndDropOnly(dropzone, previewContainer, transactionInput, (files) => {
         lastSelectedFiles = Array.from(files);
         console.log('💾 Stored dragged files for OCR:', lastSelectedFiles.map(f => f.name));
     });
-
+    
+    // Don't setup manual file input listeners since the existing system works
+    // and we don't want double file picker dialogs
     console.log('✅ OCR system ready - will trigger automatically when preview div appears');
 }
 
 function setupPreviewDivWatcher(previewContainer, transactionInput, getLastFile) {
     console.log('👀 Setting up preview div watcher...');
-
+    
+    // Create a MutationObserver to watch for new preview divs
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
             if (mutation.type === 'childList') {
                 mutation.addedNodes.forEach((node) => {
                     if (node.nodeType === Node.ELEMENT_NODE) {
-
+                        // Check if this is the preview div we're looking for
                         const isPreviewDiv = node.classList && 
                             node.classList.contains('flex') &&
                             node.classList.contains('items-center') &&
@@ -1091,14 +1199,16 @@ function setupPreviewDivWatcher(previewContainer, transactionInput, getLastFile)
                         if (isPreviewDiv) {
                             console.log('🎯 Preview div detected! Triggering OCR...');
                             console.log('📄 Preview div:', node);
-
+                            
+                            // Get the stored file
                             const lastFile = getLastFile();
                             if (lastFile) {
                                 console.log('📁 Using stored file for OCR:', lastFile.name);
                                 triggerOCRFromPreview({ file: lastFile, fileName: lastFile.name, element: node }, transactionInput);
                             } else {
                                 console.log('❌ No stored file available for OCR');
-
+                                
+                                // Fallback: check file input directly
                                 const fileInput = document.getElementById('fileInput');
                                 if (fileInput && fileInput.files.length > 0) {
                                     console.log('🔄 Found files in file input:', fileInput.files.length);
@@ -1106,7 +1216,7 @@ function setupPreviewDivWatcher(previewContainer, transactionInput, getLastFile)
                                     console.log('📁 Using file from input for OCR:', file.name);
                                     triggerOCRFromPreview({ file: file, fileName: file.name, element: node }, transactionInput);
                                 } else {
-
+                                    // Last resort: try to extract from preview or file input
                                     const fileInfo = extractFileInfoFromPreview(node);
                                     if (fileInfo) {
                                         console.log('📁 File info extracted from preview:', fileInfo);
@@ -1123,7 +1233,8 @@ function setupPreviewDivWatcher(previewContainer, transactionInput, getLastFile)
             }
         });
     });
-
+    
+    // Start observing the preview container
     observer.observe(previewContainer, {
         childList: true,
         subtree: true
@@ -1134,7 +1245,8 @@ function setupPreviewDivWatcher(previewContainer, transactionInput, getLastFile)
 
 function setupDragAndDropOnly(dropzone, previewContainer, transactionInput, onFilesDropped) {
     console.log('🔧 Setting up drag and drop functionality...');
-
+    
+    // Handle drag and drop
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.stopPropagation();
@@ -1152,7 +1264,7 @@ function setupDragAndDropOnly(dropzone, previewContainer, transactionInput, onFi
         e.preventDefault();
         e.stopPropagation();
         console.log('📤 Drag leave dropzone');
-
+        // Only remove styles if leaving the dropzone completely
         if (!dropzone.contains(e.relatedTarget)) {
             dropzone.classList.remove('border-primary', 'bg-primary/5');
         }
@@ -1197,14 +1309,21 @@ async function handleDroppedFiles(files) {
             }
             
             console.log('✅ Valid image file dropped:', file.name);
-
+            
+            // The file will be stored by onFilesDropped callback
+            // The preview div will be created by the existing file handling system
+            // and our MutationObserver will detect it and trigger OCR automatically
+            
+            // For drag and drop, we might need to trigger the existing file handling
+            // by setting the files on the file input
             const fileInput = document.getElementById('fileInput');
             if (fileInput) {
-
+                // Create a new FileList-like object
                 const dataTransfer = new DataTransfer();
                 dataTransfer.items.add(file);
                 fileInput.files = dataTransfer.files;
-
+                
+                // Trigger change event to let existing handlers process the file
                 const changeEvent = new Event('change', { bubbles: true });
                 fileInput.dispatchEvent(changeEvent);
                 
@@ -1219,7 +1338,8 @@ async function handleDroppedFiles(files) {
 
 function extractFileInfoFromPreview(previewDiv) {
     console.log('🔍 Extracting file info from preview div...');
-
+    
+    // Look for image elements or file data in the preview
     const img = previewDiv.querySelector('img');
     const fileName = previewDiv.querySelector('[data-filename]')?.textContent || 
                     previewDiv.textContent.match(/[\w\-. ]+\.(jpg|jpeg|png|webp)/i)?.[0] ||
@@ -1233,7 +1353,8 @@ function extractFileInfoFromPreview(previewDiv) {
             element: previewDiv
         };
     }
-
+    
+    // If we can't find a blob, we might need to get the file from the file input
     const fileInput = document.getElementById('fileInput');
     if (fileInput && fileInput.files.length > 0) {
         console.log('📁 Using file from input element');
@@ -1254,7 +1375,8 @@ async function triggerOCRFromPreview(fileInfo, transactionInput) {
         showFullscreenLoading('Processing Image');
         
         let file = fileInfo.file;
-
+        
+        // If we have a blob URL, convert it to a file
         if (fileInfo.blobUrl && !file) {
             console.log('🔄 Converting blob to file...');
             const response = await fetch(fileInfo.blobUrl);
@@ -1271,16 +1393,19 @@ async function triggerOCRFromPreview(fileInfo, transactionInput) {
         
         if (result.success && result.transactionNumber) {
             console.log('✅ OCR Success:', result.transactionNumber);
-
+            
+            // Auto-fill transaction input
             if (transactionInput) {
                 transactionInput.value = result.transactionNumber;
                 transactionInput.classList.add('border-green-500', 'bg-green-50');
-
+                
+                // Show success animation
                 setTimeout(() => {
                     transactionInput.classList.remove('border-green-500', 'bg-green-50');
                 }, 3000);
             }
-
+            
+            // Show success toast
             showToastError('success', 'Success!', `Transaction number extracted: ${result.transactionNumber}`);
             
         } else {
@@ -1295,6 +1420,7 @@ async function triggerOCRFromPreview(fileInfo, transactionInput) {
     }
 }
 
+// Make uploadImageForOCR available globally
 async function uploadImageForOCR(file) {
     try {
         console.log('Uploading image for OCR:', file.name);
@@ -1331,8 +1457,10 @@ async function uploadImageForOCR(file) {
     }
 }
 
+// Export for global access
 window.uploadImageForOCR = uploadImageForOCR;
 
+// Setup payment confirmation functionality
 function setupPaymentConfirmation(bookingId, paymentType) {
     console.log('🔧 Setting up payment confirmation for:', { bookingId, paymentType });
     
@@ -1356,15 +1484,18 @@ async function processPaymentConfirmation(bookingId, paymentType) {
     try {
         console.log('🚀 Processing payment confirmation...');
         showFullscreenLoading('Processing Payment');
-
+        
+        // Get form data
         const formData = getPaymentFormData();
         console.log('📝 Form data:', formData);
-
+        
+        // Validate form data
         if (!validatePaymentForm(formData)) {
             hideFullscreenLoading();
             return;
         }
-
+        
+        // Debug: Check what we're working with
         console.log('🔗 Payment confirmation params:', {
             bookingId,
             paymentType,
@@ -1377,12 +1508,14 @@ async function processPaymentConfirmation(bookingId, paymentType) {
             hideFullscreenLoading();
             return;
         }
-
+        
+        // Determine API endpoint based on payment type
         const apiEndpoint = getPaymentApiEndpoint(paymentType, bookingId);
         console.log('🌐 API endpoint:', apiEndpoint);
         console.log('📦 Payload to send:', JSON.stringify(formData, null, 2));
         console.log('🔧 HTTP Method: PATCH');
-
+        
+        // Send payment request
         const response = await fetch(apiEndpoint, {
             method: 'PATCH',
             headers: {
@@ -1395,12 +1528,12 @@ async function processPaymentConfirmation(bookingId, paymentType) {
         
         let result;
         try {
-
+            // Check if response is JSON
             const contentType = response.headers.get('content-type');
             if (contentType && contentType.includes('application/json')) {
                 result = await response.json();
             } else {
-
+                // Response is not JSON (likely HTML error page)
                 const textResponse = await response.text();
                 console.log('📄 Non-JSON response received:', textResponse.substring(0, 200) + '...');
                 result = { 
@@ -1423,7 +1556,8 @@ async function processPaymentConfirmation(bookingId, paymentType) {
         if (response.ok) {
             console.log('✅ Payment confirmation successful');
             showToastError('success', 'Payment Confirmed!', 'Your payment has been successfully processed.');
-
+            
+            // Audit: payment completed
             try {
                 const uid = localStorage.getItem('userId') || '';
                 const role = (localStorage.getItem('role') || 'Guest');
@@ -1431,7 +1565,8 @@ async function processPaymentConfirmation(bookingId, paymentType) {
                     window.AuditTrailFunctions.logPaymentCompletion(uid, role.charAt(0).toUpperCase() + role.slice(1));
                 }
             } catch (_) {}
-
+            
+            // Fire-and-forget notifications to TS and booking email
             try {
                 const bookingObj = result?.booking || {};
                 const propertyId = bookingObj.propertyId || null;
@@ -1469,7 +1604,8 @@ async function processPaymentConfirmation(bookingId, paymentType) {
             } catch (e) {
                 console.warn('notifyPaymentCompletedToTS failed:', e);
             }
-
+            
+            // Update the modal button to include bookingId in the URL
             const modalActionButton = document.getElementById('modalActionButton');
             if (modalActionButton) {
                 modalActionButton.onclick = () => {
@@ -1477,7 +1613,8 @@ async function processPaymentConfirmation(bookingId, paymentType) {
                 };
                 console.log('✅ Modal button updated with bookingId:', bookingId);
             }
-
+            
+            // Show success modal only on successful payment
             setTimeout(() => {
                 const successModal = document.getElementById('successBookingModal');
                 if (successModal) {
@@ -1486,7 +1623,8 @@ async function processPaymentConfirmation(bookingId, paymentType) {
             }, 1000);
         } else {
             console.error('❌ Payment confirmation failed:', result);
-
+            
+            // Handle different error scenarios
             let errorMessage = 'Failed to process payment. Please try again.';
             if (response.status === 404) {
                 errorMessage = 'Payment endpoint not found. Please contact support.';
@@ -1497,9 +1635,11 @@ async function processPaymentConfirmation(bookingId, paymentType) {
             } else if (result.message) {
                 errorMessage = result.message;
             }
-
+            
+            // Only show toast notification for errors, no modal
             showToastError('error', 'Payment Failed', errorMessage);
 
+            // Audit: payment failure
             try {
                 const uid = localStorage.getItem('userId') || '';
                 const role = (localStorage.getItem('role') || 'Guest');
@@ -1510,9 +1650,11 @@ async function processPaymentConfirmation(bookingId, paymentType) {
         }
     } catch (error) {
         console.error('💥 Payment confirmation error:', error);
-
+        
+        // Only show toast notification for errors, no modal
         showToastError('error', 'Payment Error', 'An error occurred while processing your payment. Please try again.');
 
+        // Audit: payment failure
         try {
             const uid = localStorage.getItem('userId') || '';
             const role = (localStorage.getItem('role') || 'Guest');

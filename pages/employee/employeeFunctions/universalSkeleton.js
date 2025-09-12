@@ -1,4 +1,4 @@
-﻿
+// Universal Employee Skeleton Loading Controller
 class EmployeeSkeleton {
     constructor() {
         this.realSidebar = document.getElementById('sidebar');
@@ -15,17 +15,20 @@ class EmployeeSkeleton {
         console.log('Employee skeleton system initialized');
     }
 
+    // Create generic skeleton elements
     createSkeletonElements() {
         this.storeSidebarContent();
         this.createMainContentSkeleton();
     }
 
+    // Store original sidebar content
     storeSidebarContent() {
         if (this.realSidebar) {
             this.originalSidebarContent = this.realSidebar.innerHTML;
         }
     }
 
+    // Create skeleton content for sidebar
     getSidebarSkeletonContent() {
         return `
             <!-- Logo skeleton -->
@@ -67,6 +70,7 @@ class EmployeeSkeleton {
         `;
     }
 
+    // Create main content skeleton
     createMainContentSkeleton() {
         const mainContentSkeleton = document.createElement('div');
         mainContentSkeleton.id = 'main-content-skeleton';
@@ -193,18 +197,21 @@ class EmployeeSkeleton {
                 </div>
             </div>
         `;
-
+        
+        // Insert before the real main content
         if (this.realContent && this.realContent.parentNode) {
             this.realContent.parentNode.insertBefore(mainContentSkeleton, this.realContent);
             this.mainContentSkeleton = mainContentSkeleton;
         }
     }
 
+    // Show skeleton loading
     showSkeleton() {
         if (this.isSkeletonVisible) return;
         
         this.isSkeletonVisible = true;
-
+        
+        // Replace sidebar content with skeleton
         if (this.realSidebar) {
             this.realSidebar.style.transition = 'opacity 0.2s ease-in-out';
             this.realSidebar.style.opacity = '0';
@@ -214,7 +221,8 @@ class EmployeeSkeleton {
                 this.realSidebar.style.opacity = '1';
             }, 200);
         }
-
+        
+        // Hide real main content and show skeleton
         if (this.realContent) {
             this.realContent.style.transition = 'opacity 0.2s ease-in-out';
             this.realContent.style.opacity = '0';
@@ -222,7 +230,8 @@ class EmployeeSkeleton {
                 this.realContent.classList.add('hidden');
             }, 200);
         }
-
+        
+        // Show content skeleton
         if (this.mainContentSkeleton) {
             this.mainContentSkeleton.classList.remove('hidden');
             this.mainContentSkeleton.style.opacity = '0';
@@ -235,11 +244,13 @@ class EmployeeSkeleton {
         console.log('Employee skeleton loading activated');
     }
 
+    // Hide skeleton loading
     hideSkeleton() {
         if (!this.isSkeletonVisible) return;
         
         this.isSkeletonVisible = false;
-
+        
+        // Hide content skeleton
         if (this.mainContentSkeleton) {
             this.mainContentSkeleton.style.transition = 'opacity 0.3s ease-in-out';
             this.mainContentSkeleton.style.opacity = '0';
@@ -247,7 +258,8 @@ class EmployeeSkeleton {
                 this.mainContentSkeleton.classList.add('hidden');
             }, 300);
         }
-
+        
+        // Restore sidebar content and show real content
         setTimeout(() => {
             if (this.realSidebar && this.originalSidebarContent) {
                 this.realSidebar.style.transition = 'opacity 0.2s ease-in-out';
@@ -256,7 +268,11 @@ class EmployeeSkeleton {
                 setTimeout(() => {
                     this.realSidebar.innerHTML = this.originalSidebarContent;
                     this.realSidebar.style.opacity = '1';
-
+                    
+                    // Don't show navigation immediately - let privilege filtering handle visibility
+                    // The navigation is hidden by default in HTML and will be shown by privilege filtering
+                    
+                    // Apply page-specific privilege filtering after restoring sidebar
                     setTimeout(() => {
                         this.applyPageSpecificFiltering();
                     }, 100);
@@ -276,30 +292,33 @@ class EmployeeSkeleton {
         console.log('Employee skeleton loading deactivated');
     }
 
+    // Apply page-specific privilege filtering
     applyPageSpecificFiltering() {
-
+        // Check if page-specific filtering functions exist and call them
         const roleID = localStorage.getItem('roleID');
         if (!roleID) return;
-
+        
+        // Fetch privileges once and apply to the appropriate page function
         this.fetchRolePrivileges(roleID).then(roleData => {
             if (roleData && roleData.privileges) {
                 const privileges = roleData.privileges;
-
+                
+                // Dashboard page
                 if (typeof window.filterDashboardSections === 'function') {
                     console.log('Universal Skeleton - Applying dashboard filtering');
                     window.filterDashboardSections(privileges);
                 }
-
+                // TS page
                 else if (typeof window.filterSidebarByPrivileges === 'function') {
                     console.log('Universal Skeleton - Applying sidebar filtering for employee page');
                     window.filterSidebarByPrivileges(privileges);
                 }
-
+                // Other employee pages that might have checkAndApplyPrivileges
                 else if (typeof window.checkAndApplyPrivileges === 'function') {
                     console.log('Universal Skeleton - Applying general privilege filtering');
                     window.checkAndApplyPrivileges();
                 }
-
+                // Fallback: manually apply basic sidebar filtering
                 else {
                     console.log('Universal Skeleton - Applying fallback sidebar filtering');
                     this.applyBasicSidebarFiltering(privileges);
@@ -310,6 +329,7 @@ class EmployeeSkeleton {
         });
     }
 
+    // Fallback method for basic sidebar filtering
     applyBasicSidebarFiltering(privileges) {
         const sidebarPrivilegeMap = {
             '#sidebar-psr': ['PSR'],
@@ -333,7 +353,8 @@ class EmployeeSkeleton {
                 console.log(`Universal Skeleton - Showing sidebar item: ${sidebarSelector}`);
             }
         });
-
+        
+        // Show navigation after privilege filtering is complete
         const sidebarNav = document.querySelector('#sidebar nav');
         if (sidebarNav) {
             sidebarNav.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
@@ -342,6 +363,7 @@ class EmployeeSkeleton {
         }
     }
 
+    // Helper to fetch role privileges
     async fetchRolePrivileges(roleID) {
         try {
             const response = await fetch(`https://betcha-api.onrender.com/roles/display/${roleID}`, {
@@ -364,6 +386,7 @@ class EmployeeSkeleton {
         }
     }
 
+    // Toggle skeleton (for testing)
     toggleSkeleton() {
         if (this.isSkeletonVisible) {
             this.hideSkeleton();
@@ -372,6 +395,7 @@ class EmployeeSkeleton {
         }
     }
 
+    // Simulate loading process
     simulateLoading(duration = 2000) {
         this.showSkeleton();
         
@@ -382,18 +406,22 @@ class EmployeeSkeleton {
         console.log(`Simulating loading for ${duration}ms`);
     }
 
+    // Auto-hide skeleton after content loads
     onContentLoaded() {
         this.hideSkeleton();
     }
 
+    // Show skeleton before content loads
     onContentLoading() {
         this.showSkeleton();
     }
 }
 
+// Initialize employee skeleton when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.employeeSkeleton = new EmployeeSkeleton();
-
+    
+    // Show skeleton initially and hide after a short delay
     window.employeeSkeleton.showSkeleton();
     
     setTimeout(() => {
@@ -401,6 +429,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 1500);
 });
 
+// Export helper functions to global scope
 window.showEmployeeSkeleton = function() {
     if (window.employeeSkeleton) {
         window.employeeSkeleton.showSkeleton();
@@ -419,6 +448,7 @@ window.simulateEmployeeLoading = function(duration = 2000) {
     }
 };
 
+// Export for module usage (if needed)
 if (typeof window !== 'undefined') {
     window.EmployeeSkeleton = EmployeeSkeleton;
 }

@@ -1,4 +1,4 @@
-﻿
+// Populate Admin Profile using GET /admin/display/:id (fallback to localStorage if needed)
 (function initAdminProfile() {
     document.addEventListener('DOMContentLoaded', async () => {
         try {
@@ -15,7 +15,7 @@
                     const resp = await fetch(`https://betcha-api.onrender.com/admin/display/${userId}`);
                     if (resp.ok) data = await resp.json();
                 } catch (e) {
-
+                    // network issue, will fallback to storage
                 }
             }
 
@@ -54,4 +54,5 @@
         return String(value).charAt(0).toUpperCase() + String(value).slice(1);
     }
 })();
+
 

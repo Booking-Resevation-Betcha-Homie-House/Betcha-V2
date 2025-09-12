@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -122,6 +122,7 @@
                         <path d="M5.33334 5.99996C5.14445 5.99996 4.98622 5.93596 4.85867 5.80796C4.73111 5.67996 4.66711 5.52174 4.66667 5.33329C4.66622 5.14485 4.73022 4.98663 4.85867 4.85863C4.98711 4.73063 5.14534 4.66663 5.33334 4.66663H13.3333C13.5222 4.66663 13.6807 4.73063 13.8087 4.85863C13.9367 4.98663 14.0004 5.14485 14 5.33329C13.9996 5.52174 13.9356 5.68018 13.808 5.80863C13.6804 5.93707 13.5222 6.00085 13.3333 5.99996H5.33334ZM5.33334 8.66663C5.14445 8.66663 4.98622 8.60263 4.85867 8.47463C4.73111 8.34663 4.66711 8.1884 4.66667 7.99996C4.66622 7.81151 4.73022 7.65329 4.85867 7.52529C4.98711 7.39729 5.14534 7.33329 5.33334 7.33329H13.3333C13.5222 7.33329 13.6807 7.39729 13.8087 7.52529C13.9367 7.65329 14.0004 7.81151 14 7.99996C13.9996 8.1884 13.9356 8.34685 13.808 8.47529C13.6804 8.60374 13.5222 8.66751 13.3333 8.66663H5.33334ZM5.33334 11.3333C5.14445 11.3333 4.98622 11.2693 4.85867 11.1413C4.73111 11.0133 4.66711 10.8551 4.66667 10.6666C4.66622 10.4782 4.73022 10.32 4.85867 10.192C4.98711 10.064 5.14534 9.99996 5.33334 9.99996H13.3333C13.5222 9.99996 13.6807 10.064 13.8087 10.192C13.9367 10.32 14.0004 10.4782 14 10.6666C13.9996 10.8551 13.9356 11.0135 13.808 11.142C13.6804 11.2704 13.5222 11.3342 13.3333 11.3333H5.33334ZM2.66667 5.99996C2.47778 5.99996 2.31956 5.93596 2.192 5.80796C2.06445 5.67996 2.00045 5.52174 2 5.33329C1.99956 5.14485 2.06356 4.98663 2.192 4.85863C2.32045 4.73063 2.47867 4.66663 2.66667 4.66663C2.85467 4.66663 3.01311 4.73063 3.142 4.85863C3.27089 4.98663 3.33467 5.14485 3.33334 5.33329C3.332 5.52174 3.268 5.68018 3.14134 5.80863C3.01467 5.93707 2.85645 6.00085 2.66667 5.99996ZM2.66667 8.66663C2.47778 8.66663 2.31956 8.60263 2.192 8.47463C2.06445 8.34663 2.00045 8.1884 2 7.99996C1.99956 7.81151 2.06356 7.65329 2.192 7.52529C2.32045 7.39729 2.47867 7.33329 2.66667 7.33329C2.85467 7.33329 3.01311 7.39729 3.142 7.52529C3.27089 7.65329 3.33467 7.81151 3.33334 7.99996C3.332 8.1884 3.268 8.34685 3.14134 8.47529C3.01467 8.60374 2.85645 8.66751 2.66667 8.66663ZM2.66667 11.3333C2.47778 11.3333 2.31956 11.2693 2.192 11.1413C2.06445 11.0133 2.00045 10.8551 2 10.6666C1.99956 10.4782 2.06356 10.32 2.192 10.192C2.32045 10.064 2.47867 9.99996 2.66667 9.99996C2.85467 9.99996 3.01311 10.064 3.142 10.192C3.27089 10.32 3.33467 10.4782 3.33334 10.6666C3.332 10.8551 3.268 11.0135 3.14134 11.142C3.01467 11.2704 2.85645 11.3342 2.66667 11.3333Z" />
                     </svg>
 
+
                     <span class="text-neutral-500 group-hover:text-primary">Audit trails</span>
                 </a>
                 
@@ -143,10 +144,11 @@
             </button>
             </div>
 
+            <!-- Notification + Hamburger-->
             <div class="flex gap-2 items-center shrink-0">
-            
+            <!-- Notification Bell Dropdown -->
             <div class="relative inline-block text-left">
-                
+                <!-- Bell Icon -->
                 <button id="notifBellBtnDesktop" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
                 hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
                 transition-all buration-300 ease-in-out
@@ -173,6 +175,7 @@
                 </svg>
                 </button>
 
+                <!-- Dropdown Panel -->
                 <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-[400px] p-5 bg-white border border-gray-300 rounded-3xl shadow-lg z-50">
                 <div class="mb-3">
                     <div class="flex items-center justify-between">
@@ -184,6 +187,7 @@
                 <div class="max-h-[400px] overflow-y-auto">
                     <div class="py-4 text-sm font-inter text-gray-500">Today</div>
 
+                    <!-- NOTIFICATION ITEM -->
                     <div id="notificationsContainer" class="flex flex-col pb-4">
                     <div class="notification unread cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="notifModal">
                         <div class="flex items-start gap-2">
@@ -234,20 +238,22 @@
                 </div>
             </div>
 
+            <!-- Right Hamburger + Profile -->
             <div class="relative">
-                
+                <!-- Button to toggle dropdown -->
                               <div id="menuBtn" class="h-10 w-full aspect-square rounded-full bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
               hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
               transition-all duration-300 ease-in-out">
-                
+                <!-- Profile Picture (hidden by default, shows over default icon when available) -->
                 <img id="adminProfileImg" class="w-full h-full object-cover rounded-full hidden" alt="Admin profile picture" />
-                
+                <!-- Default SVG Icon -->
                 <svg class="h-6 w-6 fill-secondary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 12C10.9 12 9.95833 11.6083 9.175 10.825C8.39167 10.0417 8 9.1 8 8C8 6.9 8.39167 5.95833 9.175 5.175C9.95833 4.39167 10.9 4 12 4C13.1 4 14.0417 4.39167 14.825 5.175C15.6083 5.95833 16 6.9 16 8C16 9.1 15.6083 10.0417 14.825 10.825C14.0417 11.6083 13.1 12 12 12ZM4 18V17.2C4 16.6333 4.146 16.1127 4.438 15.638C4.73 15.1633 5.11733 14.8007 5.6 14.55C6.63333 14.0333 7.68333 13.646 8.75 13.388C9.81667 13.13 10.9 13.0007 12 13C13.1 12.9993 14.1833 13.1287 15.25 13.388C16.3167 13.6473 17.3667 14.0347 18.4 14.55C18.8833 14.8 19.271 15.1627 19.563 15.638C19.855 16.1133 20.0007 16.634 20 17.2V18C20 18.55 19.8043 19.021 19.413 19.413C19.0217 19.805 18.5507 20.0007 18 20H6C5.45 20 4.97933 19.8043 4.588 19.413C4.19667 19.0217 4.00067 18.5507 4 18Z"/>
                 </svg>
 
                 </div>
 
+                <!-- Dropdown menu -->
                 <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-52 border border-neutral-300 bg-white rounded-3xl shadow-lg py-5 px-3 z-50 text-sm font-manrope text-primary-text">
                 <a href="#" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">Profile</a>
                 <hr class="my-2 border-neutral-300">
@@ -259,7 +265,7 @@
 
         <main class="w-full p-5 md:p-10 overflow-auto h-full flex justify-center">
             <div class="bg-white md:h-fit rounded-3xl shadow-md p-6 flex flex-col w-full mb-6 md:w-xl">
-                
+                <!-- Nav buttons -->
                 <div class="flex justify-end gap-3 mb-10">
                     <button 
                         data-modal-target="confirmDetailsModal"
@@ -269,6 +275,7 @@
                         <svg class="w-4 stroke-primary" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                           <path d="M2.66666 7.99996H8M8 7.99996H13.3333M8 7.99996V2.66663M8 7.99996V13.3333" stroke-linecap="round" stroke-linejoin="round"/>
                         </svg>
+
 
                         <span class="text-sm text-primary">Add</span>
 
@@ -299,6 +306,7 @@
                     </div>
                 </div>
 
+                <!-- Privilleges -->
                 <div class="flex flex-col gap-2 group">
                     <label for="input-privilleges" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
                         Privilleges
@@ -313,7 +321,8 @@
                             class="peer appearance-none w-4 h-4 rounded border-2 border-neutral-300 
                                 checked:bg-primary checked:border-primary focus:outline-none"
                             >
-
+                            
+                            <!-- Checkmark Icon -->
                             <svg class="absolute left-0 w-4 h-4 text-white pointer-events-none opacity-0 
                                         peer-checked:opacity-100 transition-opacity duration-200" 
                                 viewBox="0 0 20 20" fill="none">
@@ -321,7 +330,8 @@
                                     stroke="currentColor" stroke-width="2" 
                                     stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-
+                            
+                            <!-- Label Text -->
                             <span class="text-sm text-neutral-700 font-inter">PM</span>
                         </div>
                         
@@ -334,7 +344,8 @@
                             class="peer appearance-none w-4 h-4 rounded border-2 border-neutral-300 
                                 checked:bg-primary checked:border-primary focus:outline-none"
                             >
-
+                            
+                            <!-- Checkmark Icon -->
                             <svg class="absolute left-0 w-4 h-4 text-white pointer-events-none opacity-0 
                                         peer-checked:opacity-100 transition-opacity duration-200" 
                                 viewBox="0 0 20 20" fill="none">
@@ -342,7 +353,8 @@
                                     stroke="currentColor" stroke-width="2" 
                                     stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-
+                            
+                            <!-- Label Text -->
                             <span class="text-sm text-neutral-700 font-inter">PSR</span>
                         </div>
                         
@@ -355,7 +367,8 @@
                             class="peer appearance-none w-4 h-4 rounded border-2 border-neutral-300 
                                 checked:bg-primary checked:border-primary focus:outline-none"
                             >
-
+                            
+                            <!-- Checkmark Icon -->
                             <svg class="absolute left-0 w-4 h-4 text-white pointer-events-none opacity-0 
                                         peer-checked:opacity-100 transition-opacity duration-200" 
                                 viewBox="0 0 20 20" fill="none">
@@ -363,7 +376,8 @@
                                     stroke="currentColor" stroke-width="2" 
                                     stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-
+                            
+                            <!-- Label Text -->
                             <span class="text-sm text-neutral-700 font-inter">TK</span>
                         </div>
                         
@@ -376,7 +390,8 @@
                             class="peer appearance-none w-4 h-4 rounded border-2 border-neutral-300 
                                 checked:bg-primary checked:border-primary focus:outline-none"
                             >
-
+                            
+                            <!-- Checkmark Icon -->
                             <svg class="absolute left-0 w-4 h-4 text-white pointer-events-none opacity-0 
                                         peer-checked:opacity-100 transition-opacity duration-200" 
                                 viewBox="0 0 20 20" fill="none">
@@ -384,20 +399,26 @@
                                     stroke="currentColor" stroke-width="2" 
                                     stroke-linecap="round" stroke-linejoin="round"/>
                             </svg>
-
+                            
+                            <!-- Label Text -->
                             <span class="text-sm text-neutral-700 font-inter">TS</span>
                         </div>
                     </div>
                 </div>
 
+
+
+
+
             </div>
         </main>
     </div>
 
+    <!-- Notification Prev -->
     <div id="notifModalSmall" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center hidden overflow-hidden z-50">
       <div class="w-full h-full bg-background modal-animate overflow-hidden flex flex-col 
         md:px-6 ">
-        
+        <!-- Sticky top -->
         <div class="w-full sticky top-0 z-50 flex items-center shadow-sm p-3 justify-between">
           <div class="flex gap-2 items-center">
             <button data-close-modal class="cursor-pointer btn-round border-none flex items-center justify-center active:scale-95 active:bg-primary/10">
@@ -416,13 +437,15 @@
           </div>
         </div>
 
+        <!-- SCROLLABLE NOTIF LIST -->
         <div class="flex-1 overflow-y-auto custom-scroll flex flex-col">
           <div class="py-2 text-sm font-manrope  bg-neutral-100 px-5 flex items-center">
             <span id="notifDate" class="font-manrope text-lg text-primary-text">Today</span>
           </div>
-
+          
+          <!-- NOTIF ITEM -->
           <div id="notificationsContainer" class="flex flex-col bg-white">
-            
+            <!-- Unread Notification -->
             <div class="notification unread cursor-pointer p-3 active:bg-primary/10" data-modal-target="notifModal">
               <div class="flex items-start gap-2 px-3">
                 <div>
@@ -440,6 +463,7 @@
               </div>
             </div>
 
+            <!-- Read Notifications -->
             <div class="notification read cursor-pointer p-3 active:bg-primary/10" data-modal-target="notifModal">
               <div class="flex items-start gap-2 px-3">
                 <div>
@@ -454,6 +478,7 @@
               </div>
             </div>
 
+            <!-- Another one -->
             <div class="notification read cursor-pointer p-3 active:bg-primary/10" data-modal-target="notifModal">
               <div class="flex items-start gap-2 px-3">
                 <div>
@@ -475,6 +500,7 @@
       </div>
     </div>
 
+    <!-- Notification Modal -->
     <div id="notifModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="w-full h-full bg-background p-10 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
         md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
@@ -499,10 +525,12 @@
         </div>
     </div>
 
+    <!-- Confirm Details Modal -->
     <div id="confirmDetailsModal" class="modal fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center hidden z-50">
       <div class="bg-background w-[500px] rounded-t-3xl overflow-hidden modal-animate
         md:rounded-3xl">
-
+        
+        <!-- Close Button -->
         <div class="w-full p-5 flex justify-end">
           <button data-close-modal class="cursor-pointer btn-round border-none  hover:bg-neutral-300 flex items-center justify-center active:scale-95">
             <span>
@@ -513,6 +541,7 @@
           </button>
         </div>
 
+        <!-- Content -->
         <div class="p-8">
           <div class="text-center mb-10">
             <p class="text-2xl font-semibold text-primary-text font-manrope">Confirm Details 🔒</p>
@@ -521,6 +550,7 @@
             </p>
           </div>
 
+          <!-- Buttons side-by-side -->
           <div class="flex gap-5 flex-col md:flex-row">
             <button data-close-modal type="button" 
               class="group relative rounded-full w-full bg-neutral-200 flex items-center justify-center overflow-hidden order-2
@@ -552,11 +582,13 @@
         </div>
       </div>
     </div>
-
+    
+    <!-- Discard Details Modal -->
     <div id="discardDetailsModal" class="modal fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center hidden z-50">
       <div class="bg-background w-[500px] rounded-t-3xl overflow-hidden modal-animate
         md:rounded-3xl">
-
+        
+        <!-- Close Button -->
         <div class="w-full p-5 flex justify-end">
           <button data-close-modal class="cursor-pointer btn-round border-none  hover:bg-neutral-300 flex items-center justify-center active:scale-95">
             <span>
@@ -567,6 +599,7 @@
           </button>
         </div>
 
+        <!-- Content -->
         <div class="p-8">
           <div class="text-center mb-10">
             <p class="text-2xl font-semibold text-primary-text font-manrope">Discard changes</p>
@@ -575,6 +608,7 @@
             </p>
           </div>
 
+          <!-- Buttons side-by-side -->
           <div class="flex gap-5 flex-col md:flex-row">
             <button data-close-modal type="button" 
               class="group relative rounded-full w-full bg-neutral-200 flex items-center justify-center overflow-hidden order-2

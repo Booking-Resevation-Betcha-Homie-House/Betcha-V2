@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const menuBtn = document.getElementById('menuBtn');
     const dropdownMenu = document.getElementById('dropdownMenu');
 
@@ -6,6 +6,7 @@
       dropdownMenu.classList.toggle('hidden');
     });
 
+    // Optional: close the dropdown when clicking outside
     document.addEventListener('click', (e) => {
       if (!menuBtn.contains(e.target) && !dropdownMenu.contains(e.target)) {
         dropdownMenu.classList.add('hidden');

@@ -1,11 +1,17 @@
-﻿
+/**
+ * Fetches and populates the details of a single employee in employee-view.html
+ * Assumes the employee ID is provided in the URL as ?id=EMPLOYEE_ID
+ * Populates fields with IDs: employee-name, employee-email, employee-role, etc.
+ */
+// almost complete needed to finish the profile button and the notification 
 
+// API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
 let currentEmployeeId = null;
 
 async function populateEmployeeDetails() {
-
+	// Get employee ID from URL
 	const params = new URLSearchParams(window.location.search);
 	const employeeId = params.get('id');
 	
@@ -16,7 +22,8 @@ async function populateEmployeeDetails() {
 	}
 
 	currentEmployeeId = employeeId;
-
+	
+	// Show loading state
 	showLoadingState();
 	
 	try {
@@ -27,38 +34,47 @@ async function populateEmployeeDetails() {
 		}
 		
 		const employee = await response.json();
-
+		
+		// Hide loading state
 		hideLoadingState();
-
+		
+		// Populate employee name
 		const fullName = `${employee.firstname || ''} ${employee.minitial || ''} ${employee.lastname || ''}`.trim();
 		document.getElementById('employee-name').textContent = fullName;
-
+		
+		// Populate email
 		document.getElementById('employee-email').textContent = employee.email || 'No email provided';
-
+		
+		// Populate role (from role array)
 		const roleName = employee.role && employee.role.length > 0 ? employee.role[0].name : 'No role assigned';
 		document.getElementById('employee-role').textContent = roleName;
 		document.getElementById('employee-role-header').textContent = roleName;
-
+		
+		// Populate status with proper capitalization
 		const status = employee.status ? employee.status.charAt(0).toUpperCase() + employee.status.slice(1) : 'Unknown';
 		document.getElementById('employee-status').textContent = status;
-
+		
+		// Handle profile picture
 		const avatarElement = document.getElementById('employee-avatar');
 		if (employee.pfplink) {
-
+			// If profile picture exists, replace with image
 			avatarElement.innerHTML = `<img src="${employee.pfplink}" alt="Profile Picture" class="w-full h-full rounded-full object-cover">`;
 		} else {
-
+			// If no profile picture, show first letter of first name
 			const firstLetter = employee.firstname ? employee.firstname.charAt(0).toUpperCase() : '?';
 			avatarElement.innerHTML = firstLetter;
 		}
-
+		
+		// Update edit button to include employee ID
 		const editBtn = document.getElementById('edit-employee-btn');
 		if (editBtn) {
 			editBtn.onclick = () => window.location.href = `employee-edit.html?id=${employeeId}`;
 		}
-
+		
+		// Populate assigned properties
 		populateAssignedProperties(employee.properties || []);
-
+		
+		// Show/hide deactivate/reactivate buttons based on status
 		updateStatusButtons(employee.status);
 		
 	} catch (error) {
@@ -71,15 +87,16 @@ async function populateEmployeeDetails() {
 async function populateAssignedProperties(properties) {
 	const container = document.getElementById('assigned-properties-container');
 	if (!container) return;
-
+	
+	// Normalize the properties array to handle different formats
 	let normalizedProperties = [];
 	
 	if (!properties || properties.length === 0) {
-
+		// No properties assigned
 	} else {
 		properties.forEach((prop, index) => {
 			if (typeof prop === 'string') {
-
+				// Check if it's a JSON stringified array
 				if (prop.startsWith('[') && prop.endsWith(']')) {
 					try {
 						const parsed = JSON.parse(prop);
@@ -88,17 +105,17 @@ async function populateAssignedProperties(properties) {
 						normalizedProperties.push(prop);
 					}
 				}
-
-				else if (prop.includes(',') && prop.length > 20) { 
+				// Check if it's a comma-separated list of IDs
+				else if (prop.includes(',') && prop.length > 20) { // Assuming IDs are long
 					const splitProps = prop.split(',').map(p => p.trim());
 					normalizedProperties.push(...splitProps);
 				}
-
+				// Regular string (property name or single ID)
 				else {
 					normalizedProperties.push(prop);
 				}
 			} else {
-
+				// Non-string property (shouldn't happen based on API data)
 				normalizedProperties.push(prop);
 			}
 		});
@@ -117,13 +134,14 @@ async function populateAssignedProperties(properties) {
 	}
 	
 	try {
-
+		// Show loading state
 		container.innerHTML = `
 			<div class="w-full h-[200px] flex justify-center items-center">
 				<p class="text-neutral-400">Loading assigned properties...</p>
 			</div>
 		`;
-
+		
+		// Fetch all properties from API
 		const response = await fetch(`${API_BASE}/property/display`);
 		
 		if (!response.ok) {
@@ -131,17 +149,19 @@ async function populateAssignedProperties(properties) {
 		}
 		
 		const allProperties = await response.json();
-
+		
+		// Filter properties that are assigned to this employee with more robust matching
 		const assignedPropertiesData = allProperties.filter(property => {
-
+			// Get all possible identifier fields from the property
 			const propertyIdentifiers = [
-				property._id,                    
-				property.propertyName,           
-				property.name,                   
-				property.title,                  
-				property.propertyTitle          
-			].filter(identifier => identifier); 
-
+				property._id,                    // MongoDB ID
+				property.propertyName,           // Property name
+				property.name,                   // Alternative name field
+				property.title,                  // Title field
+				property.propertyTitle          // Alternative title field
+			].filter(identifier => identifier); // Remove undefined/null values
+			
+			// Check if any normalized assigned property matches any property identifier
 			return normalizedProperties.some(assignedProp => {
 				const normalizedAssigned = assignedProp.toString().trim().toLowerCase();
 				return propertyIdentifiers.some(identifier => 
@@ -149,11 +169,12 @@ async function populateAssignedProperties(properties) {
 				);
 			});
 		});
-
+		
+		// Clear container and populate with property cards
 		container.innerHTML = '';
 		
 		if (assignedPropertiesData.length === 0) {
-
+			// Get all available property identifiers for debugging
 			const availableIdentifiers = allProperties.map(prop => {
 				return [prop._id, prop.propertyName, prop.name, prop.title, prop.propertyTitle].filter(id => id);
 			}).flat();
@@ -177,13 +198,16 @@ async function populateAssignedProperties(properties) {
 				hover:shadow-md hover:border-primary 
 				transition-all duration-500 ease-in-out overflow-hidden
 			`;
-
+			
+			// Get property image or use placeholder
 			const propertyImage = property.images && property.images.length > 0 
 				? property.images[0] 
-				: '/images/unit01.jpg'; 
-
+				: '/images/unit01.jpg'; // fallback image
+			
+			// Get property name
 			const propertyName = property.propertyName || property.name || 'Unknown Property';
-
+			
+			// Get property address
 			const propertyAddress = property.address || property.location || 'Address not specified';
 			
 			propertyCard.innerHTML = `
@@ -218,9 +242,10 @@ async function populateAssignedProperties(properties) {
 					</svg>
 				</div>
 			`;
-
+			
+			// Add click handler to view property details
 			propertyCard.onclick = () => {
-
+				// Navigate to property view page with property ID
 				if (property._id) {
 					window.location.href = `property-view.html?id=${property._id}`;
 				} else {
@@ -250,11 +275,11 @@ function updateStatusButtons(status) {
 	const reactivateContainer = document.querySelector('[data-modal-target="reactivateModal"]').closest('.md\\:px-6');
 	
 	if (status === 'active') {
-
+		// Show deactivate button, hide reactivate button
 		if (deactivateContainer) deactivateContainer.style.display = 'block';
 		if (reactivateContainer) reactivateContainer.style.display = 'none';
 	} else {
-
+		// Show reactivate button, hide deactivate button  
 		if (deactivateContainer) deactivateContainer.style.display = 'none';
 		if (reactivateContainer) reactivateContainer.style.display = 'block';
 	}
@@ -279,9 +304,11 @@ async function deactivateEmployee() {
 		}
 
 		const result = await response.json();
-
+		
+		// Close modal
 		document.getElementById('deactivateModal').classList.add('hidden');
-
+		
+		// Show success message and refresh the page
 		alert('Employee deactivated successfully!');
 		location.reload();
 		
@@ -310,9 +337,11 @@ async function reactivateEmployee() {
 		}
 
 		const result = await response.json();
-
+		
+		// Close modal
 		document.getElementById('reactivateModal').classList.add('hidden');
-
+		
+		// Show success message and refresh the page
 		alert('Employee reactivated successfully!');
 		location.reload();
 		
@@ -323,12 +352,13 @@ async function reactivateEmployee() {
 }
 
 function showLoadingState() {
-
+	// Show loading in name field
 	const nameElement = document.getElementById('employee-name');
 	if (nameElement) {
 		nameElement.textContent = 'Loading...';
 	}
-
+	
+	// Show loading in other fields
 	const fieldsToLoad = ['employee-email', 'employee-role', 'employee-status', 'employee-role-header'];
 	fieldsToLoad.forEach(fieldId => {
 		const element = document.getElementById(fieldId);
@@ -339,31 +369,35 @@ function showLoadingState() {
 }
 
 function hideLoadingState() {
-
+	// Loading state will be replaced by actual data, so no action needed
 }
 
 function showErrorMessage(message) {
-
+	// You can implement a proper error display here
+	// For now, just update the name field to show error
 	const nameElement = document.getElementById('employee-name');
 	if (nameElement) {
 		nameElement.textContent = message;
-		nameElement.style.color = '#ef4444'; 
+		nameElement.style.color = '#ef4444'; // red color
 	}
 }
 
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
 	populateEmployeeDetails();
-
+	
+	// Initialize modal button handlers
 	initializeModalButtons();
 });
 
 function initializeModalButtons() {
-
+	// Find and update the deactivate button in the modal
 	const deactivateModalButton = document.querySelector('#deactivateModal button[onclick*="property-view.html"]');
 	if (deactivateModalButton) {
 		deactivateModalButton.onclick = deactivateEmployee;
 	}
-
+	
+	// Find and update the reactivate button in the modal
 	const reactivateModalButton = document.querySelector('#reactivateModal button[onclick*="property-view.html"]');
 	if (reactivateModalButton) {
 		reactivateModalButton.onclick = reactivateEmployee;

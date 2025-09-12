@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -141,10 +141,11 @@
         </button>
         </div>
 
+        <!-- Notification + Hamburger-->
         <div class="flex gap-2 items-center shrink-0">
-          
+          <!-- Notification Bell Dropdown -->
           <div class="relative inline-block text-left">
-            
+            <!-- Bell Icon -->
             <div class="relative">
               <button id="notifBellBtnDesktop" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
               hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
@@ -175,9 +176,11 @@
                   2
               </span>
             </div>
-
+            
+            <!-- Dropdown Panel -->
             <div data-tab-group id="notificationDropdown" class="hidden absolute right-0 mt-2 w-[400px] p-5 bg-white border border-gray-300 rounded-3xl shadow-lg z-50">
-
+              
+              <!-- Tabs -->
               <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full mx-auto shadow-sm mb-5">
                 <button class="tab-btn text-sm !px-4 !py-2 rounded-full flex-1
                   hover:bg-primary/10 group active:scale-95
@@ -197,6 +200,7 @@
                 <div class="max-h-[400px] overflow-y-auto">
                   <div class="pb-4 text-sm font-inter text-neutral-500">Today</div>
 
+                  <!-- NOTIFICATION ITEM -->
                   <div id="notificationsContainer" class="flex flex-col pb-4">
                     <div class="notification unread cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="notifModal">
                       <div class="flex items-start gap-2">
@@ -248,6 +252,7 @@
                 <div class="max-h-[400px] overflow-y-auto">
                   <div class="pb-4 text-sm font-inter text-neutral-500">Today</div>
 
+                  <!-- NOTIFICATION ITEM -->
                   <div id="cancelContainer" class="flex flex-col pb-4">
                     <div class="notification unread cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="cancelModal">
                       <div class="flex items-start gap-2">
@@ -287,20 +292,22 @@
             </div>
           </div>
 
+          <!-- Right Hamburger + Profile -->
           <div class=" relative">
-            
+            <!-- Button to toggle dropdown -->
                           <div id="menuBtn" class="h-10 w-full aspect-square rounded-full bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
               hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
               transition-all duration-300 ease-in-out">
-                
+                <!-- Profile Picture (hidden by default, shows over default icon when available) -->
                 <img id="adminProfileImg" class="w-full h-full object-cover rounded-full hidden" alt="Admin profile picture" />
-                
+                <!-- Default SVG Icon -->
                               <svg class="h-6 w-6 fill-secondary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 12C10.9 12 9.95833 11.6083 9.175 10.825C8.39167 10.0417 8 9.1 8 8C8 6.9 8.39167 5.95833 9.175 5.175C9.95833 4.39167 10.9 4 12 4C13.1 4 14.0417 4.39167 14.825 5.175C15.6083 5.95833 16 6.9 16 8C16 9.1 15.6083 10.0417 14.825 10.825C14.0417 11.6083 13.1 12 12 12ZM4 18V17.2C4 16.6333 4.146 16.1127 4.438 15.638C4.73 15.1633 5.11733 14.8007 5.6 14.55C6.63333 14.0333 7.68333 13.646 8.75 13.388C9.81667 13.13 10.9 13.0007 12 13C13.1 12.9993 14.1833 13.1287 15.25 13.388C16.3167 13.6473 17.3667 14.0347 18.4 14.55C18.8833 14.8 19.271 15.1627 19.563 15.638C19.855 16.1133 20.0007 16.634 20 17.2V18C20 18.55 19.8043 19.021 19.413 19.413C19.0217 19.805 18.5507 20.0007 18 20H6C5.45 20 4.97933 19.8043 4.588 19.413C4.19667 19.0217 4.00067 18.5507 4 18Z"/>
               </svg>
 
             </div>
 
+            <!-- Dropdown menu -->
             <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-52 border border-neutral-300 bg-white rounded-3xl shadow-lg py-5 px-3 z-50 text-sm font-manrope text-primary-text">
               <a href="profile.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">Profile</a>
               <hr class="my-2 border-neutral-300">
@@ -343,7 +350,7 @@
                     </button>
               </div>
             </div>
-            
+            <!-- Tab buttons -->
             <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full shadow-sm my-5 md:max-w-md ">
               <button id="active-employee-tab" class="tab-btn text-sm !px-4 !py-2 rounded-full flex-1 w-full md:w-fit
                 hover:bg-primary/10 group active:scale-95
@@ -359,24 +366,29 @@
               </button>
             </div>
             <div id="tab-contents" class="w-full h-full p-3 overflow-x-auto">
-              
+              <!-- Skeleton Loading State -->
               <div id="skeleton-loading" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
-                
+                <!-- Skeleton Employee Cards -->
                 <div class="bg-white rounded-3xl shadow-md overflow-hidden animate-pulse">
                   <div class="relative p-6">
-                    
+                    <!-- Avatar Skeleton -->
                     <div class="w-16 h-16 bg-neutral-200 rounded-full mx-auto mb-4"></div>
-
+                    
+                    <!-- Name Skeleton -->
                     <div class="h-4 bg-neutral-200 rounded-full w-3/4 mx-auto mb-2"></div>
-
+                    
+                    <!-- Email Skeleton -->
                     <div class="h-3 bg-neutral-200 rounded-full w-full mb-4"></div>
-
+                    
+                    <!-- Role Badge Skeleton -->
                     <div class="h-6 bg-neutral-200 rounded-full w-20 mx-auto mb-4"></div>
-
+                    
+                    <!-- Button Skeleton -->
                     <div class="h-8 bg-neutral-200 rounded-lg w-full"></div>
                   </div>
                 </div>
 
+                <!-- Duplicate skeleton cards -->
                 <div class="bg-white rounded-3xl shadow-md overflow-hidden animate-pulse">
                   <div class="relative p-6">
                     <div class="w-16 h-16 bg-neutral-200 rounded-full mx-auto mb-4"></div>
@@ -430,25 +442,27 @@
               
               <div class="tab-content hidden" id="active-tab">
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
-                  
+                  <!-- Active employees will be populated here dynamically -->
                 </div>
               </div>
               <div class="tab-content hidden" id="inactive-tab">
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 h-full">
-                  
+                  <!-- Inactive employees will be populated here dynamically -->
                 </div>
               </div>
             </div>
 
+            
         </div>
 
       </main>
     </div>
 
+    <!-- Notification Prev -->
     <div id="notifModalSmall" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center hidden overflow-hidden z-50">
       <div class="w-full h-full bg-background modal-animate overflow-hidden flex flex-col 
         md:px-6 ">
-        
+        <!-- Sticky top -->
         <div class="w-full sticky top-0 z-50 flex items-center shadow-sm p-3 justify-start">
           <button data-close-modal class="cursor-pointer btn-round border-none flex items-center justify-center active:scale-95 active:bg-primary/10">
             <span>
@@ -461,9 +475,11 @@
           </div>
         </div>
 
+        <!-- SCROLLABLE NOTIF LIST -->
         <div class="flex-1 overflow-y-auto custom-scroll flex flex-col">
           <div data-tab-group id="notificationDropdown" class=" p-5 ">
-
+                
+            <!-- Tabs -->
             <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full mx-auto shadow-sm mb-5">
               <button class="tab-btn text-sm !px-2 !py-1 rounded-full flex-1
                 hover:bg-primary/10 group active:scale-95
@@ -483,6 +499,7 @@
               <div class="max-h-[400px] overflow-y-auto">
                 <div class="pb-4 text-sm font-inter text-neutral-500">Today</div>
 
+                <!-- NOTIFICATION ITEM -->
                 <div id="notificationsContainer" class="flex flex-col pb-4">
                   <div class="notification unread cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="notifModal">
                     <div class="flex items-start gap-2">
@@ -527,7 +544,8 @@
                       </div>
                     </div>
                   </div>
-
+                  
+                  
                 </div>
               </div>
             </div>
@@ -535,6 +553,7 @@
               <div class="max-h-[400px] overflow-y-auto">
                 <div class="pb-4 text-sm font-inter text-neutral-500">Today</div>
 
+                <!-- NOTIFICATION ITEM -->
                 <div id="cancelContainer" class="flex flex-col pb-4">
                   <div class="notification unread cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="cancelModal">
                     <div class="flex items-start gap-2">
@@ -578,6 +597,7 @@
       </div>
     </div>
 
+    <!-- Notification Modal -->
     <div id="notifModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="w-full h-full bg-background p-10 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
         md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
@@ -602,6 +622,7 @@
         </div>
     </div>
 
+    <!-- Cancelation Modal -->
     <div id="cancelModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="w-full h-full bg-background p-10 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
         md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
@@ -614,7 +635,7 @@
                     </span>
                 </button>
             </div>
-            
+            <!-- Content -->
             <div class="flex-1 overflow-y-auto   mb-5">
               <div class="flex flex-col items-start mb-5 font-inter">
                 <h2 id="notifSender" class="text-lg font-bold font-manrope text-primary-text mb-1">Sender Name</h2>
@@ -627,7 +648,7 @@
               </div>
               <div 
                 class="border border-neutral-300 rounded shadow-md flex flex-col gap-5 w-full font-inter p-5">
-                
+                <!-- Content -->
                 <div class="flex flex-col justify-center gap-2 text-neutral-500">
                   <p class="text-base font-bold font-manrope text-primary-text ">
                     Transaction no.
@@ -675,6 +696,7 @@
         </div>
     </div>
 
+    <!-- Cancel Request Modal -->
     <div id="cancelReqModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="w-full h-full bg-background p-10 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
         md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
@@ -722,6 +744,7 @@
         </div>
     </div>
 
+    <!-- Gallery Modal -->
     <div id="galleryModal" class="modal fixed inset-0 flex items-center justify-center hidden z-50 modal-animate">
       <div class="bg-background w-full h-full rounded-xl relative animate-fade-in-up overflow-y-scroll no-scrollbar">
         <div class="w-full p-3 sticky top-0 z-50 bg-background flex gap-5 shadow-sm items-center">
@@ -740,7 +763,9 @@
         </div>
         <div class="flex justify-center">
           <div class="w-full md:w-[80%] flex flex-col gap-4 p-5">
+            
 
+            <!-- 🖼️ 2-Column Photo Grid -->
             <div class="grid md:grid-cols-2 gap-4 ">
               <img src="/public/images/unit01.jpg" alt="Room view 1" class="rounded-xl w-full h-100 object-cover" />
               <img src="/public/images/unit02.jpg" alt="Room view 1" class="rounded-xl w-full h-100 object-cover" />
@@ -758,6 +783,7 @@
       </div>
     </div>
 
+    <!-- Ammenities Modal -->
     <div id="ammenitiesModal" class="modal fixed inset-0 z-50 bg-black/50 flex items-center justify-center hidden">
       <div class="bg-background w-full h-full rounded-none overflow-hidden flex flex-col modal-animate
       md:max-h-[80%] md:rounded-3xl md:max-w-3xl">
@@ -774,6 +800,8 @@
         <div class="flex-1 overflow-y-auto px-5 pb-5">
           <div class="w-full md:w-[80%] mx-auto flex flex-col gap-4">
             <p class="font-manrope text-3xl text-primary-text font-medium mb-5">Included Perks</p>
+
+            <!-- Ammenities List -->
 
             <div class="px-3 mb-5">
               <p class="font-manrope text-2xl text-primary-text">Essentials</p>
@@ -1364,6 +1392,7 @@
       </div>
     </div>
 
+    <!-- Report Modal -->
     <div id="reportModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="w-full h-full bg-background p-10 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
         md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
@@ -1434,6 +1463,7 @@
   <script defer src="adminFunctions/employees-functions.js"></script>
   <script defer src="adminFunctions/logout-functions.js"></script>
   <script defer src="adminFunctions/admin-profile.js"></script>
+  
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </body>

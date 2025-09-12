@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -10,10 +10,10 @@
     <script src="/src/page-control.js"></script>
 </head>
 <body class="bg-background">
-  
+  <!-- NavBar -->
   <nav id="navbar" class="w-full hidden flex-col items-center shadow-sm bg-white md:flex">
     <div class="w-full flex items-center justify-between py-4 px-4 md:px-10">
-      
+      <!-- Logo -->
       <a href="rooms.html" class="hidden sm:flex w-fit md:h-[30px]">
         <svg class="fill-primary h-full w-auto" viewBox="0 0 121 30" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M14.8039 7.93926C15.1414 7.59644 15.6926 7.60699 16.0146 7.9709C16.3211 8.30317 16.2907 8.83282 15.9739 9.15907H15.9724L15.9739 9.15988L14.8083 10.3436C14.6495 10.5048 14.3943 10.5048 14.231 10.3436L13.0655 9.15988C12.7383 8.8276 12.7227 8.26772 13.0507 7.93469C13.2146 7.7682 13.4291 7.69063 13.6383 7.69063C13.8475 7.69063 14.0671 7.77351 14.231 7.93926L14.5174 8.23012L14.8039 7.93926Z" />
@@ -27,10 +27,11 @@
         </svg>
       </a>
 
+      <!-- Notification + Hamburger-->
       <div class="flex gap-2 items-center shrink-0">
-        
+        <!-- Notification Bell Dropdown -->
         <div class="relative inline-block text-left">
-          
+          <!-- Bell Icon -->
           <div class="relative">
             <button id="notifBellBtnDesktop" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
             hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
@@ -61,7 +62,8 @@
                 2
             </span>
           </div>
-
+          
+          <!-- Dropdown Panel -->
           <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-[400px] p-5 bg-white border border-gray-300 rounded-3xl shadow-lg z-50">
             
             <div class="mb-3">
@@ -72,6 +74,7 @@
             <div class="max-h-[400px] overflow-y-auto">
               <div class="py-4 text-sm font-inter text-gray-500">Today</div>
 
+              <!-- NOTIFICATION ITEM -->
               <div id="notificationsContainer" class="flex flex-col pb-4">
                 <div class="notification unread cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="notifModal">
                   <div class="flex items-start gap-2">
@@ -122,20 +125,22 @@
           </div>
         </div>
 
+        <!-- Right Hamburger + Profile -->
         <div class=" relative">
-          
+          <!-- Button to toggle dropdown -->
           <div id="menuBtn" class="h-10 w-full aspect-square rounded-full bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
           hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
           transition-all duration-300 ease-in-out">
-            
+            <!-- Profile Picture (hidden by default, shows over default icon when available) -->
             <img id="unauthProfileImg" class="w-full h-full object-cover rounded-full hidden" alt="Unauth profile picture" />
-            
+            <!-- Default SVG Icon -->
             <svg class="h-6 w-6 fill-secondary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 12C10.9 12 9.95833 11.6083 9.175 10.825C8.39167 10.0417 8 9.1 8 8C8 6.9 8.39167 5.95833 9.175 5.175C9.95833 4.39167 10.9 4 12 4C13.1 4 14.0417 4.39167 14.825 5.175C15.6083 5.95833 16 6.9 16 8C16 9.1 15.6083 10.0417 14.825 10.825C14.0417 11.6083 13.1 12 12 12ZM4 18V17.2C4 16.6333 4.146 16.1127 4.438 15.638C4.73 15.1633 5.11733 14.8007 5.6 14.55C6.63333 14.0333 7.68333 13.646 8.75 13.388C9.81667 13.13 10.9 13.0007 12 13C13.1 12.9993 14.1833 13.1287 15.25 13.388C16.3167 13.6473 17.3667 14.0347 18.4 14.55C18.8833 14.8 19.271 15.1627 19.563 15.638C19.855 16.1133 20.0007 16.634 20 17.2V18C20 18.55 19.8043 19.021 19.413 19.413C19.0217 19.805 18.5507 20.0007 18 20H6C5.45 20 4.97933 19.8043 4.588 19.413C4.19667 19.0217 4.00067 18.5507 4 18Z"/>
             </svg>
 
           </div>
 
+          <!-- Dropdown menu -->
           <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-52 border border-neutral-300 bg-white rounded-3xl shadow-lg py-5 px-3 z-50 text-sm font-manrope text-primary-text">
             <a href="../auth/profile.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">Profile</a>
             <a href="../auth/my-bookings.html" class="block px-4 py-2 rounded-xl hover:bg-primary/10 hover:text-primary">My bookings</a>
@@ -149,6 +154,7 @@
         </div>
       </div>
 
+      <!-- Login/Register -->
       <div class="hidden flex items-center gap-2">
         <button onclick="window.open('login.html', '_blank')" 
           class="group pointer-events-auto rounded-full bg-neutral-100 shadow-sm hidden
@@ -189,9 +195,11 @@
       </svg>
     </button>
   </nav>
-
+  
+  <!-- Content -->
   <div class="flex flex-col items-center w-full">
 
+    <!-- Images -->
     <div id="PhotosSection"
         data-modal-target="galleryModal"
         class="relative cursor-pointer w-full mb-5 mt-0 overflow-hidden
@@ -199,11 +207,13 @@
                 h-[250px] md:h-[300px] lg:h-[450px] xl:h-[550px] 
                 md:w-[80%] md:mt-10">
 
+      <!-- Big Left Image -->
       <div class="rounded-none bg-neutral-300 h-full col-span-1 sm:col-span-3 flex items-center justify-center text-white
         md:rounded-2xl" id="photo1">
         No photo
       </div>
 
+      <!-- Right side two images -->
       <div class="hidden sm:grid sm:col-span-2 sm:grid-rows-2 sm:gap-3 h-full">
         <div class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white" id="photo2">
           No photo
@@ -213,6 +223,7 @@
         </div>
       </div>
 
+      <!-- Floating Button -->
       <button 
         class="absolute cursor-pointer bottom-4 right-4 !px-2 !py-1 bg-white rounded-full shadow-sm flex gap-2 items-center group 
               hover:bg-primary hover:scale-105 hover:shadow-lg active:scale-95 
@@ -237,6 +248,7 @@
       </button>
     </div>
 
+    <!-- Rooms Detail Navigation -->
     <div class="w-[80%] sticky top-0 z-50 hidden md:block">
       <ul class="flex justify-start items-end gap-6 border-b bg-background border-neutral-300 px-4">
         <li class="h-full py-5 border-b-2 border-background group
@@ -413,7 +425,8 @@
             </button>
             
           </div>
-
+          
+          
         </div>
         <div class="lg:col-span-2 flex flex-col w-full">
           <div id="Booking" class="border border-neutral-300  rounded-3xl w-full p-5 shadow-none lg:shadow-md">
@@ -468,7 +481,8 @@
                 </div>
               </div>
             </div>
-
+            
+            <!-- data-modal-target="noAccountModal" -->
             <button
               id="reserveButton"
               type="button" 
@@ -504,7 +518,8 @@
                 style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
             </iframe>
           </div>
-
+          
+          <!-- Directions Button -->
           <div id="directionsButtonContainer" class="mt-4 hidden">
             <button id="directionsBtn" class="w-full bg-primary hover:brightness-90 hover:shadow-lg py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer" style="color: white !important;" onmouseover="this.style.filter='brightness(0.85)'" onmouseout="this.style.filter=''">
               <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
@@ -519,10 +534,12 @@
       </div>
     </div>
   </div>
-
+    
+    
+    <!-- Footer -->
     <footer class="bg-primary w-full text-secondary-text mt-10 md:mt-36">
       <div class=" mx-[10%] px-4 py-10 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-10">
-        
+        <!-- Logo Section -->
         <div class="flex items-center gap-4">
           <svg class="w-auto h-[24px] fill-secondary-text md:h-[36px]" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
             <path d="M18.0221 9.52711C18.4331 9.11573 19.1041 9.12839 19.4961 9.56507C19.8691 9.9638 19.8321 10.5994 19.4464 10.9909H19.4447L19.4464 10.9919L18.0275 12.4123C17.8342 12.6058 17.5234 12.6058 17.3247 12.4123L15.9058 10.9919C15.5075 10.5931 15.4886 9.92127 15.8878 9.52163C16.0874 9.32184 16.3484 9.22875 16.6031 9.22875C16.8578 9.22876 17.1251 9.32821 17.3247 9.52711L17.6734 9.87614L18.0221 9.52711Z"/>
@@ -531,8 +548,9 @@
           <span class="font-inter font-bold text-secondary-text text-2xl md:text-4xl">Betcha</span>
         </div>
 
+        <!-- Link Columns -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-8 text-sm">
-          
+          <!-- Explore -->
           <div>
             <h2 class="mb-4 font-semibold uppercase">Explore</h2>
             <ul class="space-y-2">
@@ -542,6 +560,7 @@
             </ul>
           </div>
 
+          <!-- Contacts -->
           <div>
             <h2 class="mb-4 font-semibold uppercase">Contacts</h2>
             <ul class="space-y-2">
@@ -570,6 +589,7 @@
         </div>
       </div>
 
+      <!-- Bottom Bar -->
       <div class="bg-primary px-[10%] py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm text-secondary-text">
         <span>© 2025 <a href="#" class="hover:underline">Betcha</a>. All Rights Reserved.</span>
         <div class="flex mt-4 sm:mt-0 space-x-6">
@@ -580,6 +600,7 @@
       </div>
     </footer>
 
+    <!-- Gallery Modal -->
     <div id="galleryModal" class="modal fixed inset-0 flex items-center justify-center hidden z-50 modal-animate">
       <div class="bg-background w-full h-full rounded-xl relative animate-fade-in-up overflow-y-scroll no-scrollbar">
         <div class="w-full p-3 sticky top-0 z-50 bg-background flex gap-5 shadow-sm items-center">
@@ -598,7 +619,9 @@
         </div>
         <div class="flex justify-center">
           <div class="w-full md:w-[80%] flex flex-col gap-4 p-5">
+            
 
+            <!-- 🖼️ 2-Column Photo Grid -->
             <div class="grid md:grid-cols-2 gap-4 " id="allPhoto">
               <img src="/public/images/unit01.jpg" alt="Room view 1" class="rounded-xl w-full h-100 object-cover" />
               <img src="/public/images/unit02.jpg" alt="Room view 1" class="rounded-xl w-full h-100 object-cover" />
@@ -616,11 +639,14 @@
       </div>
     </div>
 
+    <!-- Ammenities Modal -->
+    <!-- Ammenities Modal -->
     <div id="ammenitiesModal" class="modal fixed inset-0 z-50 bg-black/50 flex items-center justify-center hidden">
       <div class="bg-background w-full h-full rounded-none overflow-hidden flex flex-col modal-animate md:max-h-[80%] md:rounded-3xl md:max-w-6xl md:min-w-[700px] md:w-auto md:h-auto">
-
+        
+        <!-- Header -->
         <div class="w-full sticky top-0 z-50 flex items-center justify-between p-3">
-          <div class="w-8"></div> 
+          <div class="w-8"></div> <!-- Spacer for centering the title -->
           
           <button data-close-modal class="group cursor-pointer btn-round border-none flex items-center justify-center hover:bg-primary/10 active:scale-95 transition-all duration-300 ease-in-out">
             <span>
@@ -634,7 +660,8 @@
         <div class="flex-1 overflow-y-auto px-3 md:px-5 pb-5" id="amenityModal1">
           <div class="w-full md:w-[90%] mx-auto flex flex-col gap-3 md:gap-4">
             <p class="font-manrope text-3xl text-primary-text font-medium mb-5">Included Perks</p>
-
+            
+            <!-- Essentials Category -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Essentials</p>
               <ul class="flex flex-col gap-3" id="essentialsList">
@@ -689,6 +716,7 @@
               </ul> 
             </div>
 
+            <!-- Kitchen & Dining Category -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Kitchen & Dining</p>
               <ul class="flex flex-col gap-3" id="kitchenDiningList">
@@ -755,6 +783,7 @@
               </ul> 
             </div>
 
+            <!-- Bathroom Category -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Bathroom</p>
               <ul class="flex flex-col gap-3" id="bathroomList">
@@ -796,7 +825,8 @@
                 </li>
               </ul> 
             </div>
-
+            
+            <!-- Laundry Category -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Laundry</p>
               <ul class="flex flex-col gap-3" id="laundryList">
@@ -833,6 +863,7 @@
               </ul> 
             </div>
 
+            <!-- Safety & Security Category -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Safety & Security</p>
               <ul class="flex flex-col gap-3" id="safetySecurityList">
@@ -881,6 +912,7 @@
               </ul> 
             </div>
 
+            <!-- Entertainment Category -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Entertainment</p>
               <ul class="flex flex-col gap-3" id="entertainmentList">
@@ -929,6 +961,7 @@
               </ul>
             </div>
 
+            <!-- Parking & Transport Category -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Parking & Transport</p>
               <ul class="flex flex-col gap-3" id="parkingTransportList">
@@ -953,6 +986,7 @@
               </ul>
             </div>
 
+            <!-- Outdoor & Nature Category -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Outdoor & Nature</p>
               <ul class="flex flex-col gap-3" id="outdoorNatureList">
@@ -989,6 +1023,7 @@
               </ul>
             </div>
 
+            <!-- Pets Category -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Pets</p>
               <ul class="flex flex-col gap-3" id="petsList">
@@ -1019,6 +1054,7 @@
               </ul>
             </div>
 
+            <!-- Family Friendly Category -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Family Friendly</p>
               <ul class="flex flex-col gap-3" id="familyFriendlyList">
@@ -1043,10 +1079,11 @@
               </ul>
             </div>
 
+            <!-- Other Amenities Container -->
             <div class="px-2 md:px-3 mb-3 md:mb-5">
               <p class="font-manrope text-xl md:text-2xl text-primary-text">Others</p>
               <ul class="flex flex-col gap-3" id="othersList">
-                
+                <!-- Other amenities will be populated here by JavaScript -->
               </ul>
             </div>
           </div>
@@ -1642,6 +1679,7 @@
       </div>
     </div>
 
+    <!-- Unauthorized Acces. Need a registered account to proceed-->
     <div id="noAccountModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center hidden z-50">
       <div class="bg-white w-full h-fit p-5 rounded-t-3xl relative modal-animate 
          sm:rounded-3xl md:w-[500px]">
@@ -1686,6 +1724,7 @@
       </div>
     </div>
 
+    <!-- Notification Modal -->
     <div id="notifModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
       <div class="w-full h-full bg-background p-10 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
       md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
@@ -1710,6 +1749,7 @@
       </div>
     </div>
 
+    <!-- Search -->
     <div id="searchModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center hidden overflow-hidden z-50">
       <div data-tab-group class="w-full bg-background rounded-t-3xl p-6 modal-animate overflow-hidden flex flex-col 
          md:max-w-lg lg:max-w-xl xl:max-w-3xl h-[80%] sm:rounded-3xl">
@@ -1724,31 +1764,36 @@
                 </span>
             </button>
         </div>
-
+        
+        <!-- Tab Scroll Wrapper -->
         <div class="w-full h-fit overflow-x-auto custom-scroll mb-3">
-          
+          <!-- Inner flex row -->
           <div class="flex md:w-full w-max gap-1 bg-neutral-100 rounded-full shadow-sm p-1 items-center md:justify-between">
-            
+            <!-- Button 1 -->
             <button onclick="setActiveTab(0)" class="tab-btn px-4 py-2 rounded-full bg-white text-primary font-semibold shadow cursor-pointer hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
               <span class="text-sm md:text-base group-hover:text-primary">Where</span>
             </button>
 
+            <!-- Button 2 -->
             <button onclick="setActiveTab(1)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group cursor-pointer active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
               <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">When</span>
             </button>
 
+            <!-- Button 3 -->
             <button onclick="setActiveTab(2)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group cursor-pointer active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
               <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Who</span>
             </button>
 
+            <!-- Button 4 -->
             <button onclick="setActiveTab(3)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group cursor-pointer active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1">
               <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Price</span>
             </button>
           </div>
         </div>
 
+        <!-- Location Tab Contents -->
         <div class="tab-content flex-1 flex flex-col overflow-hidden mb-5 md:mb-0">
-          
+          <!-- Search Bar -->
           <div class="mb-2 flex items-center gap-2 bg-white px-4 py-3 rounded-full border border-neutral-300 shadow-sm hover:shadow-lg transition-all duration-300 ease-in-out">
             <svg class="w-4 h-4 stroke-current" fill="none" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -1761,6 +1806,7 @@
             />
           </div>
 
+          <!-- Scrollable Results -->
           <div class="rounded-3xl border border-neutral-300 bg-white shadow-md overflow-hidden">
             <div class="max-h-full overflow-y-auto divide-y divide-neutral-200">
               <div class="group w-full px-5 py-3 bg-white font-inter cursor-pointer
@@ -1827,18 +1873,20 @@
             </div>
           </div>
         </div>
-        
+        <!-- Date Tab Content -->
         <div class="tab-content flex-1 flex flex-col overflow-hidden mb-5 md:mb-0">
           <div class="calendar-instance h-full flex flex-col" data-calendar-id="1">
             <div class="overflow-y-auto bg-white border border-neutral-300 rounded-3xl shadow-sm custom-scroll">
               <div class="w-full mx-auto p-4 hover:shadow-lg transition-all duration-300 ease-in-out" id="calendarContainer">
 
+                <!-- Navigation -->
                 <div class="flex justify-between items-center mb-4 px-2">
                   <button class="prevMonth px-3 py-1 rounded-full hover:bg-primary/10 text-sm text-primary-text">←</button>
                   <div class="text-sm font-manrope font-semibold text-primary-text">Select dates</div>
                   <button class="nextMonth px-3 py-1 rounded-full hover:bg-primary/10 text-sm text-primary-text">→</button>
                 </div>
 
+                <!-- Calendars Container -->
                 <div class="flex flex-col md:flex-row gap-4 justify-center items-start">
                   <div class="w-full md:w-[300px] flex-shrink-0 rounded-lg p-3">
                     <p class="leftMonthLabel text-center font-semibold mb-2 text-sm text-primary-text"></p>
@@ -1855,7 +1903,7 @@
           </div>
 
         </div>
-        
+        <!-- Guest Count Tab Content -->
         <div class="tab-content">
           <div class="guest-counter w-full bg-white border border-neutral-300 rounded-3xl shadow-sm p-5 hover:shadow-md transition-all duration-200" data-max="10">
             <div class="flex justify-between items-center w-full">
@@ -1885,18 +1933,20 @@
             </div>
           </div>
         </div>
-        
+        <!-- Price Range Tab Content -->
         <div class="tab-content flex-1 flex flex-col overflow-hidden mb-5 md:mb-0">
           <div class="overflow-y-auto">
             <div class="flex justify-center">
-              
+              <!-- Price Range Box -->
               <div
                 class="w-full bg-white border border-neutral-300 rounded-3xl shadow-sm px-5 py-10 z-50">
-
+                
+                <!-- Label -->
                 <label class="block text-primary-text font-manrope font-semibold mb-2">
                   Price Range (₱)
                 </label>
 
+                <!-- Range Sliders -->
                 <div class="relative w-full">
                   <input type="range" min="0" max="100000" step="100" value="0" id="minRange"
                     class="range-thumb pointer-events-none absolute z-30 h-2 w-full appearance-none bg-transparent" />
@@ -1907,6 +1957,7 @@
                   </div>
                 </div>
 
+                <!-- Price Display -->
                 <div class="flex justify-between text-xs font-inter text-muted mt-2">
                   <span>₱<span id="minPrice">1000</span></span>
                   <span>₱<span id="maxPrice">8000</span></span>
@@ -1946,8 +1997,9 @@
           </div>
         </div>
 
+        <!-- Bottom nav -->
         <div class="mt-auto w-full space-y-3">
-          
+          <!-- Filter grid -->
           <div class="grid grid-cols-2 md:grid-cols-4 gap-2">
             <div class="flex items-center px-3 py-2 border border-neutral-300 rounded-full text-sm font-medium text-neutral-700 ">
               <span class="truncate">When</span>
@@ -1963,6 +2015,7 @@
             </div>
           </div>
 
+          <!-- Buttons row -->
           <div class="flex justify-between items-center">
             <button class="!px-1 text-sm font-medium !text-neutral-600 underline hover:!text-neutral-800 active:!text-neutral-800 cursor-pointer">
               Clear all
@@ -1979,9 +2032,11 @@
           </div>
         </div>
 
+
       </div>
     </div>
 
+    <!-- Date Picker Modal -->
     <div id="dateBookingModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center hidden overflow-hidden z-50">
       <div class="w-full bg-background px-5 pt-3 rounded-t-3xl sm:rounded-3xl modal-animate overflow-hidden flex flex-col 
         md:px-6 md:max-w-lg lg:max-w-xl xl:max-w-3xl h-[80%]">
@@ -2002,12 +2057,14 @@
             <div class="overflow-y-auto custom-scroll">
               <div class="w-full mx-auto p-4 hover:shadow-lg transition-all duration-300 ease-in-out">
 
+                <!-- Navigation -->
                 <div class="flex justify-between items-center mb-4 px-2">
                   <button class="prevMonth px-3 py-1 rounded-full hover:bg-primary/10 text-sm text-primary-text">←</button>
                   <div class="text-sm font-manrope font-semibold text-primary-text">Select dates</div>
                   <button class="nextMonth px-3 py-1 rounded-full hover:bg-primary/10 text-sm text-primary-text">→</button>
                 </div>
 
+                <!-- Calendars Container -->
                 <div class="flex flex-col md:flex-row gap-4 justify-center items-start">
                   <div class="w-full md:w-[300px] flex-shrink-0 rounded-lg p-3">
                     <p class="leftMonthLabel text-center font-semibold mb-2 text-sm text-primary-text"></p>
@@ -2043,6 +2100,7 @@
       </div>
     </div>
 
+    <!-- Guest Count Modal -->
     <div id="guestCountModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center hidden overflow-hidden z-50">
       <div class="w-full bg-background px-5 pt-3 rounded-t-3xl sm:rounded-3xl modal-animate overflow-hidden flex flex-col 
         md:px-6 md:max-w-lg lg:max-w-xl xl:max-w-3xl h-[300px]">
@@ -2084,6 +2142,7 @@
           </div>
         </div>
 
+        <!-- Bottom nav -->
         <div class="items-center py-5 mt-auto">
           <button type="button" 
             class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-sm

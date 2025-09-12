@@ -1,7 +1,10 @@
-﻿
+// finished? need to be tested
+// for what yung get five faq na api?
 
+// API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
+// Skeleton and content toggle functions
 function showSkeleton() {
     const skeleton = document.getElementById('faqsSkeleton');
     const content = document.getElementById('faqsContent');
@@ -25,7 +28,7 @@ async function getAllFAQS() {
         if (data && data.allFAQ) {
             renderFAQs(data.allFAQ);
         } else {
-
+            // Handle empty state
             renderEmptyState();
         }
         hideSkeleton();
@@ -36,6 +39,7 @@ async function getAllFAQS() {
     }
 }
 
+// Render empty state
 function renderEmptyState() {
     const grid = document.getElementById('faqsContent');
     if (!grid) return;
@@ -52,6 +56,7 @@ function renderEmptyState() {
     `;
 }
 
+// Render error state
 function renderErrorState() {
     const grid = document.getElementById('faqsContent');
     if (!grid) return;
@@ -71,6 +76,7 @@ function renderErrorState() {
     `;
 }
 
+// Render FAQs to the container
 function renderFAQs(faqs) {
     const grid = document.getElementById('faqsContent');
     if (!grid) return;
@@ -129,15 +135,17 @@ function renderFAQs(faqs) {
         `;
         grid.appendChild(faqItem);
 
+        // Edit button event
         faqItem.querySelector('.edit-faq-btn').addEventListener('click', () => {
-
+            // Fill modal with current FAQ data
             document.getElementById('input-question-edit').value = faq.question;
             document.getElementById('input-answer-edit').value = faq.answer;
             document.getElementById('editFAQs').setAttribute('data-faq-id', faq._id);
-
+            // Manually open the modal since modal.js won't catch dynamic buttons
             document.getElementById('editFAQs').classList.remove('hidden');
         });
 
+        // Delete button event
         faqItem.querySelector('.delete-faq-btn').addEventListener('click', async () => {
             if (confirm('Are you sure you want to delete this FAQ?')) {
                 await deleteFAQ(faq._id);
@@ -147,6 +155,7 @@ function renderFAQs(faqs) {
     });
 }
 
+// Edit FAQ Save button
 document.addEventListener('DOMContentLoaded', () => {
     const editModal = document.getElementById('editFAQs');
     if (editModal) {
@@ -155,12 +164,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const question = document.getElementById('input-question-edit').value;
             const answer = document.getElementById('input-answer-edit').value;
             await updateFAQ(id, question, answer);
-
+            // Modal open/close handled by modal.js, so no need to call closeModal
             getAllFAQS();
         });
     }
 });
 
+// Add FAQ Save button
 document.addEventListener('DOMContentLoaded', () => {
     const addModal = document.getElementById('addFAQs');
     if (addModal) {
@@ -172,16 +182,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             await createFAQ(question, answer);
-
+            // Optionally clear fields
             document.getElementById('input-question-add').value = '';
             document.getElementById('input-answer-add').value = '';
-
+            // Hide modal
             addModal.classList.add('hidden');
             getAllFAQS();
         });
     }
 });
 
+// API: Create FAQ
 async function createFAQ(question, answer) {
     try {
         await fetch(`${API_BASE}/faq/create`, {
@@ -195,6 +206,7 @@ async function createFAQ(question, answer) {
     }
 }
 
+// API: Delete FAQ
 async function deleteFAQ(id) {
     try {
         await fetch(`${API_BASE}/faq/delete/${id}`, {
@@ -206,6 +218,7 @@ async function deleteFAQ(id) {
     }
 }
 
+// API: Update FAQ
 async function updateFAQ(id, question, answer) {
     try {
         await fetch(`${API_BASE}/faq/update/${id}`, {

@@ -1,4 +1,4 @@
-﻿
+// Populate Guest Profile using GET /guest/display/:id (fallback to localStorage if needed)
 (function initGuestProfile() {
     'use strict';
 
@@ -9,6 +9,7 @@
             console.error('Failed to initialize guest profile:', error);
         });
 
+        // Initialize verification button functionality
         initVerificationButton();
     });
 
@@ -57,8 +58,10 @@
         setText('birthdayValue', formatDate(birthday) || '—');
         setText('emailValue', email || '—');
 
+        // Update verification status
         updateVerificationStatus(verified);
 
+        // Avatar handling: show image if pfplink exists, else show initial
         const avatarImg = document.getElementById('profileAvatarImg');
         const initialEl = document.getElementById('firstLetterName');
         if (avatarImg && initialEl) {
@@ -85,7 +88,7 @@
         if (!activationGroupRow) return;
 
         if (verified) {
-
+            // Update to verified state
             activationGroupRow.innerHTML = `
                 <!-- Verification Row -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between text-center sm:text-left">
@@ -109,7 +112,7 @@
                 </div>
             `;
         } else {
-
+            // Keep pending state (default HTML structure)
             activationGroupRow.innerHTML = `
                 <!-- Verification Row -->
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between text-center sm:text-left">
@@ -168,6 +171,7 @@
         }
     }
 
+    // Import fullscreen loading functions
     async function importFullscreenLoading() {
         try {
             const module = await import('../../../src/fullscreenLoading.js');
@@ -178,17 +182,20 @@
         }
     }
 
+    // Initialize verification button functionality
     function initVerificationButton() {
         const startVerificationBtn = document.getElementById('startVerificationBtn');
         
         if (startVerificationBtn) {
             startVerificationBtn.addEventListener('click', async () => {
                 console.log('Start verification clicked');
-
+                
+                // Import and show loading
                 const loadingModule = await importFullscreenLoading();
                 if (loadingModule) {
                     loadingModule.showFullscreenLoading('Verifying your account');
-
+                    
+                    // Close the modal first
                     const modal = document.getElementById('idVerificationModal');
                     if (modal) {
                         modal.classList.add('hidden');
@@ -196,7 +203,7 @@
                     }
                     
                     try {
-
+                        // Update verified status via API
                         const userId = localStorage.getItem('userId');
                         if (userId) {
                             const response = await fetch(`${API_BASE_URL}/guest/update/${userId}`, {
@@ -215,23 +222,26 @@
                                 console.warn('Failed to update verification status:', response.status);
                             }
                         }
-
+                        
+                        // Open Sumsub verification page in new tab
                         window.open('https://in.sumsub.com/websdk/p/sbx_uni_5lWlhioi8FNABcxg', '_blank');
                         
                     } catch (error) {
                         console.error('Error during verification process:', error);
                     }
-
+                    
+                    // Simulate verification process with 20 second timeout
                     setTimeout(() => {
                         if (loadingModule) {
                             loadingModule.hideFullscreenLoading();
                         }
                         
                         console.log('Verification process completed');
-                    }, 20000); 
+                    }, 20000); // 20 seconds
                 }
             });
         }
     }
 })();
+
 

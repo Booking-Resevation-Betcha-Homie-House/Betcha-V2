@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 (function initGuestProfileEdit() {
     const API_BASE_URL = 'https://betcha-api.onrender.com';
@@ -14,24 +14,27 @@
         if (phoneEl) {
             phoneEl.addEventListener('input', () => {
                 let v = phoneEl.value.trim();
-
+                // Remove all non-digit characters
                 v = v.replace(/\D/g, '');
-
+                
+                // Convert +639 or 639 to 09
                 if (v.startsWith('639')) {
                     v = '09' + v.substring(3);
                 }
-
+                
+                // Ensure it starts with 09
                 if (v.length > 0 && !v.startsWith('09')) {
-
+                    // If it starts with 9, add 0
                     if (v.startsWith('9')) {
                         v = '0' + v;
                     }
-
+                    // If it doesn't start with 0 or 9, prepend 09
                     else if (!v.startsWith('0')) {
                         v = '09' + v;
                     }
                 }
-
+                
+                // Limit to 11 digits (09XXXXXXXXX)
                 if (v.length > 11) {
                     v = v.substring(0, 11);
                 }
@@ -40,6 +43,7 @@
             });
         }
 
+        // Profile picture upload handler
         const profileUpload = document.getElementById('profileUpload');
         if (profileUpload) {
             profileUpload.addEventListener('change', handleProfilePictureChange);
@@ -70,9 +74,11 @@
         setValue('lastNameInput', lastName);
         setValue('phoneInput', phoneNumber);
 
+        // Sex dropdown label
         const selectedSex = document.getElementById('selectedSex');
         if (selectedSex && sex) selectedSex.textContent = sex;
 
+        // Avatar
         const avatarImg = document.getElementById('profileAvatarImg');
         const initialEl = document.getElementById('firstLetterName');
         const initial = firstName ? firstName.charAt(0).toUpperCase() : 'U';
@@ -94,16 +100,19 @@
         const file = event.target.files[0];
         if (!file) return;
 
+        // Validate file type
         if (!file.type.startsWith('image/')) {
             alert('Please select a valid image file.');
             return;
         }
 
+        // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             alert('Image size should be less than 5MB.');
             return;
         }
 
+        // Preview the image
         const reader = new FileReader();
         reader.onload = (e) => {
             const avatarImg = document.getElementById('profileAvatarImg');
@@ -116,6 +125,7 @@
         };
         reader.readAsDataURL(file);
 
+        // Upload the image
         await uploadProfilePicture(file);
     }
 
@@ -139,6 +149,7 @@
             const result = await response.json();
             console.log('Profile picture uploaded successfully:', result);
 
+            // Update localStorage if the API returns the new pfplink
             if (result.pfplink) {
                 localStorage.setItem('pfplink', result.pfplink);
             }
@@ -147,7 +158,8 @@
         } catch (error) {
             console.error('Error uploading profile picture:', error);
             alert('Failed to upload profile picture. Please try again.');
-
+            
+            // Revert the preview if upload failed
             const avatarImg = document.getElementById('profileAvatarImg');
             const initialEl = document.getElementById('firstLetterName');
             const pfplink = localStorage.getItem('pfplink') || '';
@@ -199,12 +211,14 @@
                 throw new Error(`Update failed (${resp.status}): ${errText}`);
             }
 
+            // Update localStorage with edited fields
             if (payload.firstname !== undefined) localStorage.setItem('firstName', payload.firstname);
             if (payload.minitial !== undefined) localStorage.setItem('middleInitial', payload.minitial);
             if (payload.lastname !== undefined) localStorage.setItem('lastName', payload.lastname);
             if (payload.phoneNumber !== undefined) localStorage.setItem('phoneNumber', payload.phoneNumber);
             if (payload.sex !== undefined) localStorage.setItem('sex', payload.sex);
 
+            // Audit: profile updated
             try {
                 const uid = localStorage.getItem('userId') || '';
                 if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logProfileUpdate === 'function' && uid) {
@@ -212,6 +226,7 @@
                 }
             } catch (_) {}
 
+            // Redirect back to profile or show success
             window.location.href = 'profile.html';
         } catch (error) {
             console.error('Error updating guest profile:', error);
@@ -262,4 +277,5 @@
         return /^(?:\+639|09)\d{9}$/.test(String(value).trim());
     }
 })();
+
 

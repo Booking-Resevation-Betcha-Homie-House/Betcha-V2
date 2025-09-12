@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -11,10 +11,10 @@
     <script src="/src/page-control.js"></script>
 </head>
 <body class="bg-background">
-  
+  <!-- NavBar -->
   <nav id="navbar" class="w-full flex flex-col items-center shadow-sm bg-white top-0 left-0 z-50">
     <div class="w-full flex items-center justify-between py-4 px-4 md:px-10">
-      
+      <!-- Logo -->
       <a href="rooms.html" class="flex w-fit h-[30px]">
           <svg class="fill-primary h-full w-auto" viewBox="0 0 121 30" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M14.8039 7.93926C15.1414 7.59644 15.6926 7.60699 16.0146 7.9709C16.3211 8.30317 16.2907 8.83282 15.9739 9.15907H15.9724L15.9739 9.15988L14.8083 10.3436C14.6495 10.5048 14.3943 10.5048 14.231 10.3436L13.0655 9.15988C12.7383 8.8276 12.7227 8.26772 13.0507 7.93469C13.2146 7.7682 13.4291 7.69063 13.6383 7.69063C13.8475 7.69063 14.0671 7.77351 14.231 7.93926L14.5174 8.23012L14.8039 7.93926Z" />
@@ -28,10 +28,11 @@
           </svg>
         </a>
 
+      <!-- Notification + Hamburger-->
       <div class="flex gap-2 items-center shrink-0">
-        
+        <!-- Notification Bell Dropdown -->
         <div class="relative inline-block text-left">
-          
+          <!-- Bell Icon -->
           <div class="relative">
             <button id="notifBellBtnDesktop" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
             hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
@@ -62,7 +63,8 @@
                 2
             </span>
           </div>
-
+          
+          <!-- Dropdown Panel -->
           <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-[400px] p-5 bg-white border border-gray-300 rounded-3xl shadow-lg z-50">
             
             <div class="mb-3">
@@ -74,6 +76,7 @@
             <div class="max-h-[400px] overflow-y-auto">
               <div class="py-4 text-sm font-inter text-gray-500">Today</div>
 
+              <!-- NOTIFICATION ITEM -->
               <div id="notificationsContainer" class="flex flex-col pb-4">
                 <div class="notification unread cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="notifModal">
                   <div class="flex items-start gap-2">
@@ -124,20 +127,22 @@
           </div>
         </div>
 
+        <!-- Right Hamburger + Profile -->
         <div class=" relative">
-          
+          <!-- Button to toggle dropdown -->
           <div id="menuBtn" class="h-10 w-full aspect-square rounded-full bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
           hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
           transition-all duration-300 ease-in-out">
-            
+            <!-- Profile Picture (hidden by default, shows over default icon when available) -->
             <img id="unauthProfileImg" class="w-full h-full object-cover rounded-full hidden" alt="Unauth profile picture" />
-            
+            <!-- Default SVG Icon -->
             <svg class="h-6 w-6 fill-secondary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M12 12C10.9 12 9.95833 11.6083 9.175 10.825C8.39167 10.0417 8 9.1 8 8C8 6.9 8.39167 5.95833 9.175 5.175C9.95833 4.39167 10.9 4 12 4C13.1 4 14.0417 4.39167 14.825 5.175C15.6083 5.95833 16 6.9 16 8C16 9.1 15.6083 10.0417 14.825 10.825C14.0417 11.6083 13.1 12 12 12ZM4 18V17.2C4 16.6333 4.146 16.1127 4.438 15.638C4.73 15.1633 5.11733 14.8007 5.6 14.55C6.63333 14.0333 7.68333 13.646 8.75 13.388C9.81667 13.13 10.9 13.0007 12 13C13.1 12.9993 14.1833 13.1287 15.25 13.388C16.3167 13.6473 17.3667 14.0347 18.4 14.55C18.8833 14.8 19.271 15.1627 19.563 15.638C19.855 16.1133 20.0007 16.634 20 17.2V18C20 18.55 19.8043 19.021 19.413 19.413C19.0217 19.805 18.5507 20.0007 18 20H6C5.45 20 4.97933 19.8043 4.588 19.413C4.19667 19.0217 4.00067 18.5507 4 18Z"/>
             </svg>
 
           </div>
 
+          <!-- Dropdown menu -->
           <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-52 border border-neutral-300 bg-white rounded-3xl shadow-lg py-5 px-3 z-50 text-sm font-manrope text-primary-text">
             <a href="../auth/profile.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">Profile</a>
             <a href="../auth/my-bookings.html" class="block px-4 py-2 rounded-xl hover:bg-primary/10 hover:text-primary">My bookings</a>
@@ -151,6 +156,7 @@
         </div>
       </div>
 
+      <!-- Login/Register -->
       <div class="hidden flex items-center gap-2">
         <button onclick="window.open('login.html', '_blank')" 
           class="group pointer-events-auto rounded-full bg-neutral-100 shadow-sm hidden
@@ -183,11 +189,12 @@
       </div>
     </div>
   </nav>
-
+    
+    <!-- FAQS -->
     <div class="w-full flex justify-center mt-10 md:mt-20">
         <div class="w-full px-5 flex flex-col items-center text-center
           md:max-w-5xl md:px-0">
-            
+            <!-- Header Section -->
             <div class="mb-20">
                 <p class="font-manrope text-2xl mb-5">FAQs</p>
                 <p class="font-manrope text-4xl text-primary font-semibold mb-10 md:text-6xl">Questions? We’ve got you covered.</p>
@@ -196,6 +203,7 @@
                 </p>
             </div>
 
+            <!-- FAQ Items -->
             <div class="w-full space-y-4">
                 <div class="border-b border-neutral-300 bg-background text-primary-text w-full p-2 md:p-5">
                     <button onclick="toggleFaq(this)" class="w-full flex justify-between items-center text-left hover:cursor-pointer">
@@ -256,9 +264,11 @@
         </div>
     </div>
 
+
+    <!-- Footer -->
     <footer class="bg-primary text-secondary-text mt-10 md:mt-36">
       <div class=" mx-[10%] px-4 py-10 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-10">
-        
+        <!-- Logo Section -->
         <div class="flex items-center gap-4">
           <svg class="w-auto h-[24px] fill-secondary-text md:h-[36px]" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
             <path d="M18.0221 9.52711C18.4331 9.11573 19.1041 9.12839 19.4961 9.56507C19.8691 9.9638 19.8321 10.5994 19.4464 10.9909H19.4447L19.4464 10.9919L18.0275 12.4123C17.8342 12.6058 17.5234 12.6058 17.3247 12.4123L15.9058 10.9919C15.5075 10.5931 15.4886 9.92127 15.8878 9.52163C16.0874 9.32184 16.3484 9.22875 16.6031 9.22875C16.8578 9.22876 17.1251 9.32821 17.3247 9.52711L17.6734 9.87614L18.0221 9.52711Z"/>
@@ -267,8 +277,9 @@
           <span class="font-roboto font-bold text-secondary-text text-2xl md:text-4xl">Betcha</span>
         </div>
 
+        <!-- Link Columns -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-8 text-sm">
-          
+          <!-- Explore -->
           <div>
             <h2 class="mb-4 font-semibold uppercase">Explore</h2>
             <ul class="space-y-2">
@@ -278,6 +289,7 @@
             </ul>
           </div>
 
+          <!-- Contacts -->
           <div>
             <h2 class="mb-4 font-semibold uppercase">Contacts</h2>
             <ul class="space-y-2">
@@ -306,6 +318,7 @@
         </div>
       </div>
 
+      <!-- Bottom Bar -->
       <div class="bg-primary px-[10%] py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm text-secondary-text">
         <span>© 2025 <a href="#" class="hover:underline">Betcha</a>. All Rights Reserved.</span>
         <div class="flex mt-4 sm:mt-0 space-x-6">
@@ -316,10 +329,11 @@
       </div>
     </footer>
 
+    <!-- Notification Prev -->
     <div id="notifModalSmall" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center hidden overflow-hidden z-50">
       <div class="w-full h-full bg-background modal-animate overflow-hidden flex flex-col 
         md:px-6 ">
-        
+        <!-- Sticky top -->
         <div class="w-full sticky top-0 z-50 flex items-center shadow-sm p-3 justify-between">
           <div class="flex gap-2 items-center">
             <button data-close-modal class="cursor-pointer btn-round border-none flex items-center justify-center active:scale-95 active:bg-primary/10">
@@ -333,13 +347,15 @@
           </div>
         </div>
 
+        <!-- SCROLLABLE NOTIF LIST -->
         <div class="flex-1 overflow-y-auto custom-scroll flex flex-col">
           <div class="py-2 text-sm font-manrope  bg-neutral-100 px-5 flex items-center">
             <span id="notifDate" class="font-manrope text-lg text-primary-text">Today</span>
           </div>
-
+          
+          <!-- NOTIF ITEM -->
           <div id="notificationsContainer" class="flex flex-col bg-white">
-            
+            <!-- Unread Notification -->
             <div class="notification unread cursor-pointer p-3 active:bg-primary/10" data-modal-target="notifModal">
               <div class="flex items-start gap-2 px-3">
                 <div>
@@ -357,6 +373,7 @@
               </div>
             </div>
 
+            <!-- Read Notifications -->
             <div class="notification read cursor-pointer p-3 active:bg-primary/10" data-modal-target="notifModal">
               <div class="flex items-start gap-2 px-3">
                 <div>
@@ -371,6 +388,7 @@
               </div>
             </div>
 
+            <!-- Another one -->
             <div class="notification read cursor-pointer p-3 active:bg-primary/10" data-modal-target="notifModal">
               <div class="flex items-start gap-2 px-3">
                 <div>
@@ -392,6 +410,7 @@
       </div>
     </div>
 
+    <!-- Notification Modal -->
     <div id="notifModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
         <div class="w-full h-full bg-background p-10 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
         md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">

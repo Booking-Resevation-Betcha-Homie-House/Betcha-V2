@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     try {
         const role = localStorage.getItem('role');
         if (role !== 'admin') {
@@ -63,4 +63,5 @@
         console.error('Initialization error:', err);
     }
 });
+
 

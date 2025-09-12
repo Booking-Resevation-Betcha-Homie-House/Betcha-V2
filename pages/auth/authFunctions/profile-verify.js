@@ -1,4 +1,4 @@
-﻿'use strict';
+'use strict';
 
 (function initVerifyPasswordFlow() {
     const API_BASE_URL = 'https://betcha-api.onrender.com';
@@ -26,7 +26,7 @@
         }
 
         try {
-
+            // Validate via POST /auth/login using email from localStorage
             const email = localStorage.getItem('email');
             if (!email) {
                 alert('Missing email in session. Please log in again.');
@@ -51,4 +51,5 @@
         }
     }
 })();
+
 

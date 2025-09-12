@@ -1,26 +1,32 @@
-﻿
+// Confirm Reservation Functions
+// This file handles data population and functionality for the confirm-reservation page
 
+// Import toast notifications
 import { showToastError } from '/src/toastNotification.js';
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('Confirm Reservation page loaded');
-
+    
+    // Get data from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const reservationData = getReservationDataFromURL(urlParams);
-
+    
+    // Populate the page with data
     if (reservationData) {
         populateReservationData(reservationData);
         setupImageCarousel();
     } else {
         console.warn('No reservation data found in URL');
-
+        // You might want to redirect back or show an error message
     }
-
+    
+    // Setup form validation and interactions
     setupPaymentTypeSelection();
     setupFormValidation();
     setupConfirmButton();
 });
 
+// Function to setup the confirm button click handler
 function setupConfirmButton() {
     const confirmButton = document.getElementById('confirm');
     if (!confirmButton) {
@@ -29,7 +35,7 @@ function setupConfirmButton() {
     }
 
     confirmButton.addEventListener('click', async () => {
-
+        // Get selected payment type
         const paymentTypeRadio = document.querySelector('input[name="paymentType"]:checked');
         if (!paymentTypeRadio) {
             showToastError('warning', 'Payment Type Required', 'Please select a payment type before confirming.');
@@ -37,24 +43,27 @@ function setupConfirmButton() {
         }
 
         const paymentType = paymentTypeRadio.id === 'payment-reservation' ? 'Reservation' : 'Full-Payment';
-
+        
+        // Get booking data from the current page
         const bookingData = getBookingDataFromPage();
         if (!bookingData) {
             showToastError('error', 'Booking Data Missing', 'Required booking information is missing. Please try again.');
             return;
         }
 
+        // Disable button during API call
         confirmButton.disabled = true;
         confirmButton.classList.add('opacity-50');
         
         try {
-
+            // Call booking API
             const bookingResult = await createBooking(bookingData);
             
             if (bookingResult.success) {
-
+                // Show success toast
                 showToastError('info', 'Booking Confirmed!', 'Your booking has been created successfully. Redirecting to payment...');
-
+                
+                // Audit: booking created
                 try {
                     const uid = localStorage.getItem('userId') || bookingData.guestId;
                     const role = localStorage.getItem('role') || 'Guest';
@@ -64,7 +73,8 @@ function setupConfirmButton() {
                 } catch (e) {
                     console.warn('Audit booking creation failed:', e);
                 }
-
+                
+                // Fire-and-forget: notify TS employees for this property
                 try {
                     const propertyId = bookingData.propertyId;
                     const urlParams = new URLSearchParams(window.location.search);
@@ -75,7 +85,8 @@ function setupConfirmButton() {
                 } catch (e) {
                     console.warn('notifyReservationConfirmedToTS failed:', e);
                 }
-
+                
+                // Redirect after 1 second with booking ID and payment type
                 setTimeout(() => {
                     const params = new URLSearchParams();
                     params.append('bookingId', bookingResult.bookingId);
@@ -96,6 +107,7 @@ function setupConfirmButton() {
     });
 }
 
+// Function to get booking data from the current page
 function getBookingDataFromPage() {
     const userId = localStorage.getItem('userId');
     if (!userId) {
@@ -103,10 +115,12 @@ function getBookingDataFromPage() {
         return null;
     }
 
+    // Get data from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-
+    
+    // Extract required data
     const propertyId = urlParams.get('propertyId');
-
+    // Prefer name from localStorage; fallback to URL params; finally to 'Guest'
     const firstNameLS = (localStorage.getItem('firstName') || '').trim();
     const lastNameLS = (localStorage.getItem('lastName') || '').trim();
     const nameFromLocalStorage = `${firstNameLS} ${lastNameLS}`.trim();
@@ -121,30 +135,33 @@ function getBookingDataFromPage() {
         return null;
     }
 
+    // Generate dates array between check-in and check-out
     const datesOfBooking = generateDateRange(checkInDate, checkOutDate);
 
     return {
         propertyId,
         guestId: userId,
         guestName: guestName || 'Guest',
-        additionalPax: Math.max(0, guestCount - 1), 
+        additionalPax: Math.max(0, guestCount - 1), // Additional pax is guest count minus 1
         datesOfBooking
     };
 }
 
+// Function to generate date range array
 function generateDateRange(startDate, endDate) {
     const dates = [];
     const currentDate = new Date(startDate);
     const end = new Date(endDate);
     
     while (currentDate <= end) {
-        dates.push(currentDate.toISOString().split('T')[0]); 
+        dates.push(currentDate.toISOString().split('T')[0]); // Format: YYYY-MM-DD
         currentDate.setDate(currentDate.getDate() + 1);
     }
     
     return dates;
 }
 
+// Function to call the booking API
 async function createBooking(bookingData) {
     try {
         console.log('Creating booking with data:', bookingData);
@@ -182,27 +199,33 @@ async function createBooking(bookingData) {
     }
 }
 
+// Function to extract reservation data from URL parameters
 function getReservationDataFromURL(urlParams) {
     const data = {};
-
+    
+    // Property information
     data.propertyId = urlParams.get('propertyId');
     data.propertyName = urlParams.get('propertyName');
     data.propertyAddress = urlParams.get('propertyAddress');
     data.images = urlParams.get('images') ? JSON.parse(decodeURIComponent(urlParams.get('images'))) : [];
-
+    
+    // Booking details
     data.checkInDate = urlParams.get('checkInDate');
     data.checkOutDate = urlParams.get('checkOutDate');
     data.guestCount = parseInt(urlParams.get('guestCount')) || 1;
     data.daysOfStay = parseInt(urlParams.get('daysOfStay')) || 1;
-
+    
+    // Pricing details
     data.pricePerDay = parseFloat(urlParams.get('pricePerDay')) || 0;
     data.addGuestPrice = parseFloat(urlParams.get('addGuestPrice')) || 0;
     data.reservationFee = parseFloat(urlParams.get('reservationFee')) || 0;
     data.packageCapacity = parseInt(urlParams.get('packageCapacity')) || 1;
-
+    
+    // Time details
     data.timeIn = urlParams.get('timeIn') || '';
     data.timeOut = urlParams.get('timeOut') || '';
-
+    
+    // Calculate additional guests and pricing
     data.additionalGuests = Math.max(0, data.guestCount - data.packageCapacity);
     data.totalPriceDay = data.pricePerDay * data.daysOfStay;
     data.totalAddGuest = data.addGuestPrice * data.additionalGuests;
@@ -212,19 +235,23 @@ function getReservationDataFromURL(urlParams) {
     return data;
 }
 
+// Function to populate the page with reservation data
 function populateReservationData(data) {
     try {
-
+        // Room details
         updateElementText('roomName', data.propertyName || 'Room Name');
         updateElementText('roomAdress', data.propertyAddress || 'Address');
-
+        
+        // Booking details
         updateElementText('checkInDate', formatDate(data.checkInDate) || 'Date');
         updateElementText('checkOutDate', formatDate(data.checkOutDate) || 'Date');
         updateElementText('guestCount', data.guestCount || '1');
-
+        
+        // Time details
         updateElementText('timein', data.timeIn || 'Time not available');
         updateElementText('timeout', data.timeOut || 'Time not available');
-
+        
+        // Price details
         updateElementText('pricePerDay', data.pricePerDay.toLocaleString() || '00');
         updateElementText('daysOfStay', data.daysOfStay || '00');
         updateElementText('totalPriceDay', data.totalPriceDay.toLocaleString() || '00');
@@ -241,6 +268,7 @@ function populateReservationData(data) {
     }
 }
 
+// Helper function to update element text content
 function updateElementText(elementId, text) {
     const element = document.getElementById(elementId);
     if (element) {
@@ -250,6 +278,7 @@ function updateElementText(elementId, text) {
     }
 }
 
+// Function to format date for display
 function formatDate(dateString) {
     if (!dateString) return '';
     
@@ -266,6 +295,7 @@ function formatDate(dateString) {
     }
 }
 
+// Function to setup image carousel
 function setupImageCarousel() {
     const imageContainer = document.getElementById('propertyImageContainer');
     
@@ -273,7 +303,8 @@ function setupImageCarousel() {
         console.warn('Image container not found');
         return;
     }
-
+    
+    // Get reservation data from URL again to access images
     const urlParams = new URLSearchParams(window.location.search);
     const imagesParam = urlParams.get('images');
     
@@ -289,13 +320,14 @@ function setupImageCarousel() {
     if (images && images.length > 0) {
         setupCarouselWithImages(imageContainer, images);
     } else {
-
+        // Fallback: try to fetch images from API or use placeholder
         setupPlaceholderImage(imageContainer);
     }
 }
 
+// Function to setup carousel with images
 function setupCarouselWithImages(container, images) {
-
+    // Clear the gray background and create carousel
     container.className = 'h-50 w-full rounded-xl mb-5 relative overflow-hidden';
     
     const carouselHTML = `
@@ -318,10 +350,12 @@ function setupCarouselWithImages(container, images) {
     `;
     
     container.innerHTML = carouselHTML;
-
+    
+    // Setup auto-scroll and navigation
     setupCarouselAutoScroll(container, images.length);
 }
 
+// Function to setup carousel auto-scroll
 function setupCarouselAutoScroll(container, imageCount) {
     if (imageCount <= 1) return;
     
@@ -341,16 +375,18 @@ function setupCarouselAutoScroll(container, imageCount) {
         track.style.transform = `translateX(-${index * 100}%)`;
         updateDots(index);
     }
-
+    
+    // Auto-scroll interval (4 seconds to match other carousels)
     let autoScrollInterval = setInterval(() => {
         currentSlide = (currentSlide + 1) % imageCount;
         goToSlide(currentSlide);
     }, 4000);
-
+    
+    // Dot navigation
     dots.forEach((dot, index) => {
         dot.addEventListener('click', () => {
             goToSlide(index);
-
+            // Reset auto-scroll
             clearInterval(autoScrollInterval);
             autoScrollInterval = setInterval(() => {
                 currentSlide = (currentSlide + 1) % imageCount;
@@ -360,6 +396,7 @@ function setupCarouselAutoScroll(container, imageCount) {
     });
 }
 
+// Function to setup placeholder image
 function setupPlaceholderImage(container) {
     container.innerHTML = `
         <div class="w-full h-full bg-gradient-to-br from-neutral-300 to-neutral-400 flex items-center justify-center">
@@ -370,10 +407,12 @@ function setupPlaceholderImage(container) {
     `;
 }
 
+// Function to setup payment type selection
 function setupPaymentTypeSelection() {
     const paymentRadios = document.querySelectorAll('input[name="paymentType"]');
     const reservationFeeRadio = document.getElementById('payment-reservation');
-
+    
+    // Set default selection to reservation fee
     if (reservationFeeRadio) {
         reservationFeeRadio.checked = true;
     }
@@ -385,21 +424,24 @@ function setupPaymentTypeSelection() {
     });
 }
 
+// Function to update payment amount based on selection
 function updatePaymentAmount(paymentType) {
     const urlParams = new URLSearchParams(window.location.search);
     const reservationFee = parseFloat(urlParams.get('reservationFee')) || 0;
     const totalPrice = parseFloat(urlParams.get('totalPrice')) || 0;
-
+    
+    // You can add visual feedback here if needed
     console.log(`Payment type selected: ${paymentType}`);
     console.log(`Amount to pay: ${paymentType === 'payment-reservation' ? reservationFee : totalPrice}`);
 }
 
+// Function to setup form validation
 function setupFormValidation() {
     const checkbox = document.getElementById('check-with-link');
     const proceedButton = document.querySelector('[data-modal-target="confirmDetailsModal"]');
     
     if (checkbox && proceedButton) {
-
+        // Initially disable the proceed button
         proceedButton.disabled = true;
         proceedButton.classList.add('opacity-50', 'cursor-not-allowed');
         
@@ -415,27 +457,33 @@ function setupFormValidation() {
     }
 }
 
+// Function to handle navigation to confirm reservation (called from reserve button)
 function navigateToConfirmReservation(propertyData, bookingData) {
     const params = new URLSearchParams();
-
+    
+    // Property data
     params.append('propertyId', propertyData.id || '');
     params.append('propertyName', propertyData.name || '');
     params.append('propertyAddress', propertyData.address || '');
     if (propertyData.images && propertyData.images.length > 0) {
         params.append('images', encodeURIComponent(JSON.stringify(propertyData.images)));
     }
-
+    
+    // Booking data
     params.append('checkInDate', bookingData.checkInDate || '');
     params.append('checkOutDate', bookingData.checkOutDate || '');
     params.append('guestCount', bookingData.guestCount || '1');
     params.append('daysOfStay', bookingData.daysOfStay || '1');
-
+    
+    // Pricing data
     params.append('pricePerDay', propertyData.packagePrice || '0');
     params.append('addGuestPrice', propertyData.additionalPax || '0');
     params.append('reservationFee', propertyData.reservationFee || '0');
     params.append('packageCapacity', propertyData.packageCapacity || '1');
-
+    
+    // Navigate to confirm reservation page
     window.location.href = `../auth/confirm-reservation.html?${params.toString()}`;
 }
 
+// Export function for use in other scripts
 window.navigateToConfirmReservation = navigateToConfirmReservation;

@@ -1,8 +1,10 @@
-﻿
+// Payment edit functions for admin panel
 
+// Import centralized toast notification system
 import { showToastError } from '/src/toastNotification.js';
 
-const MAX_FILE_SIZE = 5 * 1024 * 1024; 
+// Constants
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 const PAYMENT_CATEGORIES = ['GCash', 'Maya', 'GoTyme', 'Union Bank'];
 const CATEGORY_IMAGES = {
     'GCash': '/images/qr-gcash1.png',
@@ -16,25 +18,29 @@ const CATEGORY_IMAGES = {
     'unionbank': '/images/qr-ub.png'
 };
 
+// API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
+// Global variables
 let currentPaymentId = null;
 let currentPaymentData = null;
-let allPayments = []; 
+let allPayments = []; // Store all payments for search functionality
 
+// Initialize edit functionality
 document.addEventListener('DOMContentLoaded', function() {
-
+    // Ensure payment dropdown is initialized first
     setTimeout(() => {
         initializeEditForm();
         setupPaymentMethodIntegration();
         initializeFileUpload();
         setupFormSubmission();
         setupSearchFunctionality();
-    }, 100); 
+    }, 100); // Small delay to ensure dropdown is ready
 });
 
+// Initialize the edit form with payment data
 async function initializeEditForm() {
-
+    // Get payment ID from sessionStorage
     currentPaymentId = sessionStorage.getItem('editPaymentId');
     
     if (!currentPaymentId) {
@@ -47,7 +53,8 @@ async function initializeEditForm() {
 
     try {
         showLoadingState();
-
+        
+        // Fetch payment data
         const response = await fetch(`${API_BASE}/payments/display`);
         
         if (!response.ok) {
@@ -55,15 +62,18 @@ async function initializeEditForm() {
         }
 
         const payments = await response.json();
-
+        
+        // Store all payments for search functionality
         allPayments = payments;
-
+        
+        // Find the specific payment
         currentPaymentData = payments.find(payment => payment._id === currentPaymentId);
         
         if (!currentPaymentData) {
             throw new Error('Payment not found');
         }
 
+        // Populate form fields
         populateFormFields(currentPaymentData);
         
         hideLoadingState();
@@ -79,38 +89,42 @@ async function initializeEditForm() {
     }
 }
 
+// Populate form fields with payment data
 function populateFormFields(paymentData) {
-
+    // Set payment method dropdown
     const selectedMethodElement = document.getElementById('selectedPaymentMethod');
     const paymentNameDiv = document.getElementById('paymentNameDiv');
     const mainNameInput = document.getElementById('input-main-payment-name');
     const customNameInput = document.getElementById('input-custom-payment-name');
     const paymentDropdownList = document.getElementById('paymentDropdownList');
-
+    
+    // Always populate the main payment name input first
     if (mainNameInput && paymentData.paymentName) {
         mainNameInput.value = paymentData.paymentName;
     }
     
     let category = paymentData.category;
     if (!category && paymentData.paymentName) {
-
+        // Try to infer category from payment name
         category = PAYMENT_CATEGORIES.find(cat => 
             paymentData.paymentName.toLowerCase().includes(cat.toLowerCase())
         ) || 'Other';
     }
-
+    
+    // Set the payment method category in dropdown
     if (category && PAYMENT_CATEGORIES.includes(category)) {
         selectedMethodElement.textContent = category;
         selectedMethodElement.setAttribute('data-value', category);
         selectedMethodElement.classList.remove('text-neutral-400');
         selectedMethodElement.classList.add('text-primary-text');
-
+        
+        // Hide the custom name input for predefined categories
         paymentNameDiv.classList.add('hidden');
         if (customNameInput) {
             customNameInput.value = paymentData.paymentName || category;
         }
     } else {
-
+        // Set to "Other" and show custom name input
         selectedMethodElement.textContent = 'Other';
         selectedMethodElement.setAttribute('data-value', 'Other');
         selectedMethodElement.classList.remove('text-neutral-400');
@@ -120,31 +134,36 @@ function populateFormFields(paymentData) {
             customNameInput.value = paymentData.paymentName || '';
         }
     }
-
+    
+    // Trigger visual update for the dropdown if needed
     const dropdownIcon = document.getElementById('paymentDropdownIcon');
     if (dropdownIcon) {
         dropdownIcon.classList.remove('rotate-180');
     }
-
+    
+    // Ensure dropdown list is hidden
     if (paymentDropdownList) {
         paymentDropdownList.classList.add('hidden');
     }
-
+    
+    // Handle QR image display
     if (paymentData.qrPhotoLink && paymentData.qrPhotoLink.trim() !== '') {
         const placeholder = document.getElementById('qr-placeholder');
         
         if (placeholder) {
-
+            // Process the image URL for proper display
             let imageUrl = paymentData.qrPhotoLink;
-
+            
+            // Handle Google Drive links
             const driveFileIdMatch = imageUrl.match(/\/d\/([a-zA-Z0-9-_]+)/);
             if (driveFileIdMatch) {
                 imageUrl = `https://drive.google.com/thumbnail?id=${driveFileIdMatch[1]}&sz=w400-h400`;
             }
-
+            
+            // Create a test image to check if it loads properly
             const testImg = new Image();
             testImg.onload = function() {
-
+                // Image loaded successfully, update placeholder
                 placeholder.style.backgroundImage = `url(${imageUrl})`;
                 placeholder.style.backgroundSize = 'cover';
                 placeholder.style.backgroundPosition = 'center';
@@ -162,7 +181,7 @@ function populateFormFields(paymentData) {
             };
             
             testImg.onerror = function() {
-
+                // If image fails to load, show upload placeholder
                 placeholder.style.backgroundImage = '';
                 placeholder.style.backgroundSize = '';
                 placeholder.style.backgroundPosition = '';
@@ -181,7 +200,7 @@ function populateFormFields(paymentData) {
             testImg.src = imageUrl;
         }
     } else {
-
+        // No existing image, keep the upload placeholder
         const placeholder = document.getElementById('qr-placeholder');
         
         if (placeholder) {
@@ -207,6 +226,7 @@ function populateFormFields(paymentData) {
     });
 }
 
+// Setup integration with paymentMethodOption.js dropdown
 function setupPaymentMethodIntegration() {
     const selectedMethodElement = document.getElementById('selectedPaymentMethod');
     const customNameDiv = document.getElementById('paymentNameDiv');
@@ -254,7 +274,7 @@ function setupPaymentMethodIntegration() {
 }
 
 function validateImageFile(file, inputElement = null) {
-
+    // Validate file type
     if (!file.type.startsWith('image/')) {
         showError('Please select a valid image file (PNG, JPG, JPEG, GIF).');
         if (inputElement) inputElement.value = '';
@@ -270,6 +290,7 @@ function validateImageFile(file, inputElement = null) {
     return true;
 }
 
+// Initialize file upload functionality
 function initializeFileUpload() {
     const fileInput = document.getElementById('qr-upload');
     const placeholder = document.getElementById('qr-placeholder');
@@ -286,12 +307,13 @@ function initializeFileUpload() {
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     if (placeholder) {
-
+                        // Update the placeholder to show the image preview
                         placeholder.style.backgroundImage = `url(${e.target.result})`;
                         placeholder.style.backgroundSize = 'cover';
                         placeholder.style.backgroundPosition = 'center';
                         placeholder.style.backgroundRepeat = 'no-repeat';
-
+                        
+                        // Update the placeholder content to show a change image option
                         placeholder.innerHTML = `
                             <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white transition-all duration-300 hover:bg-black/60">
                                 <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -311,12 +333,13 @@ function initializeFileUpload() {
                 
                 reader.readAsDataURL(file);
             } else {
-
+                // Reset to original or existing QR image state when no file is selected
                 resetPlaceholder();
             }
         });
     }
-
+    
+    // Function to reset placeholder to original state or show existing QR
     function resetPlaceholder() {
         if (!placeholder) return;
         
@@ -324,9 +347,10 @@ function initializeFileUpload() {
         placeholder.style.backgroundSize = '';
         placeholder.style.backgroundPosition = '';
         placeholder.style.backgroundRepeat = '';
-
+        
+        // Check if there's an existing QR image from the payment data
         if (currentPaymentData?.qrPhotoLink) {
-
+            // Show existing QR image
             placeholder.style.backgroundImage = `url(${currentPaymentData.qrPhotoLink})`;
             placeholder.style.backgroundSize = 'cover';
             placeholder.style.backgroundPosition = 'center';
@@ -342,7 +366,7 @@ function initializeFileUpload() {
                 </div>
             `;
         } else {
-
+            // Show original upload placeholder
             placeholder.innerHTML = `
                 <svg class="w-8 h-8 mb-2" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" 
@@ -354,22 +378,24 @@ function initializeFileUpload() {
     }
 }
 
+// Setup form submission
 function setupFormSubmission() {
-
+    // Add validation to the Update button before opening modal
     const updateButton = document.querySelector('[data-modal-target="confirmDetailsModal"]');
     
     if (updateButton) {
         updateButton.addEventListener('click', function(e) {
-
+            // Validate form before opening modal
             if (!preModalValidation()) {
                 e.preventDefault();
                 e.stopPropagation();
                 return;
             }
-
+            // If validation passes, modal will open normally
         });
     }
-
+    
+    // Set up the confirmation button in the modal
     setupModalConfirmation();
 }
 
@@ -379,7 +405,8 @@ function validatePaymentForm() {
     const customNameInput = document.getElementById('input-custom-payment-name');
     
     const selectedCategory = selectedMethod.getAttribute('data-value') || selectedMethod.textContent.trim();
-
+    
+    // Check if payment method is selected
     if (!selectedCategory || selectedCategory === 'Select Payment') {
         showError('Please select a payment method');
         return { isValid: false };
@@ -394,7 +421,7 @@ function validatePaymentForm() {
             return { isValid: false };
         }
     } else {
-
+        // For predefined categories, use the main input or fall back to category name
         paymentName = mainNameInput ? mainNameInput.value.trim() : '';
         if (!paymentName) {
             paymentName = selectedCategory;
@@ -412,6 +439,7 @@ function preModalValidation() {
     return validatePaymentForm().isValid;
 }
 
+// Setup modal confirmation button
 function setupModalConfirmation() {
     const modal = document.getElementById('confirmDetailsModal');
     
@@ -428,6 +456,7 @@ function setupModalConfirmation() {
     }
 }
 
+// Validate and submit form
 async function validateAndSubmitForm() {
     const validation = validatePaymentForm();
     if (!validation.isValid) return;
@@ -438,7 +467,7 @@ async function validateAndSubmitForm() {
     showLoadingState();
 
     try {
-
+        // Create FormData with all payment data including image
         const formData = new FormData();
         formData.append('paymentName', paymentName);
         formData.append('category', selectedCategory);
@@ -447,6 +476,7 @@ async function validateAndSubmitForm() {
             formData.append('qrPicture', fileInput.files[0]);
         }
 
+        // Make API call to update payment using FormData
         const response = await fetch(`${API_BASE}/payments/update/${currentPaymentId}`, {
             method: 'PUT',
             body: formData
@@ -485,6 +515,10 @@ async function validateAndSubmitForm() {
     }
 }
 
+// Helper function removed - now using FormData for file uploads like profile pictures
+
+// Utility functions for loading states and notifications
+
 function showLoadingState() {
     if (window.BetchaLoader) {
         window.BetchaLoader.show();
@@ -518,6 +552,7 @@ function setupSearchFunctionality() {
     setupPaymentNameAutocomplete();
 }
 
+// Filter payments based on search term
 function filterPayments(searchTerm) {
     if (!allPayments.length) return;
     
@@ -531,11 +566,13 @@ function filterPayments(searchTerm) {
     return filteredPayments;
 }
 
+// Setup payment name autocomplete functionality
 function setupPaymentNameAutocomplete() {
     const customNameInput = document.getElementById('input-custom-payment-name');
     const mainNameInput = document.getElementById('input-main-payment-name');
     const selectedMethodElement = document.getElementById('selectedPaymentMethod');
-
+    
+    // Setup autocomplete for both inputs if they exist and we have payment data
     if (allPayments.length > 0) {
         [customNameInput, mainNameInput].forEach(input => {
             if (!input) return;
@@ -569,6 +606,7 @@ function setupPaymentNameAutocomplete() {
     }
 }
 
+// Enhanced search with category filtering
 function _searchPaymentsByCategory(category, searchTerm = '') {
     if (!allPayments.length) return [];
     
@@ -581,6 +619,7 @@ function _searchPaymentsByCategory(category, searchTerm = '') {
     });
 }
 
+// Get payment suggestions for form
 function _getPaymentSuggestions(partialName) {
     if (!allPayments.length || !partialName) return [];
     
@@ -596,10 +635,12 @@ function _getPaymentSuggestions(partialName) {
         .slice(0, 5);
 }
 
+// Quick search for specific payment by ID
 function _findPaymentById(paymentId) {
     return allPayments.find(payment => payment._id === paymentId);
 }
 
+// Search payments by multiple criteria
 function _advancedPaymentSearch(criteria) {
     if (!allPayments.length) return [];
     
@@ -657,6 +698,7 @@ function _renderPaymentSearchResults(payments, containerId = 'payment-search-res
     `).join('');
 }
 
+// Helper function to get payment image URL
 function getPaymentImageUrl(qrPhotoLink, category) {
     if (qrPhotoLink && qrPhotoLink.trim() !== '') {
         if (qrPhotoLink.includes('thumbnail')) {
@@ -675,6 +717,7 @@ function getPaymentImageUrl(qrPhotoLink, category) {
     return CATEGORY_IMAGES[category] || CATEGORY_IMAGES['GCash'];
 }
 
+// Helper function to format payment date
 function formatPaymentDate(dateString) {
     const date = new Date(dateString);
     const month = String(date.getMonth() + 1).padStart(2, '0');

@@ -1,13 +1,17 @@
-﻿
+// Payment Add Functions
 
+// Import centralized toast notification system
 import { showToastError } from '/src/toastNotification.js';
 
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
+
+
+// Initialize form functionality - paymentMethodOption.js handles the dropdown
 document.addEventListener('DOMContentLoaded', function() {
     initializeFileUpload();
     setupFormSubmission();
-
+    // Wait for paymentMethodOption.js to initialize, then integrate
     setTimeout(() => {
         setupPaymentMethodIntegration();
     }, 100);
@@ -16,19 +20,22 @@ document.addEventListener('DOMContentLoaded', function() {
 function setupPaymentMethodIntegration() {
 
     const selectedMethodElement = document.getElementById('selectedPaymentMethod');
-
+    
+    // Create a MutationObserver to watch for changes to the selected payment method
     const observer = new MutationObserver(function(mutations) {
         mutations.forEach(function(mutation) {
             if (mutation.type === 'childList' || mutation.type === 'characterData') {
                 const selectedText = selectedMethodElement.textContent.trim();
-
+                
+                // Store the selected method for form submission (if not default placeholder)
                 if (selectedText !== 'Select Payment') {
                     selectedMethodElement.setAttribute('data-value', selectedText);
                 }
             }
         });
     });
-
+    
+    // Start observing
     observer.observe(selectedMethodElement, {
         childList: true,
         characterData: true,
@@ -36,6 +43,7 @@ function setupPaymentMethodIntegration() {
     });
 }
 
+// Initialize file upload functionality
 function initializeFileUpload() {
     const fileInput = document.getElementById('qr-upload');
     const placeholder = document.getElementById('qr-placeholder');
@@ -44,12 +52,13 @@ function initializeFileUpload() {
         const file = e.target.files[0];
         
         if (file) {
-
+            // Validate file type
             if (!file.type.startsWith('image/')) {
                 alert('Please select a valid image file.');
                 return;
             }
 
+            // Validate file size (max 5MB)
             if (file.size > 5 * 1024 * 1024) {
                 alert('File size must be less than 5MB.');
                 return;
@@ -57,12 +66,13 @@ function initializeFileUpload() {
 
             const reader = new FileReader();
             reader.onload = function(e) {
-
+                // Update the placeholder to show the image preview
                 placeholder.style.backgroundImage = `url(${e.target.result})`;
                 placeholder.style.backgroundSize = 'cover';
                 placeholder.style.backgroundPosition = 'center';
                 placeholder.style.backgroundRepeat = 'no-repeat';
-
+                
+                // Update the placeholder content to show a change image option
                 placeholder.innerHTML = `
                     <div class="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white transition-all duration-300 hover:bg-black/60">
                         <svg class="w-6 h-6 mb-1" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
@@ -75,11 +85,12 @@ function initializeFileUpload() {
             };
             reader.readAsDataURL(file);
         } else {
-
+            // Reset to original placeholder state when no file is selected
             resetPlaceholder();
         }
     });
-
+    
+    // Function to reset placeholder to original state
     function resetPlaceholder() {
         placeholder.style.backgroundImage = '';
         placeholder.style.backgroundSize = '';
@@ -96,36 +107,41 @@ function initializeFileUpload() {
     }
 }
 
+// Setup form submission
 function setupFormSubmission() {
-
+    // Add validation to the Add button before opening modal
     const addButton = document.querySelector('[data-modal-target="confirmDetailsModal"]');
     
     if (addButton) {
         addButton.addEventListener('click', function(e) {
-
+            // Validate form before opening modal
             if (!preModalValidation()) {
                 e.preventDefault();
                 e.stopPropagation();
                 return;
             }
-
+            // If validation passes, modal will open normally
         });
     }
-
+    
+    // Set up the confirmation button in the modal
     setupModalConfirmation();
 }
 
+// Pre-modal validation (basic checks)
 function preModalValidation() {
     const selectedMethod = document.getElementById('selectedPaymentMethod');
     const customNameInput = document.getElementById('input-payment-name');
     
     const selectedCategory = selectedMethod.getAttribute('data-value');
-
+    
+    // Check if payment method is selected
     if (!selectedCategory || selectedCategory === 'Select Payment') {
         showError('Please select a payment method');
         return false;
     }
-
+    
+    // Check if custom name is required and provided
     if (selectedCategory === 'Other') {
         const customName = customNameInput.value.trim();
         if (!customName) {
@@ -138,18 +154,20 @@ function preModalValidation() {
     return true;
 }
 
+// Setup modal confirmation button
 function setupModalConfirmation() {
-
+    // Wait for modal to be available, then attach to confirm button
     const modal = document.getElementById('confirmDetailsModal');
     
     if (modal) {
-
+        // Find the confirm button inside the modal
         const confirmButton = modal.querySelector('button[onclick*="payment.html"]');
         
         if (confirmButton) {
-
+            // Remove the existing onclick attribute
             confirmButton.removeAttribute('onclick');
-
+            
+            // Add our form submission logic
             confirmButton.addEventListener('click', function(e) {
                 e.preventDefault();
                 validateAndSubmitForm();
@@ -158,14 +176,17 @@ function setupModalConfirmation() {
     }
 }
 
+// Validate and submit form
 async function validateAndSubmitForm() {
     const selectedMethod = document.getElementById('selectedPaymentMethod');
     const customNameInput = document.getElementById('input-payment-name');
     const fileInput = document.getElementById('qr-upload');
 
+    // Get form data
     const selectedCategory = selectedMethod.getAttribute('data-value');
     const paymentName = customNameInput.value.trim() || selectedCategory || '';
 
+    // Validate required fields
     if (!selectedCategory) {
         showError('Please select a payment method.');
         return;
@@ -182,10 +203,11 @@ async function validateAndSubmitForm() {
         return;
     }
 
+    // Show loading state
     showLoadingState();
 
     try {
-
+        // Create FormData with all payment data including image
         const formData = new FormData();
         formData.append('paymentName', paymentName);
         formData.append('category', selectedCategory);
@@ -194,6 +216,7 @@ async function validateAndSubmitForm() {
             formData.append('qrPicture', fileInput.files[0]);
         }
 
+        // Submit to API using FormData (like profile pictures)
         const response = await fetch(`${API_BASE_URL}/paymentPlatform/create`, {
             method: 'POST',
             body: formData
@@ -206,17 +229,21 @@ async function validateAndSubmitForm() {
 
         const result = await response.json();
         const created = result?.newPayment || result?.data || result?.payment || result?.paymentPlatform || result;
-
+        
+        // Close the confirmation modal
         const modal = document.getElementById('confirmDetailsModal');
         if (modal) {
             modal.classList.add('hidden');
         }
-
+        
+        // Show success and redirect
         hideLoadingState();
         showSuccess('Payment method created successfully!');
-
+        
+        // Clear form
         clearForm();
-
+        
+        // Redirect to payment list page after a short delay
         setTimeout(() => {
             window.location.href = 'payment.html';
         }, 1500);
@@ -228,6 +255,7 @@ async function validateAndSubmitForm() {
     }
 }
 
+// Show loading state
 function showLoadingState() {
     const addButton = document.querySelector('[data-modal-target="confirmDetailsModal"]');
     if (addButton) {
@@ -239,6 +267,7 @@ function showLoadingState() {
     }
 }
 
+// Hide loading state
 function hideLoadingState() {
     const addButton = document.querySelector('[data-modal-target="confirmDetailsModal"]');
     if (addButton) {
@@ -252,14 +281,17 @@ function hideLoadingState() {
     }
 }
 
+// Show success message
 function showSuccess(message) {
     return showToastError('success', 'Success', message);
 }
 
+// Show error message
 function showError(message) {
     return showToastError('error', 'Error', message);
 }
 
+// Clear form
 function clearForm() {
     const selectedPaymentMethod = document.getElementById('selectedPaymentMethod');
     const customNameInput = document.getElementById('input-payment-name');
@@ -267,24 +299,29 @@ function clearForm() {
     const preview = document.getElementById('qr-preview');
     const placeholder = document.getElementById('qr-placeholder');
 
+    // Reset form fields
     selectedPaymentMethod.textContent = 'Select Payment';
     selectedPaymentMethod.removeAttribute('data-value');
     customNameInput.value = '';
     fileInput.value = '';
-
+    
+    // Reset image preview
     preview.src = '';
     preview.style.display = 'none';
     placeholder.style.display = 'flex';
-
+    
+    // No toggle for payment name; keep visible
 }
 
+// Handle form cancellation
 document.addEventListener('DOMContentLoaded', function() {
     const cancelButtons = document.querySelectorAll('[data-modal-target="discardDetailsModal"]');
     
     cancelButtons.forEach(button => {
         button.addEventListener('click', function(e) {
             e.preventDefault();
-
+            
+            // Check if form has any data
             const selectedMethod = document.getElementById('selectedPaymentMethod');
             const customNameInput = document.getElementById('input-payment-name');
             const fileInput = document.getElementById('qr-upload');
@@ -303,7 +340,8 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
-
+    
+    // Also handle the back navigation
     const discardButtons = document.querySelectorAll('button[onclick*="payment.html"]');
     discardButtons.forEach(button => {
         button.addEventListener('click', function(e) {

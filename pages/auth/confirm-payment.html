@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -9,10 +9,10 @@
     <script src="/src/page-control.js"></script>
 </head>
 <body class="bg-background">
-  
+  <!-- NavBar -->
   <nav id="navbar" class="w-full items-center shadow-sm bg-white hidden md:flex">
     <div class="w-full flex items-center justify-between py-4 px-4 md:px-10">
-      
+      <!-- Logo -->
       <a href="../unauth/rooms.html" class="hidden sm:flex w-fit md:h-[30px]">
         <svg class="fill-primary h-full w-auto" viewBox="0 0 121 30" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M14.8039 7.93926C15.1414 7.59644 15.6926 7.60699 16.0146 7.9709C16.3211 8.30317 16.2907 8.83282 15.9739 9.15907H15.9724L15.9739 9.15988L14.8083 10.3436C14.6495 10.5048 14.3943 10.5048 14.231 10.3436L13.0655 9.15988C12.7383 8.8276 12.7227 8.26772 13.0507 7.93469C13.2146 7.7682 13.4291 7.69063 13.6383 7.69063C13.8475 7.69063 14.0671 7.77351 14.231 7.93926L14.5174 8.23012L14.8039 7.93926Z" />
@@ -45,7 +45,8 @@
           <div class="p-5 md:p-0">
               <div class="flex flex-col border border-neutral-300 bg-white rounded-3xl p-10 shadow-sm  overflow-hidden md:mb-5">
                 <p class="font-manrope font-semibold text-2xl mb-3">Payment</p>
-
+                
+                
                 <div class="w-full bg-neutral-100 p-5 rounded-xl">
                   <p class="text-primary-text font-bold font-manrope">Price details</p>
                   <div class="flex justify-between items-center"> 
@@ -65,7 +66,8 @@
                       <p class="text-primary-text font-bold font-manrope">Reservation fee</p>
                       <p class="text-primary-text font-inter">₱ <span id="reservationFee">00</span></p>
                   </div>
-
+                  
+                  <!-- Discount Section -->
                   <div id="discountSection" class="flex justify-between items-center mb-2" style="display: flex;">
                       <p class="text-primary-text font-bold font-manrope">Discount (<span id="discountPercentage">0%</span>)</p>
                       <p class="text-primary-text font-inter">-₱ <span id="discount">0</span></p>
@@ -82,6 +84,7 @@
                 <div class="flex flex-col p-5">
                   <p class="text-sm text-neutral-500 mb-2 font-inter">Select payment method:</p>
 
+                  <!-- GCash -->
                   <label for="payment-gcash" class="flex justify-between items-center p-5 border-b border-b-neutral-300 cursor-pointer hover:bg-neutral-50 transition peer-checked:border-primary">
                     <div class="flex gap-5 justify-center items-center">
                       <div class="w-6 flex justify-center">
@@ -95,6 +98,7 @@
                     </div>
                   </label>
 
+                  <!-- Maya -->
                   <label for="payment-maya" class="flex justify-between items-center p-5 border-b border-neutral-300 cursor-pointer hover:bg-neutral-50 transition">
                     <div class="flex gap-5 justify-center items-center">
                       <div class="w-6 flex justify-center">
@@ -108,6 +112,7 @@
                     </div>
                   </label>
 
+                  <!-- GoTyme -->
                   <label for="payment-gotyme" class="flex justify-between items-center p-5 border-b border-neutral-300 cursor-pointer hover:bg-neutral-50 transition">
                     <div class="flex gap-5 justify-center items-center">
                       <div class="w-6 flex justify-center">
@@ -121,6 +126,7 @@
                     </div>
                   </label>
 
+                  <!-- UnionBank -->
                   <label for="payment-unionbank" class="flex justify-between items-center p-5 border-b border-neutral-300 cursor-pointer hover:bg-neutral-50 transition">
                     <div class="flex gap-5 justify-center items-center">
                       <div class="w-6 flex justify-center">
@@ -134,6 +140,7 @@
                     </div>
                   </label>
 
+                  <!-- Other -->
                   <label for="payment-other" class="flex justify-between items-center p-5 border-b border-neutral-300 cursor-pointer hover:bg-neutral-50 transition">
                     <div class="flex gap-5 justify-center items-center">
                       <svg class="w-6 fill-primary-text" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -150,7 +157,7 @@
 
                 <div class="flex justify-center mt-5  px-5">
                   <div class="qr-container rounded-3xl overflow-hidden flex flex-col items-center gap-4 min-w-80">
-                    
+                    <!-- QR(s) will appear here -->
                   </div>
                 </div>
               </div>
@@ -176,6 +183,7 @@
                     </div>
                   </div>
 
+                  <!-- Preview Container -->
                   <div id="previewContainer" class="mt-4 flex flex-col gap-3"></div>
                   
                   <div class="flex flex-col gap-2 w-full group">
@@ -198,6 +206,7 @@
                     <input type="text" placeholder="Bank account / E-wallet no." id="bankAccountNumber" class="input-style w-full mb-3" />
                   </div>
 
+                  <!-- Refund Policy Note -->
                   <div class="mb-5 p-4 bg-primary/10 border border-primary/20 rounded-lg">
                     <div class="flex items-start gap-2">
                       <svg class="w-5 h-5 text-primary mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -232,9 +241,14 @@
     </div>
   </div> 
 
+    
+
+    
+
+    <!-- Footer -->
     <footer class="bg-primary w-full text-secondary-text mt-10 md:mt-36">
       <div class=" mx-[10%] px-4 py-10 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-10">
-        
+        <!-- Logo Section -->
         <div class="flex items-center gap-4">
           <svg class="w-auto h-[24px] fill-secondary-text md:h-[36px]" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
             <path d="M18.0221 9.52711C18.4331 9.11573 19.1041 9.12839 19.4961 9.56507C19.8691 9.9638 19.8321 10.5994 19.4464 10.9909H19.4447L19.4464 10.9919L18.0275 12.4123C17.8342 12.6058 17.5234 12.6058 17.3247 12.4123L15.9058 10.9919C15.5075 10.5931 15.4886 9.92127 15.8878 9.52163C16.0874 9.32184 16.3484 9.22875 16.6031 9.22875C16.8578 9.22876 17.1251 9.32821 17.3247 9.52711L17.6734 9.87614L18.0221 9.52711Z"/>
@@ -243,8 +257,9 @@
           <span class="font-inter font-bold text-secondary-text text-2xl md:text-4xl">Betcha</span>
         </div>
 
+        <!-- Link Columns -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-y-8 text-sm">
-          
+          <!-- Explore -->
           <div>
             <h2 class="mb-4 font-semibold uppercase">Explore</h2>
             <ul class="space-y-2">
@@ -254,6 +269,7 @@
             </ul>
           </div>
 
+          <!-- Contacts -->
           <div>
             <h2 class="mb-4 font-semibold uppercase">Contacts</h2>
             <ul class="space-y-2">
@@ -282,6 +298,7 @@
         </div>
       </div>
 
+      <!-- Bottom Bar -->
       <div class="bg-primary px-[10%] py-3 flex flex-col sm:flex-row sm:justify-between sm:items-center text-sm text-secondary-text">
         <span>© 2025 <a href="#" class="hover:underline">Betcha</a>. All Rights Reserved.</span>
         <div class="flex mt-4 sm:mt-0 space-x-6">
@@ -292,10 +309,13 @@
       </div>
     </footer>
 
+
+    <!-- Confirm Details Modal -->
     <div id="confirmDetailsModal" class="modal fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center hidden z-50">
       <div class="bg-background w-[500px] rounded-t-3xl overflow-hidden modal-animate
         md:rounded-3xl">
-
+        
+        <!-- Close Button -->
         <div class="w-full p-5 flex justify-end">
           <button data-close-modal class="cursor-pointer btn-round border-none  hover:bg-neutral-300 flex items-center justify-center active:scale-95">
             <span>
@@ -306,6 +326,7 @@
           </button>
         </div>
 
+        <!-- Content -->
         <div class="p-8 pt-0">
           <div class="text-center mb-10">
             <p class="text-2xl font-semibold text-primary-text font-manrope">Confirm Your Details 🔒</p>
@@ -314,6 +335,7 @@
             </p>
           </div>
 
+          <!-- Buttons side-by-side -->
           <div class="flex gap-5 flex-col md:flex-row">
             <button data-close-modal type="button" class="group relative rounded-full w-full bg-neutral-200 px-6 py-3 flex items-center justify-center overflow-hidden 
               transition-all duration-500 ease-in-out 
@@ -343,9 +365,11 @@
       </div>
     </div>
 
+    <!-- Success Booking Modal -->
     <div id="successBookingModal" class="modal fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center hidden z-50">
       <div class="bg-background w-[500px] rounded-3xl overflow-hidden modal-animate">
-
+        
+        <!-- Close Button -->
         <div class="w-full p-5 flex justify-end">
           <button data-close-modal class="cursor-pointer btn-round border-none  hover:bg-neutral-300 flex items-center justify-center active:scale-95">
             <span>
@@ -356,6 +380,7 @@
           </button>
         </div>
 
+        <!-- Content -->
         <div class="p-8 pt-0">
           <div class="text-center mb-10">
             <p id="modalTitle" class="text-2xl font-semibold text-primary-text font-manrope">Booking Successful 🎉</p>
@@ -365,6 +390,7 @@
             </p>
           </div>
 
+          <!-- Buttons side-by-side -->
           <div class="flex">
             <button id="modalActionButton" type="button" onclick="window.location.href='view-booking.html'" 
             class="group relative w-full rounded-full bg-primary px-6 py-3 flex items-center justify-center overflow-hidden 
@@ -383,6 +409,8 @@
         </div>
       </div>
     </div>
+
+    
 
     <script defer src="../admin/adminFunctions/audit-trails-calls.js"></script>
     <script defer src="../../src/roomsNavigationTabs.js"></script>

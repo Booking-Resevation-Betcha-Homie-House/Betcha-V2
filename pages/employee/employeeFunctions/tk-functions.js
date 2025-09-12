@@ -1,9 +1,12 @@
-﻿
-
+// TK Functions - Ticketing Management Functionality
+//Ticket Part - Get Custoemr Service Message to get the assigned ticket to the employee
+//chat bot api for customer side 
+// need to add the chat bot api for the customer side
 console.log('TK Functions loaded');
 
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
+// Global variables for message polling
 let messagePollingInterval = null;
 let currentSelectedTicketId = null;
 
@@ -11,10 +14,11 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('TK Functions - DOM Content Loaded');
 
     debugLocalStorage();
-
+    // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
     initializeTicketingFeatures();
 });
 
+// Clean up polling when page is unloaded
 window.addEventListener('beforeunload', () => {
     stopMessagePolling();
 });
@@ -28,6 +32,8 @@ function debugLocalStorage() {
     console.log('=== End localStorage Debug ===');
 }
 
+// Called by universal skeleton after sidebar restoration
+// eslint-disable-next-line no-unused-vars
 async function checkRolePrivileges() {
     try {
         const roleID = localStorage.getItem('roleID');
@@ -72,6 +78,7 @@ function filterSidebarByPrivileges(privileges) {
         'PM': ['pm.html']
     };
 
+    // Get ONLY sidebar navigation links using specific IDs
     document.querySelectorAll('#sidebar-dashboard, #sidebar-psr, #sidebar-ts, #sidebar-tk, #sidebar-pm').forEach(link => {
         const href = link.getAttribute('href');
         if (href === 'dashboard.html' || !href.includes('.html')) return;
@@ -86,7 +93,8 @@ function filterSidebarByPrivileges(privileges) {
         console.warn('User does not have TK privilege, access denied');
         showAccessDeniedMessage();
     }
-
+    
+    // Show navigation after privilege filtering is complete
     const sidebarNav = document.querySelector('#sidebar nav');
     if (sidebarNav) {
         sidebarNav.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
@@ -112,7 +120,7 @@ function hideDashboardSections(privileges) {
 }
 
 function showAccessDeniedMessage() {
-
+    // Log unauthorized access attempt
     try {
         if (window.AuditTrailFunctions) {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -148,15 +156,20 @@ function showAccessDeniedMessage() {
     document.body.appendChild(message);
 }
 
+// Export filterSidebarByPrivileges to global scope for universal skeleton
 window.filterSidebarByPrivileges = filterSidebarByPrivileges;
 
+// =========================
+// Message Polling Functions
+// =========================
 function startMessagePolling(ticketId) {
-
+    // Clear any existing polling interval
     stopMessagePolling();
     
     currentSelectedTicketId = ticketId;
     console.log('Starting message polling for ticket:', ticketId);
-
+    
+    // Poll every 5 seconds
     messagePollingInterval = setInterval(async () => {
         await refreshTicketMessages(ticketId);
     }, 5000);
@@ -189,7 +202,8 @@ async function refreshTicketMessages(ticketId) {
         
         const data = await response.json();
         const messages = data.messages || [];
-
+        
+        // Update the messages area with new messages
         updateMessagesArea(messages);
         
     } catch (error) {
@@ -200,17 +214,23 @@ async function refreshTicketMessages(ticketId) {
 function updateMessagesArea(messages) {
     const messagesArea = document.querySelector('.flex-1.overflow-y-auto.px-10.py-6.space-y-6');
     if (!messagesArea) return;
-
+    
+    // Store current scroll position
     const wasScrolledToBottom = messagesArea.scrollHeight - messagesArea.scrollTop <= messagesArea.clientHeight + 5;
-
+    
+    // Clear and repopulate messages
     messagesArea.innerHTML = '';
     messages.forEach(msg => messagesArea.appendChild(createMessageElement(msg)));
-
+    
+    // Maintain scroll position (scroll to bottom if user was already at bottom)
     if (wasScrolledToBottom) {
         messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 }
 
+// =========================
+// Ticketing Features
+// =========================
 function initializeTicketingFeatures() {
     console.log('Initializing ticketing features...');
     fetchAndPopulateTickets();
@@ -218,7 +238,8 @@ function initializeTicketingFeatures() {
     setupTicketSelection();
     setupAutoResizeTextarea();
     handleDashboardRedirect();
-
+    
+    // Initially hide close ticket button until a ticket is selected
     const closeTicketBtn = document.querySelector('[data-modal-target="closeTicketModal"]');
     if (closeTicketBtn) {
         closeTicketBtn.style.display = 'none';
@@ -226,7 +247,7 @@ function initializeTicketingFeatures() {
 }
 
 function handleDashboardRedirect() {
-
+    // Check if we were redirected from dashboard with a specific ticket
     const redirectFromDashboard = localStorage.getItem('redirectFromDashboard');
     const selectedTicketData = localStorage.getItem('selectedTicket');
     
@@ -236,9 +257,10 @@ function handleDashboardRedirect() {
         try {
             const ticket = JSON.parse(selectedTicketData);
             console.log('Selected ticket from dashboard:', ticket);
-
+            
+            // Wait for tickets to be loaded, then find and select the specific ticket
             setTimeout(() => {
-
+                // Ensure the correct tab is active based on ticket status
                 const targetTabIndex = (ticket.status === 'resolved' || ticket.status === 'completed') ? 1 : 0;
                 document.querySelectorAll('[data-tab-group]').forEach(groupEl => {
                     try {
@@ -250,26 +272,28 @@ function handleDashboardRedirect() {
                     }
                 });
                 selectTicketFromDashboard(ticket);
-            }, 1000); 
+            }, 1000); // Give time for tickets to load
             
         } catch (error) {
             console.error('Error parsing selected ticket data:', error);
         }
-
+        
+        // Clean up the redirect flags
         localStorage.removeItem('redirectFromDashboard');
         localStorage.removeItem('selectedTicket');
     }
 }
 
 function selectTicketFromDashboard(ticket) {
-
+    // Find the ticket element that matches the ticket from dashboard
     const ticketElements = document.querySelectorAll('.ticket-item');
     
     for (let element of ticketElements) {
         const ticketId = element.dataset.ticketId;
         if (ticketId === ticket._id || ticketId === ticket.ticketId) {
             console.log('Found matching ticket, selecting it:', ticketId);
-
+            
+            // Simulate a click on the ticket to open it
             element.click();
             break;
         }
@@ -306,7 +330,7 @@ async function fetchAndPopulateTickets() {
 
         document.querySelectorAll('[data-tab-group]').forEach(groupEl => {
             populateTicketList(data.tickets, groupEl);
-
+            // 👇 activate Pending tab by default after populate
             setActiveTab(groupEl, 0);
         });
     } catch (err) {
@@ -324,6 +348,7 @@ function populateTicketList(tickets, groupEl) {
     pendingContainer.innerHTML = '';
     completedContainer.innerHTML = '';
 
+    // 👇 sort by ticketNumber ascending before splitting
     tickets.sort((a, b) => parseInt(a.ticketNumber, 10) - parseInt(b.ticketNumber, 10));
 
     const pendingTickets = tickets.filter(t => t.status !== 'resolved');
@@ -332,6 +357,7 @@ function populateTicketList(tickets, groupEl) {
     renderTicketGroup(pendingTickets, pendingContainer, false, 'No pending tickets...');
     renderTicketGroup(completedTickets, completedContainer, true, 'No completed tickets...');
 
+    // Update tab labels
     const tabBtns = groupEl.querySelectorAll('.tab-btn span');
     if (tabBtns[0]) tabBtns[0].textContent = 'Pending';
     if (tabBtns[1]) tabBtns[1].textContent = 'Completed';
@@ -353,6 +379,7 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
     card.className = `ticket-item w-full p-4 hover:bg-primary/10 cursor-pointer transition group border border-neutral-200 rounded-xl ${isCompleted ? 'opacity-75' : ''}`;
     card.dataset.ticketId = ticket._id;
 
+    // 🔥 Fix: pull customer name from messages[0]
     const customerName = ticket.messages?.[0]?.userName || 'Unknown Customer';
 
     const d = new Date(ticket.createdAt);
@@ -376,6 +403,7 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
         </div>
     `;
 
+    // ✅ Click to select
     card.addEventListener('click', () => {
         document.querySelectorAll('.ticket-item').forEach(i => i.classList.remove('bg-primaryy', 'border-primary', 'selected-ticket'));
         card.classList.add('bg-primaryy', 'border-primary', 'selected-ticket');
@@ -385,6 +413,7 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
         if (ticketMain) ticketMain.classList.replace('translate-x-full', 'translate-x-0');
     });
 
+    // ✅ Auto-select first ticket in pending
     if (isFirst && !isCompleted) {
         setTimeout(() => {
             card.classList.add('bg-primaryy', 'border-primary', 'selected-ticket');
@@ -397,16 +426,20 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
     return card;
 }
 
+
+
 function loadTicketDetails(ticket) {
     console.log('Loading ticket details for:', ticket);
 
+    // Start message polling for this ticket
     startMessagePolling(ticket._id);
 
+    // Reset compose box when switching tickets
     const composeEl = document.getElementById('messageBox');
     if (composeEl) {
         composeEl.value = '';
         composeEl.style.height = 'auto';
-
+        // Trigger auto-resize to ensure proper initial height
         setTimeout(() => {
             const event = new Event('input');
             composeEl.dispatchEvent(event);
@@ -434,6 +467,7 @@ function loadTicketDetails(ticket) {
         messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
+    // Hide close ticket button for completed/resolved tickets
     const closeTicketBtn = document.querySelector('[data-modal-target="closeTicketModal"]');
     if (closeTicketBtn) {
         if (ticket.status === 'completed' || ticket.status === 'resolved') {
@@ -445,8 +479,8 @@ function loadTicketDetails(ticket) {
 }
 
 function createMessageElement(message) {
-    const currentUserId = localStorage.getItem("userId"); 
-    const isMine = message.userId === currentUserId;      
+    const currentUserId = localStorage.getItem("userId"); // your logged-in employee ID
+    const isMine = message.userId === currentUserId;      // check if this message is mine
 
     const d = new Date(message.dateTime);
     const formattedTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -462,6 +496,7 @@ function createMessageElement(message) {
     const timeClass = isMine ? 'text-xs text-white/80' : 'text-xs text-neutral-400';
     const msgClass = isMine ? 'text-white whitespace-pre-wrap' : 'text-neutral-900 whitespace-pre-wrap';
 
+    // Process message to handle newlines and escape HTML
     const processedMessage = escapeHtml(message.message).replace(/\n/g, '<br>');
 
     el.innerHTML = `
@@ -477,23 +512,28 @@ function createMessageElement(message) {
     return el;
 }
 
+// Helper function to escape HTML characters
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
 }
 
+// =========================
+// Tabs
+// =========================
 function setupTabSwitching() {
     document.querySelectorAll('[data-tab-group]').forEach(groupEl => {
         const tabButtons = groupEl.querySelectorAll('.tab-btn');
         tabButtons.forEach((button, index) => {
             button.addEventListener('click', () => {
                 setActiveTab(groupEl, index);
-                clearChatArea(); 
+                clearChatArea(); // 👈 now runs only when switching tabs
             });
         });
     });
 }
+
 
 function setActiveTab(groupEl, index) {
     if (!groupEl) return;
@@ -518,6 +558,9 @@ function setActiveTab(groupEl, index) {
     tabContents.forEach((c, i) => c.classList.toggle('hidden', i !== index));
 }
 
+// =========================
+// Misc
+// =========================
 function setupTicketSelection() {
     const backBtn = document.getElementById('ticketBackBtn');
     if (backBtn) {
@@ -532,12 +575,14 @@ function setupAutoResizeTextarea() {
     const messageBox = document.getElementById('messageBox');
     if (!messageBox) return;
 
+    // Function to auto-resize the textarea
     function autoResize() {
-
+        // Reset height to auto to get the correct scrollHeight
         messageBox.style.height = 'auto';
-
-        const maxHeight = 104; 
-        const minHeight = 32;  
+        
+        // Set height to scrollHeight, but limit to max height (6.5rem = 104px)
+        const maxHeight = 104; // 6.5rem in pixels
+        const minHeight = 32;  // Reduced minimum height for more compact look
         const scrollHeight = Math.max(messageBox.scrollHeight, minHeight);
         
         if (scrollHeight <= maxHeight) {
@@ -545,48 +590,55 @@ function setupAutoResizeTextarea() {
         } else {
             messageBox.style.height = maxHeight + 'px';
         }
-
+        
+        // Enable/disable overflow based on content height
         messageBox.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
     }
 
+    // Detect if user is on mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                      ('ontouchstart' in window) || 
                      (navigator.maxTouchPoints > 0);
 
+    // Add event listeners
     messageBox.addEventListener('input', autoResize);
     messageBox.addEventListener('paste', () => {
-
+        // Small delay to allow paste content to be processed
         setTimeout(autoResize, 10);
     });
 
+    // Handle Enter key for new lines (Shift+Enter) vs sending (Enter)
     messageBox.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             if (isMobile) {
-
+                // On mobile, let Enter create new lines by default
+                // User can use the send button to submit
                 setTimeout(autoResize, 10);
-                return; 
+                return; // Don't prevent default behavior
             } else {
-
+                // On desktop, Shift+Enter for new lines, Enter to send
                 if (!e.shiftKey) {
-
+                    // Prevent default Enter behavior (new line)
                     e.preventDefault();
-
+                    // Trigger form submission
                     const form = messageBox.closest('form');
                     if (form) {
                         form.dispatchEvent(new Event('submit'));
                     }
                 } else {
-
+                    // Allow Shift+Enter for new lines
                     setTimeout(autoResize, 10);
                 }
             }
         }
     });
 
+    // For mobile: Add a visual indicator about the behavior
     if (isMobile) {
         messageBox.placeholder = "Type a message... (Use send button to submit)";
     }
 
+    // Initial resize
     autoResize();
 }
 
@@ -614,7 +666,8 @@ async function confirmResolve(ticketId) {
         if (!res.ok) throw new Error(data.message || "Failed to resolve ticket");
 
         console.log("Ticket resolved:", data);
-
+        
+        // Log ticket resolution audit
         try {
             if (window.AuditTrailFunctions) {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -645,8 +698,9 @@ document.getElementById("confirmResolveBtn")?.addEventListener("click", () => {
     confirmResolve(selected.dataset.ticketId);
 });
 
-function clearChatArea() {
 
+function clearChatArea() {
+    // Stop message polling when clearing chat area
     stopMessagePolling();
 
     const chatHeader = document.querySelector('.chat-header');
@@ -669,22 +723,25 @@ function clearChatArea() {
         `;
     }
 
+    // Reset close ticket button to visible when no ticket is selected
     const closeTicketBtn = document.querySelector('[data-modal-target="closeTicketModal"]');
     if (closeTicketBtn) {
         closeTicketBtn.style.display = 'block';
     }
 }
 
+// Reply function
 async function sendReply(ticketId, message) {
     if (!ticketId || !message.trim()) return;
 
-    const messagesArea = document.querySelector('#ticketMain .flex-1'); 
-    const userId = localStorage.getItem("userId"); 
+    const messagesArea = document.querySelector('#ticketMain .flex-1'); // chat messages container
+    const userId = localStorage.getItem("userId"); // <-- employee ID from storage
 
+    // ✅ 1. Append message immediately using createMessageElement
     const tempMsg = {
         userId: userId,
-        userName: "Me",                
-        message: message,              
+        userName: "Me",                // you can replace with actual employee name if stored
+        message: message,              // Keep original message with newlines
         dateTime: new Date().toISOString()
     };
 
@@ -692,21 +749,23 @@ async function sendReply(ticketId, message) {
     messagesArea.appendChild(bubble);
     messagesArea.scrollTop = messagesArea.scrollHeight;
 
+    // ✅ 2. Call API
     try {
         const res = await fetch(`https://betcha-api.onrender.com/tk/reply/${ticketId}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-                userId: userId,           
-                userLevel: "employee",    
-                message: message          
+                userId: userId,           // employee ID from storage
+                userLevel: "employee",    // employee role
+                message: message          // Send message with preserved newlines
             })
         });
 
         const data = await res.json();
         if (!res.ok) throw new Error(data.message || "Reply failed");
         console.log("Reply sent:", data);
-
+        
+        // Log ticket update audit
         try {
             if (window.AuditTrailFunctions) {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -719,7 +778,7 @@ async function sendReply(ticketId, message) {
         }
     } catch (err) {
         console.error("Reply error:", err);
-
+        // ❌ Show error feedback in bubble
         const errorDiv = bubble.querySelector("div:last-child");
         if (errorDiv) {
             errorDiv.textContent = "❌ Failed to send: " + message;
@@ -729,11 +788,14 @@ async function sendReply(ticketId, message) {
     }
 }
 
+
+// Attach to form submit
 document.querySelector('#ticketMain form').addEventListener('submit', (e) => {
     e.preventDefault();
     const textarea = document.getElementById('messageBox');
     const message = textarea.value.trim();
     const ticketId = document.querySelector('.ticket-item.selected-ticket')?.dataset.ticketId;
+    // currently opened ticket
 
     if (!ticketId) {
         alert("No ticket selected!");
@@ -744,7 +806,7 @@ document.querySelector('#ticketMain form').addEventListener('submit', (e) => {
         sendReply(ticketId, message);
         textarea.value = "";
         textarea.style.height = "auto";
-
+        // Trigger auto-resize after clearing
         setTimeout(() => {
             const event = new Event('input');
             textarea.dispatchEvent(event);
@@ -752,7 +814,8 @@ document.querySelector('#ticketMain form').addEventListener('submit', (e) => {
     }
 });
 
+
 function showErrorMessage(message) {
     console.error(message);
-
+    // Optionally hook in toast/notification system here
 }

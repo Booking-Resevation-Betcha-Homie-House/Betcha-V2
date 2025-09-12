@@ -1,8 +1,10 @@
-﻿const API_BASE_URL = 'https://betcha-api.onrender.com';
+// Login functionality for Betcha application
+const API_BASE_URL = 'https://betcha-api.onrender.com';
 
+// Function to handle user login
 async function handleLogin(email, password) {
     try {
-
+        // Show loading state
         const loginButton = document.querySelector('#loginButton');
         const originalText = loginButton.innerHTML;
         loginButton.disabled = true;
@@ -26,11 +28,13 @@ async function handleLogin(email, password) {
         const data = await response.json();
 
         if (response.ok) {
-
+            // Login successful
             console.log('Login successful:', data);
-
+            
+            // Save user data to localStorage
             saveUserToLocalStorage(data.user, data.userType);
-
+            
+            // Audit: user login
             try {
                 const userId = localStorage.getItem('userId') || data.user?._id || '';
                 const type = (localStorage.getItem('role') || data.userType || '').toString();
@@ -40,9 +44,11 @@ async function handleLogin(email, password) {
             } catch (e) {
                 console.warn('Audit login failed:', e);
             }
-
+            
+            // Show success message
             showMessage(`Login successful! Redirecting to ${data.userType} dashboard...`, 'success');
-
+            
+            // Log localStorage data for debugging
             console.log('Saved to localStorage:', {
                 firstName: localStorage.getItem('firstName'),
                 middleInitial: localStorage.getItem('middleInitial'),
@@ -56,15 +62,17 @@ async function handleLogin(email, password) {
                 roleID: localStorage.getItem('roleID'),
                 properties: localStorage.getItem('properties')
             });
-
+            
+            // Redirect based on user type after 1.5 seconds
             setTimeout(() => {
                 redirectUser(data.userType);
             }, 1500);
             
         } else {
-
+            // Login failed
             console.error('Login failed:', data);
-
+            
+            // Audit: Log failed login attempt
             try {
                 const emailInput = document.querySelector('input[type="email"]');
                 const email = emailInput ? emailInput.value.trim() : 'unknown';
@@ -81,13 +89,14 @@ async function handleLogin(email, password) {
         console.error('Error during login:', error);
         showMessage('Network error. Please try again.', 'error');
     } finally {
-
+        // Reset button state
         const loginButton = document.querySelector('#loginButton');
         loginButton.disabled = false;
         loginButton.innerHTML = originalText;
     }
 }
 
+// Function to save user data to localStorage
 function saveUserToLocalStorage(user, userType) {
     localStorage.setItem('firstName', user.firstname || '');
     localStorage.setItem('middleInitial', user.minitial || '');
@@ -98,16 +107,19 @@ function saveUserToLocalStorage(user, userType) {
     localStorage.setItem('email', user.email || '');
     localStorage.setItem('verified', user.verified || false);
     localStorage.setItem('status', user.status || '');
-
+    
+    // For employees, save the roleID from the role array
     if (userType === 'employee' && user.role && user.role.length > 0) {
         localStorage.setItem('roleID', user.role[0]);
     }
-
+    
+    // Save properties if they exist (for employees)
     if (user.properties && user.properties.length > 0) {
         localStorage.setItem('properties', JSON.stringify(user.properties));
     }
 }
 
+// Function to redirect user based on their type
 function redirectUser(userType) {
     console.log(`Redirecting user with type: ${userType}`);
     
@@ -128,13 +140,15 @@ function redirectUser(userType) {
     }
 }
 
+// Function to show messages to user
 function showMessage(message, type = 'info') {
-
+    // Remove existing message if any
     const existingMessage = document.querySelector('.login-message');
     if (existingMessage) {
         existingMessage.remove();
     }
 
+    // Create message element
     const messageDiv = document.createElement('div');
     messageDiv.className = `login-message fixed top-4 right-4 p-4 rounded-lg z-50 transition-all duration-300 ${
         type === 'success' ? 'bg-green-500 text-white' : 
@@ -145,6 +159,7 @@ function showMessage(message, type = 'info') {
 
     document.body.appendChild(messageDiv);
 
+    // Auto remove after 3 seconds
     setTimeout(() => {
         if (messageDiv) {
             messageDiv.remove();
@@ -152,11 +167,13 @@ function showMessage(message, type = 'info') {
     }, 3000);
 }
 
+// Function to validate email format
 function isValidEmail(email) {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
 }
 
+// Function to validate form inputs
 function validateLoginForm(email, password) {
     if (!email || !password) {
         showMessage('Please fill in all fields.', 'error');
@@ -176,26 +193,28 @@ function validateLoginForm(email, password) {
     return true;
 }
 
+// Initialize login functionality when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     const loginForm = document.getElementById('logInForm');
     
     if (loginForm) {
-
+        // Check for auto-filled values on page load
         setTimeout(() => {
             const emailInput = loginForm.querySelector('#email');
             const passwordInput = loginForm.querySelector('#password');
             if (emailInput && emailInput.value) {
-
+                // Trigger input event to handle auto-filled values
                 emailInput.dispatchEvent(new Event('input', { bubbles: true }));
             }
             if (passwordInput && passwordInput.value) {
-
+                // Trigger input event to handle auto-filled values
                 passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
             }
         }, 100);
-
+        
+        // Handle form submission
         loginForm.addEventListener('submit', function(e) {
-            e.preventDefault(); 
+            e.preventDefault(); // Prevent default form submission
             e.preventDefault();
             
             const emailInput = loginForm.querySelector('#email');
@@ -205,7 +224,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 showMessage('Form inputs not found.', 'error');
                 return;
             }
-
+            
+            // Trigger input events to ensure auto-filled values are recognized
             emailInput.dispatchEvent(new Event('input', { bubbles: true }));
             passwordInput.dispatchEvent(new Event('input', { bubbles: true }));
             
@@ -217,6 +237,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
 
+        // Add Enter key support for inputs
         const inputs = loginForm.querySelectorAll('input');
         inputs.forEach(input => {
             input.addEventListener('keypress', function(e) {

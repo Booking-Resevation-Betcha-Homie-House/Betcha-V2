@@ -1,15 +1,16 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
-  
+document.addEventListener("DOMContentLoaded", () => {
+  // Initialize with empty arrays, will be populated by property-view.js
   let unavailableDates = [];
   let bookedDates = [];
   let maintenanceDates = [];
-  let selectedDate = null; 
+  let selectedDate = null; // Single selected date instead of Set
 
   document.querySelectorAll(".calendar-instance").forEach(calendarEl => {
     let currentDate = new Date();
 
+    // Function to handle external date selection
     window.selectDate = (date) => {
-      selectedDate = date; 
+      selectedDate = date; // Set single date
       render();
     };
 
@@ -65,16 +66,19 @@
       return html;
     };
 
+    // Click listener for dates
     calendarEl.addEventListener("click", e => {
       const dateEl = e.target.closest("[data-date]");
       if (dateEl) {
         const clickedDate = dateEl.dataset.date;
-
+        
+        // Single selection - replace previous selection
         selectedDate = clickedDate;
 
+        // Dispatch custom event with selected date
         calendarEl.dispatchEvent(new CustomEvent('datesSelected', {
           detail: {
-            dates: [selectedDate] 
+            dates: [selectedDate] // Always send as array for compatibility
           },
           bubbles: true
         }));
@@ -83,6 +87,7 @@
       }
     });
 
+    // Month nav
     calendarEl.querySelector(".prevMonth").addEventListener("click", () => {
       currentDate.setMonth(currentDate.getMonth() - 1);
       render();
@@ -93,18 +98,22 @@
       render();
     });
 
+    // Listen for calendar data updates from property-view.js
     calendarEl.addEventListener("calendarDataUpdated", (event) => {
       console.log("📅 Calendar data update received in calendar2.js:", event.detail);
-
+      
+      // Update the date arrays
       bookedDates = event.detail.bookedDates || [];
       maintenanceDates = event.detail.maintenanceDates || [];
       unavailableDates = event.detail.allUnavailableDates || [];
       
       console.log("📅 Updated dates - Booked:", bookedDates, "Maintenance:", maintenanceDates);
-
+      
+      // Re-render the calendar with new data
       render();
     });
 
+    // Initial render
     render();
   });
 });

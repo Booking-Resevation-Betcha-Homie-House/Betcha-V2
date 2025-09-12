@@ -1,7 +1,13 @@
-﻿
+// PM Functions - Property Monitoring Management Functionality
+// Get rid of the TS in the dashboard
+// Get rid of the elemts in the Sidebar
+//PM 90% done 
+// Static data for the category for report "Disaster"
+// Suppress console.log output within PM functions to keep console clean
 
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
+// ---- BookingContext: single source of truth for booking data ----
 const BookingContext = {
     state: {
         bookingId: '',
@@ -24,7 +30,7 @@ const BookingContext = {
     },
     get() {
         const s = { ...this.state };
-
+        // hydrate from storage if empty
         if (!s.bookingId) s.bookingId = localStorage.getItem('currentBookingId') || '';
         if (!s.transNo) s.transNo = localStorage.getItem('currentTransNo') || '';
         if (!s.guestId) s.guestId = localStorage.getItem('currentGuestId') || '';
@@ -53,6 +59,7 @@ const BookingContext = {
     }
 };
 
+// Resolve bookingId from common sources
 function resolveBookingId(rootEl) {
     try {
         const fromDataset = rootEl?.dataset?.bookingId || '';
@@ -72,7 +79,7 @@ function resolveBookingId(rootEl) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-
+    // Log system access audit for property management page
     try {
         if (window.AuditTrailFunctions) {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -85,10 +92,12 @@ document.addEventListener('DOMContentLoaded', function() {
     } catch (auditError) {
         console.error('Audit trail error:', auditError);
     }
-
+    
+    // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
     initializePropertyMonitoringFeatures();
 });
 
+// Role Privilege Checking Functions
 async function checkRolePrivileges() {
     try {
         const roleID = localStorage.getItem('roleID');
@@ -97,10 +106,13 @@ async function checkRolePrivileges() {
             return;
         }
 
+        // Fetch role privileges from API
         const roleData = await fetchRolePrivileges(roleID);
         
         if (roleData && roleData.privileges) {
-
+            
+            
+            // Filter sidebar based on privileges
             filterSidebarByPrivileges(roleData.privileges);
         } else {
             console.error('PM - No privileges found in role data');
@@ -132,31 +144,37 @@ async function fetchRolePrivileges(roleID) {
 }
 
 function filterSidebarByPrivileges(privileges) {
-
+    
+    
+    // Define what each privilege allows access to
     const privilegeMap = {
-        'TS': ['ts.html'], 
-        'PSR': ['psr.html'], 
-        'TK': ['tk.html'], 
-        'PM': ['pm.html'] 
+        'TS': ['ts.html'], // TS only has access to Transactions
+        'PSR': ['psr.html'], // PSR has access to Property Summary Report
+        'TK': ['tk.html'], // TK has access to Ticketing
+        'PM': ['pm.html'] // PM has access to Property Monitoring
     };
-
+    
+    // Get ONLY sidebar navigation links using specific IDs
     const sidebarLinks = document.querySelectorAll('#sidebar-dashboard, #sidebar-psr, #sidebar-ts, #sidebar-tk, #sidebar-pm');
     
     sidebarLinks.forEach(link => {
         const href = link.getAttribute('href');
-
+        
+        // Skip dashboard link and non-management links
         if (href === 'dashboard.html' || !href.includes('.html')) {
             return;
         }
         
         let hasAccess = false;
-
+        
+        // Check if user has privilege for this link
         privileges.forEach(privilege => {
             if (privilegeMap[privilege] && privilegeMap[privilege].includes(href)) {
                 hasAccess = true;
             }
         });
-
+        
+        // Hide the link if user doesn't have access
         if (!hasAccess) {
             link.style.display = 'none';
         } else {
@@ -164,19 +182,23 @@ function filterSidebarByPrivileges(privileges) {
             link.style.display = 'flex';
         }
     });
-
+    
+    // Hide content sections based on privileges
     hideDashboardSections(privileges);
-
+    
+    // Special handling for PM privilege - remove specific items if PM only
     if (privileges.includes('PM') && privileges.length === 1) {
-
+        // PM only has access to Property Monitoring, hide others
         hideSpecificSidebarItems(['psr.html', 'tk.html', 'ts.html']);
     }
-
+    
+    // Check if current user should have access to this page
     if (!privileges.includes('PM')) {
         console.warn('PM - User does not have PM privilege, should not access this page');
         showAccessDeniedMessage();
     }
-
+    
+    // Show navigation after privilege filtering is complete
     const sidebarNav = document.querySelector('#sidebar nav');
     if (sidebarNav) {
         sidebarNav.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
@@ -185,17 +207,21 @@ function filterSidebarByPrivileges(privileges) {
     }
 }
 
+// Export filterSidebarByPrivileges to global scope for universal skeleton
 window.filterSidebarByPrivileges = filterSidebarByPrivileges;
 
 function hideDashboardSections(privileges) {
-
+    
+    
+    // Define content sections that should be hidden based on privileges
     const sectionPrivilegeMap = {
-        'PSR-summary': ['PSR'], 
-        'tickets': ['TK'], 
-        'PM': ['PM'], 
-        'transactions': ['TS'] 
+        'PSR-summary': ['PSR'], // PSR Summary section requires PSR privilege
+        'tickets': ['TK'], // Tickets section requires TK privilege  
+        'PM': ['PM'], // Property Monitoring section requires PM privilege
+        'transactions': ['TS'] // Transactions section requires TS privilege
     };
-
+    
+    // Check each section
     Object.keys(sectionPrivilegeMap).forEach(sectionId => {
         const section = document.getElementById(sectionId);
         if (!section) {
@@ -204,7 +230,8 @@ function hideDashboardSections(privileges) {
         
         const requiredPrivileges = sectionPrivilegeMap[sectionId];
         let hasAccess = false;
-
+        
+        // Check if user has any of the required privileges for this section
         privileges.forEach(privilege => {
             if (requiredPrivileges.includes(privilege)) {
                 hasAccess = true;
@@ -230,7 +257,7 @@ function hideSpecificSidebarItems(itemsToHide) {
 }
 
 function showAccessDeniedMessage() {
-
+    // Log unauthorized access attempt
     try {
         if (window.AuditTrailFunctions) {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -263,22 +290,28 @@ function showAccessDeniedMessage() {
     document.body.appendChild(message);
 }
 
+// Additional PM-specific functions can be added here
 function initializePropertyMonitoringFeatures() {
-
+    // Initialize PM-specific tab switching functionality
     setupPMTabSwitching();
     
     window.loadTodaysCheckins();
-
+    
+    // Check if we're coming from dashboard and should open a booking modal
     checkDashboardRedirect();
-
+    
+    // Note: Tab switching is now handled by setupPMTabSwitching() function
+    // which properly manages the Check-in and Check-out tabs
+    
     const endBookingConfirmBtn = document.querySelector('#checkoutModal .bg-primary');
     if (endBookingConfirmBtn) {
         endBookingConfirmBtn.addEventListener('click', handleEndBookingConfirm);
     }
     
     initializeCheckinConfirmationModal();
-    initializePMCalendar(); 
+    initializePMCalendar(); // Use PM-specific single-selection calendar
 
+    // Load admins when cancel modal is opened
     document.addEventListener('click', function(e) {
         const openCancelBtn = e.target.closest('[data-modal-target="cancelBookingModal"]');
         if (openCancelBtn) {
@@ -292,7 +325,7 @@ function initializePropertyMonitoringFeatures() {
                     if (transNo) modal.dataset.transNo = transNo;
                     if (guestId) modal.dataset.guestId = guestId;
                     if (bookingId) modal.dataset.bookingId = bookingId;
-
+                    // New: derive missing identifiers from nearest card/container carrying data-booking-id
                     const nearestCarrier = openCancelBtn.closest('[data-booking-id]');
                     if (nearestCarrier) {
                         if (!modal.dataset.bookingId) modal.dataset.bookingId = nearestCarrier.getAttribute('data-booking-id') || '';
@@ -300,9 +333,10 @@ function initializePropertyMonitoringFeatures() {
                         if (!modal.dataset.guestId && nearestCarrier.getAttribute('data-guest-id')) modal.dataset.guestId = nearestCarrier.getAttribute('data-guest-id');
                     }
 
+                    // Ensure we fetch booking context immediately when modal opens
                     const idToFetch = modal.dataset.bookingId || resolveBookingId(openCancelBtn);
                     if (!idToFetch) {
-
+                        // Try localStorage fallbacks if opener/ancestor lacked bookingId
                         let lsId = localStorage.getItem('currentBookingId') || localStorage.getItem('selectedBookingId') || '';
                         if (!lsId) {
                             try {
@@ -323,7 +357,8 @@ function initializePropertyMonitoringFeatures() {
                     } else {
                         console.warn('CancelModal: no bookingId available on open; cannot prepare context');
                     }
-
+                    
+                    // Always fetch full context using booking/{id} when modal opens
                     (async () => {
                         try {
                             const idToFetch = modal.dataset.bookingId || '';
@@ -361,6 +396,7 @@ function initializePropertyMonitoringFeatures() {
         }
     });
 
+    // Handle sending cancellation notice to selected admin
     document.addEventListener('click', function(e) {
         const sendBtn = e.target.closest('#send-cancel-notice-btn');
         if (sendBtn) {
@@ -369,8 +405,11 @@ function initializePropertyMonitoringFeatures() {
     });
 }
 
+// PM-Specific Tab Switching Function
 function setupPMTabSwitching() {
-
+    
+    
+    // Get all tab buttons and content containers
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
     
@@ -378,9 +417,13 @@ function setupPMTabSwitching() {
         console.warn('PM - No tab buttons or content found');
         return;
     }
-
+    
+    
+    
+    // Set the first tab as active by default
     setActivePMTab(0);
-
+    
+    // Add click event listeners to all tab buttons
     tabButtons.forEach((button, index) => {
         button.addEventListener('click', function() {
             
@@ -390,15 +433,19 @@ function setupPMTabSwitching() {
     
 }
 
+// Function to set the active PM tab
 function setActivePMTab(activeIndex) {
-
+    
+    
+    // Get all tab buttons and content containers
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
-
+    
+    // Update tab button styles
     tabButtons.forEach((button, index) => {
         const span = button.querySelector('span');
         if (index === activeIndex) {
-
+            // Active tab styling
             button.classList.add('bg-white', 'font-semibold', 'shadow');
             button.classList.remove('text-neutral-500');
             if (span) {
@@ -407,7 +454,7 @@ function setActivePMTab(activeIndex) {
             }
             
         } else {
-
+            // Inactive tab styling
             button.classList.remove('bg-white', 'font-semibold', 'shadow');
             button.classList.add('text-neutral-500');
             if (span) {
@@ -416,25 +463,29 @@ function setActivePMTab(activeIndex) {
             }
         }
     });
-
+    
+    // Show/hide tab content
     tabContents.forEach((content, index) => {
         if (index === activeIndex) {
-
+            // Show active tab content
             content.classList.remove('hidden');
             
         } else {
-
+            // Hide inactive tab content
             content.classList.add('hidden');
         }
     });
-
+    
+    // Load data for the active tab
     if (activeIndex === 0) {
-
+        // Check-in tab - load check-in data
+        
         if (typeof window.loadTodaysCheckins === 'function') {
             window.loadTodaysCheckins();
         }
     } else if (activeIndex === 1) {
-
+        // Check-out tab - load check-out data
+        
         if (typeof window.loadTodaysCheckins === 'function') {
             window.loadTodaysCheckins();
         }
@@ -442,52 +493,62 @@ function setActivePMTab(activeIndex) {
     
 }
 
+// Check if we should open a booking modal from dashboard redirect
 function checkDashboardRedirect() {
     try {
         const shouldOpenModal = localStorage.getItem('openBookingModal');
         const selectedBooking = localStorage.getItem('selectedBooking');
         
         if (shouldOpenModal === 'true' && selectedBooking) {
-
+            
+            
+            // Parse the booking data
             const booking = JSON.parse(selectedBooking);
-
+            
+            // Clear the flags
             localStorage.removeItem('openBookingModal');
             localStorage.removeItem('redirectFromDashboard');
             localStorage.removeItem('selectedBooking');
-
+            
+            // Open the check-in confirmation modal with the booking data
             setTimeout(() => {
                 openBookingModalFromDashboard(booking);
-            }, 500); 
+            }, 500); // Small delay to ensure page is fully loaded
         }
     } catch (error) {
         console.error('Error checking dashboard redirect:', error);
-
+        // Clear any corrupted data
         localStorage.removeItem('openBookingModal');
         localStorage.removeItem('redirectFromDashboard');
         localStorage.removeItem('selectedBooking');
     }
 }
 
+// Open booking modal from dashboard with booking data
 function openBookingModalFromDashboard(booking) {
     try {
-
+        
+        
+        // Get the modal element
         const modal = document.getElementById('checkinConfirmModal');
         if (!modal) {
             console.error('Check-in confirmation modal not found');
             return;
         }
-
+        
+        // Populate the modal with booking data
         populateCheckinConfirmModal(
             booking.bookingId || booking._id || '',
             booking.nameOfProperty || booking.propertyName || 'Property',
             booking.nameOfGuest || booking.guestName || 'Guest',
             booking.checkIn || '',
             booking.timeIn || '1:00 PM',
-            'Confirmed', 
+            'Confirmed', // Default status for dashboard bookings
             booking.guestId || '',
             booking.transNo || ''
         );
-
+        
+        // Open the modal
         modal.classList.remove('hidden');
         document.body.classList.add('modal-open');
         
@@ -498,6 +559,7 @@ function openBookingModalFromDashboard(booking) {
     }
 }
 
+// Function to get property IDs from localStorage
 async function getPropertyIds() {
     try {
         const propertiesData = localStorage.getItem('properties');
@@ -524,6 +586,7 @@ async function getPropertyIds() {
     }
 }
 
+// Function to call the check-in API
 async function fetchTodaysCheckins() {
     try {
         const propertyIds = await getPropertyIds();
@@ -553,6 +616,7 @@ async function fetchTodaysCheckins() {
     }
 }
 
+// Function to populate the check-in tab with data
 function populateCheckinTab(checkinData) {
     try {
         const tabGroup = document.querySelector('[data-tab-group]');
@@ -637,6 +701,7 @@ function populateCheckinTab(checkinData) {
     }
 }
 
+// Function to populate checkout tab with checked-out bookings
 function populateCheckoutTab(checkoutData) {
     try {
         const checkoutTabContent = document.getElementById('checkout-tab-content');
@@ -733,11 +798,13 @@ function populateCheckoutTab(checkoutData) {
     }
 }
 
+// Function to create a booking element for check-in
 function createCheckinBookingElement(booking) {
     const bookingDiv = document.createElement('div');
     bookingDiv.className = `flex flex-col md:flex-row md:items-center md:justify-between bg-neutral-50 border border-neutral-200 p-4 rounded-xl font-inter
         transition-all duration-300 ease-in-out hover:bg-neutral-100`;
-
+    
+    // Extract data from the API response structure
     const checkInTime = booking.timeIn || formatTime(booking.checkInTime || booking.time || booking.checkIn);
     const guestName = booking.guestName || booking.nameOfGuest || booking.customerName || booking.customer?.name || 'Guest Name';
     const propertyName = booking.propertyName || booking.nameOfProperty || booking.property?.name || booking.property?.title || 'Property Name';
@@ -745,27 +812,32 @@ function createCheckinBookingElement(booking) {
     const checkInDate = booking.checkIn || '';
     const checkOutDate = booking.checkOut || '';
     const status = booking.status || 'Reserved';
-
+    
+    // Enhanced guestId extraction with debugging
     let guestId = booking.guestId || booking.customer?.guestId || '';
     if (!guestId && bookingId) {
-
+        // If guestId is not available, try to get it from the individual booking API
     }
-
+    
+    // Enhanced transNo extraction
     let transNo = booking.transNo || booking.reservation?.paymentNo || '';
     if (!transNo && bookingId) {
-
+        // Will fetch from individual API if needed
     }
-
+    
+    // Format dates for display
     const checkInFormatted = formatDate(checkInDate);
     const checkOutFormatted = formatDate(checkOutDate);
-
+    
+    // Determine what to show in the action area based on status
     let actionContent = '';
     let statusColor = 'bg-blue-100 text-blue-800';
-
+    
+    // Determine status color and action content
     const statusLower = status.toString().toLowerCase();
     if (statusLower.includes('checkout') || statusLower.includes('checked-out') || statusLower.includes('checked out') ||
         statusLower.includes('complete') || statusLower.includes('finished') || statusLower.includes('ended')) {
-
+        // This should not appear in check-in tab, but show it for debugging
         statusColor = 'bg-red-100 text-red-800';
         actionContent = `
             <div class="!px-4 !py-2 w-full bg-red-600 font-manrope rounded-lg flex items-center justify-center">
@@ -797,7 +869,7 @@ function createCheckinBookingElement(booking) {
             </div>
         `;
     } else {
-
+        // Pending or reserved status
         statusColor = 'bg-yellow-100 text-yellow-800';
         actionContent = `
             <button 
@@ -835,7 +907,8 @@ function createCheckinBookingElement(booking) {
             ${actionContent}
         </div>
     `;
-
+    
+    // If not checked-in, fetch the latest status from API
     if (!statusLower.includes('checked-in') && !statusLower.includes('checked in') && bookingId) {
         checkBookingStatus(bookingId, bookingDiv);
     }
@@ -843,11 +916,13 @@ function createCheckinBookingElement(booking) {
     return bookingDiv;
 }
 
+// Function to create a booking element for check-out
 function createCheckoutBookingElement(booking) {
     const bookingDiv = document.createElement('div');
     bookingDiv.className = `flex flex-col md:flex-row md:items-center md:justify-between bg-neutral-50 border border-neutral-200 p-4 rounded-xl font-inter
         transition-all duration-300 ease-in-out hover:bg-neutral-100`;
-
+    
+    // Extract data from the API response structure
     const checkOutTime = booking.timeOut || formatTime(booking.checkOutTime || '11:00 AM');
     const guestName = booking.guestName || booking.nameOfGuest || booking.customerName || booking.customer?.name || 'Guest Name';
     const propertyName = booking.propertyName || booking.nameOfProperty || booking.property?.name || booking.property?.title || 'Property Name';
@@ -857,7 +932,8 @@ function createCheckoutBookingElement(booking) {
     const status = booking.status || 'Checked-Out';
     const guestId = booking.guestId || '';
     const transNo = booking.transNo || '';
-
+    
+    // Format dates for display
     const checkInFormatted = formatDate(checkInDate);
     const checkOutFormatted = formatDate(checkOutDate);
     
@@ -885,21 +961,24 @@ function createCheckoutBookingElement(booking) {
     return bookingDiv;
 }
 
+// Function to open the End Booking modal
 function openEndBookingModal(bookingId, propertyName, guestName, checkInDate, checkOutDate, guestId, transNo) {
-
+    // Find the modal elements
     const modal = document.getElementById('checkoutModal');
     
     if (!modal) {
         console.error('End Booking modal not found');
         return;
     }
-
+    
+    // Set the modal content with booking details
     const modalTitle = modal.querySelector('.text-xl.font-bold');
     
     if (modalTitle) {
         modalTitle.textContent = `End Booking - ${propertyName}`;
     }
-
+    
+    // Store booking data for the confirm action
     modal.dataset.bookingId = bookingId;
     modal.dataset.propertyName = propertyName;
     modal.dataset.guestName = guestName;
@@ -907,12 +986,13 @@ function openEndBookingModal(bookingId, propertyName, guestName, checkInDate, ch
     modal.dataset.checkOutDate = checkOutDate;
     modal.dataset.guestId = guestId || '';
     modal.dataset.transNo = transNo || '';
-
+    // Try to store propertyId if available from the latest cache
     try {
         const match = (window.lastCheckInData || []).find(b => (b.bookingId === bookingId || b._id === bookingId));
         if (match && match.propertyId) modal.dataset.propertyId = match.propertyId;
     } catch (_) {}
 
+    // Backfill missing IDs by fetching booking details
     (async () => {
         try {
             if (!modal.dataset.guestId || !modal.dataset.transNo || !modal.dataset.propertyId) {
@@ -937,12 +1017,15 @@ function openEndBookingModal(bookingId, propertyName, guestName, checkInDate, ch
             console.warn('Error backfilling booking details:', e);
         }
     })();
-
+    
+    // Initialize customer/property report checkbox functionality
     initializeCustomerReportCheckbox();
-
+    
+    // Show the modal
     modal.classList.remove('hidden');
 }
 
+// Function to handle End Booking confirmation
 async function handleEndBookingConfirm() {
     const modal = document.getElementById('checkoutModal');
     if (!modal) return;
@@ -963,7 +1046,7 @@ async function handleEndBookingConfirm() {
     }
     
     try {
-
+        // If customer report checkbox is active, call the /report API
         if (includeCustomerReport && customerReportRemarks && guestId) {
             const reportData = {
                 guestId: guestId,
@@ -984,21 +1067,22 @@ async function handleEndBookingConfirm() {
                 throw new Error(`Report API failed: ${reportResponse.status} ${reportResponse.statusText}`);
             }
         }
-
+        
+        // If property report checkbox is active, call the property report API
         if (includePropertyReport && propertyReportMessage) {
-
+            // Resolve propertyId: from modal dataset or last loaded booking cache
             const propertyId = modal.dataset.propertyId || (window.lastCheckInData?.find?.(b => (b.bookingId === bookingId || b._id === bookingId))?.propertyId) || '';
             
             if (!propertyId) {
                 console.warn('Property ID not found; skipping property report creation');
             } else {
-
+                // Sender: from logged-in user's full name
                 const sender = `${localStorage.getItem('firstName') || ''} ${localStorage.getItem('lastName') || ''}`.trim() || 'Unknown';
-
+                // Category: from dropdown
                 const category = document.getElementById('select-property-report-category')?.value || 'Other';
-
+                // Status: default for creation
                 const status = 'Unsolved';
-
+                // transNo: from modal dataset
                 const transNoValue = transNo || modal.dataset.transNo || '';
 
                 const propertyReportData = {
@@ -1023,7 +1107,8 @@ async function handleEndBookingConfirm() {
                 }
             }
         }
-
+        
+        // Success path: perform checkout (update booking status)
         const checkoutResponse = await fetch(`${API_BASE_URL}/booking/update-status/${bookingId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
@@ -1036,7 +1121,8 @@ async function handleEndBookingConfirm() {
         
         const checkoutResult = await checkoutResponse.json();
         console.log('Checkout API success:', checkoutResult);
-
+        
+        // Audit: Log check-out activity
         try {
             const userId = localStorage.getItem('userId') || '';
             const userType = localStorage.getItem('role') || localStorage.getItem('userType') || '';
@@ -1046,36 +1132,42 @@ async function handleEndBookingConfirm() {
         } catch (auditError) {
             console.warn('Audit trail for check-out failed:', auditError);
         }
-
+        
+        // Close modal and refresh
         modal.classList.add('hidden');
         document.body.classList.remove('modal-open');
         console.log('End booking processed successfully');
-
+        
+        // Refresh data to reflect changes
         if (typeof loadTodaysCheckins === 'function') {
             loadTodaysCheckins();
         }
-
+        
+        // Optional UX feedback
         console.log('✅ Booking checked out successfully.');
     } catch (error) {
         console.error('Error during end booking confirmation:', error);
     }
 }
 
+// Function to initialize customer/property report checkbox functionality
 function initializeCustomerReportCheckbox() {
-
+    // Initialize customer report checkbox
     const customerCheckbox = document.getElementById('include-customer-report');
     const customerReportSection = document.getElementById('customer-report-section');
     const customerReportTextarea = document.getElementById('input-customer-report');
     
     if (customerCheckbox && customerReportSection && customerReportTextarea) {
-
+        // Remove existing event listeners to prevent duplicates
         const newCustomerCheckbox = customerCheckbox.cloneNode(true);
         customerCheckbox.parentNode.replaceChild(newCustomerCheckbox, customerCheckbox);
-
+        
+        // Reset checkbox and hide section
         newCustomerCheckbox.checked = false;
         customerReportSection.classList.add('hidden');
         customerReportTextarea.value = '';
-
+        
+        // Add event listener for checkbox toggle
         newCustomerCheckbox.addEventListener('change', function() {
             if (this.checked) {
                 customerReportSection.classList.remove('hidden');
@@ -1086,20 +1178,23 @@ function initializeCustomerReportCheckbox() {
             }
         });
     }
-
+    
+    // Initialize property report checkbox
     const propertyCheckbox = document.getElementById('include-property-report');
     const propertyReportSection = document.getElementById('property-report-section');
     const propertyReportTextarea = document.getElementById('input-property-report');
     
     if (propertyCheckbox && propertyReportSection && propertyReportTextarea) {
-
+        // Remove existing event listeners to prevent duplicates
         const newPropertyCheckbox = propertyCheckbox.cloneNode(true);
         propertyCheckbox.parentNode.replaceChild(newPropertyCheckbox, propertyCheckbox);
-
+        
+        // Reset checkbox and hide section
         newPropertyCheckbox.checked = false;
         propertyReportSection.classList.add('hidden');
         propertyReportTextarea.value = '';
-
+        
+        // Add event listener for checkbox toggle
         newPropertyCheckbox.addEventListener('change', function() {
             if (this.checked) {
                 propertyReportSection.classList.remove('hidden');
@@ -1112,6 +1207,7 @@ function initializeCustomerReportCheckbox() {
     }
 }
 
+// Function to initialize the check-in confirmation modal
 function initializeCheckinConfirmationModal() {
     document.addEventListener('click', async (e) => {
         const button = e.target.closest('[data-modal-target="checkinConfirmModal"]');
@@ -1135,20 +1231,26 @@ function initializeCheckinConfirmationModal() {
                 guestId: guestId || 'NOT_FOUND',
                 transNo: transNo || 'NOT_FOUND'
             });
-
+            
+            // Populate the modal with booking details
             populateCheckinConfirmModal(bookingId, propertyName, guestName, checkinDate, checkinTime, bookingStatus, guestId, transNo);
-
+            
+            // Open the modal
             const modal = document.getElementById('checkinConfirmModal');
             if (modal) {
                 modal.classList.remove('hidden');
                 document.body.classList.add('modal-open');
-
+                
+                // Store guestId and transNo in modal dataset for later use
                 modal.dataset.guestId = guestId;
                 modal.dataset.transNo = transNo;
             } else {
                 console.error('checkinConfirmModal not found in DOM');
             }
-
+            
+            // Customer report UI removed; no initialization needed
+            
+            // Set up event listeners for the buttons
             const confirmBtn = document.getElementById('confirm-checkin-btn');
             if (confirmBtn) {
                 confirmBtn.onclick = () => processCheckinConfirmation(bookingId);
@@ -1162,33 +1264,39 @@ function initializeCheckinConfirmationModal() {
     });
 }
 
+// Function to populate the check-in confirmation modal
 function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkinDate, checkinTime, bookingStatus, guestId, transNo) {
-
+    // Update modal content
     document.getElementById('confirm-property-name').textContent = propertyName || '--';
     document.getElementById('confirm-guest-name').textContent = guestName || '--';
     document.getElementById('confirm-checkin-date').textContent = checkinDate || '--';
     document.getElementById('confirm-checkin-time').textContent = checkinTime || '--';
     document.getElementById('confirm-booking-id').textContent = bookingId || '--';
-
+    
+    // Store guestId and transNo in modal dataset
     const modal = document.getElementById('checkinConfirmModal');
     if (modal) {
         modal.dataset.guestId = guestId || '';
         modal.dataset.transNo = transNo || '';
     }
-
+    
+    // Store booking ID in the confirm button for later use
     const confirmBtn = document.getElementById('confirm-checkin-btn');
     if (confirmBtn) {
         confirmBtn.dataset.currentBookingId = bookingId;
-
+        
+        // Show/hide confirmation button based on status
         if (bookingStatus === 'Checked-In') {
-
+            // Hide the confirmation button for already checked-in bookings
             confirmBtn.style.display = 'none';
-
+            
+            // Update modal title and icon for confirmed bookings
             const modalTitle = document.querySelector('#checkinConfirmModal h2');
             if (modalTitle) {
                 modalTitle.textContent = 'Booking Details';
             }
-
+            
+            // Update the blue info box
             const infoBox = document.querySelector('#checkinConfirmModal .bg-blue-50');
             if (infoBox) {
                 infoBox.innerHTML = `
@@ -1198,14 +1306,16 @@ function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkin
                 `;
             }
         } else {
-
+            // Show the confirmation button for pending bookings
             confirmBtn.style.display = 'block';
-
+            
+            // Reset modal title and icon for pending bookings
             const modalTitle = document.querySelector('#checkinConfirmModal h2');
             if (modalTitle) {
                 modalTitle.textContent = 'Confirm Check-in';
             }
-
+            
+            // Reset the blue info box
             const infoBox = document.querySelector('#checkinConfirmModal .bg-blue-50');
             if (infoBox) {
                 infoBox.innerHTML = `
@@ -1218,6 +1328,7 @@ function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkin
     }
 }
 
+// Function to process the final check-in confirmation
 async function processCheckinConfirmation(bookingId) {
     
     if (!bookingId) {
@@ -1226,9 +1337,10 @@ async function processCheckinConfirmation(bookingId) {
     }
     
     try {
-
+        // Directly update booking status to "Checked-In" (customer report UI removed)
         await updateBookingStatus(bookingId, 'Checked-In');
-
+        
+        // Audit: Log check-in activity
         try {
             const userId = localStorage.getItem('userId') || '';
             const userType = localStorage.getItem('role') || localStorage.getItem('userType') || '';
@@ -1245,6 +1357,7 @@ async function processCheckinConfirmation(bookingId) {
     }
 }
 
+// Function to process the check-in cancellation
 async function processCheckinCancellation(bookingId) {
 
     if (!bookingId) {
@@ -1253,26 +1366,30 @@ async function processCheckinCancellation(bookingId) {
     }
 
     try {
-
+        // Prepare context for cancellation request modal (admin approval flow)
         BookingContext.set({ bookingId });
         await BookingContext.hydrateFromBooking(bookingId);
 
+        // Close the check-in confirm modal
         const checkinModal = document.getElementById('checkinConfirmModal');
         if (checkinModal) {
             checkinModal.classList.add('hidden');
             document.body.classList.remove('modal-open');
         }
 
+        // Open the employee cancellation request modal
         const cancelModal = document.getElementById('cancelBookingModal');
         if (cancelModal) {
-
+            // Attach booking context to modal dataset for downstream use
             cancelModal.dataset.bookingId = bookingId;
             const ctx = BookingContext.get();
             if (ctx.transNo) cancelModal.dataset.transNo = ctx.transNo;
             if (ctx.guestId) cancelModal.dataset.guestId = ctx.guestId;
 
+            // Ensure admin list is loaded
             try { await loadAdminsIntoCancelModal(); } catch(_) {}
 
+            // Show modal
             cancelModal.classList.remove('hidden');
             document.body.classList.add('modal-open');
         } else {
@@ -1284,6 +1401,7 @@ async function processCheckinCancellation(bookingId) {
     }
 }
 
+// Function to check booking status via API
 async function checkBookingStatus(bookingId, bookingElement) {
     try {
         const response = await fetch(`${API_BASE_URL}/booking/${bookingId}`, {
@@ -1300,16 +1418,17 @@ async function checkBookingStatus(bookingId, bookingElement) {
         const data = await response.json();
         
         if (data.booking && data.booking.status === 'Checked-In') {
-
+            // Update the booking element to show "Confirmed"
             updateBookingElementToConfirmed(bookingElement);
         }
         
     } catch (error) {
         console.error('Error checking booking status:', error);
-
+        // Don't show error to user for status checks, just log it
     }
 }
 
+// Function to update booking status via PATCH API
 async function updateBookingStatus(bookingId, newStatus) {
     try {
         const response = await fetch(`${API_BASE_URL}/booking/update-status/${bookingId}`, {
@@ -1327,15 +1446,18 @@ async function updateBookingStatus(bookingId, newStatus) {
         }
         
         const data = await response.json();
-
+        
+        // Close the modal first
         const modal = document.getElementById('checkinConfirmModal');
         if (modal) {
             modal.classList.add('hidden');
             document.body.classList.remove('modal-open');
         }
-
+        
+        // Show success message
         console.log(`✅ Check-in confirmed successfully! Booking ID: ${bookingId}, Status: ${newStatus}`);
-
+        
+        // Refresh the check-in data after a short delay
         setTimeout(() => {
             window.loadTodaysCheckins();
         }, 1000);
@@ -1346,10 +1468,11 @@ async function updateBookingStatus(bookingId, newStatus) {
     }
 }
 
+// Function to update booking element to show confirmed status
 function updateBookingElementToConfirmed(bookingElement) {
     const actionDiv = bookingElement.querySelector('.mt-3.md\\:mt-0');
     if (actionDiv) {
-
+        // Get existing data attributes
         const existingButton = bookingElement.querySelector('[data-booking-id]');
         const bookingId = existingButton?.dataset.bookingId || '';
         const propertyName = existingButton?.dataset.propertyName || '';
@@ -1377,17 +1500,20 @@ function updateBookingElementToConfirmed(bookingElement) {
     }
 }
 
+// Fetch admins and populate dropdown in cancel modal
 async function loadAdminsIntoCancelModal() {
     try {
         const selectEl = document.getElementById('select-cancel-admin');
         if (!selectEl) return;
 
+        // Show loading state only if options not yet loaded
         if (!selectEl.dataset.loaded) {
             selectEl.innerHTML = `<option value="" disabled selected>Loading admins...</option>`;
             const resp = await fetch(`${API_BASE_URL}/admin/display`, { method: 'GET' });
             if (!resp.ok) throw new Error(`Failed to fetch admins: ${resp.status}`);
             const admins = await resp.json();
 
+            // Populate options
             selectEl.innerHTML = `<option value="" disabled selected>Select an admin</option>`;
             (admins || []).forEach(a => {
                 const id = a._id || a.id || '';
@@ -1409,14 +1535,18 @@ async function loadAdminsIntoCancelModal() {
     }
 }
 
+// prepareCancelModalContext removed (redundant). Context is hydrated by the enrichment block and BookingContext.
+
+// Build request and POST to notify cancellation endpoint
 async function sendCancellationNoticeToAdmin() {
     try {
-
+        // Simplified context-driven path (early return)
         const modal = document.getElementById('cancelBookingModal') || document.getElementById('checkinConfirmModal');
         const selectEl = document.getElementById('select-cancel-admin');
         const messageTextarea = document.getElementById('input-cancel-admin');
         if (!modal || !selectEl || !messageTextarea) { console.error('Missing fields.'); return; }
 
+        // Require a non-empty message before proceeding
         const messageValue = (messageTextarea.value || '').trim();
         if (!messageValue) {
             try { if (window.showToastError) window.showToastError('warning', 'Cancellation reason required', 'Please add a message before sending the cancellation.'); } catch(_) {}
@@ -1464,16 +1594,20 @@ async function sendCancellationNoticeToAdmin() {
     }
 }
 
+// Make PM tab switching globally accessible for debugging
 window.setActivePMTab = setActivePMTab;
 
+// Main function to load today's check-ins (make globally accessible)
 window.loadTodaysCheckins = async function() {
     try {       
-
+        // Show loading state
         showLoadingState();
         showCheckoutLoadingState();
-
+        
+        // Fetch data from API
         const checkinData = await fetchTodaysCheckins();
-
+        
+        // Populate both check-in and check-out tabs
         populateCheckinTab(checkinData);
         populateCheckoutTab(checkinData);
         
@@ -1483,7 +1617,7 @@ window.loadTodaysCheckins = async function() {
         showCheckoutErrorState();
     }
 }
-
+// Function to show loading state
 function showLoadingState() {
     const tabGroup = document.querySelector('[data-tab-group]');
     const checkinTabContent = tabGroup ? tabGroup.querySelector('.tab-content .space-y-4') : null;
@@ -1499,7 +1633,7 @@ function showLoadingState() {
         `;
     }
 }
-
+// Function to show error state
 function showErrorState() {
     const tabGroup = document.querySelector('[data-tab-group]');
     const checkinTabContent = tabGroup ? tabGroup.querySelector('.tab-content .space-y-4') : null;
@@ -1519,6 +1653,7 @@ function showErrorState() {
     }
 }
 
+// Function to show loading state for checkout tab
 function showCheckoutLoadingState() {
     const checkoutTabContent = document.getElementById('checkout-tab-content');
     if (checkoutTabContent) {
@@ -1533,6 +1668,7 @@ function showCheckoutLoadingState() {
     }
 }
 
+// Function to show error state for checkout tab
 function showCheckoutErrorState() {
     const checkoutTabContent = document.getElementById('checkout-tab-content');
     if (checkoutTabContent) {
@@ -1550,19 +1686,26 @@ function showCheckoutErrorState() {
     }
 }
 
+// Function to initialize calendar date selection for booking display
 function initializeCalendarBookings() {
-
+    
+    
+    // Listen for calendar date clicks
     document.addEventListener('click', function(e) {
         const dateElement = e.target.closest('[data-date]');
         if (dateElement) {
             const selectedDate = dateElement.dataset.date;
-
+            
+            
+            // Load bookings for the selected date
             loadBookingsByDate(selectedDate);
         }
-
+        
+        // Listen for booking card clicks to open view modal
         const bookingCard = e.target.closest('[data-modal-target="viewBookingModal"]');
         if (bookingCard) {
-
+            
+            // Extract booking data from the card
             const bookingData = {
                 bookingId: bookingCard.dataset.bookingId,
                 propertyName: bookingCard.dataset.propertyName,
@@ -1575,18 +1718,21 @@ function initializeCalendarBookings() {
                 guestId: bookingCard.dataset.guestId,
                 transNo: bookingCard.dataset.transNo
             };
-
+            
+            
+            // Populate and show the modal
             populateViewBookingModal(bookingData);
-
+            
+            // Manually open the modal
             const modal = document.getElementById('viewBookingModal');
             if (modal) {
                 
                 modal.classList.remove('hidden');
                 document.body.classList.add('modal-open');
-
+                // Attach for cancel flow
                 const cancelBtn = modal.querySelector('[data-modal-target="cancelBookingModal"]');
                 if (cancelBtn) {
-
+                    // Persist booking context globally for downstream modals
                     try {
                         if (bookingData.bookingId) localStorage.setItem('currentBookingId', bookingData.bookingId);
                         if (bookingData.transNo) localStorage.setItem('currentTransNo', bookingData.transNo);
@@ -1594,7 +1740,9 @@ function initializeCalendarBookings() {
                     } catch(_) {}
                     if (bookingData.transNo) cancelBtn.setAttribute('data-trans-no', bookingData.transNo);
                     if (bookingData.guestId) cancelBtn.setAttribute('data-guest-id', bookingData.guestId);
+                    
 
+                    // If details are missing, fetch from /booking/{id} before user opens cancel modal
                     (async () => {
                         try {
                             if (!cancelBtn.getAttribute('data-trans-no') || !cancelBtn.getAttribute('data-guest-id')) {
@@ -1611,7 +1759,7 @@ function initializeCalendarBookings() {
                                         if (b.guestId || b?.guest?.id) {
                                             cancelBtn.setAttribute('data-guest-id', b.guestId || b?.guest?.id);
                                         }
-
+                                        // For completeness store ewallet
                                         if (b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets) {
                                             cancelBtn.setAttribute('data-ewallet', b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets);
                                         }
@@ -1629,12 +1777,15 @@ function initializeCalendarBookings() {
     });
 }
 
+// PM-Specific Single-Selection Calendar Function
 function initializePMCalendar() {
     const calendarEl = document.querySelector('.calendar-instance');
     if (!calendarEl) return;
 
+    // Fetch and display calendar overview data
     fetchPMCalendarOverview();
 
+    // Adapter: respond to calendar2.js selections
     calendarEl.addEventListener('datesSelected', (e) => {
         const dates = Array.isArray(e.detail?.dates) ? e.detail.dates : [];
         if (dates.length > 0) {
@@ -1643,9 +1794,10 @@ function initializePMCalendar() {
     });
 }
 
+// Function to fetch PM calendar overview data
 async function fetchPMCalendarOverview() {
     try {
-
+        // Get property IDs from localStorage
         const propertyIds = await getPropertyIds();
         if (propertyIds.length === 0) {
             console.warn('No property IDs available for calendar overview');
@@ -1654,6 +1806,7 @@ async function fetchPMCalendarOverview() {
 
         console.log('🔍 Fetching calendar data for property IDs:', propertyIds);
 
+        // Call the calendar overview API
         const response = await fetch(`${API_BASE_URL}/calendar/byProperties`, {
             method: 'POST',
             headers: {
@@ -1669,7 +1822,8 @@ async function fetchPMCalendarOverview() {
         }
 
         const calendarData = await response.json();
-
+        
+        // Update calendar with visual indicators
         updatePMCalendarWithDates(calendarData);
 
     } catch (error) {
@@ -1677,15 +1831,18 @@ async function fetchPMCalendarOverview() {
     }
 }
 
+// Function to update PM calendar with booking and maintenance dates
 function updatePMCalendarWithDates(multiPropertyData) {
     if (!multiPropertyData || !multiPropertyData.calendar) {
         console.warn('❌ No calendar data provided');
         return;
     }
 
+    // Aggregate all booked and maintenance dates across properties
     let allBookedDates = [];
     let allMaintenanceDates = [];
 
+    // Process each property's calendar data
     multiPropertyData.calendar.forEach((propertyData, index) => {
         if (propertyData.booking && Array.isArray(propertyData.booking)) {
             const bookingDates = propertyData.booking.map(b => b.date);
@@ -1698,18 +1855,22 @@ function updatePMCalendarWithDates(multiPropertyData) {
         }
     });
 
+    // Remove duplicates
     allBookedDates = [...new Set(allBookedDates)];
     allMaintenanceDates = [...new Set(allMaintenanceDates)];
 
+    // Combine all unavailable dates
     const allUnavailableDates = [...allBookedDates, ...allMaintenanceDates];
 
+    // Update the global unavailableDates array in calendar2.js
     if (typeof window !== 'undefined' && window.calendarUnavailableDates) {
         window.calendarUnavailableDates = allUnavailableDates;
     }
 
+    // Force calendar re-render if it exists
     const calendarInstance = document.querySelector('.calendar-instance');
     if (calendarInstance) {
-
+        // Trigger a custom event to force calendar re-render
         const event = new CustomEvent('calendarDataUpdated', {
             detail: {
                 bookedDates: allBookedDates,
@@ -1722,15 +1883,17 @@ function updatePMCalendarWithDates(multiPropertyData) {
         console.warn('❌ Calendar instance not found in DOM');
     }
 
+    // Update the calendar legend with actual counts
     updatePMCalendarLegend(allBookedDates.length, allMaintenanceDates.length);
 }
 
+// Function to update PM calendar legend with actual counts
 function updatePMCalendarLegend(bookedCount, maintenanceCount) {
-
+    // Find or create legend container
     let legendContainer = document.querySelector('.pm-calendar-legend');
     
     if (!legendContainer) {
-
+        // Create legend container if it doesn't exist
         const calendarContainer = document.querySelector('.calendar-instance').parentElement;
         
         if (calendarContainer) {
@@ -1757,6 +1920,7 @@ function updatePMCalendarLegend(bookedCount, maintenanceCount) {
         }
     }
 
+    // Update legend text with counts
     if (legendContainer) {
         const bookedLegend = legendContainer.querySelector('.pm-booked-legend');
         const maintenanceLegend = legendContainer.querySelector('.pm-maintenance-legend');
@@ -1772,21 +1936,28 @@ function updatePMCalendarLegend(bookedCount, maintenanceCount) {
     }
 }
 
+// Function to load bookings by date
 async function loadBookingsByDate(selectedDate) {
     try {
-
+        
+        
+        // Get property IDs from localStorage
         const propertyIds = await getPropertyIds();
         if (propertyIds.length === 0) {
             console.warn('No property IDs available');
             showCalendarBookingsError('No properties found in storage');
             return;
         }
-
+        
+        // Prepare API request body
         const requestBody = {
             checkIn: selectedDate,
             propertyIds: propertyIds
         };
-
+        
+        
+        
+        // Call the API
         const response = await fetch(`${API_BASE_URL}/pm/bookings/byDateAndProperties`, {
             method: 'POST',
             headers: {
@@ -1800,7 +1971,8 @@ async function loadBookingsByDate(selectedDate) {
         }
         
         const bookingsData = await response.json();
-
+        
+        // Populate the calendar booking display (enrich + filter cancellations)
         const enriched = await enrichAndFilterCalendarBookings(bookingsData);
         populateCalendarBookings(enriched, selectedDate);
         
@@ -1810,6 +1982,7 @@ async function loadBookingsByDate(selectedDate) {
     }
 }
 
+// Enrich bookings with full status/transNo and filter out cancelled
 async function enrichAndFilterCalendarBookings(raw) {
     try {
         if (!raw || raw.length === 0) return [];
@@ -1840,6 +2013,7 @@ async function enrichAndFilterCalendarBookings(raw) {
     }
 }
 
+// Function to populate calendar bookings display
 function populateCalendarBookings(bookingsData, selectedDate) {
     const calendarBookingsContainer = document.querySelector('.overflow-y-auto.space-y-4.rounded-lg.bg-neutral-200.p-5.h-\\[500px\\]');
     
@@ -1847,11 +2021,12 @@ function populateCalendarBookings(bookingsData, selectedDate) {
         console.error('Calendar bookings container not found');
         return;
     }
-
+    
+    // Clear existing content
     calendarBookingsContainer.innerHTML = '';
     
     if (!bookingsData || bookingsData.length === 0) {
-
+        // Show no bookings message
         const noBookingsDiv = document.createElement('div');
         noBookingsDiv.className = 'w-full h-full flex justify-center items-center text-center text-sm font-manrope text-neutral-500';
         noBookingsDiv.innerHTML = `
@@ -1865,19 +2040,23 @@ function populateCalendarBookings(bookingsData, selectedDate) {
         calendarBookingsContainer.appendChild(noBookingsDiv);
         return;
     }
-
+    
+    // Create booking elements
     bookingsData.forEach(booking => {
         const bookingElement = createCalendarBookingElement(booking);
         calendarBookingsContainer.appendChild(bookingElement);
     });
-
+    
+    
 }
 
+// Function to create a calendar booking element
 function createCalendarBookingElement(booking) {
     const bookingDiv = document.createElement('div');
     bookingDiv.className = `rounded-lg cursor-pointer px-5 py-3 w-full h-fit flex flex-col md:flex-row justify-between gap-3 shadow-sm bg-white border border-neutral-200 group 
         hover:border-neutral-500 transition-all duration-500 ease-in-out overflow-hidden`;
-
+    
+    // Add data attributes for modal population
     bookingDiv.setAttribute('data-modal-target', 'viewBookingModal');
     bookingDiv.setAttribute('data-booking-id', booking.bookingId || booking._id || booking.id || '');
     bookingDiv.setAttribute('data-property-name', booking.nameOfProperty || booking.propertyName || booking.property?.name || 'Property Name');
@@ -1887,7 +2066,7 @@ function createCalendarBookingElement(booking) {
     bookingDiv.setAttribute('data-checkout-date', booking.checkOut || '');
     bookingDiv.setAttribute('data-checkin-time', booking.timeIn || formatTime(booking.checkInTime || '2:00 PM'));
     bookingDiv.setAttribute('data-checkout-time', booking.timeOut || formatTime(booking.checkOutTime || '11:00 AM'));
-
+    // Propagate ids for downstream modals
     if (booking.guestId || booking.guest?.id) {
         bookingDiv.setAttribute('data-guest-id', booking.guestId || booking.guest?.id);
     }
@@ -1899,7 +2078,7 @@ function createCalendarBookingElement(booking) {
         guestId: bookingDiv.getAttribute('data-guest-id') || 'N/A',
         transNo: bookingDiv.getAttribute('data-trans-no') || 'N/A'
     });
-
+    // Persist core identifiers on card click so downstream modals can recover context
     bookingDiv.addEventListener('click', () => {
         try {
             const id = bookingDiv.getAttribute('data-booking-id') || '';
@@ -1911,7 +2090,8 @@ function createCalendarBookingElement(booking) {
             console.log('CalendarCard: persisted context', { id, t, g });
         } catch(_) {}
     });
-
+    
+    // Extract data from the API response structure
     const propertyName = booking.nameOfProperty || booking.propertyName || booking.property?.name || booking.property?.title || 'Property Name';
     const guestName = booking.nameOfGuest || booking.guestName || booking.customerName || booking.customer?.name || 'Guest Name';
     const checkInDate = booking.checkIn || '';
@@ -1920,10 +2100,12 @@ function createCalendarBookingElement(booking) {
     const checkOutTime = booking.timeOut || formatTime(booking.checkOutTime || '11:00 AM');
     const bookingId = booking.bookingId || booking._id || booking.id || '';
     const status = booking.status || 'Reserved';
-
+    
+    // Format dates for display
     const checkInFormatted = formatDate(checkInDate);
     const checkOutFormatted = formatDate(checkOutDate);
-
+    
+    // Determine status color
     let statusColor = 'bg-green-100 text-green-800';
     if (status.toLowerCase().includes('pending')) {
         statusColor = 'bg-yellow-100 text-yellow-800';
@@ -1959,6 +2141,7 @@ function createCalendarBookingElement(booking) {
     return bookingDiv;
 }
 
+// Function to show calendar bookings error
 function showCalendarBookingsError(message) {
     const calendarBookingsContainer = document.querySelector('.overflow-y-auto.space-y-4.rounded-lg.bg-neutral-200.p-5.h-\\[500px\\]');
     
@@ -1979,8 +2162,9 @@ function showCalendarBookingsError(message) {
     `;
 }
 
+// Function to populate the view booking modal with booking data
 function populateViewBookingModal(bookingData) {
-
+    // Update property name and address
     const propertyNameElement = document.querySelector('#viewBookingModal .text-lg.font-bold');
     const propertyAddressElement = document.querySelector('#viewBookingModal .text-neutral-600');
     
@@ -1990,39 +2174,46 @@ function populateViewBookingModal(bookingData) {
     if (propertyAddressElement) {
         propertyAddressElement.textContent = bookingData.propertyAddress || '123 Sunshine Street, Manila';
     }
-
+    
+    // Update guest name
     const guestNameElement = document.querySelector('#viewBookingModal .text-neutral-900.font-semibold');
     if (guestNameElement) {
         guestNameElement.textContent = bookingData.guestName || 'Guest Name';
     }
-
+    
+    // Update check-in date and time
     const checkInContainer = document.querySelector('#viewBookingModal .grid.grid-cols-2 > div:first-child .text-neutral-900');
     if (checkInContainer) {
         const checkInFormatted = formatDate(bookingData.checkInDate);
         checkInContainer.innerHTML = `<span>${checkInFormatted}</span> — <span>${bookingData.checkInTime || '2:00 PM'}</span>`;
     }
-
+    
+    // Update check-out date and time
     const checkOutContainer = document.querySelector('#viewBookingModal .grid.grid-cols-2 > div:last-child .text-neutral-900');
     if (checkOutContainer) {
         const checkOutFormatted = formatDate(bookingData.checkOutDate);
         checkOutContainer.innerHTML = `<span>${checkOutFormatted}</span> — <span>${bookingData.checkOutTime || '11:00 AM'}</span>`;
     }
-
+    
+    // Update the cancel booking button with the booking ID
     const cancelBookingBtn = document.querySelector('#viewBookingModal [data-modal-target="cancelBookingModal"]');
     if (cancelBookingBtn && bookingData.bookingId) {
         cancelBookingBtn.setAttribute('data-booking-id', bookingData.bookingId);
     }
 }
 
+// Function to check if a booking status should go to check-out tab
 function isCheckoutStatus(status) {
-    if (!status) return false; 
+    if (!status) return false; // Return false for undefined/null status
     
     const statusLower = status.toString().toLowerCase();
-
+    
+    // Check for exact status matches from validBookingStatuses
     if (statusLower === 'checked-out' || statusLower === 'completed' || statusLower === 'cancel') {
         return true;
     }
-
+    
+    // Check for partial matches
     if (statusLower.includes('checkout') || 
         statusLower.includes('checked-out') || 
         statusLower.includes('checked out') ||
@@ -2035,15 +2226,18 @@ function isCheckoutStatus(status) {
     return false;
 }
 
+// Function to check if a booking status should go to check-in tab
 function isCheckinStatus(status) {
-    if (!status) return false; 
+    if (!status) return false; // Return false for undefined/null status
     
     const statusLower = status.toString().toLowerCase();
-
+    
+    // Check for exact status matches from validBookingStatuses
     if (statusLower === 'pending payment' || statusLower === 'reserved' || statusLower === 'fully-paid' || statusLower === 'checked-in') {
         return true;
     }
-
+    
+    // Check for partial matches
     if (statusLower.includes('pending') || 
         statusLower.includes('reserved') || 
         statusLower.includes('confirmed') ||
@@ -2055,8 +2249,9 @@ function isCheckinStatus(status) {
     return false;
 }
 
+// Function to check if a booking should be excluded due to missing status
 function shouldExcludeBooking(item) {
-
+    // If no status is available, we can't determine which tab it belongs to
     if (!item.status) {
         console.warn('Booking has no status, excluding from both tabs:', item);
         return true;
@@ -2064,16 +2259,19 @@ function shouldExcludeBooking(item) {
     return false;
 }
 
+// Function to check if a booking's checkout date is today
 function isCheckoutDateToday(checkOutDate) {
     if (!checkOutDate) return false;
     
     try {
         const today = new Date();
         const checkoutDate = new Date(checkOutDate);
-
+        
+        // Reset time to compare only dates
         const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
         const checkoutDateOnly = new Date(checkoutDate.getFullYear(), checkoutDate.getMonth(), checkoutDate.getDate());
-
+        
+        // Business rule: show in checkout tab on the day AFTER actual checkout date
         const showDate = new Date(checkoutDateOnly);
         showDate.setDate(showDate.getDate() + 1);
         
@@ -2092,6 +2290,7 @@ function isCheckoutDateToday(checkOutDate) {
     }
 }
 
+// Function to enhance booking data with individual status checks
 async function enhanceBookingDataWithStatus(bookings) {
     if (!Array.isArray(bookings)) return bookings;
     
@@ -2133,6 +2332,7 @@ async function enhanceBookingDataWithStatus(bookings) {
     return enhancedBookings;
 }
 
+// Utility: format a date string or Date into 'Mon DD, YYYY'
 function formatDate(dateInput) {
     try {
         const d = (dateInput instanceof Date) ? dateInput : new Date(dateInput);

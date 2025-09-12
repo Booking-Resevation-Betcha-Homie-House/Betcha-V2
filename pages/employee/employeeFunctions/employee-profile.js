@@ -1,4 +1,6 @@
-﻿
+/**
+ * Initialize employee profile picture in navigation
+ */
 function initializeEmployeeProfile() {
     try {
         const profilePicture = localStorage.getItem('pfplink') || '';
@@ -9,16 +11,17 @@ function initializeEmployeeProfile() {
             console.warn('Employee profile elements not found in DOM');
             return;
         }
-
+        
+        // If profile picture exists, show it
         if (profilePicture && profilePicture.trim() !== '') {
             employeeProfileImgElement.src = profilePicture;
             employeeProfileImgElement.classList.remove('hidden');
-
+            // Remove green background when showing profile picture
             menuBtnElement.classList.remove('bg-primary');
             menuBtnElement.classList.add('bg-transparent');
             console.log('Employee profile picture loaded:', profilePicture);
         } else {
-
+            // Keep default SVG icon visible with green background
             employeeProfileImgElement.classList.add('hidden');
             menuBtnElement.classList.remove('bg-transparent');
             menuBtnElement.classList.add('bg-primary');
@@ -30,6 +33,7 @@ function initializeEmployeeProfile() {
     }
 }
 
+// Initialize profile when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeEmployeeProfile();
 });

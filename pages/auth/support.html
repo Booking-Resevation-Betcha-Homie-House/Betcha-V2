@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,7 +7,7 @@
     <link rel="icon" type="image/png" href="/public/images/icon-betcha.png">
     <title>Betcha | Support</title>
     <style>
-        
+        /* Mobile-specific optimizations for textarea */
         #messageBox {
             appearance: none;
             -webkit-appearance: none;
@@ -16,7 +16,7 @@
         
         @media (max-width: 768px) {
             #messageBox {
-                font-size: 16px !important; 
+                font-size: 16px !important; /* Prevent zoom on iOS */
             }
         }
     </style>
@@ -25,11 +25,14 @@
 <body class="bg-background">
 
   <div class="h-screen flex flex-col overflow-hidden">
-    
+    <!-- Main layout below navbar -->
     <div class="flex flex-1 overflow-hidden m-5 bg-white rounded-3xl border border-neutral-200 shadow-sm relative">
 
+      <!-- Sidebar: Ticket List -->
       <aside id="ticketSidebar" class="w-full md:w-1/3 max-w-[420px] border-r border-neutral-300 flex flex-col bg-white transition-all duration-300">
 
+        
+        <!-- Header -->
         <div class="h-[72px] px-5 flex justify-between items-center bg-white border-b border-neutral-300 sticky top-0 z-10 md:px-10">
           <p class="text-2xl font-semibold font-manrope text-primary-text">Tickets</p>
           <button data-modal-target="supportChoiceModal" 
@@ -46,13 +49,15 @@
         </div>
 
         <div class="flex-1 overflow-y-auto divide-y divide-neutral-200" id="ticketCardContainer">
-          
+          <!-- Tickets will be populated dynamically by support-tickets.js -->
         </div>
       </aside>
 
       <main id="ticketMain"
         class="absolute inset-0 w-full flex flex-col md:static bg-gradient-to-br from-white to-neutral-100 z-20 transition-transform duration-300 ease-in-out translate-x-full md:translate-x-0 ">
 
+
+        <!-- Chat Header -->
         <div class="chat-header h-[72px] px-5 flex justify-between items-center bg-white border-b border-neutral-300 shadow-sm md:px-10">
           <div class="flex gap-3 items-center">
               <button id="ticketBackBtn" class="group cursor-pointer btn-round border-none flex items-center justify-center 
@@ -76,14 +81,17 @@
           <span class="text-xs px-3 py-1 rounded-full bg-green-100 text-green-700 font-medium" id="status">Open</span>
         </div>
 
+        <!-- Messages Area -->
         <div class="flex-1 overflow-y-auto px-10 py-6 space-y-6" id="messageContainer">
-
+          
+          <!-- Guest Message -->
           <div id="meBubble" class="message-guest">
             <div class="message-bubble" >
               <p>Hi, I need help with my booking. It’s not confirming 🥲</p>
             </div>
           </div>
 
+          <!-- CSR Message -->
           <div id="csrBubble" class="message-csr">
             <div class="message-bubble">
               <p>Hey! Let me check your booking ID real quick 🙌</p>
@@ -92,6 +100,7 @@
           
         </div>
 
+        <!-- Message Input -->
         <div class="shrink-0 border-t border-neutral-300 bg-white px-6 py-4">
           <form class="flex items-center gap-3">
             <div class="flex flex-1 items-center bg-white border border-gray-300 rounded-3xl px-4 py-1.5 pr-4 transition focus-within:ring-2 focus-within:ring-primary">
@@ -108,10 +117,13 @@
 
     </div>
   </div>
+    
 
+  <!-- Support Choice Modal -->
   <div id="supportChoiceModal" class="modal fixed inset-0 bg-black/50 flex items-end sm:items-center justify-center hidden z-50">
     <div class="bg-background w-[500px] rounded-3xl animate-fade-in-up overflow-hidden modal-animate">
-
+      
+      <!-- Close Button -->
       <div class="w-full p-5 flex justify-end">
         <button data-close-modal class="cursor-pointer btn-round border-none  hover:bg-neutral-300 flex items-center justify-center active:scale-95">
           <span>
@@ -122,6 +134,7 @@
         </button>
       </div>
 
+      <!-- Content -->
       <div class="p-8 pt-0">
         <div class="text-center mb-10">
           <p class="text-2xl font-semibold text-primary-text font-manrope">Create a support ticket</p>
@@ -130,6 +143,7 @@
           </p>
         </div>
 
+        <!-- Buttons side-by-side -->
         <div class="flex flex-col gap-5">
           <button type="button" onclick="window.location.href='create-ticket.html'" class="relative w-full btn rounded-full bg-primary px-6 py-3 flex flex-col items-center justify-center overflow-hidden hover:cursor-pointer active:bg-[#0E5A31] active:scale-95  transition-all duration-500 ease-in-out ">
               <span class="text-secondary-text text-lg transition-transform duration-500 ease-in-out">Assign to Customer Support</span>
@@ -139,6 +153,8 @@
       </div>
     </div>
   </div>
+
+
 
   <script defer src="../../src/navbar.js"></script>
   <script defer src="../../src/modal.js"></script>

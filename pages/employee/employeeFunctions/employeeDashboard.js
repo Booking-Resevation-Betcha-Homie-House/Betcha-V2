@@ -1,4 +1,6 @@
-﻿
+/**
+ * Initialize employee profile picture in navigation
+ */
 function initializeEmployeeProfile() {
     try {
         const profilePicture = localStorage.getItem('pfplink') || '';
@@ -9,16 +11,17 @@ function initializeEmployeeProfile() {
             console.warn('Employee profile elements not found in DOM');
             return;
         }
-
+        
+        // If profile picture exists, show it
         if (profilePicture && profilePicture.trim() !== '') {
             employeeProfileImgElement.src = profilePicture;
             employeeProfileImgElement.classList.remove('hidden');
-
+            // Remove green background when showing profile picture
             menuBtnElement.classList.remove('bg-primary');
             menuBtnElement.classList.add('bg-transparent');
             console.log('Employee profile picture loaded:', profilePicture);
         } else {
-
+            // Keep default SVG icon visible with green background
             employeeProfileImgElement.classList.add('hidden');
             menuBtnElement.classList.remove('bg-transparent');
             menuBtnElement.classList.add('bg-primary');
@@ -30,18 +33,22 @@ function initializeEmployeeProfile() {
     }
 }
 
+// Initialize profile when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeEmployeeProfile();
 });
 
+// Grid layout update function
 function updateGridLayout() {
   const grids = document.querySelectorAll('.my-grid');
 
   grids.forEach(grid => {
     const visibleCards = [...grid.children].filter(el => !el.classList.contains('hidden'));
-
+    
+    // reset all spans first
     visibleCards.forEach(el => el.classList.remove('md:col-span-2'));
 
+    // if only 1 visible card, make it full width
     if (visibleCards.length === 1) {
       visibleCards[0].classList.add('md:col-span-2');
     }
@@ -49,22 +56,25 @@ function updateGridLayout() {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-
+  // Show skeleton loading while initializing
   if (window.employeeSkeleton) {
     window.employeeSkeleton.showSkeleton();
   }
-
+  
+  // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
   initializeDashboardFeatures();
   updateGridLayout();
   loadDashboardMetrics();
-
+  
+  // Hide skeleton after initialization (simulate loading complete)
   setTimeout(() => {
     if (window.employeeSkeleton) {
       window.employeeSkeleton.hideSkeleton();
     }
-  }, 1500); 
+  }, 1500); // Adjust timing as needed
 });
 
+// Initialize dashboard features
 function initializeDashboardFeatures() {
   const ticketsContainer = document.querySelector('#tickets .space-y-4');
   if (ticketsContainer) {
@@ -88,6 +98,7 @@ function initializeDashboardFeatures() {
   }
 }
 
+// Minimal metrics load (copied from PSR usage)
 async function loadDashboardMetrics() {
   try {
     const [summaryData, peakBookingData] = await Promise.all([
@@ -152,6 +163,7 @@ function populatePeakBookingData(peakData) {
   });
 }
 
+// Load and populate tickets from API
 async function loadAndPopulateTickets() {
   try {
     const userId = localStorage.getItem('userId') || localStorage.getItem('userID');
@@ -178,6 +190,7 @@ async function loadAndPopulateTickets() {
   }
 }
 
+// Populate tickets in the UI
 function populateTickets(tickets) {
   const ticketsContainer = document.querySelector('#tickets .space-y-4');
   if (!ticketsContainer) {
@@ -200,6 +213,7 @@ function populateTickets(tickets) {
   });
 }
 
+// Create individual ticket element matching the existing HTML structure
 function createTicketElement(ticket) {
   const ticketDiv = document.createElement('div');
   ticketDiv.className = 'flex items-center justify-between bg-neutral-50 p-4 border cursor-pointer border-neutral-200 rounded-xl group hover:bg-neutral-100 transition-all duration-300 ease-in-out';
@@ -238,6 +252,7 @@ function createTicketElement(ticket) {
   return ticketDiv;
 }
 
+// Show no tickets message
 function showNoTicketsMessage() {
   const ticketsContainer = document.querySelector('#tickets .space-y-4');
   if (!ticketsContainer) return;
@@ -253,6 +268,7 @@ function showNoTicketsMessage() {
   `;
 }
 
+// Show tickets error message
 function showTicketsError() {
   const ticketsContainer = document.querySelector('#tickets .space-y-4');
   if (!ticketsContainer) return;
@@ -269,9 +285,10 @@ function showTicketsError() {
   `;
 }
 
+// Load and populate transactions from API
 async function loadAndPopulateTransactions() {
   try {
-
+    // Get property IDs from localStorage
     const properties = localStorage.getItem('properties');
     if (!properties) {
       console.warn('Properties not found in localStorage, cannot load transactions');
@@ -291,6 +308,9 @@ async function loadAndPopulateTransactions() {
       return;
     }
 
+    
+    
+    // Fetch transactions from API
     const response = await fetch('https://betcha-api.onrender.com/ts/transactionsByProperties', {
       method: 'POST',
       headers: {
@@ -306,9 +326,10 @@ async function loadAndPopulateTransactions() {
     }
     
     const data = await response.json();
-
+    
+    // Handle the actual API response structure with 'pending' and 'completed' arrays
     if (data.pending || data.completed) {
-
+      // Combine pending and completed transactions
       const allTransactions = [
         ...(data.pending || []),
         ...(data.completed || [])
@@ -331,6 +352,7 @@ async function loadAndPopulateTransactions() {
   }
 }
 
+// Populate transactions in the UI
 function populateTransactions(transactions) {
   const transactionsContainer = document.querySelector('#transactions .space-y-4');
   if (!transactionsContainer) {
@@ -344,7 +366,8 @@ function populateTransactions(transactions) {
     showNoTransactionsMessage();
     return;
   }
-
+  
+  // Sort by transaction number descending (e.g., "#000000073" -> 73). Fallback to checkIn date.
   const getTransNoValue = (t) => {
     const raw = t?.transNo ?? t?.transactionId ?? t?._id;
     if (raw === undefined || raw === null) return -Infinity;
@@ -368,6 +391,7 @@ function populateTransactions(transactions) {
   });
 }
 
+// Create individual transaction element matching the existing HTML structure
 function createTransactionElement(transaction) {
   const transactionDiv = document.createElement('div');
   transactionDiv.className = 'grid grid-cols-2 md:grid-cols-4 gap-5 p-4 bg-neutral-50 rounded-xl border border-neutral-200 hover:bg-neutral-100 transition-all duration-300 ease-in-out';
@@ -421,6 +445,7 @@ function createTransactionElement(transaction) {
   return transactionDiv;
 }
 
+// Show no transactions message
 function showNoTransactionsMessage() {
   const transactionsContainer = document.querySelector('#transactions .space-y-4');
   if (!transactionsContainer) return;
@@ -436,6 +461,7 @@ function showNoTransactionsMessage() {
   `;
 }
 
+// Show transactions error message
 function showTransactionsError() {
   const transactionsContainer = document.querySelector('#transactions .space-y-4');
   if (!transactionsContainer) return;
@@ -452,9 +478,10 @@ function showTransactionsError() {
   `;
 }
 
+// Load and populate today's check-ins from API
 async function loadAndPopulateTodayCheckins() {
   try {
-
+    // Get property IDs from localStorage
     const properties = localStorage.getItem('properties');
     if (!properties) {
       console.warn('Properties not found in localStorage, cannot load today\'s check-ins');
@@ -474,6 +501,9 @@ async function loadAndPopulateTodayCheckins() {
       return;
     }
 
+    
+    
+    // Fetch today's check-ins from API
     const response = await fetch('https://betcha-api.onrender.com/pm/bookings/checkinToday', {
       method: 'POST',
       headers: {
@@ -489,22 +519,26 @@ async function loadAndPopulateTodayCheckins() {
     }
     
     const data = await response.json();
-
+    
+    // Debug: Log the raw data structure
     if (Array.isArray(data)) {}
-
+    
+    // Handle the actual API response structure - it's an array with message and booking objects
     if (Array.isArray(data)) {
-
+      // Filter out message objects and keep only valid booking objects
       const allBookings = data.filter(item => item.bookingId && item.propertyId);
-
+      
+      // Apply the same status filtering logic as the PM page
       const validBookings = allBookings.filter(booking => {
-
+        // Skip bookings without status
         if (!booking.status) {
           console.warn('Booking has no status, excluding:', booking);
           return false;
         }
         
         const statusLower = booking.status.toString().toLowerCase();
-
+        
+        // Exclude cancelled, completed, checked-out, and any pending variants (e.g., "pending", "pending payment", "payment pending")
         if (statusLower === 'cancel' || 
             statusLower === 'cancelled' ||
             statusLower === 'checked-out' || 
@@ -522,10 +556,13 @@ async function loadAndPopulateTodayCheckins() {
           
           return false;
         }
-
+        
+        // Include reserved, confirmed, and checked-in bookings
         return true;
       });
-
+      
+      
+      
       if (validBookings.length > 0) {
         populateTodayCheckins(validBookings);
       } else {
@@ -533,7 +570,7 @@ async function loadAndPopulateTodayCheckins() {
         showNoCheckinsMessage();
       }
     } else if (data.bookings && Array.isArray(data.bookings)) {
-
+      // Fallback for the expected structure - apply same filtering
       const validBookings = data.bookings.filter(booking => {
         if (!booking.status) return false;
         
@@ -559,37 +596,46 @@ async function loadAndPopulateTodayCheckins() {
   }
 }
 
+// Populate today's check-ins in the UI
 function populateTodayCheckins(checkins) {
   const pmContainer = document.querySelector('#PM .space-y-4');
   if (!pmContainer) {
     console.warn('PM container not found');
     return;
   }
-
+  
+  // Clear existing content
   pmContainer.innerHTML = '';
   
   if (checkins.length === 0) {
     showNoCheckinsMessage();
     return;
   }
-
+  
+  // Sort check-ins by check-in time (earliest first)
   const sortedCheckins = checkins.sort((a, b) => new Date(a.checkIn) - new Date(b.checkIn));
-
+  
+  // Create check-in elements
   sortedCheckins.forEach(checkin => {
     const checkinElement = createCheckinElement(checkin);
     pmContainer.appendChild(checkinElement);
   });
-
+  
+  
 }
 
+// Create individual check-in element matching the existing HTML structure
 function createCheckinElement(checkin) {
   const checkinDiv = document.createElement('div');
   checkinDiv.className = 'flex flex-col font-inter sm:flex-row sm:items-center justify-between bg-neutral-50 p-4 rounded-xl border border-neutral-200 hover:bg-neutral-100 transition';
-
+  
+  // Get guest name using the correct field name
   const guestName = checkin.nameOfGuest || checkin.guestName || checkin.customerName || 'Guest User';
-
+  
+  // Get property name using the correct field name from API
   const propertyName = checkin.nameOfProperty || checkin.propertyName || 'Property';
-
+  
+  // Format check-in date and time
   let checkInDate = 'N/A';
   let checkInTime = 'N/A';
   if (checkin.checkIn) {
@@ -600,7 +646,7 @@ function createCheckinElement(checkin) {
         day: 'numeric',
         year: 'numeric'
       });
-
+      // Use timeIn from API if available, otherwise format from date
       checkInTime = checkin.timeIn || date.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
@@ -610,7 +656,8 @@ function createCheckinElement(checkin) {
       console.warn('Invalid checkIn date format:', checkin.checkIn);
     }
   }
-
+  
+  // Format check-out date and time
   let checkOutDate = 'N/A';
   let checkOutTime = 'N/A';
   if (checkin.checkOut) {
@@ -654,10 +701,13 @@ function createCheckinElement(checkin) {
       </div>
     </div>
   `;
-
+  
+  // Removed click handler to prevent redirect/opening modal
+  
   return checkinDiv;
 }
 
+// Show no check-ins message
 function showNoCheckinsMessage() {
   const pmContainer = document.querySelector('#PM .space-y-4');
   if (!pmContainer) return;
@@ -673,6 +723,7 @@ function showNoCheckinsMessage() {
   `;
 }
 
+// Show check-ins error message
 function showCheckinsError() {
   const pmContainer = document.querySelector('#PM .space-y-4');
   if (!pmContainer) return;
@@ -689,6 +740,7 @@ function showCheckinsError() {
   `;
 }
 
+// Role Privilege Checking Functions for Dashboard
 async function checkRolePrivileges() {
     try {
         const roleID = localStorage.getItem('roleID');
@@ -698,12 +750,14 @@ async function checkRolePrivileges() {
         }
 
         console.log('Dashboard - Checking privileges for roleID:', roleID);
-
+        
+        // Fetch role privileges from API
         const roleData = await fetchRolePrivileges(roleID);
         
         if (roleData && roleData.privileges) {
             console.log('Dashboard - Role privileges:', roleData.privileges);
-
+            
+            // Filter dashboard sections based on privileges
             filterDashboardSections(roleData.privileges);
         } else {
             console.error('Dashboard - No privileges found in role data');
@@ -738,21 +792,24 @@ async function fetchRolePrivileges(roleID) {
 
 function filterDashboardSections(privileges) {
     console.log('Dashboard - Filtering sections and sidebar based on privileges:', privileges);
-
+    
+    // Define content sections that should be hidden based on privileges
     const sectionPrivilegeMap = {
-        'PSR-summary': { privileges: ['PSR'], display: 'block' }, 
-        'tickets': { privileges: ['TK'], display: 'block' }, 
-        'PM': { privileges: ['PM'], display: 'block' }, 
-        'transactions': { privileges: ['TS'], display: 'flex' } 
+        'PSR-summary': { privileges: ['PSR'], display: 'block' }, // PSR Summary section requires PSR privilege
+        'tickets': { privileges: ['TK'], display: 'block' }, // Tickets section requires TK privilege  
+        'PM': { privileges: ['PM'], display: 'block' }, // Property Monitoring section requires PM privilege
+        'transactions': { privileges: ['TS'], display: 'flex' } // Transactions section requires TS privilege
     };
-
+    
+    // Define sidebar navigation items that should be hidden based on privileges
     const sidebarPrivilegeMap = {
-        'sidebar-psr': ['PSR'], 
-        'sidebar-tk': ['TK'], 
-        'sidebar-pm': ['PM'], 
-        'sidebar-ts': ['TS'] 
+        'sidebar-psr': ['PSR'], // PSR link requires PSR privilege
+        'sidebar-tk': ['TK'], // TK link requires TK privilege  
+        'sidebar-pm': ['PM'], // PM link requires PM privilege
+        'sidebar-ts': ['TS'] // TS link requires TS privilege
     };
-
+    
+    // Filter content sections
     Object.keys(sectionPrivilegeMap).forEach(sectionId => {
         const section = document.getElementById(sectionId);
         if (!section) {
@@ -763,7 +820,8 @@ function filterDashboardSections(privileges) {
         const sectionConfig = sectionPrivilegeMap[sectionId];
         const requiredPrivileges = sectionConfig.privileges;
         let hasAccess = false;
-
+        
+        // Check if user has any of the required privileges for this section
         privileges.forEach(privilege => {
             if (requiredPrivileges.includes(privilege)) {
                 hasAccess = true;
@@ -778,7 +836,8 @@ function filterDashboardSections(privileges) {
             section.style.display = sectionConfig.display;
         }
     });
-
+    
+    // Filter sidebar navigation items
     Object.keys(sidebarPrivilegeMap).forEach(sidebarId => {
         const sidebarItem = document.getElementById(sidebarId);
         if (!sidebarItem) {
@@ -788,7 +847,8 @@ function filterDashboardSections(privileges) {
         
         const requiredPrivileges = sidebarPrivilegeMap[sidebarId];
         let hasAccess = false;
-
+        
+        // Check if user has any of the required privileges for this sidebar item
         privileges.forEach(privilege => {
             if (requiredPrivileges.includes(privilege)) {
                 hasAccess = true;
@@ -803,9 +863,11 @@ function filterDashboardSections(privileges) {
             sidebarItem.style.display = 'flex';
         }
     });
-
+    
+    // Update grid layout after filtering
     updateGridLayout();
-
+    
+    // Show navigation after privilege filtering is complete
     const sidebarNav = document.querySelector('#sidebar nav');
     if (sidebarNav) {
         sidebarNav.style.transition = 'opacity 0.3s ease-in-out, visibility 0.3s ease-in-out';
@@ -814,8 +876,10 @@ function filterDashboardSections(privileges) {
     }
 }
 
+// Export filterDashboardSections to global scope for universal skeleton
 window.filterDashboardSections = filterDashboardSections;
 
+// Skeleton Loading Helper Functions
 function showDashboardSkeleton() {
     if (window.dashboardSkeleton) {
         window.dashboardSkeleton.showSkeleton();
@@ -834,6 +898,7 @@ function simulateDashboardLoading(duration = 3000) {
     }
 }
 
+// Integration with existing async functions
 async function loadDashboardWithSkeleton() {
     showDashboardSkeleton();
     
@@ -851,6 +916,7 @@ async function loadDashboardWithSkeleton() {
     }
 }
 
+// Export helper functions to global scope
 window.showDashboardSkeleton = showDashboardSkeleton;
 window.hideDashboardSkeleton = hideDashboardSkeleton;
 window.simulateDashboardLoading = simulateDashboardLoading;

@@ -1,8 +1,9 @@
-﻿document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", () => {
   function initializeSearchModal() {
     const searchModal = document.getElementById('searchModal');
     if (!searchModal) return;
 
+    // Search state object
     const searchState = {
   city: '',
   checkIn: '',
@@ -15,13 +16,14 @@
     const tabs = searchModal.querySelectorAll('.tab-btn');
     const contents = searchModal.querySelectorAll('.tab-content');
 
+    // Pills elements
     const locationPill = document.getElementById('locationPill');
     const datePill = document.getElementById('datePill');
     const guestPill = document.getElementById('guestPill');
     const pricePill = document.getElementById('pricePill');
 
     function setActiveTab(index) {
-      
+      // Update tab buttons
       tabs.forEach((tab, i) => {
         const span = tab.querySelector('span');
         if (i === index) {
@@ -35,6 +37,7 @@
         }
       });
 
+      // Update content visibility
       contents.forEach((content, i) => {
         if (i === index) {
           content.classList.remove('hidden');
@@ -46,12 +49,15 @@
       });
     }
 
+    // Add click handlers
     tabs.forEach((tab, index) => {
       tab.addEventListener('click', () => setActiveTab(index));
     });
 
+    // Initialize first tab
     setActiveTab(0);
 
+    // Handle modal open/close
     const searchTrigger = document.getElementById('searchTrigger');
     const closeBtn = searchModal.querySelector('[data-close-modal]');
 
@@ -59,7 +65,7 @@
       searchTrigger.addEventListener('click', () => {
         searchModal.classList.remove('hidden');
         document.body.classList.add('modal-open');
-        
+        // Reset to first tab when opening
         setActiveTab(0);
       });
     }
@@ -71,12 +77,13 @@
       });
     }
 
+    // Pills click handlers for direct editing
     function setupPillClickHandlers() {
       const pills = [
-        { element: locationPill, tabIndex: 0 }, 
-        { element: datePill, tabIndex: 1 },     
-        { element: guestPill, tabIndex: 2 },    
-        { element: pricePill, tabIndex: 3 }     
+        { element: locationPill, tabIndex: 0 }, // Where -> Location tab (first)
+        { element: datePill, tabIndex: 1 },     // When -> Date tab (second)
+        { element: guestPill, tabIndex: 2 },    // Who -> Guest tab (third)
+        { element: pricePill, tabIndex: 3 }     // Price -> Price tab (fourth)
       ];
       
       pills.forEach(({ element, tabIndex }) => {
@@ -88,17 +95,20 @@
       });
     }
 
+    // Initialize search state handlers
     function updatePills() {
-      
+      // Helper to set pill label and value
       function setPill(pill, label, valueHtml) {
         pill.querySelector('.pill-text').innerHTML = `<span class="font-semibold">${label}</span>` + (valueHtml ? ` <span class="text-xs text-neutral-500 ml-1">${valueHtml}</span>` : '');
       }
 
+      // Location pill
       setPill(locationPill, 'Where', searchState.city ? searchState.city : '');
 
+      // Date pill
       let dateValue = '';
       if (searchState.checkIn && searchState.checkOut) {
-        
+        // Format: Sept 2, 25 - Sept 4, 25
         function formatDate(dateStr) {
           const d = new Date(dateStr);
           const month = d.toLocaleString('en-US', { month: 'short' });
@@ -119,12 +129,14 @@
       }
       setPill(datePill, 'When', dateValue);
 
+      // Guest pill
       let guestValue = '';
       if (searchState.guests > 0) {
         guestValue = `${searchState.guests} ${searchState.guests === 1 ? 'guest' : 'guests'}`;
       }
       setPill(guestPill, 'Who', guestValue);
 
+      // Price pill
       let priceValue = '';
       if (searchState.priceStart || searchState.priceEnd) {
         priceValue = `PHP ${searchState.priceStart.toLocaleString()} - ${searchState.priceEnd.toLocaleString()}`;
@@ -132,6 +144,7 @@
       setPill(pricePill, 'Price', priceValue);
     }
 
+    // Location selection handler
     const locationInput = document.getElementById('searchCity');
     const locationList = document.querySelector('[data-location-list]');
     
@@ -146,6 +159,7 @@
       });
     }
 
+    // Calendar date selection handler
     const checkInInput = document.getElementById('searchCheckIn');
     const checkOutInput = document.getElementById('searchCheckOut');
     
@@ -163,6 +177,7 @@
       });
     }
 
+    // Guest count handler
     const guestCount = document.getElementById('searchGuestCount');
     if (guestCount) {
       const observer = new MutationObserver(() => {
@@ -177,6 +192,7 @@
       });
     }
 
+    // Price range handler
     const minPrice = document.getElementById('input-minPrice');
     const maxPrice = document.getElementById('input-maxPrice');
     const minRange = document.getElementById('minRange');
@@ -192,6 +208,7 @@
       }
     });
 
+    // Clear button handler
     const clearBtn = document.getElementById('clearSearchBtn');
     if (clearBtn) {
       clearBtn.addEventListener('click', () => {
@@ -202,6 +219,7 @@
         searchState.priceStart = 0;
         searchState.priceEnd = 100000;
 
+        // Reset inputs
         if (locationInput) locationInput.value = '';
         document.getElementById('searchCheckIn').value = '';
         document.getElementById('searchCheckOut').value = '';
@@ -215,10 +233,14 @@
       });
     }
 
+    // Make setActiveTab available globally
     window.setActiveTab = setActiveTab;
 
+    // Setup pill click handlers
     setupPillClickHandlers();
 
+    // Initial pills update
+  // Set initial price range inputs
   if (minPrice) minPrice.value = '0';
   if (maxPrice) maxPrice.value = '100000';
   if (minRange) minRange.value = '0';
@@ -226,5 +248,6 @@
   updatePills();
   }
 
+  // Initialize
   initializeSearchModal();
 });

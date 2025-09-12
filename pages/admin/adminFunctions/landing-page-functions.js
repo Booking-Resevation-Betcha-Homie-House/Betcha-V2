@@ -1,20 +1,26 @@
-﻿
+// Landing Page Functions - Fetch and Update Landing Page Content
 
+// API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 const LANDING_GET_URL = `${API_BASE}/landing/display/68a735c07753114c9e87c793`;
 const LANDING_PUT_URL = `${API_BASE}/landing/update/68a735c07753114c9e87c793`;
 const PROPERTY_LIST_URL = `${API_BASE}/property/display`;
 
+// Global variables to store landing page data
 let landingPageData = null;
 let allProperties = [];
 let currentFeaturedIds = [];
 
+// DOM Elements - These will be populated when DOM is ready
 let bannerTitle, bannerDescription, bannerImage, featuredUnitsContainer;
 
+// Edit modal elements
 let editModal, titleInput, descriptionInput, fileInput, previewContainer, colorRadios, saveButton;
 
+// Property selection elements
 let propertySearchInput, propertyListContainer, selectedPropertiesContainer;
 
+// Utility functions for skeleton loading
 function getLandingPageSkeleton() {
     const skeleton = document.getElementById('landingPageSkeleton');
     if (!skeleton) {
@@ -31,6 +37,7 @@ function getLandingPageContent() {
     return content;
 }
 
+// Function to show skeleton loading
 function showSkeleton() {
     const skeleton = getLandingPageSkeleton();
     const content = getLandingPageContent();
@@ -43,6 +50,7 @@ function showSkeleton() {
     }
 }
 
+// Function to hide skeleton loading
 function hideSkeleton() {
     const skeleton = getLandingPageSkeleton();
     const content = getLandingPageContent();
@@ -52,10 +60,11 @@ function hideSkeleton() {
     }
     if (content) {
         content.classList.remove('hidden');
-        content.style.display = 'flex'; 
+        content.style.display = 'flex'; // Restore flex display
     }
 }
 
+// Initialize page when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeDOMElements();
     fetchLandingPageData();
@@ -64,20 +73,27 @@ document.addEventListener('DOMContentLoaded', function() {
     setupFileUpload();
 });
 
+/**
+ * Initialize DOM elements
+ */
 function initializeDOMElements() {
-
+    // Main page elements
     bannerTitle = document.getElementById('banner-title');
     bannerDescription = document.getElementById('banner-description');
     bannerImage = document.getElementById('banner-image');
     featuredUnitsContainer = document.getElementById('featured-units-container');
 
+    // Edit modal elements
     editModal = document.getElementById('editLPContent');
     titleInput = document.getElementById('input-lpc-title');
     descriptionInput = document.getElementById('input-lpc-subtitle');
     fileInput = document.getElementById('fileInput');
     previewContainer = document.getElementById('previewContainer');
     colorRadios = document.querySelectorAll('input[name="color"]');
+    
 
+    
+    // Find save button by looking for the button with "Save" text
     if (editModal) {
         const buttons = editModal.querySelectorAll('button');
         saveButton = Array.from(buttons).find(btn => 
@@ -86,11 +102,15 @@ function initializeDOMElements() {
         );
     }
 
+    // Property selection elements
     propertySearchInput = document.getElementById('property-search');
     propertyListContainer = document.getElementById('property-list');
     selectedPropertiesContainer = document.getElementById('selected-properties');
 }
 
+/**
+ * Fetch all properties from API
+ */
 async function fetchAllProperties() {
     try {
         
@@ -106,7 +126,8 @@ async function fetchAllProperties() {
         }
 
         const data = await response.json();
-
+        
+        // Filter to only include active properties
         allProperties = Array.isArray(data) ? data.filter(property => property.status === 'Active') : [];
         
     } catch (error) {
@@ -116,6 +137,9 @@ async function fetchAllProperties() {
     }
 }
 
+/**
+ * Fetch landing page data from API
+ */
 async function fetchLandingPageData() {
     try {
         showSkeleton();
@@ -144,9 +168,12 @@ async function fetchLandingPageData() {
     }
 }
 
+/**
+ * Populate the landing page with fetched data
+ */
 function populateLandingPageContent(data) {
     try {
-
+        // Update banner content based on actual API response structure
         if (bannerTitle && data.title) {
             bannerTitle.textContent = data.title;
         }
@@ -159,15 +186,17 @@ function populateLandingPageContent(data) {
             bannerImage.src = data.imageLink;
             bannerImage.alt = data.title || 'Banner Image';
         }
-
+        
+        // Apply text color if specified
         if (data.txtColor) {
             const color = data.txtColor.toLowerCase() === 'black' ? '#000000' : '#ffffff';
             if (bannerTitle) bannerTitle.style.color = color;
             if (bannerDescription) bannerDescription.style.color = color;
         }
 
+        // Update featured units
         if (data.featured && Array.isArray(data.featured)) {
-
+            // Store current featured property IDs
             currentFeaturedIds = data.featured.map(property => property._id);
             populateFeaturedUnits(data.featured);
         }
@@ -178,52 +207,64 @@ function populateLandingPageContent(data) {
     }
 }
 
+/**
+ * Populate featured units section
+ */
 function populateFeaturedUnits(units) {
     if (!featuredUnitsContainer) {
         console.warn('Featured units container not found');
         return;
     }
 
+    // Clear existing content except the first unit (template)
     const children = featuredUnitsContainer.children;
     while (children.length > 1) {
         children[1].remove();
     }
 
+    // If no units provided, hide the section or show placeholder
     if (!units || units.length === 0) {
         return;
     }
 
+    // Update the first unit and clone for additional units
     const templateUnit = children[0];
     
     units.forEach((unit, index) => {
         let unitElement;
         
         if (index === 0) {
-
+            // Use the existing template for first unit
             unitElement = templateUnit;
         } else {
-
+            // Clone template for additional units
             unitElement = templateUnit.cloneNode(true);
             featuredUnitsContainer.appendChild(unitElement);
         }
-
+        
+        // Update unit content
         updateUnitElement(unitElement, unit);
     });
 }
 
+/**
+ * Update individual unit element with data
+ */
 function updateUnitElement(unitElement, unitData) {
     try {
-
+        // Update background image - use first photo from photoLinks array
         const bgDiv = unitElement.querySelector('.absolute.inset-0');
         if (bgDiv && unitData.photoLinks && unitData.photoLinks.length > 0) {
             bgDiv.style.backgroundImage = `url('${unitData.photoLinks[0]}')`;
         }
-
+        
+        // Update property name
         const nameElement = unitElement.querySelector('h2');
         if (nameElement && unitData.name) {
             nameElement.textContent = unitData.name;
         }
-
+        
+        // Update location (combine address and city)
         const locationElement = unitElement.querySelector('p.font-inter.text-secondary-text.text-sm');
         if (locationElement) {
             const location = unitData.city ? `${unitData.address}, ${unitData.city}` : unitData.address;
@@ -237,47 +278,60 @@ function updateUnitElement(unitElement, unitData) {
     }
 }
 
+/**
+ * Setup edit modal events
+ */
 function setupEditModalEvents() {
     if (!editModal) return;
 
+    // Open modal event - populate with current data
     const editButton = document.querySelector('[data-modal-target="editLPContent"]');
     if (editButton) {
         editButton.addEventListener('click', populateEditModal);
     }
 
+    // Save button event
     if (saveButton) {
         saveButton.addEventListener('click', handleSaveChanges);
     }
 
+    // Color radio events
     colorRadios.forEach(radio => {
         radio.addEventListener('change', handleColorChange);
     });
 
+    // Property search event
     if (propertySearchInput) {
         propertySearchInput.addEventListener('input', handlePropertySearch);
     }
 }
 
+/**
+ * Populate edit modal with current data
+ */
 function populateEditModal() {
     if (!landingPageData) return;
 
     try {
-
+        // Populate title
         if (titleInput && landingPageData.title) {
             titleInput.value = landingPageData.title;
         }
 
+        // Populate description
         if (descriptionInput && landingPageData.content) {
             descriptionInput.value = landingPageData.content;
         }
 
+        // Set color radio based on txtColor
         if (landingPageData.txtColor && colorRadios.length > 0) {
-            const colorValue = landingPageData.txtColor; 
+            const colorValue = landingPageData.txtColor; // "Black" or "White"
             colorRadios.forEach(radio => {
                 radio.checked = (radio.value === colorValue);
             });
         }
 
+        // Populate property list
         populatePropertyList();
         
     } catch (error) {
@@ -285,6 +339,9 @@ function populateEditModal() {
     }
 }
 
+/**
+ * Populate property list in the modal
+ */
 function populatePropertyList(searchTerm = '') {
     if (!propertyListContainer || !allProperties.length) {
         if (propertyListContainer) {
@@ -293,6 +350,7 @@ function populatePropertyList(searchTerm = '') {
         return;
     }
 
+    // Filter properties based on search term
     const filteredProperties = allProperties.filter(property => {
         if (!searchTerm) return true;
         const searchLower = searchTerm.toLowerCase();
@@ -303,6 +361,7 @@ function populatePropertyList(searchTerm = '') {
         );
     });
 
+    // Generate property list HTML
     let propertyListHTML = '';
     
     if (filteredProperties.length === 0) {
@@ -335,35 +394,46 @@ function populatePropertyList(searchTerm = '') {
     }
 
     propertyListContainer.innerHTML = propertyListHTML;
-
+    
+    // Update selected properties display
     updateSelectedPropertiesDisplay();
 }
 
+/**
+ * Handle property search input
+ */
 function handlePropertySearch(event) {
     const searchTerm = event.target.value;
     populatePropertyList(searchTerm);
 }
 
+/**
+ * Handle property checkbox selection
+ */
 function handlePropertySelection(checkbox) {
     const propertyId = checkbox.value;
     const propertyName = checkbox.getAttribute('data-name');
     
     if (checkbox.checked) {
-
+        // Add to selected if not already there
         if (!currentFeaturedIds.includes(propertyId)) {
             currentFeaturedIds.push(propertyId);
         }
     } else {
-
+        // Remove from selected
         const index = currentFeaturedIds.indexOf(propertyId);
         if (index > -1) {
             currentFeaturedIds.splice(index, 1);
         }
     }
-
+    
+    // Update selected properties display
     updateSelectedPropertiesDisplay();
 }
 
+/**
+ * Update the display of selected properties
+ */
 function updateSelectedPropertiesDisplay() {
     if (!selectedPropertiesContainer) return;
 
@@ -391,45 +461,63 @@ function updateSelectedPropertiesDisplay() {
     selectedPropertiesContainer.innerHTML = selectedPropertiesHTML;
 }
 
+/**
+ * Remove a selected property
+ */
 function removeSelectedProperty(propertyId) {
     const index = currentFeaturedIds.indexOf(propertyId);
     if (index > -1) {
         currentFeaturedIds.splice(index, 1);
     }
-
+    
+    // Uncheck the corresponding checkbox
     const checkbox = propertyListContainer?.querySelector(`input[value="${propertyId}"]`);
     if (checkbox) {
         checkbox.checked = false;
     }
-
+    
+    // Update display
     updateSelectedPropertiesDisplay();
 }
 
+/**
+ * Handle color change in edit modal
+ */
 function handleColorChange(event) {
-
+    // Color change handled
 }
 
+/**
+ * Setup file upload functionality
+ */
 function setupFileUpload() {
     if (!fileInput || !previewContainer) return;
 
     const dropzone = document.getElementById('dropzone');
-
+    
+    // Check if events are already attached to prevent duplicates
     if (fileInput.dataset.eventsAttached === 'true') {
         return;
     }
-
+    
+    // File input change event
     fileInput.addEventListener('change', handleFileSelection);
-
+    
+    // Dropzone events
     if (dropzone) {
         dropzone.addEventListener('click', () => fileInput.click());
         dropzone.addEventListener('dragover', handleDragOver);
         dropzone.addEventListener('drop', handleFileDrop);
         dropzone.addEventListener('dragleave', handleDragLeave);
     }
-
+    
+    // Mark events as attached
     fileInput.dataset.eventsAttached = 'true';
 }
 
+/**
+ * Handle file selection
+ */
 function handleFileSelection(event) {
     const files = event.target.files;
     if (files.length > 0) {
@@ -437,15 +525,24 @@ function handleFileSelection(event) {
     }
 }
 
+/**
+ * Handle drag over event
+ */
 function handleDragOver(event) {
     event.preventDefault();
     event.currentTarget.classList.add('border-primary');
 }
 
+/**
+ * Handle drag leave event
+ */
 function handleDragLeave(event) {
     event.currentTarget.classList.remove('border-primary');
 }
 
+/**
+ * Handle file drop
+ */
 function handleFileDrop(event) {
     event.preventDefault();
     event.currentTarget.classList.remove('border-primary');
@@ -457,30 +554,39 @@ function handleFileDrop(event) {
     }
 }
 
+/**
+ * Display file preview
+ */
 function displayFilePreview(file) {
     if (!previewContainer) return;
 
+    // Validate file type
     if (!file.type.startsWith('image/')) {
         showErrorMessage('Please select a valid image file.');
         return;
     }
 
+    // Clear existing preview
     previewContainer.innerHTML = '';
 
+    // Create preview element
     const previewDiv = document.createElement('div');
     previewDiv.className = 'flex items-center gap-3 p-3 bg-neutral-50 rounded-lg';
-
+    
+    // Create image preview
     const img = document.createElement('img');
     img.className = 'w-16 h-16 object-cover rounded';
     img.alt = 'Preview';
-
+    
+    // Create file info
     const fileInfo = document.createElement('div');
     fileInfo.className = 'flex-1';
     fileInfo.innerHTML = `
         <p class="text-sm font-medium">${file.name}</p>
         <p class="text-xs text-neutral-500">${(file.size / 1024 / 1024).toFixed(2)} MB</p>
     `;
-
+    
+    // Create remove button
     const removeBtn = document.createElement('button');
     removeBtn.className = 'text-red-500 hover:text-red-700 p-1';
     removeBtn.innerHTML = '✕';
@@ -489,10 +595,12 @@ function displayFilePreview(file) {
         fileInput.value = '';
     });
 
+    // Read file and set preview
     const reader = new FileReader();
     reader.onload = (e) => {
         img.src = e.target.result;
-
+        
+        // Also update the banner image immediately
         const bannerImage = document.getElementById('banner-image');
         if (bannerImage) {
             bannerImage.src = e.target.result;
@@ -506,9 +614,13 @@ function displayFilePreview(file) {
     previewContainer.appendChild(previewDiv);
 }
 
+/**
+ * Handle save changes
+ */
 async function handleSaveChanges() {
     try {
-
+        
+        // Disable save button to prevent double-submission
         if (saveButton) {
             saveButton.disabled = true;
             const originalText = saveButton.querySelector('span')?.textContent || 'Save';
@@ -516,8 +628,10 @@ async function handleSaveChanges() {
             if (spanElement) spanElement.textContent = 'Saving...';
         }
 
+        // Prepare form data
         const formData = new FormData();
-
+        
+        // Add basic data fields to match API expectations
         if (titleInput?.value) {
             formData.append('title', titleInput.value);
         }
@@ -525,22 +639,26 @@ async function handleSaveChanges() {
         if (descriptionInput?.value) {
             formData.append('content', descriptionInput.value);
         }
-
+        
+        // Add text color
         const selectedColor = getSelectedColor();
         formData.append('txtColor', selectedColor);
-
+        
+        // Add image file if selected
         if (fileInput?.files && fileInput.files.length > 0) {
             formData.append('file', fileInput.files[0]);
         }
-
+        
+        // Add featured units (get selected property IDs)
         const selectedUnits = getSelectedUnits();
         if (selectedUnits.length > 0) {
-
+            // Send as array of property IDs
             selectedUnits.forEach(propertyId => {
                 formData.append('featured[]', propertyId);
             });
         }
 
+        // Make API request
         const response = await fetch(LANDING_PUT_URL, {
             method: 'PUT',
             body: formData
@@ -555,9 +673,11 @@ async function handleSaveChanges() {
 
         if (response.ok) {
             showSuccessMessage('Landing page updated successfully!');
-
+            
+            // Close modal
             closeEditModal();
-
+            
+            // Show skeleton and refresh page data
             showSkeleton();
             await fetchLandingPageData();
             
@@ -570,7 +690,7 @@ async function handleSaveChanges() {
         showErrorMessage('Failed to save changes: ' + error.message);
         
     } finally {
-
+        // Re-enable save button
         if (saveButton) {
             saveButton.disabled = false;
             const spanElement = saveButton.querySelector('span');
@@ -579,23 +699,35 @@ async function handleSaveChanges() {
     }
 }
 
+/**
+ * Get selected color from radio buttons
+ */
 function getSelectedColor() {
     const selectedRadio = Array.from(colorRadios).find(radio => radio.checked);
-    return selectedRadio ? selectedRadio.value : 'White'; 
+    return selectedRadio ? selectedRadio.value : 'White'; // Default to White
 }
 
+/**
+ * Get selected units (property IDs)
+ */
 function getSelectedUnits() {
     return currentFeaturedIds;
 }
 
+/**
+ * Close edit modal
+ */
 function closeEditModal() {
     if (editModal) {
         editModal.classList.add('hidden');
     }
 }
 
+/**
+ * Show success message
+ */
 function showSuccessMessage(message) {
-
+    // Create or update success message element
     let messageEl = document.getElementById('success-message');
     if (!messageEl) {
         messageEl = document.createElement('div');
@@ -606,14 +738,18 @@ function showSuccessMessage(message) {
     
     messageEl.textContent = '✅ ' + message;
     messageEl.classList.remove('hidden');
-
+    
+    // Auto-hide after 3 seconds
     setTimeout(() => {
         messageEl.classList.add('hidden');
     }, 3000);
 }
 
+/**
+ * Show error message
+ */
 function showErrorMessage(message) {
-
+    // Create or update error message element
     let messageEl = document.getElementById('error-message');
     if (!messageEl) {
         messageEl = document.createElement('div');
@@ -624,11 +760,15 @@ function showErrorMessage(message) {
     
     messageEl.textContent = '❌ ' + message;
     messageEl.classList.remove('hidden');
-
+    
+    // Auto-hide after 5 seconds
     setTimeout(() => {
         messageEl.classList.add('hidden');
     }, 5000);
 }
 
+
+
+// Make functions available globally for onclick handlers
 window.handlePropertySelection = handlePropertySelection;
 window.removeSelectedProperty = removeSelectedProperty;

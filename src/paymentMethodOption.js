@@ -1,4 +1,4 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
     const capitalize = str => str.charAt(0).toUpperCase() + str.slice(1);
 
     function setupDropdown(id, options, placeholder = "Select") {
@@ -6,7 +6,7 @@
         const list = document.getElementById(`${id}DropdownList`);
         const display = document.getElementById(`selected${capitalize(id)}Method`);
         const icon = document.getElementById(`${id}DropdownIcon`);
-        const otherDiv = document.getElementById('paymentNameDiv'); 
+        const otherDiv = document.getElementById('paymentNameDiv'); // the hidden div
 
         display.textContent = placeholder;
 
@@ -26,6 +26,7 @@
                 list.classList.add("hidden");
                 icon.classList.remove("rotate-180");
 
+                // Show/hide based on "Other"
                 if (opt === "Other") {
                     otherDiv.classList.remove("hidden");
                 } else {

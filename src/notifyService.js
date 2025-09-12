@@ -1,7 +1,35 @@
-﻿
+// Global Notification Service
+// Centralized helpers for creating/sending notifications across the app
 
+/*
+Usage examples (in any page script):
+
+  // Message to a user (guest/admin/employee)
+  await window.notify.sendMessage({
+      fromId, fromName, fromRole: 'admin',
+      toId, toName, toRole: 'guest',
+      message,
+      category // optional
+  });
+
+  // Cancellation notice to admin
+  await window.notify.sendCancellation({
+      fromId, fromName, fromRole: 'employee',
+      toId: adminId, toName: 'admin', toRole: 'admin',
+      message,
+      transNo,
+      numberEwalletBank,
+      amountRefund,
+      modeOfRefund,
+      reasonToGuest,
+      bookingId
+  });
+*/
+
+// Prefer an app-wide base if present; otherwise default to production URL
 const API_BASE = (window && window.API_BASE_URL) || 'https://betcha-api.onrender.com';
 
+// Shared POST helper with structured error handling
 async function postJson(endpointPath, body) {
     const url = `${API_BASE}${endpointPath}`;
     try {
@@ -30,8 +58,9 @@ function requireFields(obj, fields, context) {
     }
 }
 
+// Send a user-to-user notification message
 async function sendMessage(notification) {
-    
+    // Required minimal payload fields
     requireFields(notification, ['fromId', 'fromName', 'fromRole', 'toId', 'toName', 'toRole', 'message'], 'notify.sendMessage');
 
     const payload = {
@@ -44,11 +73,12 @@ async function sendMessage(notification) {
         message: String(notification.message || '').trim(),
         category: notification.category || undefined
     };
-    
+    // Strip undefined
     Object.keys(payload).forEach((k) => payload[k] === undefined && delete payload[k]);
     return postJson('/notify/message', payload);
 }
 
+// Send a cancellation notice (typically employee -> admin)
 async function sendCancellation(notice) {
     requireFields(notice, ['fromId', 'fromName', 'fromRole', 'toId', 'toName', 'toRole', 'message'], 'notify.sendCancellation');
 
@@ -71,22 +101,26 @@ async function sendCancellation(notice) {
     return postJson('/notify/cancellation', payload);
 }
 
+// Expose globally for non-module scripts
 window.notify = Object.freeze({
     sendMessage,
     sendCancellation,
-    
+    // System messages and utilities
     sendSystemMessage,
     getEmployeesByPropertyAndPrivilege,
     notifyEmployeesByProperty,
-    
+    // Email helper
     sendBookingEmail,
-    
+    // Convenience wrappers for guest actions
     notifyReservationConfirmedToTS,
     notifyPaymentCompletedToTS
 });
 
+// =========================
+// System Message (to employees)
+// =========================
 async function sendSystemMessage(systemMessage) {
-    
+    // Required minimal payload fields
     requireFields(systemMessage, ['toId', 'toName', 'toRole', 'message'], 'notify.sendSystemMessage');
 
     const payload = {
@@ -101,11 +135,14 @@ async function sendSystemMessage(systemMessage) {
     return postJson('/notify/system', payload);
 }
 
+// =========================
+// Fetch employees by property and privilege
+// =========================
 async function getEmployeesByPropertyAndPrivilege(propertyId, privilege) {
     if (!propertyId) throw new Error('getEmployeesByPropertyAndPrivilege: propertyId is required');
     const body = {
-        propertyId: propertyId, 
-        privilege: privilege || 'TS' 
+        propertyId: propertyId, // NOTE: API expects key spelled `properyId`
+        privilege: privilege || 'TS' //NOTE is always TS, that's I put a static TS value
     };
     try {
         console.log('[NotifyService] getEmployeesByPropertyAndPrivilege body', body);
@@ -132,6 +169,9 @@ async function getEmployeesByPropertyAndPrivilege(propertyId, privilege) {
     }
 }
 
+// =========================
+// Notify all employees for a property (filtered by privilege if provided)
+// =========================
 async function notifyEmployeesByProperty({ propertyId, privilege, buildMessageFor }) {
     if (!propertyId) throw new Error('notifyEmployeesByProperty: propertyId is required');
     if (typeof buildMessageFor !== 'function') throw new Error('notifyEmployeesByProperty: buildMessageFor(emp) function is required');
@@ -156,13 +196,16 @@ async function notifyEmployeesByProperty({ propertyId, privilege, buildMessageFo
             await sendSystemMessage(sysPayload);
             sent += 1;
         } catch (e) {
-            
+            // continue other employees
             console.warn('notifyEmployeesByProperty: failed to send to employee', emp, e);
         }
     }
     return { sent, employees };
 }
 
+// =========================
+// Email: /email/bookingmessage
+// =========================
 async function sendBookingEmail({ email, amount, typeOfPayment, methodOfPayment, unitName, checkIn, checkOut, timeIn, timeOut }) {
     requireFields({ email, amount, typeOfPayment, methodOfPayment, unitName, checkIn, checkOut, timeIn, timeOut },
         ['email', 'amount', 'typeOfPayment', 'methodOfPayment', 'unitName', 'checkIn', 'checkOut', 'timeIn', 'timeOut'],
@@ -175,6 +218,10 @@ async function sendBookingEmail({ email, amount, typeOfPayment, methodOfPayment,
     return postJson('/email/bookingmessage', payload);
 }
 
+// =========================
+// Convenience wrappers for the two guest flows
+// =========================
+// 1) Guest confirmed reservation → notify TS employees for the property
 async function notifyReservationConfirmedToTS({ propertyId, propertyName }) {
     if (!propertyId) throw new Error('notifyReservationConfirmedToTS: propertyId is required');
     const message = `A guest has confirmed their reservation on property ${propertyName || 'this property'}.`;
@@ -188,6 +235,7 @@ async function notifyReservationConfirmedToTS({ propertyId, propertyName }) {
     });
 }
 
+// 2) Guest completed payment → notify TS employees and send booking email
 async function notifyPaymentCompletedToTS({ propertyId, email, amount, typeOfPayment, methodOfPayment, unitName, checkIn, checkOut, timeIn, timeOut }) {
     if (!propertyId) throw new Error('notifyPaymentCompletedToTS: propertyId is required');
     const message = 'A guest has successfully completed their Reservation/Package/Full-Payment payment. Please verify the details.';
@@ -195,6 +243,7 @@ async function notifyPaymentCompletedToTS({ propertyId, email, amount, typeOfPay
         console.log('[NotifyService] notifyPaymentCompletedToTS args', { propertyId, email, amount, typeOfPayment, methodOfPayment, unitName, checkIn, checkOut, timeIn, timeOut, message });
     } catch (_) {}
 
+    // Fire-and-forget both operations; wait for both to settle
     const notifyPromise = notifyEmployeesByProperty({
         propertyId,
         privilege: '',
@@ -206,4 +255,5 @@ async function notifyPaymentCompletedToTS({ propertyId, email, amount, typeOfPay
     const [notifyRes] = await Promise.allSettled([notifyPromise, emailPromise]);
     return notifyRes.status === 'fulfilled' ? notifyRes.value : { sent: 0, employees: [] };
 }
+
 

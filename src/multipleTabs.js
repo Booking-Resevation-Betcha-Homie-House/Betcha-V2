@@ -1,10 +1,11 @@
-﻿document.addEventListener('DOMContentLoaded', function () {
-  
+document.addEventListener('DOMContentLoaded', function () {
+  // Check if we're on the my-bookings page - if so, skip this tab logic
   if (window.location.pathname.includes('my-bookings.html')) {
     console.log('My-bookings page detected, skipping multipleTabs.js');
     return;
   }
 
+  // Function to create property card HTML
   function createPropertyCard(property) {
     return `
       <a href="view-property.html?id=${property._id}">
@@ -36,22 +37,25 @@
     `;
   }
 
+  // Function to show skeleton loading
   function showSkeletonLoading(containerId) {
     const container = document.getElementById(containerId);
     const template = document.getElementById('skeletonTemplate');
     if (container && template) {
       container.innerHTML = '';
-      
+      // Add 6 skeleton loaders
       for (let i = 0; i < 6; i++) {
         container.appendChild(template.content.cloneNode(true));
       }
     }
   }
 
+  // Function to fetch and display properties
   async function fetchAndDisplayProperties(category, containerId) {
     try {
       showSkeletonLoading(containerId);
-
+      
+      // Add delay for smooth loading animation
       await new Promise(resolve => setTimeout(resolve, 500));
       
       const response = await fetch('https://betcha-api.onrender.com/property/byCategory');
@@ -67,7 +71,7 @@
   }
 
   window.setActiveTab = async function (index) {
-    
+    // Get tab buttons and content containers
     const tabBtns = document.querySelectorAll('.tab-btn');
     const containers = [
       { id: 'familyContent', category: 'family' },
@@ -75,7 +79,8 @@
       { id: 'barkadaContent', category: 'barkada' },
       { id: 'otherContent', category: 'other' }
     ];
-
+    
+    // Update button styles
     tabBtns.forEach((btn, i) => {
       const span = btn.querySelector('span');
       if (i === index) {
@@ -89,6 +94,7 @@
       }
     });
 
+    // Show selected content, hide others, and fetch data
     containers.forEach((container, i) => {
       const content = document.getElementById(container.id);
       if (content) {
@@ -102,5 +108,6 @@
     });
   };
 
+  // Set initial active tab and load data
   window.setActiveTab(0);
 });

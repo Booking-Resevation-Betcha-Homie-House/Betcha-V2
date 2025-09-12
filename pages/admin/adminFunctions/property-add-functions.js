@@ -1,15 +1,17 @@
-﻿
+//Can now add images from the file input with id="images" but doesnt display the images in the preview
 
+// Function to update PhotosSection display - defined globally first
 function updatePhotosSection(images) {
   const photosSection = document.getElementById('PhotosSection');
   if (!photosSection) return;
 
-  console.log('Updating PhotosSection with images:', images); 
+  console.log('Updating PhotosSection with images:', images); // Debug log
 
+  // Clear existing content
   photosSection.innerHTML = '';
 
   if (images.length === 0) {
-
+    // Show "No photos" state
     photosSection.innerHTML = `
       <!-- Big Left Image -->
       <div class="rounded-2xl bg-neutral-300 h-full col-span-1 sm:col-span-3 flex items-center justify-center text-white">
@@ -53,17 +55,18 @@ function updatePhotosSection(images) {
     return;
   }
 
+  // Create the main layout with actual images
   let photosHTML = '';
 
   if (images.length === 1) {
-
+    // Single image - take full width
     photosHTML = `
       <div class="rounded-2xl h-full col-span-1 sm:col-span-5 overflow-hidden">
         <img src="${images[0].url}" alt="Property photo" class="w-full h-full object-cover">
       </div>
     `;
   } else if (images.length === 2) {
-
+    // Two images - left large, right small
     photosHTML = `
       <div class="rounded-2xl h-full col-span-1 sm:col-span-3 overflow-hidden">
         <img src="${images[0].url}" alt="Property photo" class="w-full h-full object-cover">
@@ -75,7 +78,7 @@ function updatePhotosSection(images) {
       </div>
     `;
   } else {
-
+    // Three or more images - left large, right grid
     photosHTML = `
       <div class="rounded-2xl h-full col-span-1 sm:col-span-3 overflow-hidden">
         <img src="${images[0].url}" alt="Property photo" class="w-full h-full object-cover">
@@ -91,6 +94,7 @@ function updatePhotosSection(images) {
     `;
   }
 
+  // Add the floating edit button
   photosHTML += `
     <button 
       class="absolute cursor-pointer bottom-4 right-4 !px-2 !py-1 bg-white rounded-full shadow-sm flex gap-2 items-center group 
@@ -119,17 +123,22 @@ function updatePhotosSection(images) {
   photosSection.innerHTML = photosHTML;
 }
 
+// Expose the function globally immediately
 window.updatePhotosSection = updatePhotosSection;
 
-document.addEventListener('DOMContentLoaded', function () {
 
+
+document.addEventListener('DOMContentLoaded', function () {
+  // Find the Confirm button inside the confirmDetailsModal
   const confirmModal = document.getElementById('confirmDetailsModal');
   if (!confirmModal) return;
 
+  // Find the Confirm button (the one that says Confirm)
   const confirmBtn = Array.from(confirmModal.querySelectorAll('button'))
     .find(btn => btn.textContent && btn.textContent.trim().toLowerCase().includes('confirm'));
   if (!confirmBtn) return;
 
+  // Function to sync modal state with PhotosSection
   function syncModalWithPhotosSection() {
     const imageContainer = document.querySelector('[x-data*="images"]');
     if (imageContainer && window.Alpine) {
@@ -140,14 +149,15 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }
 
+  // Set up Alpine.js watchers for the edit gallery modal
   if (window.Alpine) {
-
+    // Wait for Alpine to be ready
     window.Alpine.nextTick(() => {
       const imageContainer = document.querySelector('[x-data*="images"]');
       if (imageContainer) {
         const alpineData = window.Alpine.$data(imageContainer);
         if (alpineData) {
-
+          // Watch for changes in the images array
           const originalImages = alpineData.images;
           Object.defineProperty(alpineData, 'images', {
             get() {
@@ -160,6 +170,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
           });
 
+          // Also watch selectedFiles for consistency
           const originalSelectedFiles = alpineData.selectedFiles;
           Object.defineProperty(alpineData, 'selectedFiles', {
             get() {
@@ -175,17 +186,18 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
+  // Alternative approach: Use MutationObserver to watch for changes
   const observer = new MutationObserver(function(mutations) {
     mutations.forEach(function(mutation) {
       if (mutation.type === 'childList') {
-
+        // Check if the edit gallery modal is open and has images
         const editGalleryModal = document.getElementById('editGalleryModal');
         if (editGalleryModal && !editGalleryModal.classList.contains('hidden')) {
           const imageContainer = editGalleryModal.querySelector('[x-data*="images"]');
           if (imageContainer && window.Alpine) {
             const alpineData = window.Alpine.$data(imageContainer);
             if (alpineData && alpineData.images) {
-
+              // Small delay to ensure Alpine.js has finished updating
               setTimeout(() => {
                 updatePhotosSection(alpineData.images);
               }, 100);
@@ -196,23 +208,27 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
+  // Start observing the document for changes
   observer.observe(document.body, {
     childList: true,
     subtree: true
   });
 
+  // Listen for modal close to sync state
   document.addEventListener('modalClosed', function() {
     syncModalWithPhotosSection();
   });
 
+  // Listen for clicks on the PhotosSection to open the modal
   document.addEventListener('click', function(e) {
     if (e.target.closest('#PhotosSection')) {
       const editGalleryModal = document.getElementById('editGalleryModal');
       if (editGalleryModal) {
         editGalleryModal.classList.remove('hidden');
         editGalleryModal.classList.add('flex');
-        document.body.classList.add('modal-open'); 
-
+        document.body.classList.add('modal-open'); // Lock scroll
+        
+        // Dispatch custom event for modal opening
         const modalOpenEvent = new CustomEvent('modalOpened', {
           detail: { modalId: 'editGalleryModal', modal: editGalleryModal }
         });
@@ -224,6 +240,7 @@ document.addEventListener('DOMContentLoaded', function () {
   confirmBtn.addEventListener('click', async function (e) {
     e.preventDefault();
 
+    // Validate minimum image requirement
     const imageContainer = document.querySelector('[x-data*="images"]');
     let selectedFiles = [];
     
@@ -233,18 +250,20 @@ document.addEventListener('DOMContentLoaded', function () {
         selectedFiles = alpineData.selectedFiles;
       }
     } else {
-
+      // Fallback to direct file input access
       const fileInput = document.getElementById('images');
       if (fileInput && fileInput.files) {
         selectedFiles = Array.from(fileInput.files);
       }
     }
 
+    // Check if at least 3 images are selected
     if (selectedFiles.length < 3) {
       alert(`Please select at least 3 images. You currently have ${selectedFiles.length} image(s) selected.`);
       return;
     }
 
+    // Basic validation for required fields
     const requiredFields = [
       { id: 'input-prop-name', label: 'Property Name' },
       { id: 'input-prop-city', label: 'City' },
@@ -261,8 +280,9 @@ document.addEventListener('DOMContentLoaded', function () {
       }
     }
 
+    // Collect form data
     const formData = new FormData();
-
+   // Main info
     const name = document.getElementById('input-prop-name').value.trim();
     console.log('Name:', name);
     formData.append('name', name);
@@ -283,10 +303,12 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Description:', description);
     formData.append('description', description);
 
+    // Category
     const category = document.getElementById('selectedCategory').textContent.trim();
     console.log('Category:', category);
     formData.append('category', category);
 
+    // Capacities & Prices
     const packageCapacity = document.getElementById('input-prop-packCap').value;
     console.log('Package Capacity:', packageCapacity);
     formData.append('packageCapacity', packageCapacity);
@@ -319,6 +341,7 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Discount:', discount);
     formData.append('discount', discount);
 
+    // Gather default amenities (checked checkboxes NOT in amenitiesList)
     const amenities = [];
     document.querySelectorAll('#editAmmenitiesModal input[type="checkbox"]:checked').forEach(cb => {
       if (!cb.closest('#amenitiesList') && cb.value) {
@@ -328,6 +351,7 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Default Amenities:', amenities);
     amenities.forEach(a => formData.append('amenities[]', a));
 
+    // Gather otherAmenities (checked checkboxes inside amenitiesList)
     const otherAmenities = [];
     document.querySelectorAll('#amenitiesList input[type="checkbox"]:checked').forEach(cb => {
       if (cb.value) otherAmenities.push(cb.value);
@@ -335,11 +359,13 @@ document.addEventListener('DOMContentLoaded', function () {
     console.log('Other Amenities:', otherAmenities);
     otherAmenities.forEach(a => formData.append('amenities[]', a));
 
+    // Add images to form data (we already validated above)
     for (let i = 0; i < selectedFiles.length; i++) {
       console.log('Photo:', selectedFiles[i]);
       formData.append('photo', selectedFiles[i]);
     }
 
+    // Send to API
     try {
       const response = await fetch(`${API_BASE}/property/create`, {
         method: 'POST',
@@ -348,7 +374,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
       if (response.ok) {
         alert('Property added successfully!');
-
+        
+        // Audit: Log property creation
         try {
             const userId = localStorage.getItem('userId') || '';
             const userType = localStorage.getItem('role') || localStorage.getItem('userType') || '';
@@ -359,7 +386,7 @@ document.addEventListener('DOMContentLoaded', function () {
             console.warn('Audit trail for property creation failed:', auditError);
         }
         
-        window.location.href = 'property.html'; 
+        window.location.href = 'property.html'; // Redirect or reset as needed
       } else {
         const error = await response.json().catch(() => ({}));
         alert('Error: ' + (error.message || 'Failed to add property.'));

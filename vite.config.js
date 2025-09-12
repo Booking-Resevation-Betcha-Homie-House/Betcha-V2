@@ -1,19 +1,24 @@
-﻿import { defineConfig } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
+
+// https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-
+  // Remove assetsInclude to prevent JS processing issues
+  // assetsInclude: ['**/*.js'], // Include JS files as assets
   build: {
     outDir: 'dist',
     rollupOptions: {
       input: {
-
+        // Main entry point
         main: 'index.html',
-
+        
+        // Test page
         netlifyProxyTest: 'netlify-proxy-test.html',
-
+        
+        // Unauthenticated pages
         login: 'pages/unauth/login.html',
         register: 'pages/unauth/register.html',
         aboutUs: 'pages/unauth/about-us.html',
@@ -21,7 +26,8 @@ export default defineConfig({
         rooms: 'pages/unauth/rooms.html',
         searchResult: 'pages/unauth/search-result.html',
         viewProperty: 'pages/unauth/view-property.html',
-
+        
+        // Authenticated user pages
         profile: 'pages/auth/profile.html',
         editProfile: 'pages/auth/edit-profile.html',
         myBookings: 'pages/auth/my-bookings.html',
@@ -32,7 +38,8 @@ export default defineConfig({
         support: 'pages/auth/support.html',
         resetEmail: 'pages/auth/reset-email.html',
         resetPassword: 'pages/auth/reset-password.html',
-
+        
+        // Admin pages
         adminDashboard: 'pages/admin/dashboard.html',
         adminLandingPage: 'pages/admin/landing-page.html',
         adminProfile: 'pages/admin/profile.html',
@@ -54,7 +61,8 @@ export default defineConfig({
         rolesEdit: 'pages/admin/roles-edit.html',
         auditTrails: 'pages/admin/audit-trails.html',
         adminFaqs: 'pages/admin/faqs.html',
-
+        
+        // Employee pages
         employeeDashboard: 'pages/employee/dashboard.html',
         employeeProfile: 'pages/employee/profile.html',
         pm: 'pages/employee/pm.html',
@@ -64,5 +72,5 @@ export default defineConfig({
       }
     }
   },
-  base: './' 
+  base: './' // Use relative paths for assets
 })

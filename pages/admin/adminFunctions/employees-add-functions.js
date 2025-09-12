@@ -1,52 +1,63 @@
-﻿
+// Function to add a new employee
+// Role List is populated dynamically from the API
+// Property List is populated dynamically from the API
 
+// API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
+
 async function addEmployee() {
-    let originalText = ''; 
+    let originalText = ''; // Declare originalText outside try block to fix scope issue
     
     try {
 
+        // Get form values
         const firstName = document.querySelector('input[placeholder="First name"]').value.trim();
         const middleInitial = document.querySelector('input[placeholder="M.I."]').value.trim();
         const lastName = document.querySelector('input[placeholder="Last name"]').value.trim();
         const email = document.querySelector('input[type="email"]').value.trim();
         const password = document.getElementById('password').value;
         const confirmPassword = document.getElementById('confirmPassword').value;
-
+        
+        // Get profile picture file
         const profilePictureInput = document.querySelector('input[type="file"]');
         const profilePicture = profilePictureInput.files[0];
-
+        
+        // Get selected roles from Alpine.js or fallback to DOM selection
         let selectedRoles = [];
-
+        
+        // First try to get roles from Alpine.js
         const roleSelector = document.getElementById('roleSelector');
         if (roleSelector && window.Alpine) {
             try {
                 const alpineData = Alpine.$data(roleSelector);
                 if (alpineData && alpineData.selected && alpineData.selected.length > 0) {
-
+                    // Map role names to role IDs by looking up in fetched roles
                     selectedRoles = alpineData.selected.map(roleName => {
                         const role = window.allRoles?.find(r => r.name === roleName);
-                        return role ? role._id : roleName; 
+                        return role ? role._id : roleName; // fallback to name if ID not found
                     });
                 }
             } catch (error) {
                 console.warn('Could not get roles from Alpine.js:', error);
             }
         }
-
+        
+        // Fallback: Get selected roles from DOM checkboxes with data-role-id attribute
         if (selectedRoles.length === 0) {
             const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][data-role-id]');
             selectedRoles = Array.from(roleCheckboxes)
                 .filter(checkbox => checkbox.checked)
                 .map(checkbox => checkbox.getAttribute('data-role-id'));
         }
-
+        
+        // Get selected properties from the DOM
         const propertyCheckboxes = document.querySelectorAll('input[type="checkbox"][data-property-id]');
         const selectedProperties = Array.from(propertyCheckboxes)
             .filter(checkbox => checkbox.checked)
-            .map(checkbox => checkbox.getAttribute('data-property-id')); 
+            .map(checkbox => checkbox.getAttribute('data-property-id')); // Get the property ID, not the name
 
+        // Validation
         if (!firstName || !lastName || !email || !password || !confirmPassword) {
             showError('Please fill in all required fields');
             return;
@@ -67,6 +78,7 @@ async function addEmployee() {
             return;
         }
 
+        // Create FormData for file upload
         const formData = new FormData();
         formData.append('firstname', firstName);
         formData.append('minitial', middleInitial);
@@ -75,9 +87,14 @@ async function addEmployee() {
         formData.append('password', password);
         formData.append('role', selectedRoles.join(','));
         formData.append('properties', JSON.stringify(selectedProperties));
+        
+        //if (profilePicture) {
+        //    formData.append('pfp', profilePicture);
+       // }
 
+        // Show loading state
         const confirmBtn = document.getElementById('confirmEmployeeBtn');
-        originalText = confirmBtn.innerHTML; 
+        originalText = confirmBtn.innerHTML; // Assign to the outer scope variable
         confirmBtn.innerHTML = `
             <span class="text-secondary-text text-lg">Adding...</span>
             <svg class="animate-spin w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 24">
@@ -86,6 +103,7 @@ async function addEmployee() {
         `;
         confirmBtn.disabled = true;
 
+        // Make API call
         const response = await fetch(`${API_BASE}/employee/create`, {
             method: 'POST',
             body: formData
@@ -97,16 +115,18 @@ async function addEmployee() {
                 const errorData = await response.json();
                 errorMessage = errorData.message || errorData.error || errorMessage;
             } catch (e) {
-
+                // If response is not JSON, use status text
                 errorMessage = response.statusText || errorMessage;
             }
             throw new Error(errorMessage);
         }
 
         const result = await response.json();
-
+        
+        // Show success message
         showSuccess('Employee added successfully!');
-
+        
+        // Audit: Log employee creation
         try {
             const userId = localStorage.getItem('userId') || '';
             if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logEmployeeCreation === 'function' && userId) {
@@ -115,9 +135,11 @@ async function addEmployee() {
         } catch (auditError) {
             console.warn('Audit trail for employee creation failed:', auditError);
         }
-
+        
+        // Reset form
         resetForm();
-
+        
+        // Close modal and redirect after a short delay
         setTimeout(() => {
             const modal = document.getElementById('confirmDetailsModal');
             if (modal) {
@@ -129,7 +151,8 @@ async function addEmployee() {
     } catch (error) {
         console.error('Error adding employee:', error);
         showError(error.message || 'Failed to add employee. Please try again.');
-
+        
+        // Reset button state
         const confirmBtn = document.getElementById('confirmEmployeeBtn');
         if (confirmBtn) {
             confirmBtn.innerHTML = originalText;
@@ -138,6 +161,7 @@ async function addEmployee() {
     }
 }
 
+// Function to show error messages
 function showError(message) {
     const errorContainer = document.getElementById('errorContainer');
     const errorText = document.getElementById('errorText');
@@ -146,7 +170,8 @@ function showError(message) {
         errorText.textContent = message;
         errorContainer.classList.remove('hidden');
         errorContainer.classList.add('flex');
-
+        
+        // Auto-hide after 5 seconds
         setTimeout(() => {
             errorContainer.classList.add('hidden');
             errorContainer.classList.remove('flex');
@@ -154,8 +179,9 @@ function showError(message) {
     }
 }
 
+// Function to show success messages
 function showSuccess(message) {
-
+    // Create success notification
     const successDiv = document.createElement('div');
     successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
     successDiv.innerHTML = `
@@ -168,7 +194,8 @@ function showSuccess(message) {
     `;
     
     document.body.appendChild(successDiv);
-
+    
+    // Remove after 3 seconds
     setTimeout(() => {
         if (successDiv.parentNode) {
             successDiv.parentNode.removeChild(successDiv);
@@ -176,20 +203,23 @@ function showSuccess(message) {
     }, 3000);
 }
 
+// Function to reset the form
 function resetForm() {
-
+    // Reset input fields
     document.querySelector('input[placeholder="First name"]').value = '';
     document.querySelector('input[placeholder="M.I."]').value = '';
     document.querySelector('input[placeholder="Last name"]').value = '';
     document.querySelector('input[type="email"]').value = '';
     document.getElementById('password').value = '';
     document.getElementById('confirmPassword').value = '';
-
+    
+    // Reset file input
     const profilePictureInput = document.querySelector('input[type="file"]');
     if (profilePictureInput) {
         profilePictureInput.value = '';
     }
-
+    
+    // Reset role checkboxes - handle both Alpine.js and DOM
     const roleSelector = document.getElementById('roleSelector');
     if (roleSelector && window.Alpine) {
         try {
@@ -201,21 +231,26 @@ function resetForm() {
             console.warn('Could not reset Alpine.js roles:', error);
         }
     }
-
+    
+    // Also reset DOM checkboxes as fallback
     const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][data-role-id]');
     roleCheckboxes.forEach(checkbox => {
         checkbox.checked = false;
     });
-
+    
+    // Reset property checkboxes
     const propertyCheckboxes = document.querySelectorAll('input[type="checkbox"][data-property-id]');
     propertyCheckboxes.forEach(checkbox => {
         checkbox.checked = false;
     });
-
+    
+    // Update the selected roles display
     updateSelectedRolesDisplay();
-
+    
+    // Update the selected properties display
     updateSelectedPropertiesDisplay();
-
+    
+    // Hide error messages
     const errorContainer = document.getElementById('errorContainer');
     if (errorContainer) {
         errorContainer.classList.add('hidden');
@@ -223,6 +258,7 @@ function resetForm() {
     }
 }
 
+// Function to validate form before submission
 function validateForm() {
     const firstName = document.querySelector('input[placeholder="First name"]').value.trim();
     const middleInitial = document.querySelector('input[placeholder="M.I."]').value.trim();
@@ -230,7 +266,8 @@ function validateForm() {
     const email = document.querySelector('input[type="email"]').value.trim();
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-
+    
+    // Basic validation
     if (!firstName || !lastName || !email || !password || !confirmPassword) {
         showError('Please fill in all required fields');
         return false;
@@ -245,7 +282,8 @@ function validateForm() {
         showError('Password must be at least 6 characters long');
         return false;
     }
-
+    
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
         showError('Please enter a valid email address');
@@ -255,8 +293,10 @@ function validateForm() {
     return true;
 }
 
+// Initialize event listeners when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
-
+    
+    // Add event listener to confirm button
     const confirmBtn = document.getElementById('confirmEmployeeBtn');
     if (confirmBtn) {
         confirmBtn.addEventListener('click', function() {
@@ -265,19 +305,23 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
+    
+    // Wait for Alpine.js to be ready before populating roles
     document.addEventListener('alpine:init', () => {
-
+        // Populate roles from API when Alpine.js is ready
         populateRoles();
     });
-
+    
+    // Fallback: Populate roles after a short delay if Alpine.js event doesn't fire
     setTimeout(() => {
         populateRoles();
     }, 500);
-
+    
+    // Populate properties from API when page loads
     populateProperties();
 });
 
+// Function to fetch and populate roles from the API
 async function populateRoles() {
     try {
         const response = await fetch(`${API_BASE}/roles/display`);
@@ -287,14 +331,17 @@ async function populateRoles() {
         }
         
         const rolesData = await response.json();
-        const roles = rolesData.value || rolesData; 
+        const roles = rolesData.value || rolesData; // Handle both formats
 
+        
+        // Store roles globally for later reference
         window.allRoles = roles;
-
+        
+        // Update Alpine.js component with real role data
         const roleSelector = document.getElementById('roleSelector');
         if (roleSelector) {
             try {
-
+                // Wait a bit for Alpine.js to initialize if needed
                 await new Promise(resolve => setTimeout(resolve, 100));
                 
                 if (window.Alpine && Alpine.$data) {
@@ -305,7 +352,8 @@ async function populateRoles() {
                 }
             } catch (error) {
                 console.warn('Could not update Alpine.js roles:', error);
-
+                
+                // Fallback: populate manually if Alpine.js fails
                 populateRolesManually(roles);
             }
         }
@@ -316,19 +364,22 @@ async function populateRoles() {
     }
 }
 
+// Function to manually populate roles as fallback
 function populateRolesManually(roles) {
-
+    // Also ensure the role list is populated manually for compatibility
     const roleListContainer = document.querySelector('.border.border-gray-200.rounded-lg.max-h-48.overflow-y-auto');
     
     if (roleListContainer) {
-
+        // Store the original Alpine.js template structure but clear manual additions
         const templates = roleListContainer.querySelectorAll('template');
         roleListContainer.innerHTML = '';
-
+        
+        // Re-add any templates that were removed
         templates.forEach(template => {
             roleListContainer.appendChild(template);
         });
-
+        
+        // If no Alpine.js templates found, populate manually
         if (templates.length === 0) {
             roles.forEach(role => {
                 const roleItem = document.createElement('label');
@@ -345,7 +396,8 @@ function populateRolesManually(roles) {
                     </svg>
                     <span class="ml-1">${role.name}</span>
                 `;
-
+                
+                // Add change event listener to update the selected roles display
                 const checkbox = roleItem.querySelector('input[type="checkbox"]');
                 checkbox.addEventListener('change', function() {
                     updateSelectedRolesDisplay();
@@ -360,9 +412,11 @@ function populateRolesManually(roles) {
     }
 }
 
+// Function to update the selected roles display
 function updateSelectedRolesDisplay() {
     let selectedRoles = [];
-
+    
+    // First try to get roles from Alpine.js
     const roleSelector = document.getElementById('roleSelector');
     if (roleSelector && window.Alpine) {
         try {
@@ -377,7 +431,8 @@ function updateSelectedRolesDisplay() {
             console.warn('Could not get roles from Alpine.js for display update:', error);
         }
     }
-
+    
+    // Fallback to DOM checkboxes if Alpine.js doesn't work
     if (selectedRoles.length === 0) {
         const roleCheckboxes = document.querySelectorAll('input[type="checkbox"][data-role-id]');
         selectedRoles = Array.from(roleCheckboxes)
@@ -387,13 +442,15 @@ function updateSelectedRolesDisplay() {
                 name: checkbox.value
             }));
     }
-
+    
+    // Find the selected roles container
     const selectedRolesContainer = document.querySelector('.flex.flex-wrap.gap-2');
     
     if (selectedRolesContainer) {
-
+        // Clear existing selected roles display
         selectedRolesContainer.innerHTML = '';
-
+        
+        // Add selected roles with remove buttons
         selectedRoles.forEach(role => {
             const roleTag = document.createElement('span');
             roleTag.className = 'bg-primary/10 text-primary !px-3 !py-1 rounded-full text-sm flex items-center gap-2';
@@ -410,8 +467,9 @@ function updateSelectedRolesDisplay() {
     }
 }
 
+// Function to remove a role from selection
 function removeRole(roleId) {
-
+    // First try to remove from Alpine.js
     const roleSelector = document.getElementById('roleSelector');
     if (roleSelector && window.Alpine) {
         try {
@@ -424,7 +482,8 @@ function removeRole(roleId) {
             console.warn('Could not remove role from Alpine.js:', error);
         }
     }
-
+    
+    // Also remove from DOM checkboxes as fallback
     const roleCheckbox = document.querySelector(`input[type="checkbox"][data-role-id="${roleId}"]`);
     if (roleCheckbox) {
         roleCheckbox.checked = false;
@@ -433,8 +492,10 @@ function removeRole(roleId) {
     updateSelectedRolesDisplay();
 }
 
+// Make removeRole function globally accessible for onclick attributes
 window.removeRole = removeRole;
 
+// Function to fetch and populate properties from the API
 async function populateProperties() {
     try {
         const response = await fetch(`${API_BASE}/property/display`);
@@ -444,15 +505,18 @@ async function populateProperties() {
         }
         
         const properties = await response.json();
-
+        
+        // Find the property list container in the HTML using the specific ID
         const propertyListContainer = document.getElementById('propertyListContainer');
         
         if (propertyListContainer) {
-
+            // Clear existing content
             propertyListContainer.innerHTML = '';
-
+            
+            // Store properties globally for search functionality
             window.allProperties = properties;
-
+            
+            // Populate with properties from API
             properties.forEach(property => {
                 const propertyItem = document.createElement('label');
                 propertyItem.className = 'relative flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer';
@@ -471,7 +535,8 @@ async function populateProperties() {
                         <span class="text-xs font-inter text-neutral-500">${property.address}, ${property.city}</span>
                     </div>
                 `;
-
+                
+                // Add change event listener to update the selected properties display
                 const checkbox = propertyItem.querySelector('input[type="checkbox"]');
                 checkbox.addEventListener('change', function() {
                     updateSelectedPropertiesDisplay();
@@ -479,7 +544,8 @@ async function populateProperties() {
                 
                 propertyListContainer.appendChild(propertyItem);
             });
-
+            
+            // Add search functionality
             const searchInput = document.getElementById('propertySearch');
             if (searchInput) {
                 searchInput.addEventListener('input', function() {
@@ -497,6 +563,7 @@ async function populateProperties() {
     }
 }
 
+// Function to update the selected properties display
 function updateSelectedPropertiesDisplay() {
     const propertyCheckboxes = document.querySelectorAll('input[type="checkbox"][data-property-id]');
     const selectedProperties = Array.from(propertyCheckboxes)
@@ -505,13 +572,15 @@ function updateSelectedPropertiesDisplay() {
             id: checkbox.getAttribute('data-property-id'),
             name: checkbox.value
         }));
-
+    
+    // Find the selected properties container using the specific ID
     const selectedPropertiesContainer = document.getElementById('selectedPropertiesContainer');
     
     if (selectedPropertiesContainer) {
-
+        // Clear existing selected properties display
         selectedPropertiesContainer.innerHTML = '';
-
+        
+        // Add selected properties with remove buttons
         selectedProperties.forEach(property => {
             const propertyTag = document.createElement('span');
             propertyTag.className = 'bg-primary/10 text-primary !px-3 !py-1 rounded-full text-sm flex items-center gap-2';
@@ -528,6 +597,7 @@ function updateSelectedPropertiesDisplay() {
     }
 }
 
+// Function to remove a property from selection
 function removeProperty(propertyId) {
     const propertyCheckbox = document.querySelector(`input[type="checkbox"][data-property-id="${propertyId}"]`);
     if (propertyCheckbox) {
@@ -536,22 +606,27 @@ function removeProperty(propertyId) {
     }
 }
 
+// Make removeProperty function globally accessible for onclick attributes
 window.removeProperty = removeProperty;
 
+// Function to filter properties based on search input
 function filterProperties(searchTerm) {
     if (!window.allProperties) return;
     
     const propertyListContainer = document.getElementById('propertyListContainer');
     if (!propertyListContainer) return;
-
+    
+    // Clear existing content
     propertyListContainer.innerHTML = '';
-
+    
+    // Filter properties based on search term
     const filteredProperties = window.allProperties.filter(property => 
         property.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
         property.address.toLowerCase().includes(searchTerm.toLowerCase()) ||
         property.city.toLowerCase().includes(searchTerm.toLowerCase())
     );
-
+    
+    // Re-populate with filtered properties
     filteredProperties.forEach(property => {
         const propertyItem = document.createElement('label');
         propertyItem.className = 'relative flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer';
@@ -570,7 +645,8 @@ function filterProperties(searchTerm) {
                 <span class="text-xs font-inter text-neutral-500">${property.address}, ${property.city}</span>
             </div>
         `;
-
+        
+        // Add change event listener to update the selected properties display
         const checkbox = propertyItem.querySelector('input[type="checkbox"]');
         checkbox.addEventListener('change', function() {
             updateSelectedPropertiesDisplay();
@@ -579,4 +655,5 @@ function filterProperties(searchTerm) {
         propertyListContainer.appendChild(propertyItem);
     });
 }
+
 

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -14,6 +14,7 @@
     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 w-full h-full">
         <div class="relative h-full w-full rounded-r-3xl overflow-hidden hidden md:block">
 
+            <!-- Betcha logo -->
             <div class="absolute top-5 left-5 z-10 flex gap-2 items-center justify-center p-3">
                 <svg class="w-auto h-[24px] fill-secondary-text" viewBox="0 0 28 36" xmlns="http://www.w3.org/2000/svg">
                     <path
@@ -24,6 +25,7 @@
                 <span class="font-bold text-white text-base md:text-2xl">Betcha</span>
             </div>
 
+            <!-- Carousel Container -->
             <div class="relative w-full h-full overflow-hidden">
                 <div class="flex h-[100%] transition-transform duration-500 ease-in-out carousel-track">
                     <img src="/public/images/unit01.jpg" class="carousel-image" />
@@ -33,6 +35,7 @@
                     <img src="/public/images/unit05.jpg" class="carousel-image" />
                 </div>
 
+                <!-- Dots -->
                 <div class="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2 z-10">
                     <div class="dot active"></div>
                     <div class="dot "></div>
@@ -49,17 +52,20 @@
             <p class="font-roboto mb-10 text-xs md:text-sm">Create an account to discover spaces that feel like home.
             </p>
 
+            <!-- Step Label -->
             <div class="flex justify-between items-center mb-2">
                 <span id="step-label" class="font-roboto text-xs md:text-sm">Step 1 of 3</span>
             </div>
 
+            <!-- Progress Bar -->
             <div class="w-full bg-neutral-200 rounded-full h-2 md:h-3 mb-6">
                 <div id="progress-bar"
                     class="bg-primary h-2 md:h-3 rounded-full w-1/3 transition-all duration-500 ease-in-out"></div>
             </div>
 
+            <!-- Step 1 -->
             <form id="step1" class="space-y-4">
-                
+                <!-- Error Container -->
                 <div id="errorContainer" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
@@ -70,7 +76,7 @@
                 </div>
                 
                 </p>
-                
+                <!-- ID options -->
                 <div class="flex flex-col gap-2 w-full group">
                     <label for="IDDropdownBtn"
                         class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -107,6 +113,7 @@
                     card). This is required to verify your identity.
                 </p>
 
+                <!-- ID File Upload -->
                 <div id="IDdropzone"
                     class="group border-2 border-dashed border-neutral-300 p-6 text-center rounded-lg cursor-pointer hover:border-primary transition-all duration-500 ease-in-out">
                     <input type="file" id="IDfileInput" multiple accept=".jpg,.jpeg,.png,.webp" class="hidden">
@@ -121,6 +128,7 @@
                     </div>
                 </div>
 
+                <!-- Preview Container -->
                 <div id="IDpreviewContainer" class="mt-4 flex flex-col gap-3"></div>
 
                 <div class="mt-10">
@@ -142,9 +150,9 @@
                     </button>
                 </div>
             </form>
-            
+            <!-- Step 2 -->
             <form id="step2" class="space-y-4 hidden">
-                
+                <!-- Error Container -->
                 <div id="errorContainer2" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
@@ -155,7 +163,7 @@
                 </div>
                 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
+                    <!-- First Name -->
                     <div class="flex flex-col gap-2 w-full group">
                         <label for="firstName"
                             class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -174,7 +182,7 @@
                                 class="flex-1 bg-transparent focus:outline-none text-sm md:text-base font-normal" />
                         </div>
                     </div>
-                    
+                    <!-- Last Name -->
                     <div class="flex flex-col gap-2 w-full group">
                         <label for="lastName"
                             class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -195,7 +203,7 @@
                     </div>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    
+                    <!-- Middle name -->
                     <div class="flex flex-col gap-2 w-full group">
                         <label for="middleInitial"
                             class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -214,7 +222,7 @@
                                 class="flex-1 bg-transparent focus:outline-none text-sm md:text-base font-normal" />
                         </div>
                     </div>
-                    
+                    <!-- Sex Dropdown -->
                     <div class="flex flex-col gap-2 w-full group">
                         <label for="sexDropdownBtn"
                             class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -246,14 +254,14 @@
                         </div>
                     </div>
                 </div>
-                
+                <!-- Birthdate -->
                 <div class="flex flex-col gap-2 w-full">
                     <label
                         class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
                         Birthdate
                     </label>
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        
+                        <!-- Month -->
                         <div class="flex flex-col gap-2 w-full group">
                             <label for="monthDropdownBtn"
                                 class="font-manrope text-xs font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -280,7 +288,7 @@
                                 </ul>
                             </div>
                         </div>
-                        
+                        <!-- Day -->
                         <div class="flex flex-col gap-2 w-full group">
                             <label for="dayDropdownBtn"
                                 class="font-manrope text-xs font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -306,7 +314,7 @@
                                 </ul>
                             </div>
                         </div>
-                        
+                        <!-- Year -->
                         <div class="flex flex-col gap-2 w-full group">
                             <label for="yearDropdownBtn"
                                 class="font-manrope text-xs font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -371,9 +379,9 @@
                 </div>
 
             </form>
-            
+            <!-- Step 3 -->
             <form id="step3" class="space-y-4 hidden">
-                
+                <!-- Error Container -->
                 <div id="errorContainer3" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
                     <div class="flex items-center">
                         <svg class="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
@@ -382,7 +390,8 @@
                         <p id="errorText3" class="text-red-700 text-sm font-medium"></p>
                     </div>
                 </div>
-
+                
+                <!-- Email Address -->
                 <div class="flex flex-col gap-2 w-full group">
                     <label for="email"
                         class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -402,7 +411,7 @@
                             class="flex-1 bg-transparent focus:outline-none text-sm md:text-base font-normal" />
                     </div>
                 </div>
-                
+                <!-- Phone Number -->
                 <div class="flex flex-col gap-2 w-full group">
                     <label for="phone"
                         class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -418,7 +427,7 @@
                             class="flex-1 bg-transparent focus:outline-none text-sm md:text-base font-normal" />
                     </div>
                 </div>
-                
+                <!-- Password -->
                 <div class="flex flex-col gap-2 w-full group">
                     <label for="password"
                         class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -433,6 +442,7 @@
                         <input id="password" type="password" placeholder="Password"
                             class="password-input flex-1 bg-transparent focus:outline-none text-sm md:text-base font-normal pr-12" />
 
+                        <!-- Toggle Show/Hide -->
                         <button type="button"
                             class="absolute right-0 z-10 text-neutral-500 hover:text-primary toggle-password">
                             <svg id="eyeOpen"
@@ -455,7 +465,7 @@
                         </button>
                     </div>
                 </div>
-                
+                <!-- Confirm Password -->
                 <div class="flex flex-col gap-2 w-full group">
                     <label for="confirmPassword"
                         class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
@@ -470,6 +480,7 @@
                         <input id="confirmPassword" type="password" placeholder="Confirm password"
                             class="password-input flex-1 bg-transparent focus:outline-none text-sm md:text-base font-normal pr-12" />
 
+                        <!-- Toggle Show/Hide -->
                         <button type="button"
                             class="absolute right-0 z-10 text-neutral-500 hover:text-primary toggle-password">
                             <svg id="eyeOpen"
@@ -540,6 +551,7 @@
         </div>
     </div>
 
+    <!-- Email OTP -->
     <div id="emailOTPModal"
         class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end md:items-center justify-center hidden z-50">
         <div class="bg-background w-[500px] rounded-t-3xl overflow-hidden modal-animate
@@ -591,11 +603,13 @@
         </div>
     </div>
 
+    <!-- Confirmation-->
     <div id="confirmModal"
         class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end md:items-center justify-center hidden z-50">
         <div class="bg-background w-[500px] rounded-t-3xl overflow-hidden modal-animate
         md:rounded-3xl">
 
+            <!-- Close Button -->
             <div class="w-full p-5 flex justify-end">
                 <button data-close-modal
                     class="cursor-pointer btn-round border-none  hover:bg-neutral-300 flex items-center justify-center active:scale-95">
@@ -637,7 +651,7 @@
     </div>
 
     <script>
-        
+        // Check if user has guest role and redirect to rooms page
         document.addEventListener('DOMContentLoaded', function() {
             const userRole = localStorage.getItem('role');
             if (userRole === 'guest') {

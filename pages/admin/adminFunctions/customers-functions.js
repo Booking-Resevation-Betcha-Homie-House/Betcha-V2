@@ -1,5 +1,8 @@
-﻿
+// Customer Functions for Admin Dashboard
 
+/**
+ * Initialize admin profile picture in navigation
+ */
 function initializeAdminProfile() {
     try {
         const profilePicture = localStorage.getItem('pfplink') || '';
@@ -10,16 +13,17 @@ function initializeAdminProfile() {
             console.warn('Admin profile elements not found in DOM');
             return;
         }
-
+        
+        // If profile picture exists, show it
         if (profilePicture && profilePicture.trim() !== '') {
             adminProfileImgElement.src = profilePicture;
             adminProfileImgElement.classList.remove('hidden');
-
+            // Remove green background when showing profile picture
             menuBtnElement.classList.remove('bg-primary');
             menuBtnElement.classList.add('bg-transparent');
             console.log('Admin profile picture loaded:', profilePicture);
         } else {
-
+            // Keep default SVG icon visible with green background
             adminProfileImgElement.classList.add('hidden');
             menuBtnElement.classList.remove('bg-transparent');
             menuBtnElement.classList.add('bg-primary');
@@ -31,20 +35,24 @@ function initializeAdminProfile() {
     }
 }
 
+// Initialize profile when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeAdminProfile();
 });
 
+// API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
-let customers = []; 
-let allCustomers = []; 
-let currentCustomer = null; 
+let customers = []; // Store all customers for searching (like allProperties in property-functions.js)
+let allCustomers = []; // Additional storage to match property.js pattern exactly
+let currentCustomer = null; // Track the customer currently shown in modal
 
+// Use full API URL
 const apiUrl = `${API_BASE}/guest/display`;
 
+// Initialize the customer manager when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-
+    // Show skeleton loading immediately
     showSkeletonLoading();
     
     try {
@@ -62,16 +70,19 @@ function showSkeletonLoading() {
     const skeletonContainer = document.getElementById('skeleton-container');
     const activeTab = document.getElementById('active-tab');
     const inactiveTab = document.getElementById('inactive-tab');
-
+    
+    // Show skeleton loading
     if (skeletonContainer) skeletonContainer.style.display = 'grid';
-
+    
+    // Hide content tabs
     if (activeTab) activeTab.classList.add('hidden');
     if (inactiveTab) inactiveTab.classList.add('hidden');
 }
 
 function hideSkeletonLoading() {
     const skeletonContainer = document.getElementById('skeleton-container');
-
+    
+    // Hide skeleton loading
     if (skeletonContainer) skeletonContainer.style.display = 'none';
 }
 
@@ -84,10 +95,11 @@ async function fetchCustomers() {
         }
         
         const data = await response.json();
-
+        
+        // The API returns a direct array of customers
         if (Array.isArray(data)) {
             customers = data;
-            allCustomers = data; 
+            allCustomers = data; // Store for search functionality like property-functions.js
         } else {
             throw new Error('Invalid response format from API - expected array');
         }
@@ -99,9 +111,10 @@ async function fetchCustomers() {
 }
 
 function renderCustomers() {
-
+    // Hide skeleton loading and show content
     hideSkeletonLoading();
 
+    // Find the tab content containers using specific IDs
     const activeTab = document.getElementById('active-tab');
     const inactiveTab = document.getElementById('inactive-tab');
     
@@ -109,23 +122,26 @@ function renderCustomers() {
         console.error('Could not find active-tab or inactive-tab elements');
         return;
     }
-
+    
+    // Remove hidden class from tab containers but don't show both
     activeTab.classList.remove('hidden');
     inactiveTab.classList.remove('hidden');
-
+    
+    // Clear existing content
     const activeGrid = activeTab.querySelector('.grid');
     const inactiveGrid = inactiveTab.querySelector('.grid');
     
     if (activeGrid) activeGrid.innerHTML = '';
     if (inactiveGrid) inactiveGrid.innerHTML = '';
 
+    // Separate active and inactive customers - case-insensitive status filtering  
     const activeCustomers = customers.filter(customer => {
-
+        // Handle string "false", boolean false, undefined, or null as active
         const archived = customer.archived;
         return archived === "false" || archived === false || !archived;
     });
     const inactiveCustomers = customers.filter(customer => {
-
+        // Handle string "true" or boolean true as inactive
         const archived = customer.archived;
         return archived === "true" || archived === true;
     });
@@ -133,6 +149,7 @@ function renderCustomers() {
     console.log('Customer statuses:', customers.map(c => ({ name: c.firstname, archived: c.archived, type: typeof c.archived })));
     console.log('Active customers:', activeCustomers.length, 'Inactive customers:', inactiveCustomers.length);
 
+    // Render active customers
     if (activeCustomers.length > 0) {
         activeCustomers.forEach((customer) => {
             const customerCard = createCustomerCard(customer);
@@ -144,6 +161,7 @@ function renderCustomers() {
         if (activeGrid) activeGrid.innerHTML = createEmptyState('No active customers found');
     }
 
+    // Render inactive customers
     if (inactiveCustomers.length > 0) {
         inactiveCustomers.forEach((customer) => {
             const customerCard = createCustomerCard(customer);
@@ -155,12 +173,16 @@ function renderCustomers() {
         if (inactiveGrid) inactiveGrid.innerHTML = createEmptyState('No inactive customers found');
     }
 
+    // Update tab counts if needed
     updateTabCounts(activeCustomers.length, inactiveCustomers.length);
 
+    // Always show the active tab by default after rendering
+    // Small delay to ensure DOM is ready
     setTimeout(() => {
-        showTab(0); 
+        showTab(0); // Always show active tab by default
     }, 100);
 
+    // If no customers at all, show a message
     if (customers.length === 0) {
         if (activeGrid) activeGrid.innerHTML = createEmptyState('No customers found in the system');
         if (inactiveGrid) inactiveGrid.innerHTML = createEmptyState('No customers found in the system');
@@ -169,11 +191,14 @@ function renderCustomers() {
 
 function createCustomerCard(customer) {
     const cardContainer = document.createElement('div');
-
+    
+    // Get first letter of firstname for avatar
     const firstLetter = customer.firstname ? customer.firstname.charAt(0).toUpperCase() : '?';
-
+    
+    // Calculate violations/warnings
     const violationCount = customer.warning || 0;
 
+    // Handle profile picture - check if pfplink exists and is not empty
     const hasProfilePic = customer.pfplink && customer.pfplink.trim() !== '';
 
     cardContainer.innerHTML = `
@@ -215,6 +240,7 @@ function createCustomerCard(customer) {
         </div>
     `;
 
+    // Add click event to show customer details in modal
     cardContainer.addEventListener('click', async () => {
         await showCustomerDetails(customer);
     });
@@ -235,7 +261,7 @@ function createEmptyState(message) {
 }
 
 function updateTabCounts(activeCount, inactiveCount) {
-
+    // Update tab button text to show counts
     const tabButtons = document.querySelectorAll('.tab-btn');
     
     if (tabButtons.length >= 2) {
@@ -253,12 +279,13 @@ function updateTabCounts(activeCount, inactiveCount) {
 }
 
 function setupEventListeners() {
-
+    // Deactivate button functionality
     const deactivateBtn = document.getElementById('deactivateCustomerBtn');
     if (deactivateBtn) {
         deactivateBtn.addEventListener('click', handleCustomerDeactivation);
     }
 
+    // Tab button functionality
     const activeTabBtn = document.getElementById('active-customer-tab');
     const inactiveTabBtn = document.getElementById('inactive-customer-tab');
     
@@ -277,16 +304,18 @@ function clearSearch() {
     const searchInput = document.getElementById('customer-search');
     if (searchInput) {
         searchInput.value = '';
-
+        // Reset to show all customers like property-functions.js does with all properties
         customers = allCustomers;
         renderCustomers();
     }
 }
 
+// Function to handle tab switching for customer tabs
 function setActiveTab(tabIndex) {
     showTab(tabIndex);
 }
 
+// Make setActiveTab globally accessible for customer tabs
 window.setActiveTab = setActiveTab;
 
 function showTab(tabIndex) {
@@ -294,14 +323,16 @@ function showTab(tabIndex) {
     const inactiveTab = document.getElementById('inactive-tab');
     const activeTabBtn = document.getElementById('active-customer-tab');
     const inactiveTabBtn = document.getElementById('inactive-customer-tab');
-
+    
+    // Hide all tabs
     if (activeTab) {
         activeTab.classList.add('hidden');
     }
     if (inactiveTab) {
         inactiveTab.classList.add('hidden');
     }
-
+    
+    // Remove active styles from all buttons
     if (activeTabBtn) {
         activeTabBtn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
         const activeSpan = activeTabBtn.querySelector('span');
@@ -319,9 +350,10 @@ function showTab(tabIndex) {
             inactiveSpan.classList.add('text-neutral-500');
         }
     }
-
+    
+    // Show selected tab and update button styles
     if (tabIndex === 0) {
-
+        // Show active customers tab
         if (activeTab) {
             activeTab.classList.remove('hidden');
         }
@@ -334,7 +366,7 @@ function showTab(tabIndex) {
             }
         }
     } else if (tabIndex === 1) {
-
+        // Show inactive customers tab
         if (inactiveTab) {
             inactiveTab.classList.remove('hidden');
         }
@@ -350,7 +382,7 @@ function showTab(tabIndex) {
 }
 
 function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
-
+    // Hide loading state
     const loadingState = document.getElementById('loading-state');
     if (loadingState) {
         loadingState.style.display = 'none';
@@ -360,13 +392,15 @@ function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
     const inactiveTab = document.getElementById('inactive-tab');
     
     if (!activeTab || !inactiveTab) return;
-
+    
+    // Clear existing content
     const activeGrid = activeTab.querySelector('.grid');
     const inactiveGrid = inactiveTab.querySelector('.grid');
     
     if (activeGrid) activeGrid.innerHTML = '';
     if (inactiveGrid) inactiveGrid.innerHTML = '';
 
+    // Separate filtered active and inactive customers - case-insensitive filtering
     const activeCustomers = filteredCustomers.filter(customer => {
         const archived = customer.archived;
         return archived === "false" || archived === false || !archived;
@@ -376,8 +410,9 @@ function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
         return archived === "true" || archived === true;
     });
 
+    // Render filtered active customers
     if (activeCustomers.length > 0) {
-
+        // Add search result header if filtering
         if (searchTerm) {
             const searchHeader = document.createElement('div');
             searchHeader.className = 'col-span-full mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg';
@@ -405,8 +440,9 @@ function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
         if (activeGrid) activeGrid.innerHTML = createEmptyState(message);
     }
 
+    // Render filtered inactive customers
     if (inactiveCustomers.length > 0) {
-
+        // Add search result header if filtering
         if (searchTerm) {
             const searchHeader = document.createElement('div');
             searchHeader.className = 'col-span-full mb-4 p-3 bg-gray-50 border border-gray-200 rounded-lg';
@@ -434,10 +470,13 @@ function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
         if (inactiveGrid) inactiveGrid.innerHTML = createEmptyState(message);
     }
 
+    // Update tab counts
     updateTabCounts(activeCustomers.length, inactiveCustomers.length);
 
-    showTab(0); 
+    // Use proper tab switching instead of showing both tabs
+    showTab(0); // Show active tab by default
 
+    // If no customers found at all, show message in active tab
     if (filteredCustomers.length === 0 && searchTerm) {
         if (activeGrid) {
             activeGrid.innerHTML = createEmptyState(`No customers found matching "${searchTerm}". Try a different search term.`);
@@ -445,6 +484,7 @@ function renderFilteredCustomers(filteredCustomers, searchTerm = '') {
     }
 }
 
+// Function to fetch customer reports from the API
 async function fetchCustomerReports(customerId) {
     try {
         const response = await fetch(`${API_BASE}/reports/${customerId}`);
@@ -460,29 +500,34 @@ async function fetchCustomerReports(customerId) {
 }
 
 async function showCustomerDetails(customer) {
-
+    // Store the current customer for deactivation functionality
     currentCustomer = customer;
-
+    
+    // Get the modal element
     const modal = document.getElementById('violationModal');
     if (!modal) {
         console.error('Violation modal not found');
         return;
     }
 
+    // Update customer name in modal
     const customerNameElement = modal.querySelector('.text-lg.font-bold.text-primary-text');
     if (customerNameElement) {
         customerNameElement.textContent = `${customer.firstname} ${customer.minitial || ''} ${customer.lastname}`;
     }
 
+    // Update the violations section with customer details
     const violationsContainer = modal.querySelector('.overflow-y-auto.w-full.py-6');
     if (violationsContainer) {
-
+        // Format join date
         const joinDate = customer.createdAt ? new Date(customer.createdAt).toLocaleDateString() : 'Unknown';
-
+        
+        // Calculate status
         const status = customer.archived ? 'Inactive' : (customer.warning ? 'Warning' : 'Active');
         const statusColor = customer.archived ? 'bg-gray-100 text-gray-700' : 
                            (customer.warning ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700');
 
+        // Fetch customer reports
         const reports = await fetchCustomerReports(customer._id);
 
         violationsContainer.innerHTML = `
@@ -557,26 +602,29 @@ async function showCustomerDetails(customer) {
         `;
     }
 
+    // Update the modal title section
     const modalTitleSection = modal.querySelector('.font-medium.text-primary.font-manrope');
     if (modalTitleSection) {
         modalTitleSection.textContent = 'Customer Details & Reports:';
     }
 
+    // Update deactivate button based on customer status
     updateDeactivateButton(customer);
 
+    // Show the modal
     modal.classList.remove('hidden');
     document.body.classList.add('modal-open');
 }
 
 function showErrorState(message) {
-
+    // Hide skeleton loading
     hideSkeletonLoading();
 
     const activeTab = document.getElementById('active-tab');
     const inactiveTab = document.getElementById('inactive-tab');
     
     if (activeTab && inactiveTab) {
-
+        // Hide inactive tab and show only active tab with error
         activeTab.classList.remove('hidden');
         inactiveTab.classList.add('hidden');
         
@@ -598,6 +646,7 @@ function showErrorState(message) {
     }
 }
 
+// Global retry function for customers
 async function retryLoadCustomers() {
     showSkeletonLoading();
     try {
@@ -610,6 +659,7 @@ async function retryLoadCustomers() {
     }
 }
 
+// Make retry function globally accessible
 window.retryLoadCustomers = retryLoadCustomers;
 
 function updateDeactivateButton(customer) {
@@ -619,14 +669,14 @@ function updateDeactivateButton(customer) {
     const buttonText = deactivateBtn.querySelector('span');
     
     if (customer.archived) {
-
+        // Customer is already deactivated - show reactivate option
         deactivateBtn.classList.remove('bg-rose-700', 'disabled:bg-rose-700/60');
         deactivateBtn.classList.add('bg-green-600', 'disabled:bg-green-600/60');
         if (buttonText) {
             buttonText.textContent = 'Reactivate';
         }
     } else {
-
+        // Customer is active - show deactivate option
         deactivateBtn.classList.remove('bg-green-600', 'disabled:bg-green-600/60');
         deactivateBtn.classList.add('bg-rose-700', 'disabled:bg-rose-700/60');
         if (buttonText) {
@@ -644,6 +694,7 @@ async function handleCustomerDeactivation() {
     const deactivateBtn = document.getElementById('deactivateCustomerBtn');
     if (!deactivateBtn) return;
 
+    // Confirm the action
     const isArchived = currentCustomer.archived;
     const action = isArchived ? 'reactivate' : 'deactivate';
     const confirmMessage = `Are you sure you want to ${action} ${currentCustomer.firstname} ${currentCustomer.lastname}?`;
@@ -652,6 +703,7 @@ async function handleCustomerDeactivation() {
         return;
     }
 
+    // Disable button during API call
     deactivateBtn.disabled = true;
     const buttonText = deactivateBtn.querySelector('span');
     const originalText = buttonText ? buttonText.textContent : '';
@@ -660,7 +712,7 @@ async function handleCustomerDeactivation() {
     }
 
     try {
-
+        // Use the correct API endpoints
         const endpoint = isArchived 
             ? `${API_BASE}/guest/unarchive/${currentCustomer._id}`
             : `${API_BASE}/guest/archive/${currentCustomer._id}`;
@@ -669,7 +721,7 @@ async function handleCustomerDeactivation() {
         let response;
 
         try {
-
+            // Use PUT method (confirmed working)
             response = await fetch(endpoint, {
                 method: 'PUT',
                 headers: {
@@ -680,7 +732,7 @@ async function handleCustomerDeactivation() {
             if (response.ok) {
                 success = true;
             } else if (response.status === 404) {
-
+                // If 404, try PATCH method as fallback
                 response = await fetch(endpoint, {
                     method: 'PATCH',
                     headers: {
@@ -694,63 +746,74 @@ async function handleCustomerDeactivation() {
         }
 
         if (success) {
-
+            // Show success message immediately
             const successAction = !isArchived ? 'deactivated' : 'reactivated';
             alert(`Customer has been successfully ${successAction}!`);
 
+            // Close the modal first
             const modal = document.getElementById('violationModal');
             if (modal) {
                 modal.classList.add('hidden');
                 document.body.classList.remove('modal-open');
             }
 
+            // Refresh data from API to get the latest state
             await refreshCustomerData();
         } else {
-
+            // Fallback to local simulation if API is not available
             console.warn('API endpoints not available, using local simulation');
-
+            
+            // Update the customer in local array (demo mode)
             const customerIndex = customers.findIndex(c => c._id === currentCustomer._id);
             if (customerIndex !== -1) {
                 customers[customerIndex].archived = !customers[customerIndex].archived;
                 currentCustomer.archived = !currentCustomer.archived;
             }
 
+            // Show demo success message
             const successAction = !isArchived ? 'deactivated' : 'reactivated';
             alert(`Customer has been ${successAction} (Demo Mode)!\n\nNote: The API endpoints are not yet available. This change is local only and will reset on page refresh.`);
 
+            // Close the modal
             const modal = document.getElementById('violationModal');
             if (modal) {
                 modal.classList.add('hidden');
                 document.body.classList.remove('modal-open');
             }
 
+            // Refresh the display with current local data
             renderCustomers();
         }
+
+        // Note: We removed the renderCustomers() call from here since it's now called in refreshCustomerData() or in the demo mode section above
 
     } catch (error) {
         console.error('Error updating customer status:', error);
         alert(`Failed to ${action} customer. Please try again. Error: ${error.message}`);
-
+        
+        // Restore button text
         if (buttonText) {
             buttonText.textContent = originalText;
         }
     } finally {
-
+        // Re-enable button
         deactivateBtn.disabled = false;
     }
 }
 
 async function refreshCustomerData() {
     try {
-
+        // Show a subtle loading indicator (optional)
         const searchInput = document.getElementById('customer-search');
         let searchTerm = '';
         if (searchInput) {
             searchTerm = searchInput.value.trim();
         }
 
+        // Fetch fresh data from API
         await fetchCustomers();
-
+        
+        // Re-apply search if there was a search term
         if (searchTerm) {
             const value = searchTerm.toLowerCase();
             const filtered = allCustomers.filter(customer => {
@@ -772,23 +835,25 @@ async function refreshCustomerData() {
         renderCustomers();
     } catch (error) {
         console.error('Error refreshing customer data:', error);
-
+        // Fall back to rendering current data
         renderCustomers();
     }
 }
 
+// Additional search initialization - exactly like property.js pattern
 document.addEventListener('DOMContentLoaded', () => {
     const searchInput = document.getElementById('customer-search');
     if (searchInput) {
         searchInput.addEventListener('input', (e) => {
             const value = e.target.value.trim().toLowerCase();
-
+            
+            // Show skeleton loading during search
             if (value) {
                 showSkeletonLoading();
-
+                // Use setTimeout to simulate brief loading and show skeleton animation
                 setTimeout(() => {
                     const filtered = allCustomers.filter(customer => {
-
+                        // Search across multiple customer fields like property searches by name
                         const firstName = customer.first_name || customer.firstname || '';
                         const lastName = customer.last_name || customer.lastname || '';
                         const email = customer.email || '';
@@ -799,12 +864,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                fullName.toLowerCase().includes(value) ||
                                email.toLowerCase().includes(value);
                     });
-
+                    
+                    // Update customers array and render like property-functions.js does
                     customers = filtered;
                     renderCustomers();
-                }, 300); 
+                }, 300); // Brief loading animation
             } else {
-
+                // No search term - show all customers immediately
                 customers = allCustomers;
                 renderCustomers();
             }

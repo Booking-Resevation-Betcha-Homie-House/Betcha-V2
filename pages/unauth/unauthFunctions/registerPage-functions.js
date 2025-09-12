@@ -1,17 +1,21 @@
-﻿
+// Form validation and API integration
 let canResendOTP = true;
 let resendTimer = 60;
 
+// Regular expressions for validation
 const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
 const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
 
+// Function to calculate age from birthdate
 function calculateAge(birthMonth, birthDay, birthYear) {
     const today = new Date();
-    const birthDate = new Date(birthYear, birthMonth - 1, birthDay); 
-
+    const birthDate = new Date(birthYear, birthMonth - 1, birthDay); // month is 0-indexed
+    
+    // Calculate age in years
     let age = today.getFullYear() - birthDate.getFullYear();
     const monthDiff = today.getMonth() - birthDate.getMonth();
-
+    
+    // If birthday hasn't occurred this year, subtract a year
     if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         age--;
     }
@@ -19,34 +23,41 @@ function calculateAge(birthMonth, birthDay, birthYear) {
     return age;
 }
 
+// Function to check if user is exactly 18 or older today
 function isAtLeast18Today(birthMonth, birthDay, birthYear) {
     const age = calculateAge(birthMonth, birthDay, birthYear);
     const today = new Date();
-
+    
+    // Must be at least 18 years old as of today
     if (age < 18) {
         return false;
     }
-
+    
+    // Additional check: if they're exactly 18, make sure their birthday has passed
     if (age === 18) {
         const thisYearBirthday = new Date(today.getFullYear(), birthMonth - 1, birthDay);
         return today >= thisYearBirthday;
     }
     
-    return true; 
+    return true; // 19 or older
 }
 
+// Step 1 form validation (ID verification)
 function validateStep1() {
     const selectedID = document.querySelector('#selectedID')?.textContent?.trim();
     const idPreviewContainer = document.getElementById('IDpreviewContainer');
     const hasUploadedFiles = idPreviewContainer && idPreviewContainer.children.length > 0;
-
+    
+    // Also check stored files as backup
     const hasStoredFiles = window.uploadedIDFiles && window.uploadedIDFiles.length > 0;
 
+    // Check if ID type is selected
     if (!selectedID || selectedID === 'Select an ID type' || selectedID === '' || selectedID === 'Select valid ID') {
         showError('Please select a valid ID type');
         return false;
     }
 
+    // Check if ID file is uploaded (check both preview container and stored files)
     if (!hasUploadedFiles && !hasStoredFiles) {
         showError('Please upload a photo of your ID');
         return false;
@@ -56,6 +67,7 @@ function validateStep1() {
     return true;
 }
 
+// Step 2 form validation (Personal information)
 function validateStep2() {
     const firstName = document.querySelector('#step2 input[placeholder="First name"]')?.value;
     const lastName = document.querySelector('#step2 input[placeholder="Last name"]')?.value;
@@ -64,6 +76,7 @@ function validateStep2() {
     const dayElement = document.querySelector('#selectedDay');
     const yearElement = document.querySelector('#selectedYear');
 
+    // Check if elements exist before accessing properties
     if (!firstName) {
         showError('First name field not found', 2);
         return false;
@@ -85,6 +98,7 @@ function validateStep2() {
     const day = dayElement.textContent;
     const year = yearElement.textContent;
 
+    // Validate required fields (except middle initial)
     if (!firstName.trim()) {
         showError('First name is required', 2);
         return false;
@@ -102,13 +116,15 @@ function validateStep2() {
         return false;
     }
 
+    // Check if user is at least 18 years old as of today
     const age = calculateAge(parseInt(monthValue), parseInt(day), parseInt(year));
     const isEligible = isAtLeast18Today(parseInt(monthValue), parseInt(day), parseInt(year));
     
     if (!isEligible) {
         const today = new Date();
         const nextBirthday = new Date(today.getFullYear(), parseInt(monthValue) - 1, parseInt(day));
-
+        
+        // If birthday already passed this year, next birthday is next year
         if (nextBirthday < today) {
             nextBirthday.setFullYear(today.getFullYear() + 1);
         }
@@ -126,12 +142,14 @@ function validateStep2() {
     return true;
 }
 
+// Step 3 form validation (Contact & password)
 function validateStep3() {
     const email = document.querySelector('#step3 input[type="email"]')?.value;
     const phone = document.querySelector('#step3 input[type="tel"]')?.value;
     const password = document.querySelector('#step3 #password')?.value;
     const confirmPassword = document.querySelector('#step3 #confirmPassword')?.value;
 
+    // Check if elements exist
     if (!email) {
         showError('Email field not found', 3);
         return false;
@@ -170,10 +188,12 @@ function validateStep3() {
     return true;
 }
 
+// Show error message
 function showError(message, step = 1) {
-
+    // Hide all error containers first
     hideError();
-
+    
+    // Show error for specific step
     const errorContainer = document.getElementById(`errorContainer${step === 1 ? '' : step}`);
     const errorText = document.getElementById(`errorText${step === 1 ? '' : step}`);
 
@@ -182,10 +202,12 @@ function showError(message, step = 1) {
         errorText.textContent = message;
     }
 
+    // Update button states when error is shown
     updateRegisterButtonState();
     updateNextButtonState();
 }
 
+// Hide error message
 function hideError() {
     const errorContainers = document.querySelectorAll('[id^="errorContainer"]');
     
@@ -194,10 +216,12 @@ function hideError() {
         container.classList.remove('flex');
     });
 
+    // Update button states when error is hidden
     updateRegisterButtonState();
     updateNextButtonState();
 }
 
+// Function to check if register button should be enabled
 function updateRegisterButtonState() {
     const registerBtn = document.getElementById('registerBtn2');
     if (!registerBtn) return;
@@ -207,75 +231,86 @@ function updateRegisterButtonState() {
     const password = document.querySelector('#step3 #password')?.value;
     const confirmPassword = document.querySelector('#step3 #confirmPassword')?.value;
 
+    // Check if any error is currently being displayed
     const errorContainers = document.querySelectorAll('#errorContainer');
     const hasVisibleError = Array.from(errorContainers).some(container => 
         !container.classList.contains('hidden')
     );
 
+    // Check if all fields are filled and valid
     const isEmailValid = email && email.length > 0 && emailRegex.test(email);
     const isPhoneValid = phone && phone.trim().length > 0;
     const isPasswordValid = password && password.length > 0 && passwordRegex.test(password);
     const isConfirmPasswordValid = confirmPassword && confirmPassword.length > 0 && password === confirmPassword;
 
+    // Button should be enabled only if all fields are valid AND no errors are shown
     const allValid = isEmailValid && isPhoneValid && isPasswordValid && isConfirmPasswordValid && !hasVisibleError;
 
     if (allValid) {
-
+        // Enable button
         registerBtn.disabled = false;
         registerBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         registerBtn.classList.add('hover:cursor-pointer');
     } else {
-
+        // Disable button
         registerBtn.disabled = true;
         registerBtn.classList.add('opacity-50', 'cursor-not-allowed');
         registerBtn.classList.remove('hover:cursor-pointer');
     }
 }
 
+// Function to check if next button should be enabled
 function updateNextButtonState() {
-
+    // Check which step we're on and update the appropriate button
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
-
+    
+    // Step 1 -> Step 2 button
     if (step1 && !step1.classList.contains('hidden')) {
         const nextBtn1 = document.getElementById('nextBtn1');
         if (!nextBtn1) return;
 
+        // Check if any error is currently being displayed
         const errorContainers = document.querySelectorAll('#errorContainer');
         const hasVisibleError = Array.from(errorContainers).some(container => 
             !container.classList.contains('hidden')
         );
 
+        // Check step 1 fields (ID verification)
         const selectedID = document.querySelector('#selectedID')?.textContent?.trim();
         const idPreviewContainer = document.getElementById('IDpreviewContainer');
         const hasUploadedFiles = idPreviewContainer && idPreviewContainer.children.length > 0;
 
         const isStep1Valid = selectedID && selectedID !== 'Select an ID type' && selectedID !== '' && hasUploadedFiles;
 
+        // Button should be enabled only if step 1 is valid AND no errors are shown
         const canProceed = isStep1Valid && !hasVisibleError;
 
         if (canProceed) {
-
+            // Enable button
             nextBtn1.disabled = false;
             nextBtn1.classList.remove('opacity-50', 'cursor-not-allowed');
             nextBtn1.classList.add('hover:cursor-pointer');
         } else {
-
+            // Disable button
             nextBtn1.disabled = true;
             nextBtn1.classList.add('opacity-50', 'cursor-not-allowed');
             nextBtn1.classList.remove('hover:cursor-pointer');
         }
     }
-
+    
+    // Step 2 -> Step 3 button
     if (step2 && !step2.classList.contains('hidden')) {
         const nextBtn2 = document.getElementById('nextBtn2');
         if (!nextBtn2) return;
 
+        // Check if any error is currently being displayed
         const errorContainers = document.querySelectorAll('#errorContainer');
         const hasVisibleError = Array.from(errorContainers).some(container => 
             !container.classList.contains('hidden')
         );
 
+        // Check step 2 fields (personal info)
         const firstName = document.querySelector('#step2 input[placeholder="First name"]')?.value || '';
         const lastName = document.querySelector('#step2 input[placeholder="Last name"]')?.value || '';
         const selectedSex = document.querySelector('#selectedSex')?.textContent || 'Sex';
@@ -289,15 +324,16 @@ function updateNextButtonState() {
                             dayElement && dayElement.textContent !== 'Month' &&
                             yearElement && yearElement.textContent !== 'Month';
 
+        // Button should be enabled only if step 2 is valid AND no errors are shown
         const canProceed = isStep2Valid && !hasVisibleError;
 
         if (canProceed) {
-
+            // Enable button
             nextBtn2.disabled = false;
             nextBtn2.classList.remove('opacity-50', 'cursor-not-allowed');
             nextBtn2.classList.add('hover:cursor-pointer');
         } else {
-
+            // Disable button
             nextBtn2.disabled = true;
             nextBtn2.classList.add('opacity-50', 'cursor-not-allowed');
             nextBtn2.classList.remove('hover:cursor-pointer');
@@ -305,6 +341,7 @@ function updateNextButtonState() {
     }
 }
 
+// Function to send OTP
 async function sendOTP(email) {
     if (!canResendOTP) {
         showError('Please wait before requesting another OTP.', 3);
@@ -334,18 +371,22 @@ async function sendOTP(email) {
             throw new Error(data.message || 'Failed to send OTP');
         }
 
+        // Start the resend timer
         canResendOTP = false;
         startResendTimer();
 
         console.log('OTP sent successfully, showing modal');
-
+        
+        // Show success message and open OTP modal
         hideError();
-
+        
+        // Ensure the OTP modal opens
         const otpModal = document.getElementById('emailOTPModal');
         if (otpModal) {
             otpModal.classList.remove('hidden');
             document.body.classList.add('modal-open');
-
+            
+            // Focus on first OTP input
             const firstOtpInput = document.querySelector('.otp-input');
             if (firstOtpInput) {
                 setTimeout(() => firstOtpInput.focus(), 100);
@@ -360,6 +401,7 @@ async function sendOTP(email) {
     }
 }
 
+// Timer for resending OTP
 function startResendTimer() {
     const timerElement = document.getElementById('timer-resend');
     if (!timerElement) {
@@ -390,8 +432,9 @@ function startResendTimer() {
     }, 1000);
 }
 
+// Register user after OTP verification
 async function registerUser(formData) {
-
+    // Add form data logging for debugging
     console.log('Form data being sent:');
     for (let pair of formData.entries()) {
         console.log(pair[0] + ': ' + pair[1]);
@@ -409,26 +452,29 @@ async function registerUser(formData) {
     }
 
     try {
-
+        // Close all existing modals first
         const existingModals = document.querySelectorAll('.modal');
         existingModals.forEach(modal => {
             modal.classList.add('hidden');
             document.body.classList.remove('modal-open');
         });
 
+        // Get and show the confirm modal
         const confirmModal = document.getElementById('confirmModal');
         if (confirmModal) {
-
+            // Show the modal
             confirmModal.classList.remove('hidden');
             document.body.classList.add('modal-open');
 
+            // Make sure the registered content is showing
             const registeredModal = document.getElementById('registeredModal');
             const modalContainer = registeredModal.closest('.modal');
             if (modalContainer) {
-
+                // Make the modal visible
                 modalContainer.classList.remove('hidden');
-                document.body.classList.add('modal-open'); 
+                document.body.classList.add('modal-open'); // Lock scroll
 
+                // Dispatch custom event for modal opening
                 const modalOpenEvent = new CustomEvent('modalOpened', {
                     detail: { modalId: modalContainer.id, modal: modalContainer }
                 });
@@ -437,17 +483,20 @@ async function registerUser(formData) {
         }
     } catch (error) {
         console.error('Modal update error:', error);
-
+        // Continue with registration even if modal fails
     }
 
+    // Return the response data
     return responseData;
 }
 
+// Function to show registration error modal
 function showRegistrationError(errorMessage) {
-
+    // Hide any existing modals
     const existingModals = document.querySelectorAll('.modal');
     existingModals.forEach(modal => modal.classList.add('hidden'));
 
+    // Update the confirmation modal content to show error
     const confirmModal = document.querySelector('#confirmModal');
     const modalContent = confirmModal.querySelector('.flex.flex-col.items-center.gap-5.p-8');
     modalContent.innerHTML = `
@@ -469,18 +518,22 @@ function showRegistrationError(errorMessage) {
         </div>
     `;
 
+    // Show the modal
     confirmModal.classList.remove('hidden');
 }
 
+// ⚙️ Fullscreen loading functions (global versions)
 function showFullscreenLoading(message = 'Loading') {
-
+    // Remove any existing loading overlays first
     const existingOverlays = document.querySelectorAll('[id^="fullscreen-loading"]');
     existingOverlays.forEach(overlay => overlay.remove());
-
+    
+    // Create new loading overlay
     const loadingOverlay = document.createElement('div');
     loadingOverlay.id = 'fullscreen-loading-overlay';
     loadingOverlay.className = 'fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm';
-
+    
+    // Add the loading dots animation style
     const style = document.createElement('style');
     style.textContent = `
         @keyframes loadingDots {
@@ -519,6 +572,7 @@ function hideFullscreenLoading() {
     existingOverlays.forEach(overlay => overlay.remove());
 }
 
+// Function to update loading message without recreating overlay
 function updateLoadingMessage(message) {
     const loadingMessage = document.getElementById('loading-message');
     if (loadingMessage) {
@@ -529,6 +583,7 @@ function updateLoadingMessage(message) {
     }
 }
 
+// ⚙️ OCR Scanning function for Driver's License (global)
 async function scanDriversLicense(imageFile) {
     try {
         console.log('Starting OCR scan for driver\'s license...');
@@ -547,14 +602,16 @@ async function scanDriversLicense(imageFile) {
         if (!response.ok) {
             throw new Error(data.message || 'OCR scanning failed');
         }
-
+        
+        // Validate that essential fields are present and not null
         const requiredFields = ['birthday', 'firstName', 'lastName'];
         const missingFields = requiredFields.filter(field => !data[field] || data[field] === null);
         
         if (missingFields.length > 0) {
             throw new Error('Incomplete data extracted from ID. Please ensure the image is clear and shows the complete driver\'s license.');
         }
-
+        
+        // Log what fields were extracted
         console.log('OCR extracted fields:', {
             firstName: data.firstName,
             lastName: data.lastName,
@@ -570,44 +627,51 @@ async function scanDriversLicense(imageFile) {
     }
 }
 
+// ⚙️ Auto-fill form with OCR data (global)
 function autoFillFromOCR(ocrData) {
     try {
         console.log('Auto-filling form with OCR data:', ocrData);
-
+        
+        // Fill first name
         if (ocrData.firstName) {
             const firstNameInput = document.querySelector('#step2 input[placeholder="First name"]');
             if (firstNameInput) {
                 firstNameInput.value = ocrData.firstName;
             }
         }
-
+        
+        // Fill last name
         if (ocrData.lastName) {
             const lastNameInput = document.querySelector('#step2 input[placeholder="Last name"]');
             if (lastNameInput) {
                 lastNameInput.value = ocrData.lastName;
             }
         }
-
+        
+        // Fill middle name
         if (ocrData.middleName) {
             const middleNameInput = document.querySelector('#step2 input[placeholder="Middle name"]');
             if (middleNameInput) {
                 middleNameInput.value = ocrData.middleName;
             }
         }
-
+        
+        // Fill sex/gender (check both 'gender' and 'sex' fields)
         const genderValue = ocrData.gender || ocrData.sex;
         if (genderValue) {
             const sexDisplay = document.querySelector('#selectedSex');
             if (sexDisplay) {
-
+                // Convert to proper case and ensure it matches dropdown options
                 let displayValue = genderValue.charAt(0).toUpperCase() + genderValue.slice(1).toLowerCase();
-
+                
+                // Map common variations to dropdown options
                 if (displayValue === 'M' || displayValue === 'Male') {
                     displayValue = 'Male';
                 } else if (displayValue === 'F' || displayValue === 'Female') {
                     displayValue = 'Female';
                 }
-
+                
+                // Validate against allowed options (Male, Female, Other)
                 const allowedValues = ['Male', 'Female', 'Other'];
                 if (allowedValues.includes(displayValue)) {
                     sexDisplay.textContent = displayValue;
@@ -619,14 +683,16 @@ function autoFillFromOCR(ocrData) {
                 }
             }
         }
-
+        
+        // Fill birthdate
         if (ocrData.birthday) {
             try {
                 const birthDate = new Date(ocrData.birthday);
-                const month = birthDate.getMonth() + 1; 
+                const month = birthDate.getMonth() + 1; // 0-indexed
                 const day = birthDate.getDate();
                 const year = birthDate.getFullYear();
-
+                
+                // Set month
                 const monthDisplay = document.querySelector('#selectedMonth');
                 if (monthDisplay) {
                     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -635,14 +701,16 @@ function autoFillFromOCR(ocrData) {
                     monthDisplay.classList.remove('text-neutral-400');
                     monthDisplay.classList.add('text-primary-text');
                 }
-
+                
+                // Set day
                 const dayDisplay = document.querySelector('#selectedDay');
                 if (dayDisplay) {
                     dayDisplay.textContent = day.toString();
                     dayDisplay.classList.remove('text-neutral-400');
                     dayDisplay.classList.add('text-primary-text');
                 }
-
+                
+                // Set year
                 const yearDisplay = document.querySelector('#selectedYear');
                 if (yearDisplay) {
                     yearDisplay.textContent = year.toString();
@@ -660,8 +728,9 @@ function autoFillFromOCR(ocrData) {
     }
 }
 
+// Function to show OCR error modal
 function showOCRError(errorMessage) {
-
+    // Update the confirmation modal content to show OCR error
     const confirmModal = document.querySelector('#confirmModal');
     if (!confirmModal) {
         console.error('Confirm modal not found');
@@ -701,9 +770,11 @@ function showOCRError(errorMessage) {
         </div>
     `;
 
+    // Show the modal
     confirmModal.classList.remove('hidden');
 }
 
+// Function to close OCR error modal
 function closeOCRErrorModal() {
     const confirmModal = document.querySelector('#confirmModal');
     if (confirmModal) {
@@ -711,23 +782,28 @@ function closeOCRErrorModal() {
     }
 }
 
+// Make function available globally
 window.closeOCRErrorModal = closeOCRErrorModal;
 
+// Add event listeners when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
 
+    // Step navigation
     const step1Form = document.getElementById('step1');
     const step2Form = document.getElementById('step2');
     const step3Form = document.getElementById('step3');
 
+    // Handle Step 1 -> Step 2 (ID verification -> Personal info)
     const nextBtn1 = document.getElementById('nextBtn1');
     if (nextBtn1) {
         nextBtn1.addEventListener('click', async (e) => {
             e.preventDefault();
             console.log('nextBtn1 clicked - starting OCR process');
-
+            
+            // Check if button is disabled
             if (nextBtn1.disabled) {
                 console.log('Button is disabled, returning');
-                return; 
+                return; // Don't proceed if button is disabled
             }
             
             try {
@@ -737,14 +813,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
                 console.log('Step 1 validation passed, starting OCR scan...');
-
+                
+                // Show fullscreen loading immediately
                 showFullscreenLoading('AI analyzing your document');
-
+                
+                // Get the uploaded driver's license image
+                // First try the stored files from IDverifier.js
                 let imageFile = null;
                 if (window.uploadedIDFiles && window.uploadedIDFiles.length > 0) {
                     imageFile = window.uploadedIDFiles[0];
                 } else {
-
+                    // Fallback to file input
                     const fileInput = document.querySelector('input[type="file"]') || document.getElementById('IDfileInput');
                     if (fileInput && fileInput.files && fileInput.files.length > 0) {
                         imageFile = fileInput.files[0];
@@ -761,33 +840,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 updateLoadingMessage('Checking the Language');
                 await new Promise(resolve => setTimeout(resolve, 1000));
-
+                
+                // Smooth transition to next message
                 setTimeout(() => updateLoadingMessage('Reading Image and extracting data'), 100);
-
+                
+                // Perform OCR scan
                 console.log('Calling OCR API...');
                 const ocrData = await scanDriversLicense(imageFile);
                 console.log('OCR scan successful:', ocrData);
-
+                
+                // Update loading message for processing
                 updateLoadingMessage('Formulating your profile');
-
+                
+                // Auto-fill the form with OCR data
                 autoFillFromOCR(ocrData);
-
+                
+                // Brief delay to show processing
                 await new Promise(resolve => setTimeout(resolve, 600));
                 
                 updateLoadingMessage('Validating the ID');
                 await new Promise(resolve => setTimeout(resolve, 3000));
 
+                // Final loading message
                 updateLoadingMessage('Almost ready');
                 await new Promise(resolve => setTimeout(resolve, 1000));
-
+                
+                // Hide loading before moving to step 2
                 hideFullscreenLoading();
-
+                
+                // Move to step 2
                 console.log('Moving to step 2...');
                 step1Form.classList.add('hidden');
                 step2Form.classList.remove('hidden');
                 document.getElementById('step-label').textContent = 'Step 2 of 3';
                 document.getElementById('progress-bar').style.width = '66.66%';
-
+                
+                // Initialize button state when step 2 is shown
                 updateNextButtonState();
                 
             } catch (error) {
@@ -802,14 +890,16 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('nextBtn1 button not found!');
     }
 
+    // Handle Step 2 -> Step 3 (Personal info -> Contact & password)
     const nextBtn2 = document.querySelector('button[onclick="goToStep3()"]');
     if (nextBtn2) {
         nextBtn2.addEventListener('click', (e) => {
             e.preventDefault();
-
+            
+            // Check if button is disabled
             const btn = document.getElementById('nextBtn2');
             if (btn && btn.disabled) {
-                return; 
+                return; // Don't proceed if button is disabled
             }
             
             if (validateStep2()) {
@@ -817,20 +907,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 step3Form.classList.remove('hidden');
                 document.getElementById('step-label').textContent = 'Step 3 of 3';
                 document.getElementById('progress-bar').style.width = '100%';
-
+                
+                // Initialize button state when step 3 is shown
                 updateRegisterButtonState();
             }
         });
     }
 
+    // Handle register button click
     const registerBtn = document.querySelector('button[data-modal-target="emailOTPModal"]');
     if (registerBtn) {
         registerBtn.addEventListener('click', async (e) => {
             e.preventDefault();
-
+            
+            // Check if button is disabled
             const btn = document.getElementById('registerBtn2');
             if (btn && btn.disabled) {
-                return; 
+                return; // Don't proceed if button is disabled
             }
             
             if (validateStep3()) {
@@ -851,6 +944,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Handle resend OTP click
     const resendOTP = document.getElementById('timer-resend');
     if (resendOTP) {
         resendOTP.addEventListener('click', async () => {
@@ -872,16 +966,19 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Function to restart registration process
     window.restartRegistration = function() {
-
+        // Reset all forms
         document.getElementById('step1').classList.remove('hidden');
         document.getElementById('step2').classList.add('hidden');
         document.getElementById('step3').classList.add('hidden');
         document.getElementById('progress-bar').style.width = '33.33%';
         document.getElementById('step-label').textContent = 'Step 1 of 3';
-
+        
+        // Reset all inputs
         document.querySelectorAll('input').forEach(input => input.value = '');
-
+        
+        // Reset dropdowns if they exist
         const selectedSex = document.querySelector('#selectedSex');
         if (selectedSex) selectedSex.textContent = 'Sex';
         
@@ -896,17 +993,21 @@ document.addEventListener('DOMContentLoaded', () => {
         
         const selectedID = document.querySelector('#selectedID');
         if (selectedID) selectedID.textContent = '';
-
+        
+        // Clear ID preview container
         const idPreviewContainer = document.getElementById('IDpreviewContainer');
         if (idPreviewContainer) idPreviewContainer.innerHTML = '';
-
+        
+        // Hide error messages
         hideError();
-
+        
+        // Close modal
         const modals = document.querySelectorAll('.modal');
         modals.forEach(modal => modal.classList.add('hidden'));
         document.body.classList.remove('modal-open');
     };
 
+    // Function to verify OTP
     async function verifyOTP(email, otp) {
         try {
             console.log('Verifying OTP:', otp, 'for email:', email);
@@ -934,6 +1035,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Handle OTP confirmation
     const confirmButton = document.querySelector('button[data-modal-target="confirmModal"]');
     
     if (confirmButton) {
@@ -942,15 +1044,17 @@ document.addEventListener('DOMContentLoaded', () => {
             e.stopPropagation();
 
             try {
-
+                // Collect OTP digits
                 const otpInputs = document.querySelectorAll('.otp-input');
                 const otpValue = Array.from(otpInputs).map(input => input.value).join('');
-
+                
+                // Validate OTP format
                 if (otpValue.length !== 6 || !/^\d+$/.test(otpValue)) {
                     showError('Please enter a valid 6-digit OTP');
                     return;
                 }
 
+                // Get email for OTP verification
                 const emailElement = document.querySelector('#step3 input[type="email"]');
                 if (!emailElement) {
                     showError('Email field not found. Please refresh the page.');
@@ -965,21 +1069,25 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('Verifying OTP:', otpValue, 'for email:', email);
 
                 try {
-
+                    // Hide any visible modals first
                     document.querySelectorAll('.modal').forEach(modal => {
                         modal.classList.add('hidden');
                     });
 
+                    // Verify OTP first
                     await verifyOTP(email, otpValue);
-
+                
+                // If OTP is verified, proceed with registration
                 const formData = new FormData();
-
+                
+                // Get form elements with null checks
                 const firstNameEl = document.querySelector('#step2 input[placeholder="First name"]');
                 const middleInitialEl = document.querySelector('#step2 input[placeholder="Middle initial"]');
                 const lastNameEl = document.querySelector('#step2 input[placeholder="Last name"]');
                 const passwordEl = document.querySelector('#step3 #password');
                 const phoneEl = document.querySelector('#step3 input[type="tel"]');
-
+                
+                // Debug: Log which elements are found
                 console.log('Form elements found:', {
                     firstNameEl: !!firstNameEl,
                     middleInitialEl: !!middleInitialEl,
@@ -1007,7 +1115,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 formData.append('email', email);
                 formData.append('password', passwordEl.value);
                 formData.append('phoneNumber', phoneEl.value.trim());
-
+                
+                // Get dropdown elements with null checks
                 const monthElement = document.querySelector('#selectedMonth');
                 const dayElement = document.querySelector('#selectedDay');
                 const yearElement = document.querySelector('#selectedYear');
@@ -1020,23 +1129,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 const monthValue = monthElement.dataset.value || monthElement.textContent;
                 const day = dayElement.textContent;
                 const year = yearElement.textContent;
-
+                
+                // Format date as YYYY-MM-DD
                 const formattedMonth = monthValue.padStart(2, '0');
                 const formattedDay = day.padStart(2, '0');
                 formData.append('birthday', `${year}-${formattedMonth}-${formattedDay}`);
                 
                 formData.append('sex', sexElement.textContent);
 
+                // Get profile picture if it exists
                 const pfpInput = document.querySelector('input[type="file"]');
                 if (pfpInput && pfpInput.files[0]) {
                     formData.append('pfp', pfpInput.files[0]);
                 }
 
+                // Try to register user
                 const response = await registerUser(formData).catch(error => {
-
+                    // Handle registration error
                     throw new Error(error.message || 'Registration failed. Please try again.');
                 });
 
+                // Store the user data for the login/verify buttons
                 window.registeredUserData = {
                     firstName: formData.get('firstname'),
                     middleInitial: formData.get('minitial'),
@@ -1047,11 +1160,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     verified: response.guest.verified
                 };
 
+                // Close the email OTP modal
                 const emailOTPModal = document.getElementById('emailOTPModal');
                 if (emailOTPModal) {
                     emailOTPModal.classList.add('hidden');
                 }
 
+                // Show the success modal with login/verify buttons
                 const confirmModal = document.getElementById('confirmModal');
                 if (confirmModal) {
                     confirmModal.classList.remove('hidden');
@@ -1059,9 +1174,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
             } catch (error) {
-
+                // Show error modal for any failure (OTP or registration)
                 showRegistrationError(error.message || 'The process failed. Please try again.');
-
+                // Reset OTP inputs
                 otpInputs.forEach(input => input.value = '');
             }
 
@@ -1074,6 +1189,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('OTP confirmation button not found');
     }
 
+    // Handle OTP input
     const otpInputs = document.querySelectorAll('.otp-input');
     otpInputs.forEach((input, index) => {
         input.addEventListener('input', (e) => {
@@ -1091,6 +1207,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
+    // Real-time validation for Step 2 fields (personal info)
     const firstNameInput = document.querySelector('#step2 input[placeholder="First name"]');
     const lastNameInput = document.querySelector('#step2 input[placeholder="Last name"]');
     
@@ -1106,6 +1223,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Real-time validation for Step 3 fields (email, phone, password)
     const emailInput = document.querySelector('#step3 input[type="email"]');
     const phoneInput = document.querySelector('#step3 input[type="tel"]');
     const passwordInput = document.querySelector('#step3 #password');
@@ -1175,10 +1293,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Add listeners for dropdown changes (sex, month, day, year)
+    // These will be triggered when dropdown selections are made in the dropdown logic
     const observer = new MutationObserver(() => {
         updateNextButtonState();
     });
 
+    // Observe changes to dropdown elements
     const sexElement = document.querySelector('#selectedSex');
     const monthElement = document.querySelector('#selectedMonth');
     const dayElement = document.querySelector('#selectedDay');
@@ -1193,8 +1314,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (idElement) observer.observe(idElement, { childList: true, subtree: true });
     if (idPreviewContainer) observer.observe(idPreviewContainer, { childList: true, subtree: true });
 
+    // Initialize next button state when DOM is loaded
     updateNextButtonState();
-
+    
+    // Global functions for HTML onclick attributes
     window.goToStep2 = function() {
         const step1Form = document.getElementById('step1');
         const step2Form = document.getElementById('step2');
@@ -1233,7 +1356,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('progress-bar').style.width = '33.33%';
         updateNextButtonState();
     };
-
+    
+    // Add function for back navigation from step 3 to step 2
     window.goBackToStep2 = function() {
         const step2Form = document.getElementById('step2');
         const step3Form = document.getElementById('step3');

@@ -1,8 +1,9 @@
-﻿document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const locationInput = document.querySelector('[data-location-input]');
   const locationList = document.querySelector('[data-location-list]');
   let cities = [];
 
+  // Fetch cities from API
   async function fetchCities() {
     try {
       const response = await fetch('https://betcha-api.onrender.com/cities');
@@ -15,6 +16,7 @@
     }
   }
 
+  // Generate location item HTML
   function createLocationItem(city) {
     return `
       <div class="group w-full px-5 py-3 bg-white font-inter cursor-pointer hover:bg-primary/10 transition-all duration-300 ease-in-out" data-city="${city}">
@@ -26,6 +28,7 @@
     `;
   }
 
+  // Filter and display locations
   function filterLocations(searchTerm) {
     if (!locationList) return;
     
@@ -38,14 +41,17 @@
       .join('');
   }
 
+  // Initialize
   if (locationInput && locationList) {
-    
+    // Fetch initial cities
     await fetchCities();
 
+    // Setup input handler
     locationInput.addEventListener('input', (e) => {
       filterLocations(e.target.value);
     });
 
+    // Show all cities initially
     filterLocations('');
   }
 });

@@ -1,4 +1,4 @@
-﻿
+// Format a date as YYYY/MM/DD
 function formatDate(dateStr) {
   const date = new Date(dateStr);
   const year = date.getFullYear();
@@ -7,9 +7,11 @@ function formatDate(dateStr) {
   return `${year}/${month}/${day}`;
 }
 
+// Store booked and maintenance dates globally
 let bookedDates = new Set();
 let maintenanceDates = new Set();
 
+// Function to fetch calendar data
 async function fetchCalendarData(propertyId) {
   try {
     console.log('Fetching calendar data for property:', propertyId);
@@ -17,16 +19,19 @@ async function fetchCalendarData(propertyId) {
     if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
     const data = await response.json();
     console.log('Calendar data received:', data);
-
+    
+    // Clear existing dates
     bookedDates.clear();
     maintenanceDates.clear();
-
+    
+    // Add booked dates to Set
     if (data.calendar && data.calendar.booking) {
       data.calendar.booking.forEach(booking => {
         bookedDates.add(booking.date);
       });
     }
-
+    
+    // Add maintenance dates to Set
     if (data.calendar && data.calendar.maintenance) {
       data.calendar.maintenance.forEach(maintenance => {
         maintenanceDates.add(maintenance.date);
@@ -35,12 +40,13 @@ async function fetchCalendarData(propertyId) {
 
     console.log('Booked dates:', Array.from(bookedDates));
     console.log('Maintenance dates:', Array.from(maintenanceDates));
-
+    
+    // Re-render all calendars
     document.querySelectorAll(".calendar-instance").forEach(cal => {
       const calendarContainer = cal.querySelector(".leftCalendar")?.parentElement;
       if (calendarContainer && calendarContainer._renders) {
         console.log('Re-rendering calendar with stored renders:', calendarContainer._renders.length);
-        
+        // Call each stored render function
         calendarContainer._renders.forEach(render => {
           try {
             render();
@@ -57,8 +63,10 @@ async function fetchCalendarData(propertyId) {
   }
 }
 
+// Make fetchCalendarData available globally
 window.fetchCalendarData = fetchCalendarData;
 
+// Initialize Search Calendar
 function initializeSearchCalendar(calendarId) {
   const calendar = document.getElementById(calendarId);
   if (!calendar) return;
@@ -77,10 +85,11 @@ function initializeSearchCalendar(calendarId) {
   let selectedEndDate = null;
 
   function updateCalendars() {
-    
+    // Left calendar (current month)
     const leftMonth = new Date(currentDate);
     renderCalendar(leftCalendar, leftMonth, leftLabel);
 
+    // Right calendar (next month)
     const rightMonth = new Date(currentDate);
     rightMonth.setMonth(rightMonth.getMonth() + 1);
     renderCalendar(rightCalendar, rightMonth, rightLabel);
@@ -89,12 +98,15 @@ function initializeSearchCalendar(calendarId) {
   function renderCalendar(container, date, labelEl) {
     const year = date.getFullYear();
     const month = date.getMonth();
-
+    
+    // Update month label
     labelEl.textContent = date.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
+    // Get first day of month and total days
     const firstDay = new Date(year, month, 1).getDay();
     const totalDays = new Date(year, month + 1, 0).getDate();
 
+    // Create calendar HTML
     let html = `
       <div class="grid grid-cols-7 gap-1">
         <div class="text-center text-xs font-medium text-neutral-400">Sun</div>
@@ -106,10 +118,12 @@ function initializeSearchCalendar(calendarId) {
         <div class="text-center text-xs font-medium text-neutral-400">Sat</div>
     `;
 
+    // Add empty cells for days before the first of the month
     for (let i = 0; i < firstDay; i++) {
       html += '<div></div>';
     }
 
+    // Add days
     for (let day = 1; day <= totalDays; day++) {
       const currentDateObj = new Date(year, month, day);
       const dateStr = currentDateObj.toISOString().split('T')[0];
@@ -144,30 +158,34 @@ function initializeSearchCalendar(calendarId) {
     html += '</div>';
     container.innerHTML = html;
 
+    // Add click handlers to date buttons
     container.querySelectorAll('button[data-date]').forEach(button => {
       if (!button.disabled) {
         button.addEventListener('click', () => {
           const dateStr = button.dataset.date;
           
           if (!selectedStartDate || (selectedStartDate && selectedEndDate) || dateStr < selectedStartDate) {
-            
+            // Start new selection
             selectedStartDate = dateStr;
             selectedEndDate = null;
             checkInInput.value = dateStr;
             checkOutInput.value = '';
-
+            
+            // Dispatch change event for searchCheckIn
             const startEvent = new Event('change', { bubbles: true });
             checkInInput.dispatchEvent(startEvent);
             
           } else {
-            
+            // Complete the selection
             selectedEndDate = dateStr;
             checkOutInput.value = dateStr;
-
+            
+            // Dispatch change event for searchCheckOut
             const endEvent = new Event('change', { bubbles: true });
             checkOutInput.dispatchEvent(endEvent);
           }
-
+          
+          // Log current selection state
           console.log('Date Selection:', { start: selectedStartDate, end: selectedEndDate });
           
           updateCalendars();
@@ -176,6 +194,7 @@ function initializeSearchCalendar(calendarId) {
     });
   }
 
+  // Initialize navigation buttons
   if (prevBtn) {
     prevBtn.addEventListener('click', () => {
       currentDate.setMonth(currentDate.getMonth() - 1);
@@ -190,21 +209,24 @@ function initializeSearchCalendar(calendarId) {
     });
   }
 
+  // Initial render
   updateCalendars();
 }
 
+// Initialize all calendars when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   initializeSearchCalendar('calendarIdsearch');
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  
+  // Get property ID from URL
   const urlParams = new URLSearchParams(window.location.search);
   const propertyId = urlParams.get('id');
-
+  
+  // Find date picker trigger
   const datePickerTrigger = document.querySelector('[data-modal-target="dateBookingModal"]');
   if (datePickerTrigger && propertyId) {
-    
+    // Add click handler to fetch calendar data
     datePickerTrigger.addEventListener('click', async () => {
       console.log('Fetching calendar data...');
       await fetchCalendarData(propertyId);
@@ -213,9 +235,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.querySelectorAll(".calendar-instance").forEach(calendarEl => {
     let currentDate = new Date();
-    let selectedDates = new Set(); 
-    let selectionStart = null; 
-    let isRangeSelection = false; 
+    let selectedDates = new Set(); // Store multiple selected dates
+    let selectionStart = null; // Start of date range
+    let isRangeSelection = false; // Flag for range selection mode
 
     const leftLabel = calendarEl.querySelector(".leftMonthLabel");
     const rightLabel = calendarEl.querySelector(".rightMonthLabel");
@@ -254,18 +276,20 @@ document.addEventListener("DOMContentLoaded", () => {
         const isMaintenance = maintenanceDates.has(dateStr);
         const isUnavailable = isBooked || isMaintenance;
         const isSelected = selectedDates.has(dateStr);
-
+        
+        // Get today's date for comparison
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const dateObj = new Date(dateStr);
         const isPast = dateObj < today;
 
+        // Handle highlighting for selected dates and preview
         let isInRange = false;
         let isStartDate = dateStr === selectionStart;
         
         if (selectionStart) {
           if (isRangeSelection) {
-            
+            // During range selection - show preview
             const hoverDate = calendarEl.dataset.hoverDate;
             if (hoverDate) {
               const rangeStart = new Date(selectionStart);
@@ -277,11 +301,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 isInRange = dateObj <= rangeStart && dateObj >= rangeEnd;
               }
             } else {
-              
+              // Only highlight start date if no hover
               isInRange = isStartDate;
             }
           } else {
-            
+            // After range selection complete - show fixed selection
             isInRange = selectedDates.has(dateStr);
           }
         }
@@ -291,11 +315,11 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isPast) {
           classes += "bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-50";
         } else if (isBooked) {
-          classes += "bg-neutral-200 text-neutral-600 cursor-not-allowed"; 
+          classes += "bg-neutral-200 text-neutral-600 cursor-not-allowed"; // Grey for booked dates
         } else if (isMaintenance) {
-          classes += "bg-red-100 text-red-600 cursor-not-allowed"; 
+          classes += "bg-red-100 text-red-600 cursor-not-allowed"; // Red tint for maintenance
         } else if (isSelected || isInRange) {
-          classes += "bg-primary text-white font-bold"; 
+          classes += "bg-primary text-white font-bold"; // Selected or in range
         } else {
           classes += "bg-background text-black hover:bg-secondary";
         }
@@ -307,40 +331,42 @@ document.addEventListener("DOMContentLoaded", () => {
       return html;
     };
 
+    // Handle date selection
     const handleDateSelect = (dateEl) => {
       const date = dateEl.dataset.date;
       
       if (!selectionStart) {
-        
+        // First click - start range selection
         selectionStart = date;
         selectedDates.clear();
         selectedDates.add(date);
-        isRangeSelection = true; 
-        delete calendarEl.dataset.hoverDate; 
+        isRangeSelection = true; // Enable hover preview
+        delete calendarEl.dataset.hoverDate; // Clear any existing hover
       } else if (date === selectionStart) {
-        
+        // Clicking same date - cancel selection
         selectionStart = null;
         selectedDates.clear();
-        isRangeSelection = false; 
+        isRangeSelection = false; // Disable hover preview
         delete calendarEl.dataset.hoverDate;
       } else {
-        
+        // Second click - complete range selection
         let startDate = new Date(selectionStart);
         let endDate = new Date(date);
         
         if (startDate > endDate) {
-          
+          // Swap if end date is before start date
           const temp = startDate;
           startDate = endDate;
           endDate = temp;
         }
         
         selectedDates.clear();
-
+          
+        // Add all dates in range
         const current = new Date(startDate);
         while (current <= endDate) {
           const dateStr = current.toISOString().split('T')[0];
-          
+          // Only add if date is available
           if (!bookedDates.has(dateStr) && !maintenanceDates.has(dateStr)) {
             selectedDates.add(dateStr);
           }
@@ -352,7 +378,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
       
       render();
-
+      
+      // Dispatch event with selected dates
       const event = new CustomEvent('dateSelection', {
         detail: {
           dates: Array.from(selectedDates)
@@ -361,6 +388,7 @@ document.addEventListener("DOMContentLoaded", () => {
       calendarEl.dispatchEvent(event);
     };
 
+    // Click listener for dates
     calendarEl.addEventListener("click", e => {
       const dateEl = e.target.closest("[data-date]");
       if (dateEl && !dateEl.classList.contains("cursor-not-allowed")) {
@@ -368,25 +396,28 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
 
+    // Mouse move listener for range preview
     calendarEl.addEventListener("mousemove", e => {
-      if (!isRangeSelection) return; 
+      if (!isRangeSelection) return; // Only show preview while actively selecting
       
       const dateEl = e.target.closest("[data-date]");
       if (dateEl && !dateEl.classList.contains("cursor-not-allowed")) {
-        
+        // Store hover date at calendar level for smoother updates
         calendarEl.dataset.hoverDate = dateEl.dataset.date;
-        requestAnimationFrame(() => render()); 
+        requestAnimationFrame(() => render()); // Smoother updates
       }
     });
-
+    
+    // Mouse leave listener to clear preview
     calendarEl.addEventListener("mouseleave", () => {
       if (isRangeSelection) {
-        
+        // Clear hover date when mouse leaves calendar
         delete calendarEl.dataset.hoverDate;
         requestAnimationFrame(() => render());
       }
     });
 
+    // Month nav
     calendarEl.querySelector(".prevMonth").addEventListener("click", () => {
       currentDate.setMonth(currentDate.getMonth() - 1);
       render();
@@ -397,20 +428,25 @@ document.addEventListener("DOMContentLoaded", () => {
       render();
     });
 
+    // Store render function for future updates
     const calendarContainer = leftCal.parentElement;
     if (calendarContainer) {
       calendarContainer._renders = calendarContainer._renders || [];
       calendarContainer._renders.push(render);
     }
 
+    // Initial render
     render();
 
+    // Listen for date selection events on calendar
     calendarEl.addEventListener('dateSelection', (e) => {
       const selectedDates = e.detail.dates.sort();
       console.log('Selected dates:', selectedDates);
-
+      
+      // Store dates globally for confirm button
       window.selectedBookingDates = selectedDates;
 
+      // Get check-in/check-out elements
       const checkInEl = document.getElementById('searchCheckIn');
       const checkOutEl = document.getElementById('searchCheckOut');
       
@@ -427,31 +463,33 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  // Handle confirm button click
   const confirmBtn = document.getElementById('confirmDate');
   if (confirmBtn) {
     confirmBtn.addEventListener('click', () => {
       const selectedDates = window.selectedBookingDates;
       if (selectedDates && selectedDates.length > 0) {
-        
+        // Get check-in/check-out elements
         const checkInEl = document.getElementById('checkInDate');
         const checkOutEl = document.getElementById('checkOutDate');
         
         if (checkInEl && checkOutEl) {
           if (selectedDates.length === 1) {
-            
+            // Single date selected
             checkInEl.textContent = formatDate(selectedDates[0]);
             checkOutEl.textContent = formatDate(selectedDates[0]);
           } else {
-            
+            // Range selected
             checkInEl.textContent = formatDate(selectedDates[0]);
             checkOutEl.textContent = formatDate(selectedDates[selectedDates.length - 1]);
           }
         }
 
+        // Close the modal if it exists and restore scrolling
         const modal = document.getElementById('dateBookingModal');
         if (modal) {
           modal.classList.add('hidden');
-          document.body.classList.remove('modal-open'); 
+          document.body.classList.remove('modal-open'); // Restore scrolling
         }
       }
     });

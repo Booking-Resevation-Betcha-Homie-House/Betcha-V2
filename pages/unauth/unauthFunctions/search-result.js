@@ -1,6 +1,6 @@
-﻿
+// Wait for DOM to be fully loaded
 document.addEventListener('DOMContentLoaded', function() {
-
+    // Get URL search parameters
     const urlParams = new URLSearchParams(window.location.search);
     const city = urlParams.get('city') || 'Quezon';
     const checkIn = urlParams.get('checkIn') || '2025-09-03';
@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const priceEnd = urlParams.get('priceEndrange') || urlParams.get('priceEnd') || 10000;
     const people = urlParams.get('people') || 4;
 
+    // Console log all URL parameters for debugging
     console.log('=== SEARCH PARAMETERS DEBUG ===');
     console.log('URL Search Params:', window.location.search);
     console.log('Raw URL Parameters:');
@@ -29,11 +30,13 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('- people:', people, 'Type:', typeof people);
     console.log('================================');
 
+    // Update the filter pills
     const whereEl = document.getElementById('wherePill');
     const whenEl = document.getElementById('whenPill');
     const whoEl = document.getElementById('whoPill');
     const priceEl = document.getElementById('pricePill');
 
+    // Format dates
     const checkInDate = new Date(checkIn).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     const checkOutDate = new Date(checkOut).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 
@@ -42,8 +45,9 @@ document.addEventListener('DOMContentLoaded', function() {
     if (whoEl) whoEl.textContent = `Who · ${people} guests`;
     if (priceEl) priceEl.textContent = `Price · ₱${parseInt(priceStart).toLocaleString()} - ₱${parseInt(priceEnd).toLocaleString()}`;
 
+    // Function to fetch properties
     async function fetchProperties() {
-
+        // Ensure all values are properly formatted and valid
         const requestBody = {
             city: city && city.trim() ? city.trim() : 'Manila',
             CheckIn: checkIn || '2025-09-03',
@@ -119,6 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
+    // Function to create room card
     function createRoomCard(property) {
         return `
             <a href="view-property.html?id=${property._id}">
@@ -150,6 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
+    // Function to create skeleton loading card
     function createSkeletonCard() {
         return `
             <div class="animate-pulse">
@@ -172,6 +178,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `;
     }
 
+    // Function to populate room listings
     async function populateRoomListings() {
         console.log('=== POPULATE ROOMS DEBUG ===');
         const roomListingsContainer = document.getElementById('roomListingsContainer');
@@ -183,18 +190,19 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         console.log('Showing skeleton loading...');
-
+        // Show skeleton loading
         roomListingsContainer.innerHTML = Array(8).fill(createSkeletonCard()).join('');
 
         console.log('Fetching properties...');
-
+        // Fetch the actual properties
         const properties = await fetchProperties();
         
         console.log('Properties result:', properties);
         console.log('Properties type:', typeof properties);
         console.log('Properties is array:', Array.isArray(properties));
         console.log('Properties length:', properties ? properties.length : 'null/undefined');
-
+        
+        // Small delay to ensure skeleton is visible
         await new Promise(resolve => setTimeout(resolve, 500));
 
         if (!properties || properties.length === 0) {
@@ -228,5 +236,6 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('===========================');
     }
 
+    // Call populateRoomListings after ensuring DOM is loaded
     populateRoomListings();
 });

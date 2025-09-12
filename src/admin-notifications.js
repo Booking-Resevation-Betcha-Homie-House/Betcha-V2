@@ -1,4 +1,5 @@
-﻿
+// Admin Notification System
+// Consolidated notification functionality for admin and employee pages
 
 document.addEventListener("DOMContentLoaded", () => {
     const dropdown = document.getElementById('notificationDropdown');
@@ -6,7 +7,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const notifBadge = document.getElementById('notifBadge');
 
     const API_BASE = 'https://betcha-api.onrender.com';
-
+    // Prevent the dropdown from auto-closing on the very next outside click
+    // when a modal was opened/closed from within the dropdown
     let suppressDropdownCloseOnce = false;
 
     const READ_CACHE_KEY = 'notifReadIds';
@@ -28,6 +30,7 @@ document.addEventListener("DOMContentLoaded", () => {
         } catch (_) {}
     };
 
+    // Resolve current user id (admin) from localStorage
     const resolveCurrentUserId = () => {
         return (
             localStorage.getItem('userId') ||
@@ -37,6 +40,7 @@ document.addEventListener("DOMContentLoaded", () => {
         );
     };
 
+    // Format to human-friendly PH time
     const formatDateTime = (item) => {
         if (item.dateTimePH) return item.dateTimePH;
         try {
@@ -48,10 +52,11 @@ document.addEventListener("DOMContentLoaded", () => {
         return '';
     };
 
+    // Build notification DOM node
     const buildNotifItem = (n) => {
         const wrapper = document.createElement('div');
         wrapper.className = `notification ${n.seen ? 'read' : 'unread'} cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out`;
-        
+        // Route to cancel modal if category is cancellation request
         const isCancel = (n.category || '').toLowerCase() === 'cancellation request';
         wrapper.setAttribute('data-modal-target', isCancel ? 'cancelModal' : 'notifModal');
         if (n._id) {
@@ -68,7 +73,7 @@ document.addEventListener("DOMContentLoaded", () => {
         wrapper.dataset.amountRefund = n.amountRefund != null ? String(n.amountRefund) : '';
         wrapper.dataset.mode = n.modeOfRefund || n.mode || '';
         wrapper.dataset.number = n.numberEwalletBank || n.number || '';
-        
+        // Normalize bookingId to a plain string id
         (function() {
             try {
                 let bid = '';
@@ -103,21 +108,26 @@ document.addEventListener("DOMContentLoaded", () => {
             </div>
         `;
 
+        // Fill detailed modal on click (before modal.js opens it)
         wrapper.addEventListener('click', () => {
             suppressDropdownCloseOnce = true;
             const category = (wrapper.dataset.category || '').toLowerCase();
             if (category === 'cancellation request') {
                 const cModal = document.getElementById('cancelModal');
                 if (cModal) {
-                    
+                    // Store notification and booking IDs in modal data attributes
                     cModal.dataset.notificationId = wrapper.dataset.id || '';
                     cModal.dataset.bookingId = wrapper.dataset.bookingId || '';
                     cModal.dataset.fromId = wrapper.dataset.fromId || '';
+                    
 
+                    
+
+                    
                     const sender = cModal.querySelector('#notifSender');
                     const date = cModal.querySelector('#notifDate');
                     const msg = cModal.querySelector('#notifMessage');
-                    
+                    // Try explicit ids first
                     const trans = cModal.querySelector('#cancel-transNo, #transNo');
                     const amount = cModal.querySelector('#cancel-amountRefund');
                     const mode = cModal.querySelector('#cancel-mode');
@@ -130,17 +140,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (mode) mode.textContent = wrapper.dataset.mode || '';
                     if (number) number.textContent = wrapper.dataset.number || '';
 
+                    // Fallbacks for templates without explicit ids
+                    // 1) Transaction no. title line
                     if (!trans) {
                         const txnTitle = Array.from(cModal.querySelectorAll('p')).find(p => (p.textContent || '').trim().toLowerCase().startsWith('transaction no'));
                         if (txnTitle && wrapper.dataset.transNo) {
                             txnTitle.textContent = `Transaction no. ${wrapper.dataset.transNo}`;
                         }
                     }
-                    
+                    // 2) Detail rows (Refund amount, Mode of refund, Number)
                     const detailContainer = Array.from(cModal.querySelectorAll('.border')).find(div => div.querySelector('.flex.justify-between.items-center'));
                     if (detailContainer) {
                         const rows = detailContainer.querySelectorAll('.flex.justify-between.items-center');
-                        
+                        // Refund amount row (0)
                         if (rows[0]) {
                             const valueEl = rows[0].querySelector('p:last-child, span');
                             if (valueEl && wrapper.dataset.amountRefund) {
@@ -149,18 +161,19 @@ document.addEventListener("DOMContentLoaded", () => {
                                 valueEl.textContent = formatted;
                             }
                         }
-                        
+                        // Mode of refund row (1)
                         if (rows[1]) {
                             const valueEl = rows[1].querySelector('p:last-child');
                             if (valueEl && wrapper.dataset.mode) valueEl.textContent = wrapper.dataset.mode;
                         }
-                        
+                        // Number row (2)
                         if (rows[2]) {
                             const valueEl = rows[2].querySelector('p:last-child');
                             if (valueEl && wrapper.dataset.number) valueEl.textContent = wrapper.dataset.number;
                         }
                     }
 
+                    // Reset action buttons to default state each time modal opens
                     try {
                         const approveBtn = document.getElementById('approveCancelBtn');
                         if (approveBtn) {
@@ -186,9 +199,11 @@ document.addEventListener("DOMContentLoaded", () => {
                 }
             }
 
+            // Optimistically mark as read and update badge/unified duplicates
             const id = wrapper.dataset.id || '';
             markAsReadInUI(id);
-
+            
+            // Mark notification as seen on server
             if (id) {
                 fetch(`${API_BASE}/notify/seen/${id}`, {
                     method: 'PATCH',
@@ -204,6 +219,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return wrapper;
     };
 
+    // Render notifications into all matching containers in the page (desktop dropdown + small modal list)
     const renderNotifications = (list) => {
         const readCache = getReadCache();
         const notifContainers = document.querySelectorAll('#notificationsContainer');
@@ -249,12 +265,14 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         });
 
+        // Update badge with unread count (cap at 99+)
         if (notifBadge) {
             const unread = list.filter((n) => {
                 const isUnread = !n.seen && !readCache.has(n._id);
                 const isCancellationRequest = (n.category || '').toLowerCase() === 'cancellation request';
                 const isProcessedCancellation = isCancellationRequest && n.statusRejection && n.statusRejection !== 'Pending';
-
+                
+                // Count as unread only if it's unread AND not a processed cancellation request
                 return isUnread && !isProcessedCancellation;
             }).length;
             notifBadge.textContent = unread > 99 ? '99+' : String(unread);
@@ -262,6 +280,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     };
 
+    // Fetch notifications for current user
     const fetchNotifications = async () => {
         const uid = resolveCurrentUserId();
         if (!uid) {
@@ -285,19 +304,21 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
+    // Toggle dropdown
     bellBtn.addEventListener('click', (e) => {
         e.stopPropagation();
         dropdown.classList.toggle('hidden');
-        
+        // Refresh when opened
         if (!dropdown.classList.contains('hidden')) {
             fetchNotifications();
-            
+            // Initialize tab behavior (scoped) for this dropdown container
             initializeScopedTabs(dropdown);
         }
     });
 
+    // Hide dropdown when clicking outside
     document.addEventListener('click', (e) => {
-        
+        // If any modal is open, do not auto-close the dropdown
         const anyModalOpen = document.querySelector('.modal:not(.hidden)');
         if (anyModalOpen) return;
         if (suppressDropdownCloseOnce) { suppressDropdownCloseOnce = false; return; }
@@ -307,23 +328,27 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
+    // When any modal closes, suppress the immediate outside-close once
     document.addEventListener('modalClosed', () => {
         suppressDropdownCloseOnce = true;
     });
 
+    // Initial prefetch so mobile modal has content too
     fetchNotifications();
-    
+    // Initialize scoped tabs for all notification tab groups (desktop + small modal)
     initializeAllNotificationTabs();
-
+    
+    // Make fetchNotifications globally accessible for other scripts
     window.fetchNotifications = fetchNotifications;
 });
 
+// Initialize tabs within a specific notification container
 function initializeScopedTabs(container) {
     if (!container) return;
-    
+    // Find the nearest data-tab-group containers that include notifications UI
     const groups = container.matches('[data-tab-group]') ? [container] : container.querySelectorAll('[data-tab-group]');
     groups.forEach((group) => {
-        
+        // Only handle groups that contain our notifications containers
         if (!group.querySelector('#notificationsContainer') && !group.querySelector('#cancelContainer')) return;
 
         const tabButtons = group.querySelectorAll('.tab-btn');
@@ -345,6 +370,7 @@ function initializeScopedTabs(container) {
             });
         };
 
+        // Bind click handlers (override inline to be scoped)
         tabButtons.forEach((btn, i) => {
             btn.addEventListener('click', (ev) => {
                 ev.stopPropagation();
@@ -352,19 +378,21 @@ function initializeScopedTabs(container) {
             });
         });
 
+        // Default to first tab visible
         activate(0);
     });
 }
 
 function initializeAllNotificationTabs() {
-    
+    // Desktop dropdowns and small modals may already be in DOM; set up both.
     const candidates = document.querySelectorAll('[data-tab-group]');
     candidates.forEach((c) => initializeScopedTabs(c));
 }
 
+// Optimistically mark a notification as read across the page and update badge
 function markAsReadInUI(notificationId) {
     try {
-        
+        // Update all duplicates by data-id
         const items = notificationId
             ? document.querySelectorAll(`.notification[data-id="${CSS.escape(notificationId)}"]`)
             : [];
@@ -373,10 +401,10 @@ function markAsReadInUI(notificationId) {
             if (item.classList.contains('unread')) {
                 item.classList.remove('unread');
                 item.classList.add('read');
-                
+                // Remove the unread dot if present
                 const dot = item.querySelector('.dot-notif');
                 if (dot) dot.remove();
-                
+                // Gray out text
                 item.querySelectorAll('p').forEach((p) => {
                     p.classList.remove('text-neutral-900', 'text-neutral-700');
                     p.classList.add('text-neutral-400');
@@ -384,38 +412,45 @@ function markAsReadInUI(notificationId) {
             }
         });
 
+        // Decrement badge once
         const badge = document.getElementById('notifBadge');
         if (badge && !badge.dataset._lockDecrement) {
-            
+            // Use a lock per notification to avoid multiple decrements in duplicate elements
             badge.dataset._lockDecrement = 'true';
             const current = parseInt(badge.textContent || '0', 10);
             const next = isFinite(current) ? Math.max(0, current - 1) : 0;
             badge.textContent = next > 99 ? '99+' : String(next);
             badge.style.display = next > 0 ? '' : 'none';
-            
+            // Release lock shortly so subsequent different clicks can decrement
             setTimeout(() => { delete badge.dataset._lockDecrement; }, 100);
         }
 
+        // Persist read so future refresh/fetch keeps it read
         addToReadCache(notificationId);
     } catch (_) {}
 }
 
+// Admin-specific notification functions
+
+// Show notification success message
 function showNotificationSuccess(message) {
-    
+    // You can implement a toast notification system here
     console.log('✅ Success:', message);
     if (typeof showToastSuccess === 'function') {
         showToastSuccess(message);
     }
 }
 
+// Show notification error message
 function showNotificationError(message) {
-    
+    // You can implement a toast notification system here
     console.error('❌ Error:', message);
     if (typeof showToastError === 'function') {
         showToastError(message);
     }
 }
 
+// Update notification status (Reject or Accept cancellation request)
 async function updateNotificationStatus(notifId, statusRejection) {
     try {
         if (!notifId) {
@@ -429,6 +464,8 @@ async function updateNotificationStatus(notifId, statusRejection) {
         const url = `${API_BASE}/notify/status-rejection/${notifId}`;
         const body = { statusRejection };
 
+
+
         const response = await fetch(url, {
             method: 'PATCH',
             headers: {
@@ -444,6 +481,8 @@ async function updateNotificationStatus(notifId, statusRejection) {
 
         const result = await response.json();
 
+
+        // Show success message
         showNotificationSuccess(`Cancellation request ${statusRejection.toLowerCase()} successfully`);
 
         return result;
@@ -451,12 +490,14 @@ async function updateNotificationStatus(notifId, statusRejection) {
     } catch (error) {
         console.error('❌ Error updating notification status:', error);
 
+        // Show error message
         showNotificationError(`Failed to update notification status: ${error.message}`);
 
         throw error;
     }
 }
 
+// Cancel booking function
 async function cancelBooking(bookingId) {
     try {
         if (!bookingId) {
@@ -466,6 +507,7 @@ async function cancelBooking(bookingId) {
         const url = `${API_BASE}/booking/update-status/${bookingId}`;
         const body = { status: 'Cancel' };
 
+        
         const response = await fetch(url, {
             method: 'PATCH',
             headers: {
@@ -481,6 +523,7 @@ async function cancelBooking(bookingId) {
         
         const result = await response.json();
 
+        // Log booking cancellation audit
         try {
             if (window.AuditTrailFunctions) {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -491,25 +534,28 @@ async function cancelBooking(bookingId) {
         } catch (auditError) {
             console.error('Audit trail error:', auditError);
         }
-
+        
+        // Show success message
         showNotificationSuccess('Booking cancelled successfully');
         
         return result;
         
     } catch (error) {
         console.error('❌ Error cancelling booking:', error);
-
+        
+        // Show error message
         showNotificationError(`Failed to cancel booking: ${error.message}`);
         
         throw error;
     }
 }
 
+// Handle cancellation request workflow
 async function handleCancellationRequest(notifId, bookingId, action) {
     try {
         
         if (action === 'accept') {
-            
+            // Admin accepts cancellation
             if (!bookingId) {
                 throw new Error('Booking ID is required when accepting cancellation');
             }
@@ -541,13 +587,15 @@ async function handleCancellationRequest(notifId, bookingId, action) {
         
     } catch (error) {
         console.error('❌ Error handling cancellation request:', error);
-
+        
+        // Show error message
         showNotificationError(`Failed to process cancellation request: ${error.message}`);
         
         throw error;
     }
 }
 
+// Initialize static modal buttons for cancellation management
 function initializeStaticModalButtons() {
     const rejectBtn = document.getElementById('cancelRejectBtn');
     if (rejectBtn) {
@@ -555,8 +603,9 @@ function initializeStaticModalButtons() {
         rejectBtn.addEventListener('click', async function(e) {
             e.preventDefault();
 
+            
             try {
-                
+                // Get notification data from the modal
                 const modal = document.getElementById('cancelModal');
                 if (!modal) {
                     throw new Error('Cancel modal not found');
@@ -566,13 +615,19 @@ function initializeStaticModalButtons() {
                 if (!notifId) {
                     throw new Error('No notification ID found in modal data');
                 }
+                
 
+                
+                // Get booking ID from modal data
                 let bookingId = modal.dataset.bookingId;
 
+                
+                // If no booking ID, try to get it from transaction number
                 if (!bookingId) {
                     const transNo = modal.querySelector('#cancel-transNo, #transNo')?.textContent?.replace('Transaction no. ', '') || 
                                    modal.querySelector('[data-trans-no]')?.textContent;
 
+                    
                     if (transNo) {
                         try {
 
@@ -592,13 +647,18 @@ function initializeStaticModalButtons() {
                         }
                     }
                 }
+                
 
+                
+                // Disable button during processing
                 const originalText = rejectBtn.textContent;
                 rejectBtn.disabled = true;
                 rejectBtn.textContent = 'Processing...';
-
+                
+                // Update notification status to "Rejected"
                 await updateNotificationStatus(notifId, 'Rejected');
 
+                // Send a static message back to the requester about rejection
                 try {
                     const fromId = localStorage.getItem('adminId') || localStorage.getItem('userId') || 'admin-user';
                     const fromName = localStorage.getItem('adminName') || `${localStorage.getItem('firstName') || 'Admin'} ${localStorage.getItem('lastName') || 'User'}`.trim();
@@ -624,21 +684,25 @@ function initializeStaticModalButtons() {
                 } catch (msgErr) {
                     console.warn('⚠️ Failed to send rejection message:', msgErr);
                 }
-
+                
+                // Close the modal
                 const closeBtn = modal.querySelector('[data-close-modal]');
                 if (closeBtn) {
                     closeBtn.click();
                 }
-
+                
+                // Refresh notifications to update the UI
                 if (typeof fetchNotifications === 'function') {
                     fetchNotifications();
                 }
+                
 
+                
             } catch (error) {
                 console.error('❌ Error rejecting cancellation request:', error);
                 showNotificationError(`Failed to reject cancellation: ${error.message}`);
             } finally {
-                
+                // Re-enable button
                 rejectBtn.disabled = false;
                 rejectBtn.textContent = originalText;
             }
@@ -652,8 +716,9 @@ function initializeStaticModalButtons() {
         approveBtn.addEventListener('click', async function(e) {
             e.preventDefault();
 
+            
             try {
-                
+                // Get notification data from the modal
                 const modal = document.getElementById('cancelModal');
                 if (!modal) {
                     throw new Error('Cancel modal not found');
@@ -665,7 +730,8 @@ function initializeStaticModalButtons() {
                 if (!notifId) {
                     throw new Error('No notification ID found in modal data');
                 }
-
+                
+                // If bookingId missing, try resolve via transNo
                 if (!bookingId) {
                     const transNo = modal.querySelector('#cancel-transNo, #transNo')?.textContent?.replace('Transaction no. ', '') || 
                                    modal.querySelector('[data-trans-no]')?.textContent;
@@ -689,27 +755,35 @@ function initializeStaticModalButtons() {
                 if (!bookingId) {
                     throw new Error('No booking ID found in modal data');
                 }
+                
 
+                
+                // Disable button during processing
                 const originalText = approveBtn.textContent;
                 approveBtn.disabled = true;
                 approveBtn.textContent = 'Processing...';
-
+                
+                // Handle the complete cancellation workflow
                 await handleCancellationRequest(notifId, bookingId, 'accept');
-
+                
+                // Close the modal
                 const closeBtn = modal.querySelector('[data-close-modal]');
                 if (closeBtn) {
                     closeBtn.click();
                 }
-
+                
+                // Refresh notifications to update the UI
                 if (typeof fetchNotifications === 'function') {
                     fetchNotifications();
                 }
+                
 
+                
             } catch (error) {
                 console.error('❌ Error approving cancellation request:', error);
                 showNotificationError(`Failed to approve cancellation: ${error.message}`);
             } finally {
-                
+                // Re-enable button
                 approveBtn.disabled = false;
                 approveBtn.textContent = originalText;
             }
@@ -718,16 +792,18 @@ function initializeStaticModalButtons() {
     }
 }
 
+// Initialize cancellation management functionality
 function initializeCancellationManagement() {
     initializeStaticModalButtons();
 }
 
 async function guestCancllationNotification() {
     try {
-        
+        // Get admin user data from localStorage
         const fromId = localStorage.getItem('adminId') || localStorage.getItem('userId') || 'admin-user';
         const fromName = localStorage.getItem('adminName') || `${localStorage.getItem('firstName') || 'Admin'} ${localStorage.getItem('lastName') || 'User'}`.trim();
-
+        
+        // Get message from textarea
         const messageTextarea = document.getElementById('input-lpc-subtitle');
         if (!messageTextarea) {
             throw new Error('Message textarea not found');
@@ -736,14 +812,17 @@ async function guestCancllationNotification() {
         if (!message) {
             throw new Error('Please enter a message');
         }
-
+        
+        // Get guest data from the selected booking (assuming there's a way to get selected booking ID)
+        // Look for booking data in modal or selected booking
         const cancelModal = document.getElementById('cancelModal');
         const bookingId = cancelModal?.dataset.bookingId;
         
         if (!bookingId) {
             throw new Error('No booking selected. Please select a booking first.');
         }
-
+        
+        // Fetch booking details to get guest information
         const bookingResponse = await fetch(`${API_BASE}/booking/${bookingId}`);
         const bookingData = await bookingResponse.json();
         
@@ -758,13 +837,15 @@ async function guestCancllationNotification() {
         if (!toId) {
             throw new Error('Guest ID not found in booking data');
         }
-
+        
+        // Update the guest name in the cancelReqModal
         const cancelReqModal = document.getElementById('cancelReqModal');
         const guestNameSpan = cancelReqModal?.querySelector('p span');
         if (guestNameSpan) {
             guestNameSpan.textContent = toName || 'Unknown Guest';
         }
-
+        
+        // Create notification payload for guest
         const payload = {
             fromId,
             fromName,
@@ -786,7 +867,10 @@ async function guestCancllationNotification() {
             messageLength: payload.message.length,
             bookingId: bookingId
         });
+        
 
+        
+        // Send notification to guest
         const response = await fetch(`${API_BASE}/notify/message`, {
             method: 'POST',
             headers: {
@@ -802,8 +886,11 @@ async function guestCancllationNotification() {
         
         const result = await response.json();
 
+        
+        // Show success message
         showNotificationSuccess('Guest notification sent successfully!');
-
+        
+        // Clear the textarea after successful send
         messageTextarea.value = '';
         
         return result;
@@ -815,24 +902,29 @@ async function guestCancllationNotification() {
     }
 }
 
+// Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-    
+    // Initialize cancellation management
     initializeCancellationManagement();
-
+    
+    // Initialize guest message button
     const guestMsgBtn = document.getElementById('guestMsgBtn');
     if (guestMsgBtn) {
         
         guestMsgBtn.addEventListener('click', async function(e) {
             e.preventDefault();
 
+            
             try {
-                
+                // Disable button during processing
                 const originalText = guestMsgBtn.textContent;
                 guestMsgBtn.disabled = true;
                 guestMsgBtn.textContent = 'Sending...';
-
+                
+                // Send guest notification
                 await guestCancllationNotification();
 
+                // Close the send message modal on success
                 const reqModal = document.getElementById('cancelReqModal');
                 const closeBtn = reqModal?.querySelector('[data-close-modal]');
                 if (closeBtn) {
@@ -844,7 +936,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (error) {
                 console.error('❌ Error sending guest notification:', error);
             } finally {
-                
+                // Re-enable button
                 guestMsgBtn.disabled = false;
                 guestMsgBtn.textContent = originalText;
             }

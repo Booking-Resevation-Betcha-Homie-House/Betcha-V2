@@ -1,6 +1,7 @@
-﻿document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {
   console.log("Support page loaded");
 
+  // Function to get user ID from localStorage (same as genTicketInput.js)
   function getUserId() {
     const userId = localStorage.getItem('userId') ||
                    localStorage.getItem('userID') ||
@@ -16,6 +17,7 @@
     return null;
   }
 
+  // Function to format time ago
   function formatTimeAgo(dateString) {
     const now = new Date();
     const messageDate = new Date(dateString);
@@ -35,6 +37,7 @@
     }
   }
 
+  // Function to get status badge HTML
   function getStatusBadge(status) {
     switch (status.toLowerCase()) {
       case 'queue':
@@ -50,25 +53,31 @@
     }
   }
 
+  // Cache for agent names to avoid repeated API calls
   const agentNameCache = new Map();
-
+  
+  // Store for all ticket data
   let allTicketsData = [];
-
+  
+  // Current selected ticket for message polling
   let currentSelectedTicketId = null;
   let messagePollingInterval = null;
-  const POLLING_INTERVAL = 5000; 
+  const POLLING_INTERVAL = 5000; // 5 seconds
 
+  // Helper function to escape HTML characters
   function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
   }
 
+  // Function to fetch customer service agent name
   async function fetchAgentName(customerServiceAgentId) {
     if (!customerServiceAgentId) {
       return 'No Agent Assigned';
     }
 
+    // Check cache first
     if (agentNameCache.has(customerServiceAgentId)) {
       console.log('Using cached agent name for:', customerServiceAgentId);
       return agentNameCache.get(customerServiceAgentId);
@@ -86,7 +95,8 @@
       console.log('GET Response status:', response.status, 'Data:', data);
       
       if (response.ok && data._id) {
-
+        // The API returns employee data directly, not nested under 'employee'
+        // Fields are 'firstname' and 'lastname' (lowercase)
         const agentName = `${data.firstname} ${data.lastname}`;
         agentNameCache.set(customerServiceAgentId, agentName);
         console.log('Successfully fetched agent name:', agentName);
@@ -101,6 +111,7 @@
     }
   }
 
+  // Function to fetch updated messages for a specific ticket
   async function fetchTicketMessages(ticketId) {
     try {
       const response = await fetch(`https://betcha-api.onrender.com/tk/display/${ticketId}`);
@@ -119,8 +130,9 @@
     }
   }
 
+  // Function to start message polling for current ticket
   function startMessagePolling() {
-
+    // Clear any existing polling
     stopMessagePolling();
     
     if (!currentSelectedTicketId) {
@@ -138,12 +150,13 @@
       
       const updatedTicket = await fetchTicketMessages(currentSelectedTicketId);
       if (updatedTicket) {
-
+        // Update the ticket in our local data
         const ticketIndex = allTicketsData.findIndex(t => t._id === currentSelectedTicketId);
         if (ticketIndex !== -1) {
           const oldMessageCount = allTicketsData[ticketIndex].messages.length;
           allTicketsData[ticketIndex] = updatedTicket;
-
+          
+          // Only re-render if there are new messages
           if (updatedTicket.messages.length !== oldMessageCount) {
             console.log('New messages detected, updating UI');
             renderTicketMessages(updatedTicket);
@@ -153,6 +166,7 @@
     }, POLLING_INTERVAL);
   }
 
+  // Function to stop message polling
   function stopMessagePolling() {
     if (messagePollingInterval) {
       console.log('Stopping message polling');
@@ -161,13 +175,14 @@
     }
   }
 
+  // Function to create ticket card HTML
   async function createTicketCard(ticket, index) {
     const ticketNumber = ticket.ticketNumber;
     const status = ticket.status;
     const agentName = await fetchAgentName(ticket.customerServiceAgentId);
     const lastMessage = ticket.messages[ticket.messages.length - 1];
     const timeAgo = formatTimeAgo(lastMessage.dateTime);
-    const isActive = index === 0; 
+    const isActive = index === 0; // Make first ticket active by default
     
     return `
       <div class="ticket-item w-full px-10 py-4 hover:bg-primary/10 cursor-pointer transition group ${isActive ? 'ticket-active' : ''}" 
@@ -191,12 +206,13 @@
     `;
   }
 
+  // Function to fetch and display tickets
   async function fetchAndDisplayTickets() {
     const userId = getUserId();
     
     if (!userId) {
       console.error('No user ID found. Cannot fetch tickets.');
-
+      // Small delay to show skeleton before showing login message
       await new Promise(resolve => setTimeout(resolve, 800));
       showNoTicketsMessage('Please log in to view your tickets.');
       return;
@@ -213,25 +229,26 @@
         await displayTickets(data.tickets);
       } else {
         console.error('Failed to fetch tickets:', data);
-
+        // Small delay to show skeleton before showing error
         await new Promise(resolve => setTimeout(resolve, 500));
         showNoTicketsMessage('Failed to load tickets. Please try again.');
       }
       
     } catch (error) {
       console.error('Error fetching tickets:', error);
-
+      // Small delay to show skeleton before showing error
       await new Promise(resolve => setTimeout(resolve, 500));
       showNoTicketsMessage('Network error. Please check your connection and try again.');
     }
   }
 
+  // Function to show initial skeleton loading for the entire page
   function showInitialSkeletonLoading() {
-
+    // Show skeleton for ticket list
     const ticketContainer = document.getElementById('ticketCardContainer');
     if (ticketContainer) {
       const skeletonTickets = Array(5).fill(0).map((_, index) => {
-
+        // Vary the skeleton widths for more realistic look
         const titleWidths = ['w-20', 'w-24', 'w-28', 'w-32', 'w-24'];
         const statusWidths = ['w-14', 'w-16', 'w-18', 'w-16', 'w-20'];
         const nameWidths = ['w-16', 'w-20', 'w-24', 'w-18', 'w-22'];
@@ -257,6 +274,7 @@
       ticketContainer.innerHTML = skeletonTickets;
     }
 
+    // Show skeleton for message area
     const messageContainer = document.getElementById('messageContainer');
     if (messageContainer) {
       const skeletonMessages = `
@@ -315,6 +333,7 @@
       messageContainer.innerHTML = skeletonMessages;
     }
 
+    // Show skeleton for header
     const ticketNoElement = document.getElementById('ticketNo1');
     const customerServiceNameElement = document.getElementById('customerServiceName');
     const statusElement = document.getElementById('status');
@@ -332,11 +351,13 @@
       statusElement.className = 'animate-pulse';
     }
 
+    // Disable message input during loading
     disableMessageInput();
     
     console.log('Initial skeleton loading displayed');
   }
 
+  // Function to show no tickets message
   function showNoTicketsMessage(message) {
     const container = document.getElementById('ticketCardContainer');
     if (container) {
@@ -351,6 +372,7 @@
     }
   }
 
+  // Function to display tickets
   async function displayTickets(tickets) {
     const container = document.getElementById('ticketCardContainer');
     
@@ -364,19 +386,24 @@
       return;
     }
 
+    // Sort tickets by creation date (newest first)
     const sortedTickets = tickets.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-
+    
+    // Store ticket data for message loading
     allTicketsData = sortedTickets;
     
     try {
-
+      // Generate HTML for all tickets (with agent names fetched)
       const ticketPromises = sortedTickets.map((ticket, index) => createTicketCard(ticket, index));
       const ticketsHTML = await Promise.all(ticketPromises);
-
+      
+      // Update container
       container.innerHTML = ticketsHTML.join('');
-
+      
+      // Add click event listeners to ticket cards
       addTicketClickEvents();
-
+      
+      // Initialize header with first ticket (if any)
       initializeHeaderWithFirstTicket();
     } catch (error) {
       console.error('Error creating ticket cards:', error);
@@ -384,6 +411,7 @@
     }
   }
 
+  // Function to render ticket messages
   function renderTicketMessages(ticket) {
     const messageContainer = document.getElementById('messageContainer');
     if (!messageContainer) {
@@ -406,25 +434,31 @@
       return;
     }
 
+    // Sort messages by date (oldest first)
     const sortedMessages = ticket.messages.sort((a, b) => new Date(a.dateTime) - new Date(b.dateTime));
-
+    
+    // Store current scroll position to maintain it if user is not at bottom
     const isScrolledToBottom = messageContainer.scrollHeight - messageContainer.clientHeight <= messageContainer.scrollTop + 1;
-
+    
+    // Generate HTML for all messages
     const messagesHTML = sortedMessages.map((message, index) => {
       const isGuest = message.userLevel === 'Guest';
-
+      // Guest messages should be on right side (green) = message-csr
+      // Employee messages should be on left side (gray) = message-guest
       const messageClass = isGuest ? 'message-csr' : 'message-guest';
       const timeClass = isGuest ? 'text-xs text-white/70 mt-2' : 'text-xs text-gray-400 mt-2';
-
+      
+      // Format the message time
       const messageDate = new Date(message.dateTime);
       const messageTime = messageDate.toLocaleTimeString('en-US', {
         hour: '2-digit',
         minute: '2-digit'
       });
-
+      
+      // Show date separator if this message is from a different day than the previous one
       let dateSeparator = '';
       if (index === 0) {
-
+        // First message, always show date
         dateSeparator = `
           <div class="flex items-center justify-center my-4">
             <div class="bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-500">
@@ -444,7 +478,8 @@
           `;
         }
       }
-
+      
+      // Process message to handle newlines and escape HTML
       const processedMessage = escapeHtml(message.message).replace(/\n/g, '<br>');
       
       return `
@@ -457,9 +492,11 @@
         </div>
       `;
     }).join('');
-
+    
+    // Update the message container
     messageContainer.innerHTML = messagesHTML;
-
+    
+    // Scroll to bottom only if user was already at bottom or if it's a new conversation
     if (isScrolledToBottom || sortedMessages.length === 1) {
       messageContainer.scrollTop = messageContainer.scrollHeight;
     }
@@ -467,48 +504,60 @@
     console.log('Rendered', sortedMessages.length, 'messages for ticket:', ticket.ticketNumber);
   }
 
+  // Function to add click events to ticket cards
   function addTicketClickEvents() {
     const ticketCards = document.querySelectorAll('.ticket-item');
     
     ticketCards.forEach(card => {
       card.addEventListener('click', () => {
-
+        // Remove active class from all cards
         ticketCards.forEach(c => c.classList.remove('ticket-active'));
-
+        
+        // Add active class to clicked card
         card.classList.add('ticket-active');
-
+        
+        // Get ticket data
         const ticketId = card.getAttribute('data-ticket-id');
         const ticketNumber = card.getAttribute('data-ticket-number');
         const agentName = card.getAttribute('data-agent-name');
         const status = card.getAttribute('data-status');
         
         console.log('Selected ticket:', ticketNumber, ticketId, 'Agent:', agentName, 'Status:', status);
-
+        
+        // Set current ticket for polling
         currentSelectedTicketId = ticketId;
-
+        
+        // Show loading state for messages
         showMessageLoadingState();
-
+        
+        // Find the full ticket data
         const fullTicketData = allTicketsData.find(ticket => ticket._id === ticketId);
-
+        
+        // Update the header with ticket details
         updateTicketHeader(ticketNumber, agentName, status);
-
+        
+        // Render the ticket messages
         if (fullTicketData) {
           renderTicketMessages(fullTicketData);
         } else {
           console.error('Could not find full ticket data for ID:', ticketId);
           showMessageError('Failed to load ticket messages');
         }
-
+        
+        // Stop existing polling and start new polling for this ticket
         stopMessagePolling();
         startMessagePolling();
-
+        
+        // Enable message input now that a ticket is selected
         enableMessageInput();
-
+        
+        // Show the main chat area on mobile
         showChatArea();
       });
     });
   }
 
+  // Function to show loading state for messages
   function showMessageLoadingState() {
     const messageContainer = document.getElementById('messageContainer');
     if (messageContainer) {
@@ -546,6 +595,7 @@
     }
   }
 
+  // Function to show message error state
   function showMessageError(errorMessage) {
     const messageContainer = document.getElementById('messageContainer');
     if (messageContainer) {
@@ -563,6 +613,7 @@
     }
   }
 
+  // Function to enable message input
   function enableMessageInput() {
     const messageBox = document.getElementById('messageBox');
     const sendButton = document.querySelector('form button[type="submit"]');
@@ -577,6 +628,7 @@
     }
   }
 
+  // Function to disable message input (when no ticket selected)
   function disableMessageInput() {
     const messageBox = document.getElementById('messageBox');
     const sendButton = document.querySelector('form button[type="submit"]');
@@ -592,6 +644,7 @@
     }
   }
 
+  // Function to show chat area on mobile
   function showChatArea() {
     const ticketMain = document.getElementById('ticketMain');
     if (ticketMain) {
@@ -600,6 +653,7 @@
     }
   }
 
+  // Function to hide chat area on mobile (back to ticket list)
   function hideChatArea() {
     const ticketMain = document.getElementById('ticketMain');
     if (ticketMain) {
@@ -608,6 +662,7 @@
     }
   }
 
+  // Function to get status pill styling for header
   function getHeaderStatusPill(status) {
     if (!status) {
       return {
@@ -645,6 +700,7 @@
     }
   }
 
+  // Function to initialize header with first ticket data
   function initializeHeaderWithFirstTicket() {
     const firstTicketCard = document.querySelector('.ticket-item.ticket-active');
     if (firstTicketCard) {
@@ -652,23 +708,29 @@
       const ticketNumber = firstTicketCard.getAttribute('data-ticket-number');
       const agentName = firstTicketCard.getAttribute('data-agent-name');
       const status = firstTicketCard.getAttribute('data-status');
-
+      
+      // Set current selected ticket for polling
       currentSelectedTicketId = ticketId;
-
+      
+      // Update header
       updateTicketHeader(ticketNumber, agentName, status);
-
+      
+      // Find and render messages for the first ticket
       const fullTicketData = allTicketsData.find(ticket => ticket._id === ticketId);
       if (fullTicketData) {
         renderTicketMessages(fullTicketData);
       }
-
+      
+      // Start polling for this ticket
       startMessagePolling();
-
+      
+      // Enable message input
       enableMessageInput();
     } else {
-
+      // No tickets available, disable message input
       disableMessageInput();
-
+      
+      // Show empty state
       const messageContainer = document.getElementById('messageContainer');
       if (messageContainer) {
         messageContainer.innerHTML = `
@@ -685,6 +747,7 @@
     }
   }
 
+  // Function to setup mobile navigation
   function setupMobileNavigation() {
     const backButton = document.getElementById('ticketBackBtn');
     if (backButton) {
@@ -694,18 +757,21 @@
     }
   }
 
+  // Function to update ticket header when a ticket is selected
   function updateTicketHeader(ticketNumber, agentName, status) {
-
+    // Update ticket number
     const ticketNoElement = document.getElementById('ticketNo1');
     if (ticketNoElement) {
       ticketNoElement.textContent = `#${ticketNumber}`;
     }
-
+    
+    // Update customer service agent name
     const customerServiceNameElement = document.getElementById('customerServiceName');
     if (customerServiceNameElement) {
       customerServiceNameElement.textContent = agentName || 'No Agent Assigned';
     }
-
+    
+    // Update status pill
     const statusElement = document.getElementById('status');
     if (statusElement) {
       const statusPill = getHeaderStatusPill(status);
@@ -716,6 +782,7 @@
     console.log('Updated header - Ticket:', ticketNumber, 'Agent:', agentName, 'Status:', status);
   }
 
+  // Function to handle form submission for sending messages
   function setupMessageForm() {
     const messageForm = document.querySelector('form');
     const messageBox = document.getElementById('messageBox');
@@ -724,19 +791,23 @@
       console.error('Message form or message box not found');
       return;
     }
-
+    
+    // Remove any existing event listeners to prevent duplicates
     const newForm = messageForm.cloneNode(true);
     messageForm.parentNode.replaceChild(newForm, messageForm);
-
+    
+    // Get the new elements after cloning
     const newMessageBox = document.getElementById('messageBox');
     const newMessageForm = document.querySelector('form');
-
+    
+    // Detect if user is on mobile device
     const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) || 
                      ('ontouchstart' in window) || 
                      (navigator.maxTouchPoints > 0);
-
+    
+    // Add form submission handler
     newMessageForm.addEventListener('submit', async (event) => {
-      event.preventDefault(); 
+      event.preventDefault(); // Prevent page refresh
       
       const message = newMessageBox.value.trim();
       if (!message) {
@@ -757,18 +828,21 @@
         showToast('Please log in to send messages', 'error');
         return;
       }
-
+      
+      // Send the message
       await sendMessage(message, currentSelectedTicketId, userId);
-
+      
+      // Clear the message box
       newMessageBox.value = '';
-      autoResize(); 
-      newMessageBox.focus(); 
+      autoResize(); // Reset height properly
+      newMessageBox.focus(); // Keep focus for continued conversation
     });
-
+    
+    // Enhanced auto-resize functionality for textarea
     function autoResize() {
       newMessageBox.style.height = 'auto';
-      const maxHeight = 104; 
-      const minHeight = 32;  
+      const maxHeight = 104; // 6.5rem in pixels
+      const minHeight = 32;  // Compact minimum height
       const scrollHeight = Math.max(newMessageBox.scrollHeight, minHeight);
       
       if (scrollHeight <= maxHeight) {
@@ -779,20 +853,22 @@
       
       newMessageBox.style.overflowY = scrollHeight > maxHeight ? 'auto' : 'hidden';
     }
-
+    
+    // Add event listeners for auto-resize
     newMessageBox.addEventListener('input', autoResize);
     newMessageBox.addEventListener('paste', () => {
       setTimeout(autoResize, 10);
     });
-
+    
+    // Enhanced keyboard handling with mobile support
     newMessageBox.addEventListener('keydown', function(event) {
       if (event.key === 'Enter') {
         if (isMobile) {
-
+          // On mobile, let Enter create new lines by default
           setTimeout(autoResize, 10);
-          return; 
+          return; // Don't prevent default behavior
         } else {
-
+          // On desktop, Shift+Enter for new lines, Enter to send
           if (!event.shiftKey) {
             event.preventDefault();
             newMessageForm.dispatchEvent(new Event('submit'));
@@ -802,23 +878,27 @@
         }
       }
     });
-
+    
+    // Update placeholder for mobile
     if (isMobile) {
       newMessageBox.placeholder = "Type a message... (Use send button to submit)";
     }
-
+    
+    // Initial resize
     autoResize();
     
     console.log('Enhanced message form setup completed');
   }
-
+  
+  // Function to send a message
   async function sendMessage(message, ticketId, userId) {
     const sendButton = document.querySelector('form button[type="submit"]');
     let originalHTML = null;
     
     try {
       console.log('Sending message:', message, 'to ticket:', ticketId);
-
+      
+      // Add visual feedback - disable send button temporarily
       if (sendButton) {
         originalHTML = sendButton.innerHTML;
         sendButton.disabled = true;
@@ -836,7 +916,7 @@
         },
         body: JSON.stringify({
           userId: userId,
-          userLevel: 'Guest',  
+          userLevel: 'Guest',  // Changed from 'guest' to 'Guest' to match the expected format
           message: message
         })
       });
@@ -845,16 +925,18 @@
       
       if (response.ok) {
         console.log('Message sent successfully:', result);
-
-        addMessageToUI(message, true); 
-
+        
+        // Immediately add the message to the UI for instant feedback
+        addMessageToUI(message, true); // true indicates it's from the current user
+        
+        // Refresh the ticket messages to ensure consistency
         const updatedTicket = await fetchTicketMessages(ticketId);
         if (updatedTicket) {
-
+          // Update the ticket in our local data
           const ticketIndex = allTicketsData.findIndex(t => t._id === ticketId);
           if (ticketIndex !== -1) {
             allTicketsData[ticketIndex] = updatedTicket;
-
+            // Re-render to ensure we have the complete updated data
             renderTicketMessages(updatedTicket);
           }
         }
@@ -867,7 +949,7 @@
       console.error('Error sending message:', error);
       showToast('Network error. Please check your connection.', 'error');
     } finally {
-
+      // Re-enable send button
       if (sendButton && originalHTML) {
         sendButton.disabled = false;
         sendButton.innerHTML = originalHTML;
@@ -875,6 +957,7 @@
     }
   }
 
+  // Function to add a message immediately to the UI for instant feedback
   function addMessageToUI(message, isFromCurrentUser = false) {
     const messageContainer = document.getElementById('messageContainer');
     if (!messageContainer) return;
@@ -887,6 +970,7 @@
       minute: '2-digit'
     });
 
+    // Process message to handle newlines and escape HTML
     const processedMessage = escapeHtml(message).replace(/\n/g, '<br>');
 
     const messageHTML = `
@@ -902,33 +986,42 @@
     messageContainer.scrollTop = messageContainer.scrollHeight;
   }
 
+  // Function to show toast notifications (if toast system exists)
   function showToast(message, type = 'info') {
-
+    // Check if toast notification system exists
     if (typeof window.showToast === 'function') {
       window.showToast(message, type);
     } else {
-
+      // Fallback to console log
       console.log(`Toast (${type}):`, message);
     }
   }
 
+  // Initialize the page
   async function initializePage() {
     console.log('Initializing support page...');
-
+    
+    // Show initial skeleton loading immediately
     showInitialSkeletonLoading();
-
+    
+    // Setup mobile navigation
     setupMobileNavigation();
-
+    
+    // Setup message form
     setupMessageForm();
-
+    
+    // Add a small delay to show the skeleton loading effect
     await new Promise(resolve => setTimeout(resolve, 500));
-
+    
+    // Fetch and display tickets
     await fetchAndDisplayTickets();
     
     console.log('Support page initialization complete');
   }
 
+  // Start initialization
   initializePage();
-
+  
+  // Optional: Add refresh functionality
   window.refreshTickets = fetchAndDisplayTickets;
 });

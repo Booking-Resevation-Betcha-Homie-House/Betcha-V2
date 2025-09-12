@@ -1,4 +1,4 @@
-﻿function initializeCarousel(wrapper) {
+function initializeCarousel(wrapper) {
   const container = wrapper.querySelector(".carousel-track");
   const btnLeft = wrapper.parentElement.querySelector(".scrollLeft");
   const btnRight = wrapper.parentElement.querySelector(".scrollRight");
@@ -17,6 +17,7 @@
     btnLeft.disabled = container.scrollLeft <= 0;
     btnRight.disabled = container.scrollLeft >= maxScrollLeft - 5;
 
+    // Add/remove disabled styling
     if (btnLeft.disabled) {
       btnLeft.classList.add('disabled');
     } else {
@@ -42,8 +43,10 @@
   container.addEventListener("scroll", updateButtonStates);
   window.addEventListener("resize", updateButtonStates);
 
+  // Initial update
   updateButtonStates();
 
+  // Re-check button states when content changes
   const observer = new MutationObserver(updateButtonStates);
   observer.observe(container, { childList: true, subtree: true });
 }
@@ -52,4 +55,5 @@ document.addEventListener("DOMContentLoaded", () => {
   document.querySelectorAll(".carousel-wrapper").forEach(initializeCarousel);
 });
 
+// Export the function for use in other files
 window.initializeCarousel = initializeCarousel;

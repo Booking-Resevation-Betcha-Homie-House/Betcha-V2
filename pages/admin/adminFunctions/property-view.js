@@ -1,12 +1,19 @@
-﻿
+// Property View Page JavaScript
+// This file handles fetching and displaying property data from the API
+//The report tab is not working yet
+// Amenities should only show the selected amenities
 
+// API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
+// Function to extract coordinates from mapLink
 function extractCoordinatesFromMapLink(mapLink) {
     if (!mapLink) return null;
     
     console.log('Attempting to extract coordinates from mapLink:', mapLink);
-
+    
+    // Try to extract coordinates from the mapLink
+    // Look for patterns like !3d14.716000285784096!2d121.05891147478252 (lat/lng)
     const coordMatch = mapLink.match(/!3d([0-9.-]+)!2d([0-9.-]+)/);
     if (coordMatch) {
         const lat = coordMatch[1];
@@ -14,7 +21,8 @@ function extractCoordinatesFromMapLink(mapLink) {
         console.log('Found coordinates using !3d!2d pattern:', { lat, lng });
         return { lat, lng };
     }
-
+    
+    // Also try patterns like @14.716000285784096,121.05891147478252
     const atCoordMatch = mapLink.match(/@([0-9.-]+),([0-9.-]+)/);
     if (atCoordMatch) {
         const lat = atCoordMatch[1];
@@ -22,15 +30,17 @@ function extractCoordinatesFromMapLink(mapLink) {
         console.log('Found coordinates using @ pattern:', { lat, lng });
         return { lat, lng };
     }
-
+    
+    // Try to extract from pb parameter (another Google Maps format)
     const pbMatch = mapLink.match(/!1d([0-9.-]+)!2d([0-9.-]+)!3d([0-9.-]+)/);
     if (pbMatch) {
-        const lat = pbMatch[3]; 
-        const lng = pbMatch[2]; 
+        const lat = pbMatch[3]; // 3d is usually latitude
+        const lng = pbMatch[2]; // 2d is usually longitude
         console.log('Found coordinates using pb pattern:', { lat, lng });
         return { lat, lng };
     }
-
+    
+    // Try to extract from query parameters
     const urlParams = new URL(mapLink.startsWith('http') ? mapLink : 'https://maps.google.com/' + mapLink);
     const ll = urlParams.searchParams.get('ll');
     if (ll) {
@@ -46,15 +56,21 @@ function extractCoordinatesFromMapLink(mapLink) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-
+    // Get property ID from URL parameters or use default
     const urlParams = new URLSearchParams(window.location.search);
-    const propertyId = urlParams.get('id') || '68a0332259e435d693628999'; 
-
+    const propertyId = urlParams.get('id') || '68a0332259e435d693628999'; // Default ID from the API
+    
+    // Fetch property data
     fetchPropertyData(propertyId);
-
+    
+    // Initialize other functionality
     initializePage();
 });
 
+// (Removed) console.log override; logs are stripped from this file
+
+// ===== Amenity metadata and category constants =====
+// Single source of truth for amenity display name and icon filename
 const AMENITY_META = {
     wifi: { name: 'WiFi', icon: 'wifi.svg' },
     aircon: { name: 'Air Conditioning', icon: 'aircon.svg' },
@@ -120,6 +136,9 @@ const AMENITY_META = {
     allowed: { name: 'Pets Allowed', icon: 'petPaw.svg' }
 };
 
+// No fuzzy normalization needed – API provides canonical amenity keys
+
+// Category definitions shared across categorization and rendering
 const CATEGORIES = {
     'Essentials': ['wifi', 'aircon', 'bedset', 'hanger', 'hairDryer', 'iron', 'extraPillowBlanket', 'towel'],
     'Kitchen & Dining': ['ref', 'microwave', 'stove', 'oven', 'coffeeMaker', 'toaster', 'PotsPans', 'spices', 'dishesCutlery', 'diningTable'],
@@ -132,6 +151,7 @@ const CATEGORIES = {
     'Family Friendly': ['crib', 'babyBath', 'stairGate']
 };
 
+// Map of category to modal container id
 const CATEGORY_TO_CONTAINER_ID = {
     'Essentials': 'essentialsList',
     'Kitchen & Dining': 'kitchenDiningList',
@@ -145,7 +165,7 @@ const CATEGORY_TO_CONTAINER_ID = {
     'Family Friendly': 'familyFriendlyList',
     'Other': 'othersList'
 };
-
+// Fetch property data from API
 async function fetchPropertyData(propertyId) {
     try {
         const response = await fetch(`${API_BASE}/property/display/${propertyId}`);
@@ -155,7 +175,8 @@ async function fetchPropertyData(propertyId) {
         }
         
         const propertyData = await response.json();
-
+        
+        // Populate the page with the fetched data
         populatePropertyData(propertyData);
         
     } catch (error) {
@@ -164,21 +185,27 @@ async function fetchPropertyData(propertyId) {
     }
 }
 
+// Populate all property data fields
 function populatePropertyData(data) {
-
+    // Basic property information
     populateBasicInfo(data);
-
+    
+    // Property images
     populatePropertyImages(data.photoLinks);
-
+    
+    // Property amenities
     populateAmenities(data.amenities, data.otherAmenities);
-
+    
+    // Property reports
     populateReports(data.reports);
-
+    
+    // Update page title
     document.title = `Betcha Admin | ${data.name}`;
 }
 
+// Populate basic property information
 function populateBasicInfo(data) {
-
+    // Property name and address
     const propertyNameElement = document.getElementById('propertyName');
     if (propertyNameElement) {
         propertyNameElement.textContent = data.name || 'Property Name Not Available';
@@ -188,12 +215,14 @@ function populateBasicInfo(data) {
     if (propertyAddressElement) {
         propertyAddressElement.textContent = data.address || 'Address Not Available';
     }
-
+    
+    // Property description
     const roomDescriptionElement = document.getElementById('roomDescription');
     if (roomDescriptionElement) {
         roomDescriptionElement.textContent = data.description || 'No description available';
     }
-
+    
+    // Property category and status
     const propertyCategoryElement = document.getElementById('propertyCategory');
     if (propertyCategoryElement) {
         propertyCategoryElement.textContent = data.category || 'Category Not Available';
@@ -203,7 +232,8 @@ function populateBasicInfo(data) {
     const statusContainer = document.getElementById('statusContainer');
     if (statusTextElement && statusContainer) {
         statusTextElement.textContent = data.status || 'Status Not Available';
-
+        
+        // Update status color based on status value
         if (data.status === 'Active') {
             statusContainer.className = 'status green inline-block w-fit';
         } else if (data.status === 'Inactive') {
@@ -212,9 +242,10 @@ function populateBasicInfo(data) {
             statusContainer.className = 'status orange inline-block w-fit';
         }
     }
-
+    // Update archive/activate button based on status
     updateArchiveButtonUI(data.status);
-
+    
+    // Ratings
     const propertyRatingsElement = document.getElementById('propertyRatings');
     if (propertyRatingsElement) {
         if (data.rating > 0) {
@@ -223,7 +254,8 @@ function populateBasicInfo(data) {
             propertyRatingsElement.textContent = 'No ratings yet';
         }
     }
-
+    
+    // Capacity information
     const propertyPackCapElement = document.getElementById('propertyPackCap');
     if (propertyPackCapElement) {
         propertyPackCapElement.textContent = data.packageCapacity || '0';
@@ -233,7 +265,8 @@ function populateBasicInfo(data) {
     if (propertyMaxCapElement) {
         propertyMaxCapElement.textContent = data.maxCapacity || '0';
     }
-
+    
+    // Check-in/out times
     const propertyCheckInElement = document.getElementById('propertyCheckIn');
     if (propertyCheckInElement) {
         propertyCheckInElement.textContent = data.timeIn || '00:00 AM';
@@ -243,7 +276,8 @@ function populateBasicInfo(data) {
     if (propertyCheckOutElement) {
         propertyCheckOutElement.textContent = data.timeOut || '00:00 PM';
     }
-
+    
+    // Pricing information
     const propertyPackPriceElement = document.getElementById('propertyPackPrice');
     if (propertyPackPriceElement) {
         propertyPackPriceElement.textContent = data.packagePrice || '0';
@@ -258,7 +292,8 @@ function populateBasicInfo(data) {
     if (propertyAddPaxElement) {
         propertyAddPaxElement.textContent = data.additionalPax || '0';
     }
-
+    
+    // Discount
     const propertyDiscPriceElement = document.getElementById('propertyDiscPrice');
     if (propertyDiscPriceElement) {
         if (data.discount && data.discount > 0) {
@@ -267,7 +302,8 @@ function populateBasicInfo(data) {
             propertyDiscPriceElement.textContent = 'No discount';
         }
     }
-
+    
+    // Map link
     const propertyMapLinkElement = document.getElementById('propertyMapLink');
     const mapContainer = document.getElementById('mapContainer');
     const directionsButtonContainer = document.getElementById('directionsButtonContainer');
@@ -275,9 +311,10 @@ function populateBasicInfo(data) {
     
     if (propertyMapLinkElement) {
         if (data.mapLink) {
-
+            // Extract location name from map link or use address/city
             let displayText = 'View Location on Map';
-
+            
+            // If we have address and city, use those for display
             if (data.address && data.city) {
                 displayText = `${data.address}, ${data.city}`;
             } else if (data.address) {
@@ -285,46 +322,54 @@ function populateBasicInfo(data) {
             } else if (data.city) {
                 displayText = data.city;
             }
-
+            
+            // Set the display text
             propertyMapLinkElement.textContent = displayText;
             propertyMapLinkElement.style.cursor = 'default';
-
+            // Remove click functionality - users should use the "Get Directions" button instead
+            
+            // Load the map preview in mapContainer
             if (mapContainer) {
                 loadMapPreview(data.mapLink, mapContainer);
             }
-
+            
+            // Show and setup the directions button
             if (directionsButtonContainer && directionsBtn) {
                 directionsButtonContainer.classList.remove('hidden');
                 
                 directionsBtn.onclick = () => {
-
+                    // Debug: Log the mapLink to see what we're working with
                     console.log('Property mapLink:', data.mapLink);
-
+                    
+                    // Create the query for directions using coordinates + address for accuracy
                     let directionsQuery;
-
+                    
+                    // Extract coordinates from mapLink for precise location
                     const coordinates = data.mapLink ? extractCoordinatesFromMapLink(data.mapLink) : null;
                     
                     console.log('Extracted coordinates:', coordinates);
                     
                     if (coordinates && data.address) {
-
+                        // Use coordinates + address for most accurate matching
+                        // This tells Google to find a location near these coordinates that matches the address
                         directionsQuery = `${coordinates.lat},${coordinates.lng}+${encodeURIComponent(data.address)}`;
                         console.log('Using coordinates + address for precise location:', directionsQuery);
                     } else if (coordinates) {
-
+                        // Use just coordinates if address not available
                         directionsQuery = `${coordinates.lat},${coordinates.lng}`;
                         console.log('Using coordinates only:', directionsQuery);
                     } else if (data.address) {
-
+                        // Fallback to full address only
                         directionsQuery = encodeURIComponent(data.address);
                         console.log('Using full address only:', data.address);
                     } else {
-
+                        // Final fallback
                         directionsQuery = encodeURIComponent('Property Location');
                     }
-
+                    
+                    // Get user's current location for accurate directions
                     if (navigator.geolocation) {
-
+                        // Show loading while getting location
                         mapContainer.innerHTML = `
                             <div class="w-full h-full bg-neutral-100 flex items-center justify-center">
                                 <div class="text-center">
@@ -338,11 +383,13 @@ function populateBasicInfo(data) {
                             (position) => {
                                 const userLat = position.coords.latitude;
                                 const userLng = position.coords.longitude;
-
+                                
+                                // Create directions URL with user location and our precise destination (satellite view, driving mode)
                                 const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                                 
                                 console.log('Generated directions URL:', directionsEmbedUrl);
-
+                                
+                                // Update the iframe with directions from user's actual location
                                 mapContainer.innerHTML = `
                                     <iframe src="${directionsEmbedUrl}" 
                                         class="w-full h-full"
@@ -355,7 +402,8 @@ function populateBasicInfo(data) {
                             },
                             (error) => {
                                 console.error('Geolocation error:', error);
-
+                                
+                                // Use simple maps.google.com URL for fallback (no API key needed)
                                 const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                                 
                                 console.log('Generated fallback directions URL:', fallbackEmbedUrl);
@@ -378,11 +426,11 @@ function populateBasicInfo(data) {
                             {
                                 enableHighAccuracy: true,
                                 timeout: 10000,
-                                maximumAge: 300000 
+                                maximumAge: 300000 // 5 minutes
                             }
                         );
                     } else {
-
+                        // Browser doesn't support geolocation, use simple maps.google.com URL (no API key needed)
                         const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                         
                         console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
@@ -402,18 +450,21 @@ function populateBasicInfo(data) {
                             </div>
                         `;
                     }
-
+                    
+                    // Update button text to indicate it's showing directions
                     directionsBtn.innerHTML = `
                         <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3"></path>
                         </svg>
                         View Property Location
                     `;
-
+                    
+                    // Change button functionality to reset to original map
                     directionsBtn.onclick = () => {
-
+                        // Reload the original map preview
                         loadMapPreview(data.mapLink, mapContainer);
-
+                        
+                        // Reset button text and functionality
                         directionsBtn.innerHTML = `
                             <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
@@ -421,41 +472,46 @@ function populateBasicInfo(data) {
                             </svg>
                             Get Directions
                         `;
-
+                        
+                        // Reset to original directions functionality
                         setupDirectionsButton();
                     };
                 };
-
+                
+                // Function to setup directions button (for reuse)
                 function setupDirectionsButton() {
                     directionsBtn.onclick = () => {
-
+                        // Debug: Log the mapLink to see what we're working with
                         console.log('Property mapLink:', data.mapLink);
-
+                        
+                        // Create the query for directions using coordinates + address for accuracy
                         let directionsQuery;
-
+                        
+                        // Extract coordinates from mapLink for precise location
                         const coordinates = data.mapLink ? extractCoordinatesFromMapLink(data.mapLink) : null;
                         
                         console.log('Extracted coordinates:', coordinates);
                         
                         if (coordinates && data.address) {
-
+                            // Use coordinates + address for most accurate matching
                             directionsQuery = `${coordinates.lat},${coordinates.lng}+${encodeURIComponent(data.address)}`;
                             console.log('Using coordinates + address for precise location:', directionsQuery);
                         } else if (coordinates) {
-
+                            // Use just coordinates if address not available
                             directionsQuery = `${coordinates.lat},${coordinates.lng}`;
                             console.log('Using coordinates only:', directionsQuery);
                         } else if (data.address) {
-
+                            // Fallback to full address only
                             directionsQuery = encodeURIComponent(data.address);
                             console.log('Using full address only:', data.address);
                         } else {
-
+                            // Final fallback
                             directionsQuery = encodeURIComponent('Property Location');
                         }
-
+                        
+                        // Get user's current location for accurate directions
                         if (navigator.geolocation) {
-
+                            // Show loading while getting location
                             mapContainer.innerHTML = `
                                 <div class="w-full h-full bg-neutral-100 flex items-center justify-center">
                                     <div class="text-center">
@@ -469,11 +525,13 @@ function populateBasicInfo(data) {
                                 (position) => {
                                     const userLat = position.coords.latitude;
                                     const userLng = position.coords.longitude;
-
+                                    
+                                    // Create directions URL with user location and our precise destination (driving mode)
                                     const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                                     
                                     console.log('Generated directions URL:', directionsEmbedUrl);
-
+                                    
+                                    // Update the iframe with directions from user's actual location
                                     mapContainer.innerHTML = `
                                         <iframe src="${directionsEmbedUrl}" 
                                             class="w-full h-full"
@@ -486,7 +544,8 @@ function populateBasicInfo(data) {
                                 },
                                 (error) => {
                                     console.error('Geolocation error:', error);
-
+                                    
+                                    // Use simple maps.google.com URL for fallback (no API key needed)
                                     const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                                     
                                     console.log('Generated fallback directions URL:', fallbackEmbedUrl);
@@ -509,11 +568,11 @@ function populateBasicInfo(data) {
                                 {
                                     enableHighAccuracy: true,
                                     timeout: 10000,
-                                    maximumAge: 300000 
+                                    maximumAge: 300000 // 5 minutes
                                 }
                             );
                         } else {
-
+                            // Browser doesn't support geolocation, use simple maps.google.com URL (no API key needed)
                             const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                             
                             console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
@@ -559,11 +618,13 @@ function populateBasicInfo(data) {
             propertyMapLinkElement.textContent = 'Location not available';
             propertyMapLinkElement.style.cursor = 'default';
             propertyMapLinkElement.onclick = null;
-
+            
+            // Hide the directions button if no map data
             if (directionsButtonContainer) {
                 directionsButtonContainer.classList.add('hidden');
             }
-
+            
+            // Show no map available message
             if (mapContainer) {
                 mapContainer.innerHTML = `
                     <div class="text-neutral-500 text-center">
@@ -576,7 +637,8 @@ function populateBasicInfo(data) {
             }
         }
     }
-
+    
+    // City information
     if (data.city) {
         const cityInfo = document.createElement('div');
         cityInfo.innerHTML = `
@@ -591,20 +653,23 @@ function populateBasicInfo(data) {
             addressSection.appendChild(cityInfo);
         }
     }
-
+    
+    // Initialize read more toggle after content is populated
     setTimeout(() => {
         initializeReadMoreToggle();
     }, 100);
 }
 
+// Function to load map preview from mapLink data
 function loadMapPreview(mapLink, mapContainer) {
     if (!mapLink || !mapContainer) return;
-
+    
+    // Check if mapLink is an iframe embed code
     if (mapLink.includes('<iframe')) {
-
+        // If it's already an iframe, just inject it
         mapContainer.innerHTML = mapLink;
     } else if (mapLink.startsWith('https://www.google.com/maps/embed')) {
-
+        // If it's a direct embed URL, create iframe
         mapContainer.innerHTML = `
             <iframe src="${mapLink}" 
                 class="w-full h-full"
@@ -615,9 +680,10 @@ function loadMapPreview(mapLink, mapContainer) {
             </iframe>
         `;
     } else {
-
+        // If it's coordinates or address, create a search-based embed
         const encodedQuery = encodeURIComponent(mapLink);
-
+        
+        // Alternative method for coordinate-based maps
         mapContainer.innerHTML = `
             <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d0!3d0!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s${encodedQuery}!5e0!3m2!1sen!2sph!4v${Date.now()}!5m2!1sen!2sph" 
                 class="w-full h-full"
@@ -628,13 +694,15 @@ function loadMapPreview(mapLink, mapContainer) {
             </iframe>
         `;
     }
-
+    
+    // Add smooth loading animation
     mapContainer.style.opacity = '0.5';
     setTimeout(() => {
         mapContainer.style.opacity = '1';
     }, 200);
 }
 
+// Update Archive button to Activate when status is Archived
 function updateArchiveButtonUI(status) {
     const btn = document.getElementById('archivePropertyBtn');
     if (!btn) return;
@@ -645,7 +713,7 @@ function updateArchiveButtonUI(status) {
         btn.classList.add('bg-emerald-100', 'hover:bg-emerald-200');
         btn.querySelector('span')?.classList?.remove('text-rose-700');
         btn.querySelector('span')?.classList?.add('text-emerald-700');
-
+        // Update label if it exists or rebuild content minimally
         const labelSpan = btn.querySelector('span');
         if (labelSpan) labelSpan.textContent = 'Activate';
         else btn.innerText = 'Activate';
@@ -658,62 +726,71 @@ function updateArchiveButtonUI(status) {
     }
 }
 
+// Populate property images
 function populatePropertyImages(photoLinks) {
     if (!photoLinks || photoLinks.length === 0) {
-
+        // Keep default "No photos" state - don't change anything
         return;
     }
-
+    
+    // Get the individual photo elements
     const photo1 = document.getElementById('photo1');
     const photo2Container = document.getElementById('photo2');
     const photo2 = photo2Container ? photo2Container.querySelector('div:first-child') : null;
     const photo3 = document.getElementById('photo3');
     
     if (!photo1) return;
-
+    
+    // Set background image for photo1 (first image)
     if (photoLinks.length >= 1) {
         photo1.style.backgroundImage = `url('${photoLinks[0]}')`;
         photo1.style.backgroundSize = 'cover';
         photo1.style.backgroundPosition = 'center';
         photo1.style.backgroundRepeat = 'no-repeat';
-        photo1.innerHTML = ''; 
+        photo1.innerHTML = ''; // Remove "No photos" text
     }
-
+    
+    // Set background image for photo2 (second image)
     if (photoLinks.length >= 2 && photo2) {
         photo2.style.backgroundImage = `url('${photoLinks[1]}')`;
         photo2.style.backgroundSize = 'cover';
         photo2.style.backgroundPosition = 'center';
         photo2.style.backgroundRepeat = 'no-repeat';
-        photo2.innerHTML = ''; 
+        photo2.innerHTML = ''; // Remove "No photos" text
     }
-
+    
+    // Set background image for photo3 (third image)
     if (photoLinks.length >= 3 && photo3) {
         photo3.style.backgroundImage = `url('${photoLinks[2]}')`;
         photo3.style.backgroundSize = 'cover';
         photo3.style.backgroundPosition = 'center';
         photo3.style.backgroundRepeat = 'no-repeat';
-        photo3.innerHTML = ''; 
+        photo3.innerHTML = ''; // Remove "No photos" text
     }
-
+    
+    // Update photo count in floating button
     const photoCountElement = document.getElementById('photoCount');
     if (photoCountElement) {
         photoCountElement.textContent = `${photoLinks.length}+`;
     }
-
+    
+    // Also populate the gallery modal with all images
     populateGalleryModal(photoLinks);
 }
 
+// Create image element with proper attributes
 function createImageElement(src, className) {
     const img = document.createElement('img');
     img.src = src;
     img.alt = 'Property photo';
     img.className = className;
     img.onerror = function() {
-        this.src = '/public/images/unit01.jpg'; 
+        this.src = '/public/images/unit01.jpg'; // Fallback image
     };
     return img;
 }
 
+// Populate amenities
 function renderAmenities({ amenities, otherAmenities, mainLimit = 5 }) {
     if (!amenities || amenities.length === 0) return;
     if (window.amenitiesPopulated) return;
@@ -759,18 +836,22 @@ function populateAmenities(amenities, otherAmenities) {
     renderAmenities({ amenities, otherAmenities, mainLimit: 5 });
 }
 
+// New function to populate categorized amenities in the modal
 function populateCategorizedAmenities(amenities) {
-
+    
+    // Group amenities by category
     const categorizedAmenities = categorizeAmenities(amenities);
-
+    
+    // Populate each category list
     Object.keys(categorizedAmenities).forEach(category => {
         const amenitiesList = categorizedAmenities[category];
         if (amenitiesList.length > 0) {
-
+            
+            // Get the appropriate container for this category
             let containerId = CATEGORY_TO_CONTAINER_ID[category] || '';
             if (category === 'Other') {
                 populateOtherAmenities(amenitiesList);
-                return; 
+                return; // Skip the rest of the loop for this category
             }
             
             const container = document.getElementById(containerId);
@@ -799,13 +880,14 @@ function populateCategorizedAmenities(amenities) {
     });
 }
 
+// New function to populate other amenities
 function populateOtherAmenities(otherAmenities) {
     
     const othersContainer = document.getElementById('othersContainer');
     const othersList = document.getElementById('othersList');
     
     if (othersContainer && othersList) {
-
+        // Show/hide the others section based on whether there are other amenities
         if (otherAmenities.length > 0) {
             othersContainer.style.display = 'block';
             
@@ -835,40 +917,47 @@ function populateOtherAmenities(otherAmenities) {
     }
 }
 
+// Function to reset amenities populated flag (useful when editing properties)
 function resetAmenitiesPopulatedFlag() {
     window.amenitiesPopulated = false;
 }
 
+// (Removed) ensureAmenitiesModalWorks: redundant existence checks not needed in production
+
+// Get amenity display info (icon and friendly name)
 function getAmenityDisplayInfo(amenity) {
     const key = (amenity || '').toString();
     const meta = AMENITY_META[key] || { name: key, icon: 'star.svg' };
     return { icon: meta.icon.replace('.svg', ''), name: meta.name };
 }
 
+// Get SVG icon for amenity type
 function getAmenityIcon(iconType) {
     const v = (iconType || '').toString();
     const filename = v.endsWith('.svg') ? v : `${v}.svg`;
     return `/public/svg/${filename}`;
 }
 
+// Helper function to categorize amenities
 function categorizeAmenities(amenities) {
     
     const categorized = {};
-    const processedAmenities = new Set(); 
+    const processedAmenities = new Set(); // Track processed amenities to avoid duplicates
     
     amenities.forEach(amenity => {
-
+        // Skip only truly invalid amenities
         if (!amenity || typeof amenity !== 'string' || amenity.trim() === '') {
             return;
         }
         
         if (processedAmenities.has(amenity.toLowerCase())) {
-            return; 
+            return; // Skip if already processed
         }
-
+        
+        
         let isCategorized = false;
         for (const [category, categoryAmenities] of Object.entries(CATEGORIES)) {
-
+            // Check if amenity matches any category (case-insensitive and partial matching)
             if (categoryAmenities.some(catAmenity => 
                 amenity.toLowerCase().includes(catAmenity.toLowerCase()) || 
                 catAmenity.toLowerCase().includes(amenity.toLowerCase())
@@ -882,7 +971,8 @@ function categorizeAmenities(amenities) {
                 break;
             }
         }
-
+        
+        // If amenity doesn't match any category, add to "Other"
         if (!isCategorized) {
             if (!categorized['Other']) {
                 categorized['Other'] = [];
@@ -895,13 +985,16 @@ function categorizeAmenities(amenities) {
     return categorized;
 }
 
+// Function to clear all amenities from all containers
 function clearAllAmenities() {
-
+    
+    // Clear main amenities display
     const mainAmenitiesContainer = document.getElementById('mainAmenities');
     if (mainAmenitiesContainer) {
         mainAmenitiesContainer.innerHTML = '';
     }
-
+    
+    // Clear categorized amenities in modal
     const essentialsContainer = document.getElementById('essentialsList');
     const kitchenDiningContainer = document.getElementById('kitchenDiningList');
     const bathroomContainer = document.getElementById('bathroomList');
@@ -958,19 +1051,22 @@ function clearAllAmenities() {
     if (othersList) {
         othersList.innerHTML = '';
     }
-
+    
+    // Hide others container if it exists
     if (othersContainer) {
         othersContainer.style.display = 'none';
     }
     
 }
 
+// Populate reports
 function populateReports(reports) {
     
     if (!reports) {
         return;
     }
-
+    
+    // Find the tab content containers
     const tabContents = document.querySelectorAll('#tab-contents .tab-content');
     const unsolvedContainer = tabContents[0];
     const solvedContainer = tabContents[1];
@@ -979,10 +1075,12 @@ function populateReports(reports) {
         console.warn('Report containers not found');
         return;
     }
-
+    
+    // Clear existing content
     unsolvedContainer.innerHTML = '';
     solvedContainer.innerHTML = '';
-
+    
+    // Populate unsolved reports
     if (reports.unsolved && reports.unsolved.length > 0) {
         reports.unsolved.forEach(report => {
             const reportElement = createReportElement(report, 'unsolved');
@@ -992,7 +1090,8 @@ function populateReports(reports) {
         const noReportsElement = createNoReportsElement();
         unsolvedContainer.appendChild(noReportsElement);
     }
-
+    
+    // Populate solved reports
     if (reports.solved && reports.solved.length > 0) {
         reports.solved.forEach(report => {
             const reportElement = createReportElement(report, 'solved');
@@ -1004,19 +1103,22 @@ function populateReports(reports) {
     }
 }
 
+// Create report element
 function createReportElement(report, status) {
     const div = document.createElement('div');
     div.className = `bg-white rounded-xl px-4 py-3 group cursor-pointer border border-neutral-200 font-inter
         transition-all duration-300 ease-in-out 
         hover:bg-primary/10 hover:border-primary`;
     div.setAttribute('data-modal-target', 'reportModal');
-
+    
+    // Format the date from the API response
     const date = new Date(report.date || Date.now()).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'short',
         day: 'numeric'
     });
-
+    
+    // Store report data for modal display
     div.setAttribute('data-report-id', report.id);
     div.setAttribute('data-report-sender', report.sender);
     div.setAttribute('data-report-category', report.category);
@@ -1045,7 +1147,8 @@ function createReportElement(report, status) {
                 <p class="text-xs text-neutral-600 line-clamp-2">${report.message || 'No message provided'}</p>
         </div>
     `;
-
+    
+    // Add click event to show report details
     div.addEventListener('click', () => {
         showReportDetails(report);
     });
@@ -1053,6 +1156,7 @@ function createReportElement(report, status) {
     return div;
 }
 
+// Create no reports element
 function createNoReportsElement() {
     const div = document.createElement('div');
     div.className = 'w-full h-full flex justify-center items-center';
@@ -1060,14 +1164,17 @@ function createNoReportsElement() {
     return div;
 }
 
+// Show report details in modal
 function showReportDetails(report) {
-
+    
+    // Find the report modal
     const reportModal = document.getElementById('reportModal');
     if (!reportModal) {
         console.warn('Report modal not found');
         return;
     }
-
+    
+    // Populate modal content with report data
     const modalContent = reportModal.querySelector('.modal-content');
     if (modalContent) {
         const date = new Date(report.date).toLocaleDateString('en-US', {
@@ -1133,14 +1240,16 @@ function showReportDetails(report) {
             </div>
         `;
     }
-
+    
+    // Store the current report data for status updates
     reportModal.setAttribute('data-current-report', JSON.stringify(report));
-
+    
+    // Update button text and color based on current status, or hide for solved reports
     const closeButton = reportModal.querySelector('button[data-close-modal]');
     
     if (closeButton) {
         if (report.status === 'Solved') {
-
+            // For solved reports, show prominent close button
             closeButton.className = 'w-full bg-gradient-to-r from-primary to-primary/90 text-white font-semibold py-4 px-8 rounded-2xl shadow-lg hover:shadow-xl hover:from-primary/80 hover:to-primary/70 transition-all duration-300 ease-in-out border-0';
             closeButton.innerHTML = `
                 <span class="font-manrope text-lg flex items-center justify-center gap-2 text-white">
@@ -1151,7 +1260,8 @@ function showReportDetails(report) {
                 </span>
             `;
         } else {
-
+            // For unsolved reports, show solve button and update close button styling
+            // First, create the solve button if it doesn't exist
             let solveButton = reportModal.querySelector('#solveButton');
             if (!solveButton) {
                 solveButton = document.createElement('button');
@@ -1166,11 +1276,13 @@ function showReportDetails(report) {
                         Solve Report
                     </span>
                 `;
-
+                
+                // Insert solve button before close button
                 const footerContainer = closeButton.parentElement;
                 footerContainer.insertBefore(solveButton, closeButton);
             }
-
+            
+            // Update close button styling for unsolved reports
             closeButton.className = 'w-full bg-gradient-to-r from-neutral-200 to-neutral-300 text-neutral-700 font-semibold py-3 px-6 rounded-2xl shadow-md hover:shadow-lg hover:from-neutral-300 hover:to-neutral-400 transition-all duration-300 ease-in-out border-0';
             closeButton.innerHTML = `
                 <span class="font-manrope text-base flex items-center justify-center gap-2 text-neutral-700">
@@ -1182,10 +1294,12 @@ function showReportDetails(report) {
             `;
         }
     }
-
+    
+    // Show the modal
     reportModal.classList.remove('hidden');
 }
 
+// Handle reports tab switching
 function setReportsActiveTab(index) {
     
     const tabButtons = document.querySelectorAll('.reports-tab-btn');
@@ -1195,7 +1309,8 @@ function setReportsActiveTab(index) {
         console.warn('Reports tab elements not found');
         return;
     }
-
+    
+    // Remove active state from all buttons and contents
     tabButtons.forEach(btn => {
         btn.classList.remove('bg-white', 'text-primary', 'font-semibold', 'shadow');
         btn.classList.add('text-neutral-500');
@@ -1204,7 +1319,8 @@ function setReportsActiveTab(index) {
     tabContents.forEach(content => {
         content.classList.add('hidden');
     });
-
+    
+    // Add active state to selected button and content
     if (tabButtons[index]) {
         tabButtons[index].classList.add('bg-white', 'text-primary', 'font-semibold', 'shadow');
         tabButtons[index].classList.remove('text-neutral-500');
@@ -1215,15 +1331,20 @@ function setReportsActiveTab(index) {
     }
 }
 
+// Initialize reports tabs
 function initializeReportsTabs() {
-
+    
+    // Set the first tab as active by default
     setReportsActiveTab(0);
-
+    
+    // Make the function globally accessible
     window.setReportsActiveTab = setReportsActiveTab;
 }
 
+// Change report status
 async function changeReportStatus() {
-
+    
+    // Get the current report data from the modal
     const reportModal = document.getElementById('reportModal');
     if (!reportModal) {
         console.error('Report modal not found');
@@ -1237,7 +1358,8 @@ async function changeReportStatus() {
     }
     
     const report = JSON.parse(reportData);
-
+    
+    // Get current property ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const propertyId = urlParams.get('id');
     
@@ -1246,17 +1368,20 @@ async function changeReportStatus() {
         showErrorMessage('Cannot update report: Property ID not found');
         return;
     }
-
+    
+    // Determine new status based on current status
     const newStatus = report.status === 'Solved' ? 'Unsolved' : 'Solved';
-
+    
+    // Prepare the request body
     const requestBody = {
         id: report.id,
         status: report.status,
         newStatus: newStatus
     };
-
+    
+    
     try {
-
+        // Show loading state
         const solveButton = reportModal.querySelector('#solveButton');
         if (!solveButton) {
             console.error('Solve button not found');
@@ -1271,7 +1396,8 @@ async function changeReportStatus() {
             </svg>
         `;
         solveButton.disabled = true;
-
+        
+        // Make the API call
         const response = await fetch(`${API_BASE}/property/${propertyId}/report/edit-status`, {
             method: 'PATCH',
             headers: {
@@ -1285,40 +1411,49 @@ async function changeReportStatus() {
         }
         
         const result = await response.json();
-
+        
+        // Show success message
         showSuccessMessage(`Report status updated to ${newStatus}`);
-
+        
+        // Reset button state
         solveButton.innerHTML = originalText;
         solveButton.disabled = false;
-
+        
+        // Close the modal
         reportModal.classList.add('hidden');
-
+        
+        // Refresh the property data to show updated reports
         await fetchPropertyData(propertyId);
         
     } catch (error) {
         console.error('❌ Failed to update report status:', error);
         showErrorMessage(`Failed to update report status: ${error.message}`);
-
+        
+        // Reset button state
         solveButton.innerHTML = originalText;
         solveButton.disabled = false;
     }
 }
 
+// Function to fetch and display calendar data
 async function fetchAndDisplayCalendarData() {
     try {
-
+        // Get current property ID from URL
         const urlParams = new URLSearchParams(window.location.search);
         const propertyId = urlParams.get('id');
         
         if (!propertyId) {
             return;
         }
-
+        
+        
+        // Fetch calendar data from API
         const response = await fetch(`${API_BASE}/calendar/byProperty/${propertyId}`);
         
         if (response.ok) {
             const calendarData = await response.json();
-
+            
+            // Update calendar with booked and maintenance dates
             updateCalendarWithDates(calendarData.calendar);
         } else {
             console.error('❌ Failed to fetch calendar data:', response.status, response.statusText);
@@ -1328,24 +1463,31 @@ async function fetchAndDisplayCalendarData() {
     }
 }
 
+// Function to update calendar with booked and maintenance dates
 function updateCalendarWithDates(calendarData) {
     if (!calendarData) {
         return;
     }
-
+    
+    // Get all booked dates
     const bookedDates = calendarData.booking ? calendarData.booking.map(booking => booking.date) : [];
-
+    
+    // Get all maintenance dates
     const maintenanceDates = calendarData.maintenance ? calendarData.maintenance.map(maintenance => maintenance.date) : [];
-
+    
+    
+    // Combine all unavailable dates
     const allUnavailableDates = [...bookedDates, ...maintenanceDates];
-
+    
+    // Update the global unavailableDates array in calendar2.js
     if (typeof window !== 'undefined' && window.calendarUnavailableDates) {
         window.calendarUnavailableDates = allUnavailableDates;
     }
-
+    
+    // Force calendar re-render if it exists
     const calendarInstance = document.querySelector('.calendar-instance');
     if (calendarInstance) {
-
+        // Trigger a custom event to force calendar re-render
         const event = new CustomEvent('calendarDataUpdated', {
             detail: {
                 bookedDates: bookedDates,
@@ -1355,21 +1497,24 @@ function updateCalendarWithDates(calendarData) {
         });
         calendarInstance.dispatchEvent(event);
     }
-
+    
+    // Also update the calendar legend with actual counts
     updateCalendarLegend(bookedDates.length, maintenanceDates.length);
 }
 
+// Function to update calendar legend with actual counts
 function updateCalendarLegend(bookedCount, maintenanceCount) {
     const legendContainer = document.querySelector('.text-lg.font-manrope.md\\:text-xl.mb-3');
     if (legendContainer) {
         const legendSection = legendContainer.closest('.flex.flex-col');
         if (legendSection) {
-
+            // Update booked count
             const bookedLegend = legendSection.querySelector('.bg-primary + p');
             if (bookedLegend) {
                 bookedLegend.textContent = `- Booked (${bookedCount})`;
             }
-
+            
+            // Update maintenance count
             const maintenanceLegend = legendSection.querySelector('.bg-rose-700 + p');
             if (maintenanceLegend) {
                 maintenanceLegend.textContent = `- Maintenance (${maintenanceCount})`;
@@ -1378,35 +1523,45 @@ function updateCalendarLegend(bookedCount, maintenanceCount) {
     }
 }
 
+// Function to initialize calendar functionality
 function initializeCalendar() {
-
+    
+    // Fetch calendar data when page loads
     fetchAndDisplayCalendarData();
-
+    
+    // Listen for calendar data updates
     document.addEventListener('calendarDataUpdated', (event) => {
-
+        // The calendar2.js will handle the re-render
     });
 }
 
+// Initialize page functionality
 function initializePage() {
-
+    // Reset amenities populated flag for clean state
     resetAmenitiesPopulatedFlag();
-
+    
+    // Initialize delete button functionality
     initializeDeleteButton();
-
+    
+    // Initialize calendar functionality
     initializeCalendar();
-
+    
+    // Initialize reports tab functionality
     initializeReportsTabs();
 
 }
 
+// Initialize edit button functionality
 function initializeEditButton() {
-
+    // Redundant when inline onclick exists; no extra binding needed
 }
 
+// Initialize read more toggle functionality - handled by global script
 function initializeReadMoreToggle() {
-
+    // Let the global readTextToggle.js script handle this functionality
 }
 
+// Function to navigate to edit page with property ID
 function goToEditPage() {
     const urlParams = new URLSearchParams(window.location.search);
     const propertyId = urlParams.get('id');
@@ -1419,19 +1574,21 @@ function goToEditPage() {
     }
 }
 
+// Initialize delete button functionality
 async function initializeDeleteButton() {
     const deleteButton = document.getElementById('archivePropertyBtn');
     if (deleteButton) {
         
         deleteButton.addEventListener('click', async function(e) {
             e.preventDefault();
-
+            
+            // Determine current status from the status text on the page
             const currentStatus = document.getElementById('statusText')?.textContent?.trim() || '';
             const isArchived = currentStatus.toLowerCase() === 'archived';
             const nextStatus = isArchived ? 'Active' : 'Archived';
 
             try {
-
+                    // Get current property ID from URL
                 const urlParams = new URLSearchParams(window.location.search);
                     const propertyId = urlParams.get('id');
                     
@@ -1439,7 +1596,9 @@ async function initializeDeleteButton() {
                         showErrorMessage('Property ID not found. Cannot proceed with archiving.');
                         return;
                     }
-
+                    
+                    
+                    // Make PATCH API call to update property status
                     const response = await fetch(`${API_BASE}/property/update/status/${propertyId}`, {
                         method: 'PATCH',
                         headers: {
@@ -1452,7 +1611,8 @@ async function initializeDeleteButton() {
                     
                     if (response.ok) {
                         const result = await response.json();
-
+                        
+                        // Log property status change audit
                         try {
                             if (window.AuditTrailFunctions) {
                                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -1469,10 +1629,10 @@ async function initializeDeleteButton() {
                         }
                         
                         showSuccessMessage(`Property status set to ${nextStatus}!`);
-
+                        // Update UI
                         document.getElementById('statusText').textContent = nextStatus;
                         updateArchiveButtonUI(nextStatus);
-
+                        // Redirect back to properties list (same behavior for Archive and Activate)
                         setTimeout(() => { window.location.href = 'property.html'; }, 1500);
                     } else {
                         const errorData = await response.json();
@@ -1489,6 +1649,7 @@ async function initializeDeleteButton() {
     }
 }
 
+// Unified toast helper
 function showToast(type, message) {
     const baseClass = 'fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-50';
     const colorClass = type === 'error' ? 'bg-red-500' : 'bg-green-500';
@@ -1503,6 +1664,7 @@ function showToast(type, message) {
     }, 5000);
 }
 
+// Backwards-compatible wrappers
 function showErrorMessage(message) {
     showToast('error', message);
 }
@@ -1511,13 +1673,20 @@ function showSuccessMessage(message) {
     showToast('success', message);
 }
 
+// (Removed) formatCurrency, formatDate: not used in this file
+
+// (Removed) window.PropertyView aggregate export: not referenced elsewhere
+
+// Make amenity functions globally available for property-edit-functions-clean.js
 window.getAmenityDisplayInfo = getAmenityDisplayInfo;
 window.getAmenityIcon = getAmenityIcon;
 
+// Make reports functions globally available
 window.setReportsActiveTab = setReportsActiveTab;
 window.showReportDetails = showReportDetails;
 window.changeReportStatus = changeReportStatus;
 
+// Function to populate gallery modal with property images
 function populateGalleryModal(propertyImages) {
     const galleryGrid = document.getElementById('galleryPhotoGrid');
     const noImagesMessage = document.getElementById('noImagesMessage');
@@ -1526,21 +1695,25 @@ function populateGalleryModal(propertyImages) {
         console.error('❌ Gallery photo grid not found');
         return;
     }
-
+    
+    // Clear existing content
     galleryGrid.innerHTML = '';
     
     if (!propertyImages || propertyImages.length === 0) {
-
+        // Show no images message
         if (noImagesMessage) {
             noImagesMessage.classList.remove('hidden');
         }
         return;
     }
-
+    
+    // Hide no images message
     if (noImagesMessage) {
         noImagesMessage.classList.add('hidden');
     }
-
+    
+    
+    // Create image elements for each property image
     propertyImages.forEach((imageUrl, index) => {
         const imageContainer = document.createElement('div');
         imageContainer.className = 'relative group cursor-pointer overflow-hidden rounded-xl';
@@ -1549,17 +1722,19 @@ function populateGalleryModal(propertyImages) {
         image.src = imageUrl;
         image.alt = `Property view ${index + 1}`;
         image.className = 'w-full h-64 md:h-80 object-cover transition-transform duration-300 group-hover:scale-105';
-
+        
+        // Add loading state
         image.onload = () => {
             image.classList.add('loaded');
         };
         
         image.onerror = () => {
-
-            image.src = '/public/images/placeholder.jpg'; 
+            // Handle broken images
+            image.src = '/public/images/placeholder.jpg'; // Fallback image
             console.warn('⚠️ Failed to load image:', imageUrl);
         };
-
+        
+        // Add image info overlay on hover
         const overlay = document.createElement('div');
         overlay.className = 'absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-all duration-300 flex items-end';
         
@@ -1573,7 +1748,8 @@ function populateGalleryModal(propertyImages) {
         overlay.appendChild(imageInfo);
         imageContainer.appendChild(image);
         imageContainer.appendChild(overlay);
-
+        
+        // Add click handler for full-size view (optional)
         imageContainer.addEventListener('click', () => {
             openFullSizeImage(imageUrl, `Property Image ${index + 1}`);
         });
@@ -1583,8 +1759,9 @@ function populateGalleryModal(propertyImages) {
     
 }
 
+// Function to open full-size image view
 function openFullSizeImage(imageUrl, imageTitle) {
-
+    // Create a simple full-size image modal
     const fullSizeModal = document.createElement('div');
     fullSizeModal.className = 'fixed inset-0 z-[60] bg-black/90 flex items-center justify-center p-4';
     fullSizeModal.innerHTML = `
@@ -1596,13 +1773,15 @@ function openFullSizeImage(imageUrl, imageTitle) {
             <p class="text-white text-center mt-4 text-lg">${imageTitle}</p>
         </div>
     `;
-
+    
+    // Close on background click
     fullSizeModal.addEventListener('click', (e) => {
         if (e.target === fullSizeModal) {
             fullSizeModal.remove();
         }
     });
-
+    
+    // Close on escape key
     document.addEventListener('keydown', function closeOnEscape(e) {
         if (e.key === 'Escape') {
             fullSizeModal.remove();
@@ -1613,34 +1792,44 @@ function openFullSizeImage(imageUrl, imageTitle) {
     document.body.appendChild(fullSizeModal);
 }
 
-function openMaintenanceModal() {
+// ===== MAINTENANCE MODAL FUNCTIONS =====
 
+// Function to open the maintenance modal
+function openMaintenanceModal() {
+    
+    // Get property information from the page
     const propertyName = document.querySelector('.text-2xl.font-manrope')?.textContent || 'Unknown Property';
     const urlParams = new URLSearchParams(window.location.search);
     const propertyId = urlParams.get('id') || 'Unknown';
-
+    
+    // Populate property info in modal
     document.getElementById('maintenancePropertyName').textContent = propertyName;
     document.getElementById('maintenancePropertyId').textContent = propertyId;
-
+    
+    // Set minimum date to today
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('maintenanceStartDate').min = today;
     document.getElementById('maintenanceEndDate').min = today;
-
+    
+    // Load current maintenance dates
     loadCurrentMaintenanceDates(propertyId);
-
+    
+    // Show the modal
     const modal = document.getElementById('maintenanceModal');
     if (modal) {
         modal.classList.remove('hidden');
         modal.classList.add('flex');
         document.body.classList.add('modal-open');
-
+        
+        // Add backdrop click handler
         modal.addEventListener('click', function backdropClickHandler(e) {
             if (e.target === modal) {
                 closeMaintenanceModal();
                 modal.removeEventListener('click', backdropClickHandler);
             }
         });
-
+        
+        // Add escape key handler
         const escapeKeyHandler = function(e) {
             if (e.key === 'Escape') {
                 closeMaintenanceModal();
@@ -1648,7 +1837,8 @@ function openMaintenanceModal() {
             }
         };
         document.addEventListener('keydown', escapeKeyHandler);
-
+        
+        // Dispatch custom event for modal opening
         const modalOpenEvent = new CustomEvent('modalOpened', {
             detail: { modalId: 'maintenanceModal', modal: modal }
         });
@@ -1656,6 +1846,7 @@ function openMaintenanceModal() {
     }
 }
 
+// Function to close the maintenance modal
 function closeMaintenanceModal() {
     
     const modal = document.getElementById('maintenanceModal');
@@ -1663,7 +1854,8 @@ function closeMaintenanceModal() {
         modal.classList.add('hidden');
         modal.classList.remove('flex');
         document.body.classList.remove('modal-open');
-
+        
+        // Dispatch custom event for modal closing
         const modalClosedEvent = new CustomEvent('modalClosed', {
             detail: { modalId: 'maintenanceModal', modal: modal }
         });
@@ -1671,6 +1863,7 @@ function closeMaintenanceModal() {
     }
 }
 
+// Function to set quick maintenance dates
 function setQuickMaintenanceDate(type) {
     const today = new Date();
     const startDateInput = document.getElementById('maintenanceStartDate');
@@ -1685,25 +1878,27 @@ function setQuickMaintenanceDate(type) {
             break;
         case 'week':
             startDate = today;
-            endDate = new Date(today.getTime() + (6 * 24 * 60 * 60 * 1000)); 
+            endDate = new Date(today.getTime() + (6 * 24 * 60 * 60 * 1000)); // +6 days
             break;
         case 'month':
             startDate = today;
-            endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); 
+            endDate = new Date(today.getFullYear(), today.getMonth() + 1, 0); // End of current month
             break;
         case 'nextWeek':
-            startDate = new Date(today.getTime() + (7 * 24 * 60 * 60 * 1000)); 
-            endDate = new Date(startDate.getTime() + (6 * 24 * 60 * 60 * 1000)); 
+            startDate = new Date(today.getTime() + (7 * 24 * 60 * 60 * 1000)); // Next Monday
+            endDate = new Date(startDate.getTime() + (6 * 24 * 60 * 60 * 1000)); // +6 days
             break;
         default:
             return;
     }
-
+    
+    // Format dates for input fields
     startDateInput.value = startDate.toISOString().split('T')[0];
     endDateInput.value = endDate.toISOString().split('T')[0];
     
 }
 
+// Function to load current maintenance dates
 async function loadCurrentMaintenanceDates(propertyId) {
     try {
         
@@ -1727,6 +1922,7 @@ async function loadCurrentMaintenanceDates(propertyId) {
     }
 }
 
+// Function to display current maintenance dates
 function displayCurrentMaintenanceDates(maintenanceDates) {
     const container = document.getElementById('currentMaintenanceDates');
     if (!container) return;
@@ -1745,15 +1941,16 @@ function displayCurrentMaintenanceDates(maintenanceDates) {
     
     let html = '';
     maintenanceDates.forEach((maintenance, index) => {
-
+        // Handle the case where maintenance is just a date string from calendar API
         if (typeof maintenance === 'string') {
-
+            // Single date
             const date = new Date(maintenance);
             const displayDate = date.toLocaleDateString();
             const status = 'Active';
             const statusColor = 'bg-rose-100 text-rose-700';
-
-            const actualDates = [maintenance]; 
+            
+            // Store the actual dates in data attributes for API calls
+            const actualDates = [maintenance]; // Single date as array
             const datesJson = JSON.stringify(actualDates);
             
             html += `
@@ -1780,13 +1977,14 @@ function displayCurrentMaintenanceDates(maintenanceDates) {
                 </div>
             `;
         } else {
-
+            // Handle object format (if it exists)
             const startDate = new Date(maintenance.startDate || maintenance.date).toLocaleDateString();
             const endDate = maintenance.endDate ? new Date(maintenance.endDate).toLocaleDateString() : startDate;
             const reason = maintenance.reason || 'No reason specified';
             const status = maintenance.status || 'Active';
             const statusColor = status === 'Active' ? 'bg-rose-100 text-rose-700' : 'bg-neutral-100 text-neutral-700';
-
+            
+            // Store the actual dates in data attributes for API calls
             const actualDates = maintenance.dates || [maintenance.startDate || maintenance.date];
             const datesJson = JSON.stringify(actualDates);
             
@@ -1819,23 +2017,27 @@ function displayCurrentMaintenanceDates(maintenanceDates) {
     container.innerHTML = html;
 }
 
+// Function to remove a maintenance date
 async function removeMaintenanceDate(maintenanceId) {
     if (!confirm('Are you sure you want to remove this maintenance date?')) {
         return;
     }
     
     try {
-
+        
+        // Get property ID
         const urlParams = new URLSearchParams(window.location.search);
         const propertyId = urlParams.get('id');
-
+        
+        // Get the maintenance data to find the original dates
         const maintenanceContainer = document.getElementById('currentMaintenanceDates');
         const maintenanceElement = maintenanceContainer.querySelector(`[data-maintenance-id="${maintenanceId}"]`);
         
         if (!maintenanceElement) {
             return;
         }
-
+        
+        // Get the dates from the data attribute (stored in correct format)
         const datesJson = maintenanceElement.getAttribute('data-maintenance-dates');
         let dates = [];
         
@@ -1849,7 +2051,8 @@ async function removeMaintenanceDate(maintenanceId) {
         if (dates.length === 0) {
             return;
         }
-
+        
+        // Use the DELETE method to remove maintenance dates
         const deleteData = {
             dates: dates
         };
@@ -1863,9 +2066,9 @@ async function removeMaintenanceDate(maintenanceId) {
         });
         
         if (response.ok) {
-
+            // Reload current maintenance dates
             loadCurrentMaintenanceDates(propertyId);
-
+            // Refresh calendar
             fetchAndDisplayCalendarData();
         } else {
             const errorData = await response.json().catch(() => ({}));
@@ -1876,6 +2079,7 @@ async function removeMaintenanceDate(maintenanceId) {
     }
 }
 
+// Function to save maintenance dates
 async function saveMaintenanceDates() {
     const startDate = document.getElementById('maintenanceStartDate').value;
     const endDate = document.getElementById('maintenanceEndDate').value;
@@ -1890,10 +2094,12 @@ async function saveMaintenanceDates() {
     }
     
     try {
-
+        
+        // Get property ID
         const urlParams = new URLSearchParams(window.location.search);
         const propertyId = urlParams.get('id');
-
+        
+        // Generate array of dates between start and end date
         const dates = [];
         const currentDate = new Date(startDate);
         const endDateTime = new Date(endDate);
@@ -1902,11 +2108,13 @@ async function saveMaintenanceDates() {
             dates.push(currentDate.toISOString().split('T')[0]);
             currentDate.setDate(currentDate.getDate() + 1);
         }
-
+        
+        // Prepare maintenance data according to API specification
         const maintenanceData = {
             dates: dates
         };
-
+        
+        // Call API to create maintenance dates
         const response = await fetch(`${API_BASE}/property/${propertyId}/maintenance/create`, {
             method: 'POST',
             headers: {
@@ -1916,15 +2124,18 @@ async function saveMaintenanceDates() {
         });
         
         if (response.ok) {
-
+            // Clear form
             document.getElementById('maintenanceStartDate').value = '';
             document.getElementById('maintenanceEndDate').value = '';
             document.getElementById('maintenanceReason').value = '';
-
+            
+            // Reload current maintenance dates
             loadCurrentMaintenanceDates(propertyId);
-
+            
+            // Refresh calendar
             fetchAndDisplayCalendarData();
-
+            
+            // Close modal
             closeMaintenanceModal();
         } else {
             const errorData = await response.json().catch(() => ({}));
@@ -1935,18 +2146,22 @@ async function saveMaintenanceDates() {
     }
 }
 
+// Function to update existing maintenance dates
 async function updateMaintenanceDates(originalDates, newDates, status = 'Active') {
     try {
-
+        
+        // Get property ID
         const urlParams = new URLSearchParams(window.location.search);
         const propertyId = urlParams.get('id');
-
+        
+        // Prepare update data according to API specification
         const updateData = {
             originalDates: originalDates,
             newDates: newDates,
             status: status
         };
-
+        
+        // Call API to update maintenance dates
         const response = await fetch(`${API_BASE}/property/${propertyId}/maintenance/update-by-dates`, {
             method: 'PUT',
             headers: {
