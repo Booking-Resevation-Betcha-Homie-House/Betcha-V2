@@ -3,6 +3,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const fileInput = document.getElementById("IDfileInput");
   const previewContainer = document.getElementById("IDpreviewContainer");
 
+  // Store uploaded files globally for OCR access
+  window.uploadedIDFiles = [];
+
   // Click dropzone to open file picker
   dropzone.addEventListener("click", () => fileInput.click());
 
@@ -29,9 +32,15 @@ document.addEventListener("DOMContentLoaded", () => {
   function handleFiles(event) {
     const files = event.target.files;
     previewContainer.innerHTML = "";
+    
+    // Clear previous files and store new ones
+    window.uploadedIDFiles = [];
 
     Array.from(files).forEach((file) => {
       if (!file.type.startsWith("image/") || file.type === "image/svg+xml") return;
+
+      // Store the file for OCR access
+      window.uploadedIDFiles.push(file);
 
       const reader = new FileReader();
       reader.onload = function(e) {
@@ -46,7 +55,7 @@ document.addEventListener("DOMContentLoaded", () => {
               <p class="text-xs text-neutral-500">${Math.round(file.size / 1024)} KB</p>
             </div>
           </div>
-          <button class="text-neutral-400 remove-btn">
+          <button class="text-neutral-400 remove-btn" data-file-name="${file.name}">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 stroke-neutral-500 hover:stroke-primary hover:scale-105 active:scale-95 transition-all duration-500 ease-in-out" fill="none" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
@@ -54,14 +63,19 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         // Remove file preview on button click
-        preview.querySelector(".remove-btn").addEventListener("click", () => preview.remove());
+        preview.querySelector(".remove-btn").addEventListener("click", (e) => {
+          const fileName = e.currentTarget.dataset.fileName;
+          // Remove from stored files array
+          window.uploadedIDFiles = window.uploadedIDFiles.filter(f => f.name !== fileName);
+          preview.remove();
+        });
 
         previewContainer.appendChild(preview);
       };
       reader.readAsDataURL(file);
     });
 
-    // Reset input so same file can be selected again
-    fileInput.value = "";
+    // Don't reset input value immediately, let OCR process access it first
+    // fileInput.value = ""; // Commented out to keep files accessible
   }
 });

@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Loading Messages Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-lg mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold mb-6 text-center">AI Loading Messages Test</h1>
+        
+        <div class="space-y-4">
+            <div class="bg-blue-50 p-4 rounded-lg">
+                <h2 class="font-bold text-blue-800 mb-2">New AI-Focused Loading Sequence:</h2>
+                <ol class="text-sm text-blue-700 space-y-1">
+                    <li>1. <strong>"AI analyzing your document"</strong> - Initial analysis</li>
+                    <li>2. <strong>"Reading text and extracting data"</strong> - OCR processing</li>
+                    <li>3. <strong>"Formulating your profile"</strong> - Data processing</li>
+                    <li>4. <strong>"Almost ready"</strong> - Final preparation</li>
+                </ol>
+            </div>
+            
+            <div class="space-y-2">
+                <button id="testLoadingSequence" class="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-colors">
+                    🤖 Test AI Loading Sequence
+                </button>
+                <button id="testQuickDemo" class="w-full bg-purple-500 text-white p-3 rounded-lg hover:bg-purple-600 transition-colors">
+                    ⚡ Quick Demo (Fast)
+                </button>
+                <button id="testOldVsNew" class="w-full bg-green-500 text-white p-3 rounded-lg hover:bg-green-600 transition-colors">
+                    🔄 Compare Old vs New
+                </button>
+            </div>
+            
+            <div class="bg-gray-50 p-4 rounded-lg">
+                <h3 class="font-bold mb-2">Loading Message Improvements:</h3>
+                <div class="text-sm space-y-2">
+                    <div class="flex justify-between">
+                        <span class="text-red-600">❌ Old:</span>
+                        <span class="text-gray-600">"Scanning driver's license"</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-green-600">✅ New:</span>
+                        <span class="text-gray-800">"AI analyzing your document"</span>
+                    </div>
+                    <hr class="my-2">
+                    <div class="flex justify-between">
+                        <span class="text-red-600">❌ Old:</span>
+                        <span class="text-gray-600">"Processing data"</span>
+                    </div>
+                    <div class="flex justify-between">
+                        <span class="text-green-600">✅ New:</span>
+                        <span class="text-gray-800">"Formulating your profile"</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Mock loading functions
+        function showFullscreenLoading(message = 'Loading') {
+            const existingOverlays = document.querySelectorAll('[id^="fullscreen-loading"]');
+            existingOverlays.forEach(overlay => overlay.remove());
+            
+            const loadingOverlay = document.createElement('div');
+            loadingOverlay.id = 'fullscreen-loading-overlay';
+            loadingOverlay.className = 'fixed inset-0 z-[999] flex items-center justify-center bg-black/50 backdrop-blur-sm';
+            
+            // Add the loading dots animation style
+            const style = document.createElement('style');
+            style.id = 'loading-style';
+            style.textContent = `
+                @keyframes loadingDots {
+                    0% { content: ''; }
+                    25% { content: '.'; }
+                    50% { content: '..'; }
+                    75% { content: '...'; }
+                    100% { content: ''; }
+                }
+                .loading-dots::after {
+                    content: '';
+                    animation: loadingDots 1.5s infinite;
+                    display: inline-block;
+                    width: 24px;
+                    text-align: left;
+                }
+            `;
+            if (!document.getElementById('loading-style')) {
+                document.head.appendChild(style);
+            }
+            
+            const content = `
+                <div class="text-center">
+                    <div class="animate-spin rounded-full h-24 w-24 border-b-4 border-white mx-auto mb-6"></div>
+                    <p class="text-white text-lg flex items-center justify-center" id="loading-message">
+                        <span>${message}</span>
+                        <span class="loading-dots"></span>
+                    </p>
+                </div>
+            `;
+            
+            loadingOverlay.innerHTML = content;
+            document.body.appendChild(loadingOverlay);
+        }
+
+        function hideFullscreenLoading() {
+            const existingOverlays = document.querySelectorAll('[id^="fullscreen-loading"]');
+            existingOverlays.forEach(overlay => overlay.remove());
+        }
+
+        function updateLoadingMessage(message) {
+            const loadingMessage = document.getElementById('loading-message');
+            if (loadingMessage) {
+                const span = loadingMessage.querySelector('span:first-child');
+                if (span) {
+                    span.textContent = message;
+                }
+            }
+        }
+
+        // Test the AI loading sequence (realistic timing)
+        document.getElementById('testLoadingSequence').addEventListener('click', async () => {
+            console.log('🤖 Starting AI Loading Sequence Test...');
+            
+            // Show initial loading
+            showFullscreenLoading('AI analyzing your document');
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            // Smooth transition to next message
+            updateLoadingMessage('Reading text and extracting data');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Update loading message for processing
+            updateLoadingMessage('Formulating your profile');
+            await new Promise(resolve => setTimeout(resolve, 1200));
+            
+            // Final loading message
+            updateLoadingMessage('Almost ready');
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
+            // Hide loading
+            hideFullscreenLoading();
+            
+            console.log('✅ AI Loading Sequence Complete!');
+        });
+
+        // Quick demo (faster timing)
+        document.getElementById('testQuickDemo').addEventListener('click', async () => {
+            console.log('⚡ Starting Quick Demo...');
+            
+            showFullscreenLoading('AI analyzing your document');
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            updateLoadingMessage('Reading text and extracting data');
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            updateLoadingMessage('Formulating your profile');
+            await new Promise(resolve => setTimeout(resolve, 800));
+            
+            updateLoadingMessage('Almost ready');
+            await new Promise(resolve => setTimeout(resolve, 400));
+            
+            hideFullscreenLoading();
+            console.log('✅ Quick Demo Complete!');
+        });
+
+        // Compare old vs new
+        document.getElementById('testOldVsNew').addEventListener('click', async () => {
+            console.log('🔄 Comparing Old vs New Messages...');
+            
+            // Old messages
+            alert('Now showing OLD messages...');
+            showFullscreenLoading('Scanning driver\'s license');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            updateLoadingMessage('Processing data');
+            await new Promise(resolve => setTimeout(resolve, 1500));
+            
+            hideFullscreenLoading();
+            
+            await new Promise(resolve => setTimeout(resolve, 500));
+            alert('Now showing NEW AI-focused messages...');
+            
+            // New messages
+            showFullscreenLoading('AI analyzing your document');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            updateLoadingMessage('Reading text and extracting data');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            updateLoadingMessage('Formulating your profile');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            updateLoadingMessage('Almost ready');
+            await new Promise(resolve => setTimeout(resolve, 500));
+            
+            hideFullscreenLoading();
+            console.log('🎉 Comparison Complete! Much better, right?');
+        });
+
+        console.log('🤖 AI Loading Messages Test Ready!');
+    </script>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Error Message Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-2xl font-bold mb-6">Error Message Test</h1>
+        
+        <!-- Step 1 Error Container -->
+        <div id="errorContainer" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <p id="errorText" class="text-red-700 text-sm font-medium"></p>
+            </div>
+        </div>
+
+        <!-- Step 2 Error Container -->
+        <div id="errorContainer2" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <p id="errorText2" class="text-red-700 text-sm font-medium"></p>
+            </div>
+        </div>
+
+        <!-- Step 3 Error Container -->
+        <div id="errorContainer3" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+            <div class="flex items-center">
+                <svg class="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                </svg>
+                <p id="errorText3" class="text-red-700 text-sm font-medium"></p>
+            </div>
+        </div>
+
+        <!-- Test Buttons -->
+        <div class="space-y-3">
+            <button onclick="testStep1Error()" class="w-full bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
+                Test Step 1 Error
+            </button>
+            <button onclick="testStep2Error()" class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+                Test Step 2 Error
+            </button>
+            <button onclick="testStep3Error()" class="w-full bg-green-500 text-white py-2 px-4 rounded hover:bg-green-600">
+                Test Step 3 Error
+            </button>
+            <button onclick="hideAllErrors()" class="w-full bg-gray-500 text-white py-2 px-4 rounded hover:bg-gray-600">
+                Hide All Errors
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Test functions matching the updated showError function
+        function showError(message, step = 1) {
+            // Hide all error containers first
+            hideError();
+            
+            // Show error for specific step
+            const errorContainer = document.getElementById(`errorContainer${step === 1 ? '' : step}`);
+            const errorText = document.getElementById(`errorText${step === 1 ? '' : step}`);
+
+            if (errorContainer && errorText) {
+                errorContainer.classList.remove('hidden');
+                errorText.textContent = message;
+            }
+        }
+
+        function hideError() {
+            const errorContainers = document.querySelectorAll('[id^="errorContainer"]');
+            
+            errorContainers.forEach(container => {
+                container.classList.add('hidden');
+            });
+        }
+
+        function testStep1Error() {
+            showError('This is a test error for Step 1', 1);
+        }
+
+        function testStep2Error() {
+            showError('This is a test error for Step 2', 2);
+        }
+
+        function testStep3Error() {
+            showError('This is a test error for Step 3', 3);
+        }
+
+        function hideAllErrors() {
+            hideError();
+        }
+    </script>
+</body>
+</html>

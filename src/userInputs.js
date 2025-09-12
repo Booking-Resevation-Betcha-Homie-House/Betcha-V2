@@ -34,21 +34,59 @@ document.addEventListener('DOMContentLoaded', () => {
     // Fill options
     options.forEach(opt => {
       const li = document.createElement("li");
-      // Handle both simple strings and month objects
-      const displayText = typeof opt === 'object' ? opt.display : opt;
-      const value = typeof opt === 'object' ? opt.value : opt;
+      // Handle different option formats: simple strings, month objects, or options with pills
+      let displayText, value, isDisabled = false, pillText = null;
       
-      li.textContent = displayText;
-      li.className = "px-4 py-2 hover:bg-neutral-100 active:bg-neutral-100 cursor-pointer font-normal font-manrope";
-      li.onclick = () => {
-        // Store the actual value as a data attribute
-        display.textContent = displayText;
-        display.dataset.value = value;
-        display.classList.remove("text-neutral-400");
-        display.classList.add("text-primary-text");
-        list.classList.add("hidden");
-        icon.classList.remove("rotate-180");
-      };
+      if (typeof opt === 'string') {
+        displayText = opt;
+        value = opt;
+      } else if (opt.display) {
+        // Month object format
+        displayText = opt.display;
+        value = opt.value;
+      } else if (opt.text) {
+        // New format with pills and disabled state
+        displayText = opt.text;
+        value = opt.value || opt.text;
+        isDisabled = opt.disabled || false;
+        pillText = opt.pill || null;
+      }
+      
+      li.className = `px-4 py-2 cursor-pointer font-normal font-manrope flex items-center justify-between ${
+        isDisabled 
+          ? 'text-neutral-400 cursor-not-allowed bg-neutral-50' 
+          : 'hover:bg-neutral-100 active:bg-neutral-100 text-primary-text'
+      }`;
+      
+      // Create content container
+      const content = document.createElement('div');
+      content.className = 'flex items-center gap-2 flex-1';
+      content.textContent = displayText;
+      
+      li.appendChild(content);
+      
+      // Add pill if specified
+      if (pillText) {
+        const pill = document.createElement('span');
+        // Yellow color for all development status pills
+        pill.className = 'px-2 py-1 text-xs bg-yellow-100 text-yellow-800 rounded-full font-medium';
+        pill.textContent = pillText;
+        li.appendChild(pill);
+      }
+      
+      // Only add click handler if not disabled
+      if (!isDisabled) {
+        li.onclick = () => {
+          // Store the actual value as a data attribute
+          display.textContent = displayText;
+          display.dataset.value = value;
+          display.classList.remove("text-neutral-400");
+          display.classList.add("text-primary-text");
+          list.classList.add("hidden");
+          icon.classList.remove("rotate-180");
+        };
+      }
+      
       list.appendChild(li);
     });
 
@@ -72,7 +110,14 @@ document.addEventListener('DOMContentLoaded', () => {
   setupDropdown("month", months, "Month");
   setupDropdown("day", days, "Day");
   setupDropdown("year", years, "Year");
-  setupDropdown("ID", ["Passport", "Driver's License", "SSS ID", "TIN ID"], "Select valid ID");
+  setupDropdown("ID", [
+    { text: "Driver's License", value: "Driver's License" },
+    { text: "Passport", value: "Passport", disabled: true, pill: "In Development: AI Training" },
+    { text: "SSS ID", value: "SSS ID", disabled: true, pill: "In Development: AI Training" },
+    { text: "TIN ID", value: "TIN ID", disabled: true, pill: "In Development: AI Training" },
+    { text: "National ID", value: "National ID", disabled: true, pill: "In Development: AI Training" },
+    { text: "Voter's ID", value: "Voter's ID", disabled: true, pill: "In Development: AI Training" }
+  ], "Select valid ID");
 
 window.goToStep1 = () => {
   document.getElementById("step3").classList.add("hidden");
@@ -81,13 +126,7 @@ window.goToStep1 = () => {
   document.getElementById("progress-bar").style.width = "33.33%";
   document.getElementById("step-label").textContent = "Step 1 of 3";
 };
-  window.goToStep2 = () => {
-  document.getElementById("step3").classList.add("hidden");
-  document.getElementById("step1").classList.add("hidden");
-  document.getElementById("step2").classList.remove("hidden");
-  document.getElementById("progress-bar").style.width = "66.66%";
-  document.getElementById("step-label").textContent = "Step 2 of 3";
-};
+
 window.goToStep3 = () => {
   document.getElementById("step2").classList.add("hidden");
   document.getElementById("step1").classList.add("hidden");

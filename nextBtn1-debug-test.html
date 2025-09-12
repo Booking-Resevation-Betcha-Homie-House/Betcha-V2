@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NextBtn1 Fixed Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-md mx-auto bg-white p-6 rounded-lg shadow-lg">
+        <h1 class="text-xl font-bold mb-4">NextBtn1 Fixed Test</h1>
+        
+        <!-- ID Dropdown -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Valid ID</label>
+            <div class="relative">
+                <button type="button" id="IDDropdownBtn" class="w-full p-3 border border-gray-300 rounded-lg flex justify-between items-center">
+                    <span id="selectedID" class="text-gray-500">Select valid ID</span>
+                    <svg id="IDDropdownIcon" class="w-4 h-4" viewBox="0 0 16 10">
+                        <path d="M1 1.5L8 8.5L15 1.5" stroke="#666666" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
+                <ul id="IDDropdownList" class="absolute z-10 mt-1 bg-white w-full border border-gray-300 rounded-lg shadow hidden">
+                    <li class="px-4 py-2 hover:bg-gray-100 cursor-pointer" onclick="selectID('Driver\'s License')">Driver's License</li>
+                </ul>
+            </div>
+        </div>
+        
+        <!-- File Upload -->
+        <div class="mb-4">
+            <label class="block text-sm font-medium mb-2">Upload ID</label>
+            <input type="file" id="IDfileInput" accept=".jpg,.jpeg,.png,.webp" class="w-full p-3 border border-gray-300 rounded-lg">
+            <div id="IDpreviewContainer" class="mt-2"></div>
+        </div>
+        
+        <!-- Next Button -->
+        <button id="nextBtn1" type="button" class="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 transition-colors">
+            Next - Scan Driver's License
+        </button>
+        
+        <!-- Test Results -->
+        <div class="mt-6 p-4 bg-gray-50 rounded">
+            <h3 class="font-bold mb-2">Expected Behavior:</h3>
+            <ul class="text-sm space-y-1">
+                <li>✅ Shows fullscreen loading overlay when clicked</li>
+                <li>✅ Calls OCR API with uploaded image</li>
+                <li>✅ Shows modal error if validation fails or API error</li>
+                <li>✅ Auto-fills step 2 form if successful</li>
+                <li>✅ Prevents navigation to step 2 if error occurs</li>
+            </ul>
+        </div>
+        
+        <!-- Console Log -->
+        <div class="mt-4">
+            <h3 class="font-bold">Console Logs:</h3>
+            <div id="console-logs" class="bg-gray-100 p-2 rounded text-sm max-h-60 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <!-- Mock modal for testing errors -->
+    <div id="confirmModal" class="fixed inset-0 bg-black/50 flex items-center justify-center hidden z-50">
+        <div class="bg-white w-96 rounded-lg">
+            <div class="p-6" id="registeredModal">
+                <!-- Error content will be injected here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Override console.log to show in UI
+        const originalLog = console.log;
+        const originalError = console.error;
+        const logsDiv = document.getElementById('console-logs');
+        
+        function addLog(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const logEntry = document.createElement('div');
+            logEntry.className = type === 'error' ? 'text-red-600' : 'text-gray-700';
+            logEntry.textContent = `[${timestamp}] ${message}`;
+            logsDiv.appendChild(logEntry);
+            logsDiv.scrollTop = logsDiv.scrollHeight;
+        }
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addLog(args.join(' '), 'log');
+        };
+        
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addLog(args.join(' '), 'error');
+        };
+
+        // Simple ID selection
+        function selectID(id) {
+            document.getElementById('selectedID').textContent = id;
+            document.getElementById('IDDropdownList').classList.add('hidden');
+            console.log('ID selected:', id);
+        }
+        
+        // Toggle dropdown
+        document.getElementById('IDDropdownBtn').addEventListener('click', () => {
+            document.getElementById('IDDropdownList').classList.toggle('hidden');
+        });
+        
+        // File preview
+        document.getElementById('IDfileInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            const container = document.getElementById('IDpreviewContainer');
+            if (file) {
+                container.innerHTML = `<div class="text-sm text-gray-600">File: ${file.name} (${Math.round(file.size/1024)}KB)</div>`;
+                console.log('File selected:', file.name, 'Size:', file.size);
+            } else {
+                container.innerHTML = '';
+            }
+        });
+
+        // Import the actual functions from the register page
+        const script = document.createElement('script');
+        script.src = './pages/unauth/unauthFunctions/registerPage-functions.js';
+        script.onload = function() {
+            console.log('✅ Register page functions loaded');
+            
+            // Test the nextBtn1 functionality
+            const nextBtn = document.getElementById('nextBtn1');
+            nextBtn.addEventListener('click', async (e) => {
+                e.preventDefault();
+                console.log('=== Test button clicked ===');
+                
+                try {
+                    // Validate step 1
+                    const selectedID = document.getElementById('selectedID').textContent.trim();
+                    const fileInput = document.getElementById('IDfileInput');
+                    const hasUploadedFiles = fileInput.files.length > 0;
+
+                    console.log('Validation check:');
+                    console.log('- Selected ID:', selectedID);
+                    console.log('- Has files:', hasUploadedFiles);
+
+                    if (!selectedID || selectedID === 'Select valid ID') {
+                        console.error('Validation failed: No ID type selected');
+                        showOCRError('Please select a valid ID type first.');
+                        return;
+                    }
+
+                    if (!hasUploadedFiles) {
+                        console.error('Validation failed: No file uploaded');
+                        showOCRError('Please upload your driver\'s license image first.');
+                        return;
+                    }
+
+                    console.log('✅ Validation passed, starting OCR scan...');
+                    
+                    // Show fullscreen loading
+                    showFullscreenLoading('Scanning driver\'s license');
+                    
+                    const imageFile = fileInput.files[0];
+                    console.log('Found image file:', imageFile.name, 'Size:', imageFile.size);
+                    
+                    // Perform OCR scan
+                    console.log('Calling OCR API...');
+                    const ocrData = await scanDriversLicense(imageFile);
+                    console.log('✅ OCR scan successful:', ocrData);
+                    
+                    // Hide loading and show success message briefly
+                    hideFullscreenLoading();
+                    showFullscreenLoading('Processing data');
+                    
+                    // Auto-fill the form with OCR data (mock for test)
+                    console.log('Auto-filling form with OCR data...');
+                    
+                    // Brief delay to show processing
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    
+                    // Hide loading
+                    hideFullscreenLoading();
+                    
+                    console.log('=== ✅ Process completed successfully! ===');
+                    alert('OCR scan completed successfully! Data: ' + JSON.stringify(ocrData, null, 2));
+                    
+                } catch (error) {
+                    console.error('❌ Error during OCR scan:', error);
+                    hideFullscreenLoading();
+                    showOCRError(`Failed to scan driver's license: ${error.message}`);
+                }
+            });
+        };
+        
+        script.onerror = function() {
+            console.error('❌ Failed to load register page functions');
+            addLog('ERROR: Could not load registerPage-functions.js', 'error');
+        };
+        
+        document.head.appendChild(script);
+
+        console.log('NextBtn1 fixed test initialized');
+    </script>
+</body>
+</html>
