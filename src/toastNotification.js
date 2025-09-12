@@ -1,4 +1,3 @@
-// Toast Notification System
 class ToastNotification {
     constructor() {
         this.container = null;
@@ -6,16 +5,13 @@ class ToastNotification {
     }
 
     createContainer() {
-        // Remove existing container if it exists
         const existingContainer = document.getElementById('toastContainer');
         if (existingContainer) {
             existingContainer.remove();
         }
 
-        // Create toast container
         const containerHTML = `
             <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
-                <!-- Toasts will be inserted here -->
             </div>
         `;
 
@@ -26,7 +22,6 @@ class ToastNotification {
     show(type, title, message, duration = 5000) {
         const toastId = 'toast-' + Date.now();
         
-        // Set colors and icons based on type
         let bgColor = '';
         let borderColor = '';
         let iconHTML = '';
@@ -121,7 +116,6 @@ class ToastNotification {
 
         this.container.insertAdjacentHTML('beforeend', toastHTML);
 
-        // Auto-remove after specified duration
         if (duration > 0) {
             setTimeout(() => {
                 this.remove(toastId);
@@ -148,26 +142,20 @@ class ToastNotification {
     }
 }
 
-// Create global toast instance
 const toast = new ToastNotification();
 
-// Validation functions
 export function validateReservationData() {
-    // Check if user is logged in
     const userId = localStorage.getItem('userId');
     if (!userId) {
-        // Show the noAccountModal instead of toast
         const noAccountModal = document.getElementById('noAccountModal');
         if (noAccountModal) {
             noAccountModal.classList.remove('hidden');
         } else {
-            // Fallback to toast if modal is not found
             toast.show('auth', 'Login Required', 'Please log in to your account before making a reservation.');
         }
         return false;
     }
 
-    // Check if user is verified
     const userVerified = localStorage.getItem('verified');
     if (userVerified !== 'true') {
         toast.show('auth', 'Account Verification Required', 'Please verify your account before making a reservation.');
@@ -189,7 +177,6 @@ export function clearAllToasts() {
     toast.removeAll();
 }
 
-// CSS for animations
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slide-in-right {

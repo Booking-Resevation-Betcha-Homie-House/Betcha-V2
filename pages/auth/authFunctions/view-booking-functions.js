@@ -1,117 +1,12 @@
 // View Booking Functions
 // This file handles fetching and populating booking data for the view-booking page
 
-// Local toast notification function
+// Import centralized toast notification system
+import { showToastError } from '/src/toastNotification.js';
+
+// Use centralized toast function (alias for consistency with existing code)
 function showToast(type, title, message, duration = 5000) {
-    // Create toast container if it doesn't exist
-    let container = document.getElementById('toastContainer');
-    if (!container) {
-        const containerHTML = `
-            <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
-                <!-- Toasts will be inserted here -->
-            </div>
-        `;
-        document.body.insertAdjacentHTML('beforeend', containerHTML);
-        container = document.getElementById('toastContainer');
-    }
-
-    const toastId = 'toast-' + Date.now();
-
-    // Set colors and icons based on type
-    let bgColor = '';
-    let borderColor = '';
-    let iconHTML = '';
-    let titleColor = '';
-
-    switch (type) {
-        case 'error':
-            bgColor = 'bg-red-50';
-            borderColor = 'border-red-200';
-            titleColor = 'text-red-800';
-            iconHTML = `
-                <svg class="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.982 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                </svg>
-            `;
-            break;
-        case 'warning':
-            bgColor = 'bg-yellow-50';
-            borderColor = 'border-yellow-200';
-            titleColor = 'text-yellow-800';
-            iconHTML = `
-                <svg class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.982 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
-                </svg>
-            `;
-            break;
-        case 'success':
-            bgColor = 'bg-green-50';
-            borderColor = 'border-green-200';
-            titleColor = 'text-green-800';
-            iconHTML = `
-                <svg class="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            `;
-            break;
-        default:
-            bgColor = 'bg-neutral-50';
-            borderColor = 'border-neutral-200';
-            titleColor = 'text-neutral-800';
-            iconHTML = `
-                <svg class="w-5 h-5 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                </svg>
-            `;
-    }
-
-    const toastHTML = `
-        <div id="${toastId}" class="toast-animation ${bgColor} ${borderColor} border rounded-lg shadow-lg p-4 relative transform transition-all duration-300 ease-in-out translate-x-full opacity-0">
-            <div class="flex items-start">
-                <div class="flex-shrink-0">
-                    ${iconHTML}
-                </div>
-                <div class="ml-3 flex-1">
-                    <p class="text-sm font-medium ${titleColor}">
-                        ${title}
-                    </p>
-                    <p class="mt-1 text-sm text-neutral-600">
-                        ${message}
-                    </p>
-                </div>
-                <div class="ml-4 flex-shrink-0 flex">
-                    <button onclick="this.closest('.toast-animation').remove()" class="rounded-md inline-flex text-neutral-400 hover:text-neutral-500 focus:outline-none">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-            </div>
-        </div>
-    `;
-
-    container.insertAdjacentHTML('beforeend', toastHTML);
-
-    // Trigger animation
-    const toastElement = document.getElementById(toastId);
-    setTimeout(() => {
-        toastElement.classList.remove('translate-x-full', 'opacity-0');
-        toastElement.classList.add('translate-x-0', 'opacity-100');
-    }, 10);
-
-    // Auto-remove after specified duration
-    if (duration > 0) {
-        setTimeout(() => {
-            if (toastElement && toastElement.parentNode) {
-                toastElement.classList.add('translate-x-full', 'opacity-0');
-                setTimeout(() => {
-                    toastElement.remove();
-                }, 300);
-            }
-        }, duration);
-    }
-
-    return toastId;
+    return showToastError(type, title, message, duration);
 }
 
 // Guard to prevent double execution
