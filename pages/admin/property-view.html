@@ -506,12 +506,26 @@
                   <p class="font-manrope text-xl text-primary-text font-medium py-3 md:text-2xl">Location</p>
                   <hr class="my-2 border-t border-neutral-300">
                   <div class="">
-                    <p id="propertyMapLink" class="font-inter text-neutral-500 py-3 mb-2 text-sm break-words overflow-hidden text-ellipsis max-w-full cursor-pointer hover:text-primary transition-colors duration-200" title="Click to open map">Map link</p>
-                    <div id="mapContainer" class="w-full h-[300px] rounded-2xl overflow-hidden">
-                      <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3858.9397163310573!2d121.05891147478252!3d14.716000285784096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b08c3aa74213%3A0x325214dc350bb0d1!2sSTI%20College%20Fairview!5e0!3m2!1sen!2sph!4v1752067526435!5m2!1sen!2sph" 
-                          class="w-full h-full"
-                          style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
-                      </iframe>
+                    <p id="propertyMapLink" class="font-inter text-neutral-500 py-3 mb-2 text-sm break-words overflow-hidden text-ellipsis max-w-full" title="Property location">Map link</p>
+                    <div id="mapContainer" class="w-full h-[300px] rounded-2xl overflow-hidden bg-neutral-100 flex items-center justify-center">
+                      <!-- Map will be loaded here dynamically from API response -->
+                      <div class="text-neutral-500 text-center">
+                          <svg class="w-12 h-12 mx-auto mb-2 text-neutral-400" fill="currentColor" viewBox="0 0 20 20">
+                              <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                          </svg>
+                          <p class="text-sm">Loading map...</p>
+                      </div>
+                    </div>
+                    
+                    <!-- Directions Button -->
+                    <div id="directionsButtonContainer" class="mt-4 hidden">
+                      <button id="directionsBtn" class="w-full bg-primary hover:brightness-90 hover:shadow-lg py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer" style="color: white !important;" onmouseover="this.style.filter='brightness(0.85)'" onmouseout="this.style.filter=''">
+                        <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                        Get Directions
+                      </button>
                     </div>
                   </div>
                   
@@ -627,12 +641,8 @@
                       
                     </div>
                   </div>
-                </div>
-                
-
-                
+                </div>   
             </div>
-
         </main>
     </div>
 

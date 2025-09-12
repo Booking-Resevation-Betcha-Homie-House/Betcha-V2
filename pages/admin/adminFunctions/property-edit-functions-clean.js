@@ -165,6 +165,7 @@ function populateForm(data) {
 function populateBasicInfo(data) {
     const fields = {
         'input-prop-name': data.name,
+        'input-prop-city': data.city,
         'input-prop-address': data.address,
         'input-prop-desc': data.description,
         'input-prop-packCap': data.packageCapacity,
@@ -1177,6 +1178,7 @@ async function handlePropertyUpdate() {
 function collectFormData() {
     const formData = {
         name: getValue('input-prop-name'),
+        city: getValue('input-prop-city'),
         address: getValue('input-prop-address'),
         description: getValue('input-prop-desc'), // Fixed: was 'input-prop-description'
         packagePrice: parseFloat(getValue('input-prop-packPrice')) || 0, // Fixed: was 'input-prop-price'
@@ -1243,6 +1245,7 @@ function collectCustomAmenities() {
 function validateForm() {
     const requiredFields = [
         { id: 'input-prop-name', label: 'Property Name' },
+        { id: 'input-prop-city', label: 'City' },
         { id: 'input-prop-address', label: 'Address' },
         { id: 'input-prop-desc', label: 'Description' },
         { id: 'input-prop-packPrice', label: 'Package Price' },

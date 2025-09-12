@@ -263,6 +263,23 @@ document.addEventListener('DOMContentLoaded', function () {
       return;
     }
 
+    // Basic validation for required fields
+    const requiredFields = [
+      { id: 'input-prop-name', label: 'Property Name' },
+      { id: 'input-prop-city', label: 'City' },
+      { id: 'input-prop-address', label: 'Address' },
+      { id: 'input-prop-desc', label: 'Description' }
+    ];
+
+    for (const field of requiredFields) {
+      const element = document.getElementById(field.id);
+      if (!element || !element.value.trim()) {
+        alert(`Please fill in the ${field.label} field.`);
+        if (element) element.focus();
+        return;
+      }
+    }
+
     // Collect form data
     const formData = new FormData();
    // Main info

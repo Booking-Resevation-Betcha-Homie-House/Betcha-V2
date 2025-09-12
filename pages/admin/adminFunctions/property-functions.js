@@ -120,6 +120,16 @@ function renderProperties(properties) {
         const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/public/images/unit01.jpg';
         console.log(`Property: ${property.name}, Image URL: ${imageUrl}`);
 
+        // Truncate text function for consistent card sizes
+        const truncateText = (text, maxLength) => {
+            if (!text) return '';
+            return text.length > maxLength ? text.substring(0, maxLength) + '...' : text;
+        };
+
+        // Truncate property name and address for consistent card sizes
+        const truncatedName = truncateText(property.name, 25); // Max 25 characters for name
+        const truncatedAddress = truncateText(`${property.address}, ${property.city}`, 40); // Max 40 characters for address
+
         propertyCard.innerHTML = `
             <div class="bg-white rounded-3xl overflow-hidden shadow-md flex flex-col group
                 transition-all duration-300 ease-in-out
@@ -138,12 +148,12 @@ function renderProperties(properties) {
                     <div>
                         <p class="text-xl font-semibold text-primary-text mb-1 font-manrope
                             transition-all duration-300 ease-in-out
-                            group-hover:text-primary">${property.name}</p>
+                            group-hover:text-primary" title="${property.name}">${truncatedName}</p>
                         <div class="flex items-center w-full gap-2 mb-2.5">
                             <svg class="w-auto h-3.5 fill-neutral-500" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
                                 <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
                             </svg>
-                            <p class="text-neutral-500 text-sm font-inter">${property.address}, ${property.city}</p>
+                            <p class="text-neutral-500 text-sm font-inter" title="${property.address}, ${property.city}">${truncatedAddress}</p>
                         </div>
                     </div>
                     <!-- Info Grid -->
