@@ -51,9 +51,14 @@ function setupConfirmButton() {
             return;
         }
 
-        // Disable button during API call
+        // Disable button during API call and show loading
         confirmButton.disabled = true;
         confirmButton.classList.add('opacity-50');
+        const originalText = confirmButton.textContent;
+        confirmButton.textContent = 'Creating Booking...';
+        
+        // Show loading toast
+        showToastError('info', 'Processing...', 'Creating your booking, please wait...');
         
         try {
             // Call booking API
@@ -61,7 +66,7 @@ function setupConfirmButton() {
             
             if (bookingResult.success) {
                 // Show success toast
-                showToastError('info', 'Booking Confirmed!', 'Your booking has been created successfully. Redirecting to payment...');
+                showToastError('success', 'Booking Confirmed!', 'Your booking has been created successfully. Redirecting to payment...');
                 
                 // Audit: booking created
                 try {
@@ -79,11 +84,19 @@ function setupConfirmButton() {
                     const propertyId = bookingData.propertyId;
                     const urlParams = new URLSearchParams(window.location.search);
                     const propertyName = urlParams.get('propertyName') || '';
+                    
+                    console.log('🔔 Attempting to notify TS employees...', { propertyId, propertyName });
+                    
                     if (window.notify && propertyId) {
-                        window.notify.notifyReservationConfirmedToTS({ propertyId, propertyName });
+                        // Don't await this - fire and forget
+                        window.notify.notifyReservationConfirmedToTS({ propertyId, propertyName })
+                            .then(() => console.log('✅ TS notification sent successfully'))
+                            .catch(error => console.warn('⚠️ TS notification failed (non-critical):', error));
+                    } else {
+                        console.warn('⚠️ Notification service not available or missing propertyId');
                     }
                 } catch (e) {
-                    console.warn('notifyReservationConfirmedToTS failed:', e);
+                    console.warn('⚠️ notifyReservationConfirmedToTS failed (non-critical):', e);
                 }
                 
                 // Redirect after 1 second with booking ID and payment type
@@ -92,17 +105,21 @@ function setupConfirmButton() {
                     params.append('bookingId', bookingResult.bookingId);
                     params.append('paymentType', paymentType);
                     window.location.href = `confirm-payment.html?${params.toString()}`;
-                }, 45000);
+                }, 1000);
             } else {
                 showToastError('error', 'Booking Failed', bookingResult.message || 'Failed to create booking. Please try again.');
+                // Restore button
                 confirmButton.disabled = false;
                 confirmButton.classList.remove('opacity-50');
+                confirmButton.textContent = originalText;
             }
         } catch (error) {
             console.error('Booking API error:', error);
             showToastError('error', 'Booking Failed', 'An error occurred while creating your booking. Please try again.');
+            // Restore button
             confirmButton.disabled = false;
             confirmButton.classList.remove('opacity-50');
+            confirmButton.textContent = originalText;
         }
     });
 }

@@ -141,7 +141,7 @@ async function sendSystemMessage(systemMessage) {
 async function getEmployeesByPropertyAndPrivilege(propertyId, privilege) {
     if (!propertyId) throw new Error('getEmployeesByPropertyAndPrivilege: propertyId is required');
     const body = {
-        propertyId: propertyId, // NOTE: API expects key spelled `properyId`
+        propertyId: propertyId, 
         privilege: privilege || 'TS' //NOTE is always TS, that's I put a static TS value
     };
     try {
