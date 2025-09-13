@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image UI Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .modal { background: rgba(0, 0, 0, 0.5); }
+        .modal.hidden { display: none; }
+        .primary { background-color: #3B82F6; }
+        .primary-text { color: #1F2937; }
+        
+        /* Custom primary color for testing */
+        .bg-primary { background-color: #3B82F6; }
+        .text-primary { color: #3B82F6; }
+        .fill-primary { fill: #3B82F6; }
+        .group:hover .group-hover\:fill-white { fill: white; }
+        .group:hover .group-hover\:text-white { color: white; }
+        .group:hover .group-hover\:bg-primary { background-color: #3B82F6; }
+    </style>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Image UI Components Test</h1>
+        
+        <!-- Test 1: Professional Edit Button -->
+        <div class="bg-white rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">1. Professional Edit Button</h2>
+            <div class="relative w-full h-64 bg-gray-200 rounded-2xl overflow-hidden">
+                <img src="https://via.placeholder.com/800x400/ccc/666?text=Sample+Property" 
+                     alt="Sample" class="w-full h-full object-cover">
+                     
+                <!-- New Professional Edit Button -->
+                <button 
+                    class="absolute cursor-pointer bottom-4 right-4 px-3 py-2 bg-white rounded-2xl shadow-md flex gap-2 items-center group 
+                          hover:bg-primary hover:scale-105 hover:shadow-lg active:scale-95 
+                          transition-all duration-300 ease-in-out border border-neutral-200
+                          md:px-4 md:py-3">
+                    <span>
+                        <svg class="h-4 w-4 fill-primary-text 
+                          group-hover:fill-white group-hover:rotate-12 group-hover:scale-110
+                          transition-all duration-300 ease-in-out" 
+                          viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                    </span>
+                    <span class="text-sm font-medium text-primary-text group-hover:text-white 
+                        transition-all duration-300 ease-in-out">
+                        Edit Photos
+                    </span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Test 2: Hover Delete Buttons -->
+        <div class="bg-white rounded-lg p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">2. Professional Hover Delete Buttons</h2>
+            <div class="grid grid-cols-3 gap-4">
+                
+                <!-- Image with professional delete button -->
+                <div class="relative group rounded-lg overflow-hidden bg-gray-100">
+                    <img src="https://via.placeholder.com/300x200/ccc/666?text=Image+1" 
+                         alt="Sample 1" class="w-full h-32 object-cover">
+                    <button class="absolute top-2 right-2 bg-red-500/90 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center 
+                                   opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
+                                   hover:scale-110 active:scale-95 text-xl font-bold leading-none">
+                        ×
+                    </button>
+                </div>
+
+                <div class="relative group rounded-lg overflow-hidden bg-gray-100">
+                    <img src="https://via.placeholder.com/300x200/ccc/666?text=Image+2" 
+                         alt="Sample 2" class="w-full h-32 object-cover">
+                    <button class="absolute top-2 right-2 bg-red-500/90 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center 
+                                   opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
+                                   hover:scale-110 active:scale-95 text-xl font-bold leading-none">
+                        ×
+                    </button>
+                </div>
+
+                <div class="relative group rounded-lg overflow-hidden bg-gray-100">
+                    <img src="https://via.placeholder.com/300x200/ccc/666?text=Image+3" 
+                         alt="Sample 3" class="w-full h-32 object-cover">
+                    <button class="absolute top-2 right-2 bg-red-500/90 hover:bg-red-600 text-white rounded-full w-8 h-8 flex items-center justify-center 
+                                   opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
+                                   hover:scale-110 active:scale-95 text-xl font-bold leading-none">
+                        ×
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Test 3: Professional Save Button -->
+        <div class="bg-white rounded-lg p-6">
+            <h2 class="text-xl font-semibold mb-4">3. Professional Save Button</h2>
+            <div class="flex justify-center gap-3">
+                <button class="flex gap-2 justify-center items-center px-6 py-3
+                    transition-all duration-300 ease-in-out bg-primary text-white
+                    hover:bg-primary/90 hover:scale-105 rounded-2xl active:scale-95 shadow-md">
+                    <svg class="w-4 h-4 fill-white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                    </svg>
+                    <span class="text-sm font-medium text-white">Save Images</span>
+                </button>
+                <button class="flex gap-2 justify-center items-center px-6 py-3
+                    transition-all duration-300 ease-in-out bg-neutral-200
+                    hover:bg-neutral-300 hover:scale-105 rounded-2xl active:scale-95">
+                    <span class="text-sm text-neutral-700">Close</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

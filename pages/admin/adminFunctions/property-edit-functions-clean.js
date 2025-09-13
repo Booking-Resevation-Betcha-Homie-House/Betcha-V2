@@ -259,31 +259,101 @@ function populateImages(photoLinks) {
 
 function updateGalleryDisplay(images) {
     const photoSection = document.getElementById('PhotosSection');
-    if (!photoSection || !images.length) return;
+    if (!photoSection) return;
 
     // Clear existing content
     photoSection.innerHTML = '';
 
-    // Create main image
+    // If no images, show placeholder
+    if (!images || images.length === 0) {
+        photoSection.innerHTML = `
+            <!-- Big Left Image -->
+            <div class="rounded-2xl bg-neutral-300 h-full col-span-1 sm:col-span-3 flex items-center justify-center text-white">
+                No photos
+            </div>
+            <!-- Right side two images -->
+            <div class="hidden sm:grid sm:col-span-2 sm:grid-rows-2 sm:gap-3 h-full">
+                <div class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white">
+                    No photos
+                </div>
+                <div class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white">
+                    No photos
+                </div>
+            </div>
+        `;
+        addEditButton(photoSection);
+        return;
+    }
+
+    // Create main image (always the first image)
     const mainImage = document.createElement('div');
-    mainImage.className = 'rounded-2xl bg-cover bg-center h-full col-span-1 sm:col-span-3';
+    mainImage.className = 'rounded-2xl bg-cover bg-center h-full col-span-1 sm:col-span-3 relative group';
     mainImage.style.backgroundImage = `url(${images[0]})`;
+    
+    // Add delete button for main image
+    mainImage.innerHTML = `
+        <button onclick="deleteExistingImage('${images[0]}', this)" 
+                class="absolute top-2 right-2 bg-red-500/50 hover:bg-red-600/70 text-white rounded-full w-8 h-8 flex items-center justify-center 
+                       opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
+                       hover:scale-110 active:scale-95 text-xl font-bold leading-none border border-red-400"
+                style="color: white;">
+            ×
+        </button>
+    `;
+    
     photoSection.appendChild(mainImage);
 
-    // Create side images if available
+    // Create side images container
+    const sideContainer = document.createElement('div');
+    sideContainer.className = 'hidden sm:grid sm:col-span-2 sm:grid-rows-2 sm:gap-3 h-full';
+    
+    // Handle second image
     if (images.length > 1) {
-        const sideContainer = document.createElement('div');
-        sideContainer.className = 'hidden sm:grid sm:col-span-2 sm:grid-rows-2 sm:gap-3 h-full';
-        
-        for (let i = 1; i < Math.min(3, images.length); i++) {
-            const sideImage = document.createElement('div');
-            sideImage.className = 'rounded-2xl bg-cover bg-center';
-            sideImage.style.backgroundImage = `url(${images[i]})`;
-            sideContainer.appendChild(sideImage);
-        }
-        
-        photoSection.appendChild(sideContainer);
+        const secondImage = document.createElement('div');
+        secondImage.className = 'rounded-2xl bg-cover bg-center relative group';
+        secondImage.style.backgroundImage = `url(${images[1]})`;
+        secondImage.innerHTML = `
+            <button onclick="deleteExistingImage('${images[1]}', this)" 
+                    class="absolute top-2 right-2 bg-red-500/50 hover:bg-red-600/70 text-white rounded-full w-8 h-8 flex items-center justify-center 
+                           opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
+                           hover:scale-110 active:scale-95 text-xl font-bold leading-none border border-red-400"
+                    style="color: white;">
+                ×
+            </button>
+        `;
+        sideContainer.appendChild(secondImage);
+    } else {
+        // Show placeholder for second image
+        const placeholder = document.createElement('div');
+        placeholder.className = 'rounded-2xl bg-neutral-300 flex items-center justify-center text-white';
+        placeholder.textContent = 'No photos';
+        sideContainer.appendChild(placeholder);
     }
+    
+    // Handle third image
+    if (images.length > 2) {
+        const thirdImage = document.createElement('div');
+        thirdImage.className = 'rounded-2xl bg-cover bg-center relative group';
+        thirdImage.style.backgroundImage = `url(${images[2]})`;
+        thirdImage.innerHTML = `
+            <button onclick="deleteExistingImage('${images[2]}', this)" 
+                    class="absolute top-2 right-2 bg-red-500/50 hover:bg-red-600/70 text-white rounded-full w-8 h-8 flex items-center justify-center 
+                           opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
+                           hover:scale-110 active:scale-95 text-xl font-bold leading-none border border-red-400"
+                    style="color: white;">
+                ×
+            </button>
+        `;
+        sideContainer.appendChild(thirdImage);
+    } else {
+        // Show placeholder for third image
+        const placeholder = document.createElement('div');
+        placeholder.className = 'rounded-2xl bg-neutral-300 flex items-center justify-center text-white';
+        placeholder.textContent = 'No photos';
+        sideContainer.appendChild(placeholder);
+    }
+    
+    photoSection.appendChild(sideContainer);
 
     // Add edit button
     addEditButton(photoSection);
@@ -291,13 +361,23 @@ function updateGalleryDisplay(images) {
 
 function addEditButton(container) {
     const editButton = document.createElement('button');
-    editButton.className = `absolute cursor-pointer bottom-4 right-4 !px-2 !py-1 bg-white rounded-full shadow-sm 
+    editButton.className = `absolute cursor-pointer bottom-4 right-4 px-3 py-2 bg-white rounded-2xl shadow-md 
                            flex gap-2 items-center group hover:bg-primary hover:scale-105 hover:shadow-lg 
-                           active:scale-95 transition-all duration-300 ease-in-out md:!py-3.5 md:!px-6`;
+                           active:scale-95 transition-all duration-300 ease-in-out border border-neutral-200
+                           md:px-4 md:py-3`;
     editButton.setAttribute('data-modal-target', 'editGalleryModal');
     editButton.innerHTML = `
-        <span class="text-xs font-inter group-hover:text-white transition-all duration-500 ease-in-out md:text-sm">
-            Edit image
+        <span>
+            <svg class="h-4 w-4 fill-primary-text 
+              group-hover:fill-white group-hover:rotate-12 group-hover:scale-110
+              transition-all duration-300 ease-in-out" 
+              viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+            </svg>
+        </span>
+        <span class="text-sm font-medium text-primary-text group-hover:text-white 
+          transition-all duration-300 ease-in-out">
+            Edit Photos
         </span>
     `;
     container.appendChild(editButton);
@@ -881,7 +961,10 @@ function populateGalleryModal() {
                  alt="Property image ${index + 1}" 
                  class="w-full h-32 md:h-48 object-cover">
             <button onclick="deleteExistingImage('${imageUrl}', this)" 
-                    class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white rounded-full w-6 h-6 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 text-sm font-bold">
+                    class="absolute top-2 right-2 bg-red-500/50 hover:bg-red-600/70 text-white rounded-full w-8 h-8 flex items-center justify-center 
+                           opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
+                           hover:scale-110 active:scale-95 text-xl font-bold leading-none border border-red-400"
+                    style="color: white;">
                 ×
             </button>
         `;
@@ -906,7 +989,7 @@ async function deleteExistingImage(imageUrl, buttonElement) {
         
         // Show loading state
         buttonElement.innerHTML = `
-            <svg class="w-3 h-3 animate-spin" fill="none" viewBox="0 0 24 24">
+            <svg class="w-4 h-4 animate-spin fill-white" fill="none" viewBox="0 0 24 24">
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
             </svg>
@@ -934,11 +1017,7 @@ async function deleteExistingImage(imageUrl, buttonElement) {
         showErrorMessage('Failed to delete image');
         
         // Reset button state
-        buttonElement.innerHTML = `
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-        `;
+        buttonElement.innerHTML = `×`;
     }
 }
 
@@ -974,10 +1053,13 @@ function displayImagePreviews(files) {
                 imageElement.innerHTML = `
                     <img src="${e.target.result}" alt="${file.name}" class="w-full h-full object-cover rounded-lg">
                     <button type="button" onclick="removeImagePreview(this, '${file.name}')" 
-                            class="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600 transition-colors">
+                            class="absolute top-2 right-2 bg-red-500/50 hover:bg-red-600/70 text-white rounded-full w-8 h-8 flex items-center justify-center 
+                                   opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
+                                   hover:scale-110 active:scale-95 text-xl font-bold leading-none border border-red-400"
+                            style="color: white;">
                         ×
                     </button>
-                    <div class="absolute bottom-2 left-2 bg-black bg-opacity-50 text-white text-xs px-2 py-1 rounded max-w-[80%] truncate">
+                    <div class="absolute bottom-2 left-2 bg-black/50 text-white text-xs px-2 py-1 rounded max-w-[80%] truncate backdrop-blur-sm">
                         ${file.name}
                     </div>
                 `;
@@ -1003,8 +1085,22 @@ window.removeImagePreview = removeImagePreview;
 
 async function uploadAllImages() {
     if (selectedImageFiles.length === 0) {
-        console.log('No new images to upload');
+        showErrorMessage('Please select images to upload first');
         return;
+    }
+
+    // Show loading state on upload button
+    const uploadBtn = document.querySelector('button[onclick="uploadAllImages()"]');
+    const originalHTML = uploadBtn?.innerHTML;
+    if (uploadBtn) {
+        uploadBtn.disabled = true;
+        uploadBtn.innerHTML = `
+            <svg class="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span class="text-sm font-medium">Saving...</span>
+        `;
     }
 
     try {
@@ -1072,7 +1168,7 @@ async function uploadAllImages() {
         try {
             const responseText = await response.text();
             result = responseText ? JSON.parse(responseText) : {};
-        } catch (parseError) {
+        } catch {
             console.warn('⚠️ Failed to parse response as JSON');
         }
 
@@ -1091,8 +1187,23 @@ async function uploadAllImages() {
                 previews.forEach(preview => preview.remove());
             }
             
-            // Refresh the property data to show new images
-            await initializePropertyEdit(currentPropertyId);
+            // Try to get updated images from response
+            let updatedImages = [];
+            if (result && result.photoLinks) {
+                updatedImages = result.photoLinks;
+            } else if (result && result.data && result.data.photoLinks) {
+                updatedImages = result.data.photoLinks;
+            }
+            
+            // If we got updated images from the response, use them
+            if (updatedImages.length > 0) {
+                currentPropertyImages = updatedImages;
+                updateGalleryDisplay(updatedImages);
+                populateGalleryModal(); // Update the modal with new images
+            } else {
+                // Fallback: refresh the property data to show new images
+                await initializePropertyEdit(currentPropertyId);
+            }
             
         } else {
             throw new Error(result.message || `HTTP error! status: ${response.status}`);
@@ -1100,9 +1211,24 @@ async function uploadAllImages() {
         
     } catch (error) {
         console.error('Image upload failed:', error);
-        throw new Error(`Failed to upload images: ${error.message}`);
+        showErrorMessage(`Failed to upload images: ${error.message}`);
+    } finally {
+        // Reset upload button
+        const uploadBtn = document.querySelector('button[onclick="uploadAllImages()"]');
+        if (uploadBtn) {
+            uploadBtn.disabled = false;
+            uploadBtn.innerHTML = `
+                <svg class="w-4 h-4 fill-white" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M14,2H6A2,2 0 0,0 4,4V20A2,2 0 0,0 6,22H18A2,2 0 0,0 20,20V8L14,2M18,20H6V4H13V9H18V20Z"/>
+                </svg>
+                <span class="text-sm font-medium text-white">Save Images</span>
+            `;
+        }
     }
 }
+
+// Make function globally accessible for onclick handlers
+window.uploadAllImages = uploadAllImages;
 
 // ==================== SAVE & DISCARD FUNCTIONALITY ====================
 function initializeSaveAndDiscardFunctionality() {
