@@ -128,7 +128,7 @@ function renderProperties(properties) {
 
         // Truncate property name and address for consistent card sizes
         const truncatedName = truncateText(property.name, 25); // Max 25 characters for name
-        const truncatedAddress = truncateText(`${property.address}, ${property.city}`, 40); // Max 40 characters for address
+        const truncatedAddress = truncateText(`${property.address}, ${property.city}`, 25); 
 
         propertyCard.innerHTML = `
             <div class="bg-white rounded-3xl overflow-hidden shadow-md flex flex-col group

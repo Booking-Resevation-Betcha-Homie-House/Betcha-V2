@@ -139,8 +139,6 @@ const amenityMapping = {
 
 // Global variable to store property data for reservation
 let currentPropertyData = null;
-// Global variable to store original map source from API
-let originalMapSource = null;
 
 function getAmenitySVGByMapping(amenity) {
     const normalizedKey = amenity.replace(/\s+/g, '').replace(/[-_]/g, '').toLowerCase();
@@ -535,8 +533,6 @@ async function fetchAndDisplayProperty() {
             const srcMatch = data.mapLink.match(/src="([^"]+)"/);
             if (srcMatch && srcMatch[1]) {
                 mapIframe.src = srcMatch[1];
-                // Store the original map source for directions toggle functionality
-                originalMapSource = srcMatch[1];
             }
         }
 
@@ -958,11 +954,8 @@ function extractCoordinatesFromMapLink(mapLink) {
 
 // Function to setup directions button functionality
 function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
-    directionsBtn.onclick = () => {
-        // Debug: Log the mapLink to see what we're working with
-        console.log('Property mapLink:', propertyData.mapLink);
-        
-        // Create the query for directions using coordinates + address for accuracy
+    try {
+        // Create directions query - prefer coordinates if available, fallback to address
         let directionsQuery;
         
         // Extract coordinates from mapLink for precise location
@@ -972,7 +965,6 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
         
         if (coordinates && propertyData.address) {
             // Use coordinates + address for most accurate matching
-            // This tells Google to find a location near these coordinates that matches the address
             directionsQuery = `${coordinates.lat},${coordinates.lng}+${encodeURIComponent(propertyData.address)}`;
             console.log('Using coordinates + address for precise location:', directionsQuery);
         } else if (coordinates) {
@@ -987,126 +979,169 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
             // Final fallback
             directionsQuery = encodeURIComponent('Property Location');
         }
+
+        // Set up click handler for directions button
+        let isShowingDirections = false;
+        let originalMapContent = '';
         
-        // Get user's current location for accurate directions
-        if (navigator.geolocation) {
-            // Show loading while getting location
-            mapContainer.innerHTML = `
-                <div class="w-full h-full bg-neutral-100 flex items-center justify-center">
-                    <div class="text-center">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                        <p class="text-neutral-600">Getting your location...</p>
-                    </div>
-                </div>
-            `;
-            
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const userLat = position.coords.latitude;
-                    const userLng = position.coords.longitude;
-                    
-                    // Create directions URL with user location and our precise destination (driving mode)
-                    const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
-                    
-                    console.log('Generated directions URL:', directionsEmbedUrl);
-                    
-                    // Update the iframe with directions from user's actual location
-                    mapContainer.innerHTML = `
-                        <iframe src="${directionsEmbedUrl}" 
-                            class="w-full h-full"
-                            style="border:0;" 
-                            allowfullscreen="" 
-                            loading="lazy" 
-                            referrerpolicy="no-referrer-when-downgrade">
-                        </iframe>
-                    `;
-                },
-                (error) => {
-                    console.error('Geolocation error:', error);
-                    
-                    // Use our precise destination for fallback (without user location, driving mode)
-                    const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
-                    
-                    console.log('Generated fallback directions URL:', fallbackEmbedUrl);
-                    
-                    mapContainer.innerHTML = `
-                        <div class="w-full h-full bg-neutral-100 flex flex-col">
-                            <div class="p-2 bg-yellow-100 text-yellow-800 text-center text-xs">
-                                <p>Location access denied. Showing property location.</p>
-                            </div>
-                            <iframe src="${fallbackEmbedUrl}" 
-                                class="w-full flex-1"
-                                style="border:0;" 
-                                allowfullscreen="" 
-                                loading="lazy" 
-                                referrerpolicy="no-referrer-when-downgrade">
-                            </iframe>
-                        </div>
-                    `;
-                },
-                {
-                    enableHighAccuracy: true,
-                    timeout: 10000,
-                    maximumAge: 300000 // 5 minutes
-                }
-            );
-        } else {
-            // Browser doesn't support geolocation, use fallback (satellite view, driving mode)
-            const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
-            
-            console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
-            
-            mapContainer.innerHTML = `
-                <div class="w-full h-full bg-neutral-100 flex flex-col">
-                    <div class="p-2 bg-blue-100 text-blue-800 text-center text-xs">
-                        <p>Geolocation not supported. Showing property location.</p>
-                    </div>
-                    <iframe src="${fallbackEmbedUrl}" 
-                        class="w-full flex-1"
-                        style="border:0;" 
-                        allowfullscreen="" 
-                        loading="lazy" 
-                        referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
-                </div>
-            `;
-        }
-        
-        // Update button text to indicate it's showing directions
-        directionsBtn.innerHTML = `
-            <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-1.447-.894L15 4m0 13V4m-6 3l6-3"></path>
-            </svg>
-            View Property Location
-        `;
-        
-        // Change button functionality to reset to original map
         directionsBtn.onclick = () => {
-            // Reload the original map using the stored source from API (satellite default)
-            const mapSrc = originalMapSource || 
-                document.getElementById('maplink')?.src || 
-                'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3858.9397163310573!2d121.05891147478252!3d14.716000285784096!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3397b08c3aa74213%3A0x325214dc350bb0d1!2sSTI%20College%20Fairview!5e1!3m2!1sen!2sph!4v1752067526435!5m2!1sen!2sph';
+            console.log('Directions button clicked');
             
-            mapContainer.innerHTML = `
-                <iframe id="maplink" src="${mapSrc}" 
-                    class="w-full h-full"
-                    style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade">
-                </iframe>
-            `;
+            // Get the text element
+            const directionsText = document.getElementById('directionsText');
             
-            // Reset button text and functionality
-            directionsBtn.innerHTML = `
-                <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 0 1 6 0z"></path>
-                </svg>
-                Get Directions
-            `;
-            
-            // Reset to original directions functionality
-            setupDirectionsButton(directionsBtn, mapContainer, propertyData);
+            if (!isShowingDirections) {
+                // Store original map content before changing it
+                originalMapContent = mapContainer.innerHTML;
+                
+                // Change text to "Get Location"
+                if (directionsText) {
+                    directionsText.textContent = "Get Location";
+                }
+                
+                // Show loading animation immediately
+                console.log('Loading directions...');
+                mapContainer.innerHTML = `
+                    <div class="w-full h-full bg-neutral-100 flex items-center justify-center rounded-2xl">
+                        <div class="text-center">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                            <p class="text-neutral-600 font-inter">Getting your location...</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Check if geolocation is available
+                if (navigator.geolocation) {
+                    console.log('Geolocation available, requesting user location...');
+                    
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const userLat = position.coords.latitude;
+                            const userLng = position.coords.longitude;
+                            
+                            // Create directions URL with user location and our precise destination (driving mode)
+                            const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
+                            
+                            console.log('Generated directions URL:', directionsEmbedUrl);
+                            
+                            // Update the iframe with directions from user's actual location
+                            mapContainer.innerHTML = `
+                                <iframe src="${directionsEmbedUrl}" 
+                                    class="w-full h-full rounded-2xl"
+                                    style="border:0;" 
+                                    allowfullscreen="" 
+                                    loading="lazy" 
+                                    referrerpolicy="no-referrer-when-downgrade">
+                                </iframe>
+                            `;
+                            
+                            isShowingDirections = true;
+                        },
+                        (error) => {
+                            console.error('Geolocation error:', error);
+                            
+                            // Show loading briefly before showing fallback
+                            mapContainer.innerHTML = `
+                                <div class="w-full h-full bg-neutral-100 flex items-center justify-center rounded-2xl">
+                                    <div class="text-center">
+                                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                                        <p class="text-neutral-600 font-inter">Loading map...</p>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            // Add a brief delay to show loading, then show fallback
+                            setTimeout(() => {
+                                // Use our precise destination for fallback (without user location, driving mode)
+                                const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
+                                
+                                console.log('Generated fallback directions URL:', fallbackEmbedUrl);
+                                
+                                mapContainer.innerHTML = `
+                                    <div class="w-full h-full bg-neutral-100 flex flex-col rounded-2xl overflow-hidden">
+                                        <div class="p-2 bg-yellow-100 text-yellow-800 text-center text-xs">
+                                            <p>Location access denied. Showing property location.</p>
+                                        </div>
+                                        <iframe src="${fallbackEmbedUrl}" 
+                                            class="w-full flex-1"
+                                            style="border:0;" 
+                                            allowfullscreen="" 
+                                            loading="lazy" 
+                                            referrerpolicy="no-referrer-when-downgrade">
+                                        </iframe>
+                                    </div>
+                                `;
+                                
+                                isShowingDirections = true;
+                            }, 800); // 800ms delay to show loading
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 10000,
+                            maximumAge: 300000 // 5 minutes
+                        }
+                    );
+                } else {
+                    // Browser doesn't support geolocation, show loading then fallback
+                    console.log('Geolocation not supported, showing loading then fallback...');
+                    
+                    // Show loading briefly before showing fallback
+                    setTimeout(() => {
+                        // Use fallback (satellite view, driving mode)
+                        const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
+                        
+                        console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
+                        
+                        mapContainer.innerHTML = `
+                            <div class="w-full h-full bg-neutral-100 flex flex-col rounded-2xl overflow-hidden">
+                                <div class="p-2 bg-blue-100 text-blue-800 text-center text-xs">
+                                    <p>Geolocation not supported. Showing property location.</p>
+                                </div>
+                                <iframe src="${fallbackEmbedUrl}" 
+                                    class="w-full flex-1"
+                                    style="border:0;" 
+                                    allowfullscreen="" 
+                                    loading="lazy" 
+                                    referrerpolicy="no-referrer-when-downgrade">
+                                </iframe>
+                            </div>
+                        `;
+                        
+                        isShowingDirections = true;
+                    }, 800); // 800ms delay to show loading
+                }
+                
+            } else {
+                // Go back to original location view
+                console.log('Returning to original location view...');
+                
+                // Change text back to "Get Directions"
+                if (directionsText) {
+                    directionsText.textContent = "Get Directions";
+                }
+                
+                // Show loading while switching back to original view
+                mapContainer.innerHTML = `
+                    <div class="w-full h-full bg-neutral-100 flex items-center justify-center rounded-2xl">
+                        <div class="text-center">
+                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+                            <p class="text-neutral-600 font-inter">Loading map...</p>
+                        </div>
+                    </div>
+                `;
+                
+                // Add a brief delay to show loading, then restore original content
+                setTimeout(() => {
+                    // Restore original map content
+                    mapContainer.innerHTML = originalMapContent;
+                    isShowingDirections = false;
+                }, 600); // 600ms delay to show loading
+            }
         };
-    };
+        
+    } catch (error) {
+        console.error('Error setting up directions button:', error);
+    }
 }
 
 // Call this function after property data is loaded

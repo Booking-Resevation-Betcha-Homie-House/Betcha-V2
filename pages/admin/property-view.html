@@ -519,12 +519,26 @@
                     
                     <!-- Directions Button -->
                     <div id="directionsButtonContainer" class="mt-4 hidden">
-                      <button id="directionsBtn" class="w-full bg-primary hover:brightness-90 hover:shadow-lg py-3 px-4 rounded-xl font-medium text-sm transition-all duration-200 flex items-center justify-center gap-2 cursor-pointer" style="color: white !important;" onmouseover="this.style.filter='brightness(0.85)'" onmouseout="this.style.filter=''">
-                        <svg class="w-5 h-5" fill="none" stroke="white" viewBox="0 0 24 24">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
-                        Get Directions
+                      <button id="directionsBtn" 
+                          class="group w-full relative rounded-full bg-primary z-50 flex items-center justify-center overflow-hidden shadow-lg shadow-primary/20
+                          transition-all duration-300 ease-in-out hover:cursor-pointer active:scale-95">
+                          <span id="directionsText" class="text-secondary-text font-manrope text-lg transition-transform duration-500 ease-in-out group-hover:-translate-x-1">
+                              Get Directions
+                          </span>
+
+                          <span class="overflow-hidden max-w-0 group-hover:max-w-[30px] 
+                          transition-all duration-500 ease-in-out">
+                              <svg class="w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
+                                  <g clip-path="url(#clip0_18_84)">
+                                      <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1975 7.45773 13.1213 7.34739 13.0689 7.22538C13.0165 7.10338 12.9889 6.97216 12.9877 6.83938C12.9866 6.7066 13.0119 6.57492 13.0622 6.45202C13.1125 6.32913 13.1867 6.21747 13.2806 6.12358C13.3745 6.02969 13.4861 5.95544 13.609 5.90516C13.7319 5.85487 13.8636 5.82957 13.9964 5.83073C14.1292 5.83188 14.2604 5.85947 14.3824 5.91188C14.5044 5.96428 14.6148 6.04047 14.707 6.13598Z"/>
+                                  </g>
+                                  <defs>
+                                      <clippath id="clip0_18_84_directions">
+                                          <rect width="24" height="24" fill="white" transform="translate(0 0.5)" />
+                                      </clippath>
+                                  </defs>
+                              </svg>
+                          </span>
                       </button>
                     </div>
                   </div>
