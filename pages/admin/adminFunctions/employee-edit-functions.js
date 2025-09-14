@@ -291,18 +291,20 @@ async function populateAssignedProperties(employee) {
         }));
         
         // Parse and set selected properties
-        const employeePropertyIds = parseDataArray(employeeProperties);
+        const employeePropertyData = parseDataArray(employeeProperties);
         const selectedPropertyNames = [];
         
-        employeePropertyIds.forEach(propertyId => {
-            // Try multiple matching strategies
-            let matchingProperty = allProperties.find(p => String(p._id) === String(propertyId)) ||
-                                 allProperties.find(p => (p.propertyName || p.name) === String(propertyId)) ||
-                                 allProperties.find(p => {
-                                     const propName = p.propertyName || p.name || '';
-                                     return propName.toLowerCase().includes(String(propertyId).toLowerCase()) ||
-                                            String(propertyId).toLowerCase().includes(propName.toLowerCase());
-                                 });
+        employeePropertyData.forEach(propertyItem => {
+            let matchingProperty = null;
+            
+            if (typeof propertyItem === 'object' && propertyItem._id) {
+                // Handle case where property is a full object with _id
+                matchingProperty = allProperties.find(p => String(p._id) === String(propertyItem._id));
+            } else {
+                // Handle case where property is just an ID or name
+                matchingProperty = allProperties.find(p => String(p._id) === String(propertyItem)) ||
+                                 allProperties.find(p => (p.propertyName || p.name) === String(propertyItem));
+            }
             
             if (matchingProperty) {
                 selectedPropertyNames.push(matchingProperty.propertyName || matchingProperty.name || 'Unnamed Property');
@@ -446,9 +448,9 @@ async function submitEmployeeUpdate() {
             updateData.role = formData.roles; // Send as array of IDs
         }
         
-        // Add properties if any are selected - the API expects comma-separated string
+        // Add properties if any are selected - send as array of property IDs
         if (formData.properties && formData.properties.length > 0) {
-            updateData.properties = formData.properties.join(','); // Send as comma-separated string
+            updateData.properties = formData.properties; // Send as array of IDs
         }
         
         // Additional validation to prevent 500 errors

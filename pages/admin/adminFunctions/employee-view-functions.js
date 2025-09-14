@@ -114,8 +114,11 @@ async function populateAssignedProperties(properties) {
 				else {
 					normalizedProperties.push(prop);
 				}
+			} else if (typeof prop === 'object' && prop._id) {
+				// Handle property objects by extracting their ID
+				normalizedProperties.push(prop._id);
 			} else {
-				// Non-string property (shouldn't happen based on API data)
+				// Fallback for other cases
 				normalizedProperties.push(prop);
 			}
 		});
@@ -200,9 +203,11 @@ async function populateAssignedProperties(properties) {
 			`;
 			
 			// Get property image or use placeholder
-			const propertyImage = property.images && property.images.length > 0 
-				? property.images[0] 
-				: '/images/unit01.jpg'; // fallback image
+			const propertyImage = (property.photoLinks && property.photoLinks.length > 0) 
+				? property.photoLinks[0] 
+				: (property.images && property.images.length > 0)
+					? property.images[0]
+					: '/images/unit01.jpg'; // fallback image
 			
 			// Get property name
 			const propertyName = property.propertyName || property.name || 'Unknown Property';
