@@ -234,9 +234,7 @@ async function populateAssignedProperties(properties) {
 						</svg>
 						<p class="font-roboto text-gray-700 text-sm truncate drop-shadow-sm">${propertyAddress}</p>
 					</div>
-					${property.description ? `
-						<p class="text-sm text-gray-600 mt-2 line-clamp-2 drop-shadow-sm">${property.description}</p>
-					` : ''}
+					
 				</div>
 
 				<!-- ➡️ Slide-in Right Arrow -->
