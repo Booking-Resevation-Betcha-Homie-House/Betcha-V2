@@ -446,6 +446,12 @@ document.addEventListener("DOMContentLoaded", () => {
       // Store dates globally for confirm button
       window.selectedBookingDates = selectedDates;
 
+      // Update booking dates display immediately
+      const bookingDatesUpdateEvent = new CustomEvent('bookingDatesUpdate', {
+        detail: { selectedDates: selectedDates }
+      });
+      document.dispatchEvent(bookingDatesUpdateEvent);
+
       // Get check-in/check-out elements
       const checkInEl = document.getElementById('searchCheckIn');
       const checkOutEl = document.getElementById('searchCheckOut');
@@ -491,6 +497,16 @@ document.addEventListener("DOMContentLoaded", () => {
           modal.classList.add('hidden');
           document.body.classList.remove('modal-open'); // Restore scrolling
         }
+
+        // Dispatch event for confirmed dates
+        const datesSelectedEvent = new CustomEvent('datesSelected', {
+          detail: { 
+            selectedDates: selectedDates,
+            checkIn: selectedDates[0],
+            checkOut: selectedDates.length > 1 ? selectedDates[selectedDates.length - 1] : selectedDates[0]
+          }
+        });
+        document.dispatchEvent(datesSelectedEvent);
       }
     });
   }

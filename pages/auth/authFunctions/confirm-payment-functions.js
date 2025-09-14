@@ -48,6 +48,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup payment confirmation functionality
     setupPaymentConfirmation(bookingId, paymentType);
+    
+    // Setup navigation warnings
+    setupNavigationWarnings();
 });
 
 // Function to fetch payment methods from API
@@ -1730,4 +1733,46 @@ function getPaymentApiEndpoint(paymentType, bookingId) {
         console.warn('⚠️ Unknown payment type, defaulting to reservation:', paymentType);
         return `${baseURL}/booking/payment/reservation/${bookingId}`;
     }
+}
+
+// Function to setup navigation warnings
+function setupNavigationWarnings() {
+    let isPaymentConfirmed = false;
+    
+    // Mark payment as confirmed when user completes payment
+    const confirmButtons = document.querySelectorAll('#confirmPaymentButton, #confirmPaymentButton1');
+    confirmButtons.forEach(button => {
+        if (button) {
+            button.addEventListener('click', () => {
+                isPaymentConfirmed = true;
+            });
+        }
+    });
+    
+    // Override window.history.back globally
+    const originalBack = window.history.back;
+    window.history.back = function() {
+        if (!isPaymentConfirmed) {
+            const shouldLeave = confirm('Your payment will be cancelled if you leave this page. Are you sure?');
+            if (shouldLeave) {
+                originalBack.call(window.history);
+            }
+        } else {
+            originalBack.call(window.history);
+        }
+    };
+    
+    // Auto-trigger user interaction to enable beforeunload
+    setTimeout(() => {
+        document.dispatchEvent(new Event('click'));
+    }, 100);
+    
+    // Browser navigation warning
+    window.addEventListener('beforeunload', (e) => {
+        if (!isPaymentConfirmed) {
+            e.preventDefault();
+            e.returnValue = 'Your payment will be cancelled if you leave this page.';
+            return e.returnValue;
+        }
+    });
 }

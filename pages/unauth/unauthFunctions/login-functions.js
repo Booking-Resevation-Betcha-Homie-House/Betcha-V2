@@ -3,10 +3,13 @@ const API_BASE_URL = 'https://betcha-api.onrender.com';
 
 // Function to handle user login
 async function handleLogin(email, password) {
+    // Get button element and store original state outside try block
+    const loginButton = document.querySelector('#loginButton');
+    const originalText = loginButton.innerHTML;
+    const originalDisabled = loginButton.disabled;
+    
     try {
         // Show loading state
-        const loginButton = document.querySelector('#loginButton');
-        const originalText = loginButton.innerHTML;
         loginButton.disabled = true;
         loginButton.innerHTML = `
             <span class="text-secondary-text text-base md:text-lg">
@@ -89,10 +92,27 @@ async function handleLogin(email, password) {
         console.error('Error during login:', error);
         showMessage('Network error. Please try again.', 'error');
     } finally {
-        // Reset button state
+        // Reset button state - ensure we have the button element
         const loginButton = document.querySelector('#loginButton');
-        loginButton.disabled = false;
-        loginButton.innerHTML = originalText;
+        if (loginButton) {
+            loginButton.disabled = originalDisabled;
+            // If originalText is somehow undefined, use a fallback
+            if (originalText) {
+                loginButton.innerHTML = originalText;
+            } else {
+                // Fallback to default button content
+                loginButton.innerHTML = `
+                    <span class="text-secondary-text text-base md:text-lg">
+                        Log in
+                    </span>
+                    <span class="overflow-hidden max-w-[30px] lg:max-w-0 lg:group-hover:max-w-[30px] transition-all duration-500 ease-in-out">
+                        <svg class="w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1975 7.45773 13.1213 7.34739 13.0689 7.22538C13.0165 7.10338 12.9889 6.97216 12.9877 6.83938C12.9866 6.7066 13.0119 6.57492 13.0622 6.45202C13.1125 6.32913 13.1867 6.21747 13.2806 6.12358C13.3745 6.02969 13.4861 5.95544 13.609 5.90516C13.7319 5.85487 13.8636 5.82957 13.9964 5.83073C14.1292 5.83188 14.2604 5.85947 14.3824 5.91188C14.5044 5.96428 14.6148 6.04047 14.707 6.13598Z"/>
+                        </svg>
+                    </span>
+                `;
+            }
+        }
     }
 }
 

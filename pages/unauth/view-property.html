@@ -1507,6 +1507,23 @@
               </div>
             </div>
 
+            <!-- Dynamic Check-in/Check-out Text -->
+            <div id="bookingDatesDisplay" class="px-4 py-3 mt-4 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-2xl hidden">
+              <div class="text-center space-y-2">
+                <div class="text-sm text-neutral-700">
+                  <span class="font-medium text-primary">Check-in:</span>
+                  <span id="displayCheckInDate" class="text-primary-text font-semibold ml-1">Select date</span>
+                  <span id="displayCheckInTime" class="text-primary font-semibold ml-1"></span>
+                </div>
+                <div class="w-8 h-px bg-neutral-300 mx-auto"></div>
+                <div class="text-sm text-neutral-700">
+                  <span class="font-medium text-primary">Check-out:</span>
+                  <span id="displayCheckOutDate" class="text-primary-text font-semibold ml-1">Select date</span>
+                  <span id="displayCheckOutTime" class="text-primary font-semibold ml-1"></span>
+                </div>
+              </div>
+            </div>
+
             <div class="items-center py-5 mt-auto">
               <button type="button" 
                 class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-sm

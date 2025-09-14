@@ -46,15 +46,12 @@ async function fetchAuditTrails() {
             console.log('All refNo values:', auditData.map(item => ({ refNo: item.refNo, type: typeof item.refNo })));
         }
         
-        // Don't render immediately - wait for tab system to initialize
-        // The setActiveAuditTab will be called by the DOMContentLoaded event
-        
-        // Update search functionality
+        // Set up search functionality after data is loaded
         console.log('Setting up search functionality...');
         setupSearch();
         console.log('Search setup completed');
         
-        // Don't hide loading state here - let the filtering/rendering functions handle it
+        // Don't automatically render here - let the calling function handle it
         
     } catch (error) {
         console.error('Error fetching audit trails:', error);
@@ -489,6 +486,13 @@ function setActiveAuditTab(tabIndex) {
     console.log(`Filtering for user type: ${userType}`);
     console.log('=== END TAB SWITCHING DEBUG ===');
     
+    // Check if audit data is available
+    if (auditData.length === 0) {
+        console.log('No audit data available yet, showing loading state');
+        showLoadingState();
+        return;
+    }
+    
     // Show skeleton loading for the new tab
     showLoadingState();
     
@@ -506,11 +510,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('audit-search');
     console.log('Search input found on DOM load:', !!searchInput);
     
-    // Initialize the Admin tab first (this sets up the correct tab visibility)
-    setActiveAuditTab(0);
+    // Set up tab button event listeners
+    const tabButtons = document.querySelectorAll('.flex.gap-1.bg-neutral-100.rounded-full.p-1.w-full.shadow-sm.my-5.md\\:max-w-md .tab-btn');
+    console.log('Found tab buttons:', tabButtons.length);
     
-    // Then fetch audit trails (this will show skeleton and load data)
+    tabButtons.forEach((button, index) => {
+        button.addEventListener('click', () => {
+            console.log(`Tab button ${index} clicked`);
+            setActiveAuditTab(index);
+        });
+    });
+    
+    // First fetch audit trails data
     fetchAuditTrails().then(() => {
+        // After data is loaded, initialize the Admin tab with the data
+        console.log('Data loaded, now setting up Admin tab');
+        setActiveAuditTab(0);
+        
         // Double-check search setup after tab initialization
         console.log('Double-checking search setup after tab initialization...');
         setupSearch();
@@ -526,3 +542,6 @@ window.auditTrailFunctions = {
     performSearch,
     setActiveAuditTab
 };
+
+// Make setActiveAuditTab available globally for HTML onclick handlers
+window.setActiveAuditTab = setActiveAuditTab;

@@ -24,7 +24,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // ==================== UTILITY FUNCTIONS ====================
-function getPropertyIdFromUrl() {
+function getPropertyIdFromUrl() { //delete this soon after testing
     const urlParams = new URLSearchParams(window.location.search);
     return urlParams.get('id');
 }
@@ -977,10 +977,6 @@ async function deleteExistingImage(imageUrl, buttonElement) {
     if (!imageUrl) {
         console.error('Cannot delete image: No image URL provided');
         showErrorMessage('Cannot delete image: Invalid image URL');
-        return;
-    }
-
-    if (!confirm('Are you sure you want to delete this image?')) {
         return;
     }
 

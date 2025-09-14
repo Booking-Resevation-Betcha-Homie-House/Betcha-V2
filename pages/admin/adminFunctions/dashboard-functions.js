@@ -33,8 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initializeAdminProfile();
     // Then load summary and counts
     initializeDashboard();
-    // Initialize scoped Audit Trail tabs
-    initializeAuditTabs();
 });
 
 /**
@@ -356,57 +354,53 @@ function populateAuditTrailCards(auditData) {
         auditData = [];
     }
     
-    // Filter data by user type for each tab
-    const adminData = auditData.filter(item => item && item.userType === 'Admin').slice(0, 5);
-    const employeeData = auditData.filter(item => item && item.userType === 'Employee').slice(0, 5);
-    const customerData = auditData.filter(item => item && item.userType === 'Guest').slice(0, 5);
+    // Get the most recent 3 audit trails from all user types combined
+    const recentAuditTrails = auditData
+        .filter(item => item && item.dateTime) // Filter out invalid items
+        .sort((a, b) => new Date(b.dateTime) - new Date(a.dateTime)) // Sort by most recent first
+        .slice(0, 3); // Take only the 3 most recent
     
-    // Populate each tab
-    populateAuditTab(0, adminData); // Admin tab
-    populateAuditTab(1, employeeData); // Employee tab
-    populateAuditTab(2, customerData); // Customer tab
-}
-
-/**
- * Populate a specific audit trail tab
- */
-function populateAuditTab(tabIndex, data) {
-    // Scope to the Audit Trails tab group to avoid cross-group collisions
-    const auditContainer = document.getElementById('tab-contents');
-    const group = auditContainer ? auditContainer.closest('[data-tab-group]') : null;
-    const tabContents = group ? group.querySelectorAll('.tab-content') : document.querySelectorAll('.tab-content');
-    const tabContent = tabContents[tabIndex];
-    if (!tabContent) {
-        console.warn(`Tab content ${tabIndex} not found`);
+    // Find the audit trails container (remove tab-specific logic)
+    const auditContainer = document.getElementById('auditTrailsContent');
+    if (!auditContainer) {
+        console.warn('Audit trails container not found');
         return;
     }
     
-    const gridContainer = tabContent.querySelector('.grid');
-    if (!gridContainer) {
-        console.warn(`Grid container for tab ${tabIndex} not found`);
+    // Find the inner container (the one without padding)
+    const innerContainer = auditContainer.querySelector('div:last-child');
+    if (!innerContainer) {
+        console.warn('Inner audit trails container not found');
         return;
+    }
+    
+    // Find or create a simple grid container
+    let gridContainer = innerContainer.querySelector('.audit-grid');
+    if (!gridContainer) {
+        // Create a new grid container if it doesn't exist
+        gridContainer = document.createElement('div');
+        gridContainer.className = 'audit-grid grid gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3';
+        innerContainer.appendChild(gridContainer);
     }
     
     // Clear existing content
     gridContainer.innerHTML = '';
     
-    if (!data || data.length === 0) {
+    if (recentAuditTrails.length === 0) {
         // Show no data message
-        const tabNames = ['Admin', 'Employee', 'Customer'];
-        const tabName = tabNames[tabIndex] || 'Unknown';
         gridContainer.innerHTML = `
             <div class="col-span-full flex items-center justify-center h-32">
                 <div class="text-center">
-                    <p class="text-neutral-500 text-lg mb-2">No ${tabName} audit trails available</p>
-                    <p class="text-neutral-400 text-sm">No activities have been recorded for this user type yet.</p>
+                    <p class="text-neutral-500 text-lg mb-2">No recent audit trails available</p>
+                    <p class="text-neutral-400 text-sm">No activities have been recorded recently.</p>
                 </div>
             </div>
         `;
         return;
     }
     
-    // Create audit trail cards
-    data.forEach(item => {
+    // Create audit trail cards for the most recent 3 items
+    recentAuditTrails.forEach(item => {
         const card = createAuditTrailCard(item);
         gridContainer.appendChild(card);
     });
@@ -1084,29 +1078,6 @@ function setAuditTab(tabIndex) {
     });
 }
 
-/**
- * Wire up click listeners for the Audit Trails tabs and set initial active tab
- */
-function initializeAuditTabs() {
-    const auditContent = document.getElementById('tab-contents');
-    const group = auditContent ? auditContent.closest('[data-tab-group]') : null;
-    if (!group) {
-        console.warn('Audit tab group not found during initialization');
-        return;
-    }
-
-    const tabButtons = group.querySelectorAll('.tab-btn');
-    tabButtons.forEach((btn, index) => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            setAuditTab(index);
-        });
-    });
-
-    // Ensure one tab is visible on load
-    setAuditTab(0);
-}
-
 // Export functions for external use
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
@@ -1118,7 +1089,6 @@ if (typeof module !== 'undefined' && module.exports) {
         setMonthFilter,
         setYearFilter,
         refreshCountsOnly,
-        setActiveTab,
         refreshAuditTrails,
         sendGuestNotification
     };
@@ -1128,9 +1098,7 @@ if (typeof module !== 'undefined' && module.exports) {
 window.refreshDashboard = refreshDashboard;
 window.setMonthFilter = setMonthFilter;
 window.setYearFilter = setYearFilter;
-
 window.refreshCountsOnly = refreshCountsOnly;
-window.setActiveTab = setActiveTab;
 window.refreshAuditTrails = refreshAuditTrails;
 window.sendGuestNotification = sendGuestNotification;
 

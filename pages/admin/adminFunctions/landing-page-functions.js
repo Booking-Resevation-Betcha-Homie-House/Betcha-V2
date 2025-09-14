@@ -29,6 +29,14 @@ function getLandingPageSkeleton() {
     return skeleton;
 }
 
+// Utility function to truncate text
+function truncateText(text, maxLength = 50) {
+    if (!text || text.length <= maxLength) {
+        return text;
+    }
+    return text.substring(0, maxLength).trim() + '...';
+}
+
 function getLandingPageContent() {
     const content = document.getElementById('landingPageContent');
     if (!content) {
@@ -269,7 +277,10 @@ function updateUnitElement(unitElement, unitData) {
         if (locationElement) {
             const location = unitData.city ? `${unitData.address}, ${unitData.city}` : unitData.address;
             if (location) {
-                locationElement.textContent = location;
+                // Truncate the location text if it's too long
+                locationElement.textContent = truncateText(location, 60);
+                // Add title attribute for full text on hover
+                locationElement.title = location;
             }
         }
         

@@ -26,6 +26,8 @@ async function createAuditTrail(userId, userType, activity) {
         });
 
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('Audit API Error Response:', errorText);
             throw new Error(`Audit trail creation failed: ${response.status}`);
         }
 

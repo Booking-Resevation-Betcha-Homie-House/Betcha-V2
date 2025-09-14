@@ -585,6 +585,15 @@ async function fetchAndDisplayProperty() {
             initializeDirectionsButton();
         }, 500);
 
+        // Dispatch custom event to notify that property data is loaded
+        const propertyDataEvent = new CustomEvent('propertyDataLoaded', {
+            detail: { propertyData: currentPropertyData }
+        });
+        document.dispatchEvent(propertyDataEvent);
+
+        // Also call updateBookingDatesDisplay to check if we have dates from URL
+        setTimeout(updateBookingDatesDisplay, 100);
+
     } catch (err) {
         console.error('Error fetching property:', err);
     } finally {
@@ -745,9 +754,22 @@ function getBookingDataFromURL(urlParams) {
     // If not found in URL, try to get from calendar system
     if (!checkInDate || !checkOutDate) {
         // Check if dates are stored in window object from calendar
-        if (window.selectedBookingDates && window.selectedBookingDates.length >= 2) {
+        if (window.selectedBookingDates && window.selectedBookingDates.length >= 1) {
             checkInDate = window.selectedBookingDates[0];
-            checkOutDate = window.selectedBookingDates[window.selectedBookingDates.length - 1];
+            
+            if (window.selectedBookingDates.length >= 2) {
+                // Multiple dates selected - use range
+                checkOutDate = window.selectedBookingDates[window.selectedBookingDates.length - 1];
+            } else {
+                // Single date selected - auto-set checkout to next day for 1-night stay
+                const checkInDateObj = new Date(window.selectedBookingDates[0]);
+                const checkOutDateObj = new Date(checkInDateObj);
+                checkOutDateObj.setDate(checkOutDateObj.getDate() + 1);
+                checkOutDate = checkOutDateObj.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+                
+                console.log(`Single date selected. Auto-setting: Check-in: ${checkInDate}, Check-out: ${checkOutDate} (1 night stay)`);
+            }
+            
             console.log('Got dates from window.selectedBookingDates:', checkInDate, checkOutDate);
         }
         
@@ -823,6 +845,10 @@ function getBookingDataFromURL(urlParams) {
         const checkOut = new Date(checkOutDate);
         const timeDiff = checkOut.getTime() - checkIn.getTime();
         daysOfStay = Math.ceil(timeDiff / (1000 * 3600 * 24));
+        
+        // Ensure minimum 1 day stay (this should be the standard minimum)
+        daysOfStay = Math.max(1, daysOfStay);
+        
         console.log('Calculated days of stay:', daysOfStay);
     }
 
@@ -886,6 +912,95 @@ function navigateToConfirmReservation(propertyData, bookingData) {
 }
 
 document.addEventListener('DOMContentLoaded', fetchAndDisplayProperty);
+
+// Function to update the booking dates display in the dateBookingModal
+function updateBookingDatesDisplay() {
+    const checkInDateEl = document.getElementById('displayCheckInDate');
+    const checkInTimeEl = document.getElementById('displayCheckInTime');
+    const checkOutDateEl = document.getElementById('displayCheckOutDate');
+    const checkOutTimeEl = document.getElementById('displayCheckOutTime');
+    const displayContainer = document.getElementById('bookingDatesDisplay');
+    
+    if (!checkInDateEl || !checkInTimeEl || !checkOutDateEl || !checkOutTimeEl || !displayContainer) {
+        return;
+    }
+
+    // Get dates from URL parameters or selected dates
+    let checkInDate = null;
+    let checkOutDate = null;
+    
+    const urlParams = new URLSearchParams(window.location.search);
+    checkInDate = urlParams.get('checkIn');
+    checkOutDate = urlParams.get('checkOut');
+    
+    // Try window.selectedBookingDates if URL params not available
+    if ((!checkInDate || !checkOutDate) && window.selectedBookingDates && window.selectedBookingDates.length >= 1) {
+        checkInDate = window.selectedBookingDates[0];
+        if (window.selectedBookingDates.length >= 2) {
+            checkOutDate = window.selectedBookingDates[window.selectedBookingDates.length - 1];
+        } else {
+            // Single date selected - auto-set checkout to next day
+            const checkInDateObj = new Date(window.selectedBookingDates[0]);
+            const checkOutDateObj = new Date(checkInDateObj);
+            checkOutDateObj.setDate(checkOutDateObj.getDate() + 1);
+            checkOutDate = checkOutDateObj.toISOString().split('T')[0];
+        }
+    }
+
+    // Get times from property data
+    const checkInTime = currentPropertyData?.timeIn || '';
+    const checkOutTime = currentPropertyData?.timeOut || '';
+
+    if (checkInDate && checkOutDate) {
+        // Format dates
+        const formatDate = (dateStr) => {
+            const date = new Date(dateStr);
+            return date.toLocaleDateString('en-US', { 
+                weekday: 'short', 
+                month: 'short', 
+                day: 'numeric',
+                year: 'numeric'
+            });
+        };
+
+        // Update display
+        checkInDateEl.textContent = formatDate(checkInDate);
+        checkInTimeEl.textContent = checkInTime ? `at ${checkInTime}` : '';
+        checkOutDateEl.textContent = formatDate(checkOutDate);
+        checkOutTimeEl.textContent = checkOutTime ? `at ${checkOutTime}` : '';
+        
+        displayContainer.classList.remove('hidden');
+    } else {
+        // Reset to default
+        checkInDateEl.textContent = 'Select date';
+        checkInTimeEl.textContent = '';
+        checkOutDateEl.textContent = 'Select date';
+        checkOutTimeEl.textContent = '';
+        
+        displayContainer.classList.add('hidden');
+    }
+}
+
+// Listen for date selection events
+document.addEventListener('datesSelected', function(e) {
+    updateBookingDatesDisplay();
+});
+
+document.addEventListener('bookingDatesUpdate', function(e) {
+    updateBookingDatesDisplay();
+});
+
+// Listen for property data loaded to get check-in/out times
+document.addEventListener('propertyDataLoaded', function() {
+    updateBookingDatesDisplay();
+});
+
+// Update when modal opens
+document.addEventListener('click', function(e) {
+    if (e.target.closest('[data-modal-target="dateBookingModal"]')) {
+        setTimeout(updateBookingDatesDisplay, 100);
+    }
+});
 
 // Function to initialize directions button functionality
 function initializeDirectionsButton() {

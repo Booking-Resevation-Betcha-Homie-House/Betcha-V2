@@ -147,10 +147,8 @@ function renderFAQs(faqs) {
 
         // Delete button event
         faqItem.querySelector('.delete-faq-btn').addEventListener('click', async () => {
-            if (confirm('Are you sure you want to delete this FAQ?')) {
-                await deleteFAQ(faq._id);
-                getAllFAQS();
-            }
+            await deleteFAQ(faq._id);
+            getAllFAQS();
         });
     });
 }

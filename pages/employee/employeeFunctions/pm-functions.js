@@ -83,9 +83,13 @@ document.addEventListener('DOMContentLoaded', function() {
     try {
         if (window.AuditTrailFunctions) {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const userId = userData.userId || userData.user_id || 'unknown';
-            const userType = userData.role || 'employee';
-            window.AuditTrailFunctions.logSystemAccess(userId, userType).catch(auditError => {
+            const userId = userData.userId || userData.user_id || localStorage.getItem('userId') || localStorage.getItem('employeeId') || 'unknown';
+            const userType = userData.role || localStorage.getItem('role') || 'employee';
+            
+            // Capitalize the user type for API compatibility
+            const capitalizedUserType = userType.charAt(0).toUpperCase() + userType.slice(1).toLowerCase();
+            
+            window.AuditTrailFunctions.logSystemAccess(userId, capitalizedUserType).catch(auditError => {
                 console.error('Audit trail error:', auditError);
             });
         }
@@ -263,7 +267,8 @@ function showAccessDeniedMessage() {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
             const userId = userData.userId || userData.user_id || 'unknown';
             const userType = userData.role || 'employee';
-            window.AuditTrailFunctions.logUnauthorizedAccess(userId, userType).catch(auditError => {
+            const capitalizedUserType = userType.charAt(0).toUpperCase() + userType.slice(1).toLowerCase();
+            window.AuditTrailFunctions.logUnauthorizedAccess(userId, capitalizedUserType).catch(auditError => {
                 console.error('Audit trail error:', auditError);
             });
         }
@@ -1792,6 +1797,36 @@ function initializePMCalendar() {
             loadBookingsByDate(dates[dates.length - 1]);
         }
     });
+
+    // Clear booking cache when month changes
+    const prevMonthBtn = calendarEl.querySelector('.prevMonth');
+    const nextMonthBtn = calendarEl.querySelector('.nextMonth');
+    
+    if (prevMonthBtn) {
+        prevMonthBtn.addEventListener('click', () => {
+            // Clear cache on month navigation
+            setTimeout(async () => {
+                bookingsCache.data.clear();
+                bookingsCache.month = null;
+                bookingsCache.year = null;
+                // Refetch calendar overview for new month
+                await fetchPMCalendarOverview();
+            }, 100); // Small delay to ensure calendar has updated
+        });
+    }
+    
+    if (nextMonthBtn) {
+        nextMonthBtn.addEventListener('click', () => {
+            // Clear cache on month navigation
+            setTimeout(async () => {
+                bookingsCache.data.clear();
+                bookingsCache.month = null;
+                bookingsCache.year = null;
+                // Refetch calendar overview for new month
+                await fetchPMCalendarOverview();
+            }, 100); // Small delay to ensure calendar has updated
+        });
+    }
 }
 
 // Function to fetch PM calendar overview data
@@ -1825,6 +1860,9 @@ async function fetchPMCalendarOverview() {
         
         // Update calendar with visual indicators
         updatePMCalendarWithDates(calendarData);
+
+        // Pre-load booking data for all dates in current month
+        await preLoadCurrentMonthBookings();
 
     } catch (error) {
         console.error('Error fetching PM calendar overview:', error);
@@ -1936,6 +1974,95 @@ function updatePMCalendarLegend(bookedCount, maintenanceCount) {
     }
 }
 
+// Function to pre-load booking data for all dates in the current month
+async function preLoadCurrentMonthBookings() {
+    try {
+        console.log('📅 Pre-loading booking data for current month...');
+        
+        // Get property IDs from localStorage
+        const propertyIds = await getPropertyIds();
+        if (propertyIds.length === 0) {
+            console.warn('No property IDs available for pre-loading');
+            return;
+        }
+
+        // Get current month's date range
+        const today = new Date();
+        const currentMonth = today.getMonth();
+        const currentYear = today.getFullYear();
+        const startOfMonth = new Date(currentYear, currentMonth, 1);
+        const endOfMonth = new Date(currentYear, currentMonth + 1, 0);
+
+        // Clear and reset cache for current month
+        bookingsCache.data.clear();
+        bookingsCache.month = currentMonth;
+        bookingsCache.year = currentYear;
+
+        // Create array of all dates in current month
+        const datesToFetch = [];
+        for (let d = new Date(startOfMonth); d <= endOfMonth; d.setDate(d.getDate() + 1)) {
+            datesToFetch.push(d.toISOString().split('T')[0]);
+        }
+
+        // Fetch bookings for all dates in parallel (with rate limiting)
+        const batchSize = 5; // Process 5 dates at a time to avoid overwhelming the API
+        for (let i = 0; i < datesToFetch.length; i += batchSize) {
+            const batch = datesToFetch.slice(i, i + batchSize);
+            
+            await Promise.all(batch.map(async (dateStr) => {
+                try {
+                    const requestBody = {
+                        checkIn: dateStr,
+                        propertyIds: propertyIds
+                    };
+                    
+                    const response = await fetch(`${API_BASE_URL}/pm/bookings/byDateAndProperties`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const bookings = Array.isArray(data) ? data : (data.bookings || data.data || []);
+                        bookingsCache.data.set(dateStr, bookings);
+                    } else {
+                        bookingsCache.data.set(dateStr, []);
+                    }
+                } catch (err) {
+                    console.warn(`Failed to pre-load bookings for ${dateStr}:`, err);
+                    bookingsCache.data.set(dateStr, []);
+                }
+            }));
+
+            // Small delay between batches to be gentle on the API
+            if (i + batchSize < datesToFetch.length) {
+                await new Promise(resolve => setTimeout(resolve, 100));
+            }
+        }
+
+        console.log(`📅 Successfully pre-loaded booking data for ${datesToFetch.length} dates`);
+        
+        // Auto-load bookings for today if it's in the current month
+        const todayStr = today.toISOString().split('T')[0];
+        if (datesToFetch.includes(todayStr)) {
+            loadBookingsByDate(todayStr);
+        }
+
+    } catch (error) {
+        console.error('Error pre-loading current month bookings:', error);
+    }
+}
+
+// Cache for booking data to avoid repeated API calls
+let bookingsCache = {
+    data: new Map(), // Map of date string -> bookings array
+    month: null,
+    year: null
+};
+
 // Function to load bookings by date
 async function loadBookingsByDate(selectedDate) {
     try {
@@ -1949,37 +2076,171 @@ async function loadBookingsByDate(selectedDate) {
             return;
         }
         
-        // Prepare API request body
-        const requestBody = {
-            checkIn: selectedDate,
-            propertyIds: propertyIds
-        };
+        const selectedDateObj = new Date(selectedDate);
+        const currentMonth = selectedDateObj.getMonth();
+        const currentYear = selectedDateObj.getFullYear();
         
-        
-        
-        // Call the API
-        const response = await fetch(`${API_BASE_URL}/pm/bookings/byDateAndProperties`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(requestBody)
-        });
-        
-        if (!response.ok) {
-            throw new Error(`API call failed: ${response.status} ${response.statusText}`);
+        // Clear cache if month changed
+        if (bookingsCache.month !== currentMonth || bookingsCache.year !== currentYear) {
+            bookingsCache.data.clear();
+            bookingsCache.month = currentMonth;
+            bookingsCache.year = currentYear;
         }
         
-        const bookingsData = await response.json();
+        // First, try to get direct bookings for this date from cache/API
+        let directBookings = [];
+        if (bookingsCache.data.has(selectedDate)) {
+            directBookings = bookingsCache.data.get(selectedDate);
+        } else {
+            // Fetch bookings that start on this date
+            const requestBody = {
+                checkIn: selectedDate,
+                propertyIds: propertyIds
+            };
+            
+            try {
+                const response = await fetch(`${API_BASE_URL}/pm/bookings/byDateAndProperties`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    directBookings = Array.isArray(data) ? data : (data.bookings || data.data || []);
+                    bookingsCache.data.set(selectedDate, directBookings);
+                }
+            } catch (err) {
+                console.warn(`Failed to fetch direct bookings for ${selectedDate}:`, err);
+            }
+        }
+        
+        // Now find bookings that span this date from cached data
+        const spanningBookings = [];
+        for (const [cachedDate, cachedBookings] of bookingsCache.data.entries()) {
+            if (cachedDate !== selectedDate) {
+                for (const booking of cachedBookings) {
+                    const checkIn = booking.checkIn || booking.checkInDate;
+                    const checkOut = booking.checkOut || booking.checkOutDate;
+                    
+                    if (checkIn && checkOut) {
+                        const checkInDate = new Date(checkIn);
+                        const checkOutDate = new Date(checkOut);
+                        const selectedDateParsed = new Date(selectedDate);
+                        
+                        // Check if selected date falls within the booking period (inclusive of both check-in and check-out dates)
+                        if (selectedDateParsed >= checkInDate && selectedDateParsed <= checkOutDate) {
+                            // Avoid duplicates
+                            const bookingId = booking._id || booking.bookingId || booking.id;
+                            const isDuplicate = directBookings.some(db => {
+                                const dbId = db._id || db.bookingId || db.id;
+                                return dbId === bookingId;
+                            });
+                            
+                            if (!isDuplicate) {
+                                spanningBookings.push(booking);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // If we don't have enough cached data and no bookings found, fetch a broader range
+        if (directBookings.length === 0 && spanningBookings.length === 0 && bookingsCache.data.size < 7) {
+            await fetchNearbyDates(selectedDate, propertyIds);
+            // Retry the spanning search after fetching more data
+            for (const [cachedDate, cachedBookings] of bookingsCache.data.entries()) {
+                if (cachedDate !== selectedDate) {
+                    for (const booking of cachedBookings) {
+                        const checkIn = booking.checkIn || booking.checkInDate;
+                        const checkOut = booking.checkOut || booking.checkOutDate;
+                        
+                        if (checkIn && checkOut) {
+                            const checkInDate = new Date(checkIn);
+                            const checkOutDate = new Date(checkOut);
+                            const selectedDateParsed = new Date(selectedDate);
+                            
+                            // Check if selected date falls within the booking period (inclusive of both check-in and check-out dates)
+                            if (selectedDateParsed >= checkInDate && selectedDateParsed <= checkOutDate) {
+                                const bookingId = booking._id || booking.bookingId || booking.id;
+                                const isDuplicate = directBookings.some(db => {
+                                    const dbId = db._id || db.bookingId || db.id;
+                                    return dbId === bookingId;
+                                }) || spanningBookings.some(sb => {
+                                    const sbId = sb._id || sb.bookingId || sb.id;
+                                    return sbId === bookingId;
+                                });
+                                
+                                if (!isDuplicate) {
+                                    spanningBookings.push(booking);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Combine direct and spanning bookings
+        const allActiveBookings = [...directBookings, ...spanningBookings];
         
         // Populate the calendar booking display (enrich + filter cancellations)
-        const enriched = await enrichAndFilterCalendarBookings(bookingsData);
+        const enriched = await enrichAndFilterCalendarBookings(allActiveBookings);
         populateCalendarBookings(enriched, selectedDate);
         
     } catch (error) {
         console.error('Error loading bookings by date:', error);
         showCalendarBookingsError('Failed to load bookings for selected date');
     }
+}
+
+// Function to fetch bookings for nearby dates (7 days before and after)
+async function fetchNearbyDates(selectedDate, propertyIds) {
+    const selectedDateObj = new Date(selectedDate);
+    const promises = [];
+    
+    // Fetch 7 days before and after the selected date
+    for (let i = -7; i <= 7; i++) {
+        const dateObj = new Date(selectedDateObj);
+        dateObj.setDate(selectedDateObj.getDate() + i);
+        const dateStr = dateObj.toISOString().split('T')[0];
+        
+        if (!bookingsCache.data.has(dateStr)) {
+            const promise = (async () => {
+                try {
+                    const requestBody = {
+                        checkIn: dateStr,
+                        propertyIds: propertyIds
+                    };
+                    
+                    const response = await fetch(`${API_BASE_URL}/pm/bookings/byDateAndProperties`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestBody)
+                    });
+                    
+                    if (response.ok) {
+                        const data = await response.json();
+                        const bookings = Array.isArray(data) ? data : (data.bookings || data.data || []);
+                        bookingsCache.data.set(dateStr, bookings);
+                    } else {
+                        bookingsCache.data.set(dateStr, []);
+                    }
+                } catch (err) {
+                    console.warn(`Failed to fetch bookings for ${dateStr}:`, err);
+                    bookingsCache.data.set(dateStr, []);
+                }
+            })();
+            promises.push(promise);
+        }
+    }
+    
+    await Promise.all(promises);
 }
 
 // Enrich bookings with full status/transNo and filter out cancelled

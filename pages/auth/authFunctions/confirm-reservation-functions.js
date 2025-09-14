@@ -24,6 +24,9 @@ document.addEventListener('DOMContentLoaded', async function() {
     setupPaymentTypeSelection();
     setupFormValidation();
     setupConfirmButton();
+    
+    // Setup navigation warnings
+    setupNavigationWarnings();
 });
 
 // Function to setup the confirm button click handler
@@ -195,9 +198,39 @@ async function createBooking(bookingData) {
         
         if (response.ok) {
             console.log('Booking created successfully:', result);
+            
+            // Get the booking ID from the response
+            const bookingId = result.booking?._id || result.booking?.id || result.id || result._id;
+            
+            if (bookingId) {
+                // Update booking status to "Pending Payment"
+                try {
+                    console.log('Updating booking status to Pending Payment for booking ID:', bookingId);
+                    
+                    const statusResponse = await fetch(`https://betcha-api.onrender.com/booking/update-status/${bookingId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            status: "Pending Payment"
+                        })
+                    });
+                    
+                    if (statusResponse.ok) {
+                        console.log('Booking status updated to Pending Payment successfully');
+                    } else {
+                        console.warn('Failed to update booking status, but booking was created');
+                    }
+                } catch (statusError) {
+                    console.warn('Error updating booking status:', statusError);
+                    // Don't fail the entire process if status update fails
+                }
+            }
+            
             return {
                 success: true,
-                bookingId: result.booking?._id || result.booking?.id || result.id || result._id,
+                bookingId: bookingId,
                 message: result.message || 'Booking created successfully'
             };
         } else {
@@ -535,3 +568,43 @@ function navigateToConfirmReservation(propertyData, bookingData) {
 
 // Export function for use in other scripts
 window.navigateToConfirmReservation = navigateToConfirmReservation;
+
+// Function to setup navigation warnings
+function setupNavigationWarnings() {
+    let isBookingConfirmed = false;
+    
+    // Mark booking as confirmed when user clicks confirm button
+    const confirmButton = document.getElementById('confirm');
+    if (confirmButton) {
+        confirmButton.addEventListener('click', () => {
+            isBookingConfirmed = true;
+        });
+    }
+    
+    // Simple approach: Override window.history.back globally
+    const originalBack = window.history.back;
+    window.history.back = function() {
+        if (!isBookingConfirmed) {
+            const shouldLeave = confirm('Your booking will be cancelled if you leave this page. Are you sure?');
+            if (shouldLeave) {
+                originalBack.call(window.history);
+            }
+        } else {
+            originalBack.call(window.history);
+        }
+    };
+    
+    // Auto-trigger user interaction to enable beforeunload
+    setTimeout(() => {
+        document.dispatchEvent(new Event('click'));
+    }, 100);
+    
+    // Browser navigation warning
+    window.addEventListener('beforeunload', (e) => {
+        if (!isBookingConfirmed) {
+            e.preventDefault();
+            e.returnValue = 'Your booking will be cancelled if you leave this page.';
+            return e.returnValue;
+        }
+    });
+}
