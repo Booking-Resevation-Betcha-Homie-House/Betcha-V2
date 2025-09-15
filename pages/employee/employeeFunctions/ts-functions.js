@@ -253,7 +253,10 @@ function createTransactionElement(transaction, tabType) {
             year: 'numeric'
         });
         
-        const checkOutDate = new Date(transaction.checkOut).toLocaleDateString('en-US', {
+        // Add +1 day to checkout date for display
+        const checkOutDateObj = new Date(transaction.checkOut);
+        checkOutDateObj.setDate(checkOutDateObj.getDate() + 1);
+        const checkOutDate = checkOutDateObj.toLocaleDateString('en-US', {
             month: 'short',
             day: 'numeric',
             year: 'numeric'
@@ -647,7 +650,10 @@ function populateModalWithBookingData(modal, booking, transactionData) {
             year: 'numeric'
         });
         
-        const checkOutDate = new Date(booking.checkOut).toLocaleDateString('en-US', {
+        // Add +1 day to checkout date for display
+        const checkOutDateObj = new Date(booking.checkOut);
+        checkOutDateObj.setDate(checkOutDateObj.getDate() + 1);
+        const checkOutDate = checkOutDateObj.toLocaleDateString('en-US', {
             month: 'long',
             day: 'numeric',
             year: 'numeric'
@@ -1309,7 +1315,10 @@ function populateModalWithTransactionData(modal, transaction) {
             year: 'numeric'
         });
         
-        const checkOutDate = new Date(transaction.checkOut).toLocaleDateString('en-US', {
+        // Add +1 day to checkout date for display
+        const checkOutDateObj = new Date(transaction.checkOut);
+        checkOutDateObj.setDate(checkOutDateObj.getDate() + 1);
+        const checkOutDate = checkOutDateObj.toLocaleDateString('en-US', {
             month: 'long',
             day: 'numeric',
             year: 'numeric'
