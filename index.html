@@ -685,6 +685,39 @@
 
     <script src="pages/unauth/unauthFunctions/landingPage-functions.js"></script>
     <script defer src="src/modal.js"></script>
+    
+    <!-- User Role Redirect Logic -->
+    <script>
+        // Check user role on page load and redirect accordingly
+        document.addEventListener('DOMContentLoaded', function() {
+            const userRole = localStorage.getItem('role'); // Changed from 'userRole' to 'role'
+            
+            if (userRole) {
+                console.log('User role found:', userRole);
+                
+                switch(userRole.toLowerCase()) {
+                    case 'admin':
+                        console.log('Redirecting to admin dashboard...');
+                        window.location.href = '/pages/admin/dashboard.html';
+                        break;
+                    case 'employee':
+                        console.log('Redirecting to employee dashboard...');
+                        window.location.href = '/pages/employee/dashboard.html';
+                        break;
+                    case 'guest':
+                        console.log('Redirecting to guest profile...');
+                        window.location.href = '/pages/unauth/rooms.html'; // Updated to match login redirect
+                        break;
+                    default:
+                        console.log('Unknown user role:', userRole);
+                        // Stay on landing page for unknown roles
+                        break;
+                }
+            } else {
+                console.log('No user role found in localStorage - staying on landing page');
+            }
+        });
+    </script>
      
   </body>
 </html>
