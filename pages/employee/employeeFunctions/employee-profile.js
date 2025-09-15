@@ -123,9 +123,9 @@ function displayAssignedProperties(properties) {
     container.innerHTML = '';
     
     // Create property items
-    properties.forEach((property, index) => {
+    properties.forEach((property) => {
         const propertyElement = document.createElement('div');
-        propertyElement.className = 'flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-xl border border-gray-200';
+        propertyElement.className = 'flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 w-full min-w-0';
         
         // Extract location from address or use city
         const location = property.city || property.address || 'Location not specified';
@@ -137,15 +137,15 @@ function displayAssignedProperties(properties) {
         const statusText = isActive ? 'Active' : 'Inactive';
         
         propertyElement.innerHTML = `
-            <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-                <div class="flex items-center gap-2">
-                    <div>
-                        <p class="text-sm font-semibold text-primary-text font-manrope">${property.name || 'Property Name'}</p>
-                        <p class="text-xs text-neutral-500 font-inter">${shortLocation}</p>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-1 min-w-0">
+                    <div class="flex-1 min-w-0">
+                        <p class="text-sm font-semibold text-primary-text font-manrope truncate">${property.name || 'Property Name'}</p>
+                        <p class="text-xs text-neutral-500 font-inter truncate">${shortLocation}</p>
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-2 mt-2 sm:mt-0">
+            <div class="flex items-center gap-2 mt-2 sm:mt-0 flex-shrink-0">
                 <span class="text-xs px-2 py-1 rounded-full ${statusClass}">
                     ${statusText}
                 </span>

@@ -219,7 +219,7 @@
         </nav>
 
         <main class="w-full p-5 md:p-10 overflow-auto h-full flex justify-center">
-          <div class="max-w-3xl w-full bg-white rounded-3xl p-6 shadow-sm overflow-hidden">
+          <div class="w-full max-w-none lg:max-w-4xl xl:max-w-5xl bg-white rounded-3xl p-4 sm:p-6 shadow-sm h-fit" id="pfContainer">
             <p class="text-2xl font-bold text-primary-text mb-4 text-center sm:text-start font-manrope">Profile</p>
             <!-- Header Section -->
             <div class="flex flex-col items-center text-center p-8">
@@ -247,7 +247,7 @@
                 </button>
             </div>
 
-            <div class="md:px-6 md:pb-6 space-y-6 text-center mb-6">
+            <div class="px-2 md:px-6 pb-6 space-y-6 text-center w-full">
                 <!-- Divider -->
                 <hr class="border-neutral-300">
 
@@ -270,9 +270,9 @@
                 </div>
 
                 <!-- Assigned Properties -->
-                <div class="flex flex-col space-y-3">
-                    <p class="text-sm text-neutral-500 font-inter text-center sm:text-left">Assigned Properties</p>
-                    <div id="assignedPropertiesContainer" class="space-y-2">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between w-full">
+                    <p class="text-sm text-neutral-500 font-inter">Assigned Properties</p>
+                    <div id="assignedPropertiesContainer" class="space-y-2 w-full sm:w-auto sm:max-w-md">
                         <!-- Properties will be dynamically populated here -->
                         <div class="text-sm text-neutral-400 font-manrope text-center">Loading properties...</div>
                     </div>

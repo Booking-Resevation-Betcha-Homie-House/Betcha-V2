@@ -289,7 +289,7 @@
 
               </div>
             </div>
-            <div class="overflow-y-auto space-y-4 rounded-lg bg-neutral-200 p-5 h-[500px]">
+            <div class="overflow-y-auto space-y-4 rounded-lg bg-neutral-200 p-5 h-[500px]" id="selected-date-container">
               <div class="w-full h-full flex justify-center items-center text-center text-sm font-manrope text-neutral-500">
                 <div class="flex flex-col items-center">
                   <svg class="w-12 h-12 text-neutral-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -433,18 +433,11 @@
             </button>
         </div>
         <div class="flex flex-col space-y-5 px-5 mb-5 flex-1">
-          <p class="text-xs italic text-primary font-semibold mb-3">(Pending admin approval. If not approved or no response, the cancellation request will not proceed.)</p>
-          <div class="flex flex-col gap-2 w-full group mb-3">
-              <label for="select-cancel-admin" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                  Select admin:
-              </label>
-              <select id="select-cancel-admin" class="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white">
-                  <option value="" selected disabled>Loading admins...</option>
-              </select>
-          </div>
+          <p class="text-xs italic text-primary font-semibold mb-3">(Pending admin approval. Cancellation notice will be sent to all administrators.)</p>
+          <!-- Admin selection dropdown removed - now sends to all admins automatically -->
           <div class="flex flex-col gap-2 w-full group">
               <label for="input-cancel-admin" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                  Cancellation note for admin:
+                  Cancellation note for administrators:
               </label>
               
               <div class="input-style3 flex items-center justify-center gap-3">
@@ -496,7 +489,7 @@
           <!-- Property Name -->
           <div>
             <p class="text-lg md:text-xl font-bold font-manrpoe text-neutral-900 leading-tight">The Cozy Apartment</p>
-            <p class="text-neutral-600 text-sm md:text-base">123 Sunshine Street, Manila</p>
+            <p class="text-neutral-600 text-sm md:text-base">Transaction: #000000000</p>
           </div>
 
           <!-- Divider -->

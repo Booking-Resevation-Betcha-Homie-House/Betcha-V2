@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Loading Skeleton Test</title>
+    <link rel="stylesheet" href="/src/index.css">
+    <style>
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-background p-8">
+    <div class="max-w-md mx-auto">
+        <h1 class="text-2xl font-bold mb-6">PM Booking Loading Skeleton Test</h1>
+        
+        <div class="overflow-y-auto space-y-4 rounded-lg bg-neutral-200 p-5 h-[500px]" id="test-container">
+            <!-- This will be populated with the skeleton -->
+        </div>
+        
+        <div class="mt-4 space-x-4">
+            <button id="show-skeleton" class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+                Show Loading Skeleton
+            </button>
+            <button id="show-content" class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600">
+                Show Sample Content
+            </button>
+            <button id="show-empty" class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                Show Empty State
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Test the loading skeleton
+        function showTestSkeleton() {
+            const container = document.getElementById('test-container');
+            container.innerHTML = `
+                <div class="space-y-4 animate-pulse">
+                    ${Array.from({length: 3}, () => `
+                        <div class="rounded-lg bg-white p-5 shadow-sm border border-neutral-200">
+                            <div class="flex flex-col md:flex-row justify-between gap-3">
+                                <div class="flex-1 space-y-2">
+                                    <div class="h-4 bg-neutral-200 rounded w-3/4"></div>
+                                    <div class="h-3 bg-neutral-200 rounded w-1/2"></div>
+                                    <div class="h-3 bg-neutral-200 rounded w-2/3"></div>
+                                </div>
+                                <div class="flex flex-col justify-center gap-2">
+                                    <div class="h-8 bg-neutral-200 rounded w-20"></div>
+                                    <div class="h-6 bg-neutral-200 rounded w-16"></div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function showTestContent() {
+            const container = document.getElementById('test-container');
+            container.innerHTML = `
+                <div class="space-y-4">
+                    <div class="rounded-lg bg-white p-5 shadow-sm border border-neutral-200">
+                        <div class="flex flex-col md:flex-row justify-between gap-3">
+                            <div class="flex-1">
+                                <p class="font-semibold text-primary-text">Ocean View Apartment</p>
+                                <p class="text-sm text-neutral-500">Guest: John Doe</p>
+                                <p class="text-sm text-neutral-500">Check-in: 2:00 PM</p>
+                            </div>
+                            <div class="flex flex-col justify-center gap-2">
+                                <span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs">Active</span>
+                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs">Check-in</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="rounded-lg bg-white p-5 shadow-sm border border-neutral-200">
+                        <div class="flex flex-col md:flex-row justify-between gap-3">
+                            <div class="flex-1">
+                                <p class="font-semibold text-primary-text">City Center Suite</p>
+                                <p class="text-sm text-neutral-500">Guest: Jane Smith</p>
+                                <p class="text-sm text-neutral-500">Check-out: 11:00 AM</p>
+                            </div>
+                            <div class="flex flex-col justify-center gap-2">
+                                <span class="bg-yellow-100 text-yellow-800 px-2 py-1 rounded text-xs">Occupied</span>
+                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">Check-out</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function showTestEmpty() {
+            const container = document.getElementById('test-container');
+            container.innerHTML = `
+                <div class="w-full h-full flex justify-center items-center text-center text-sm font-manrope text-neutral-500">
+                    <div class="flex flex-col items-center">
+                        <svg class="w-12 h-12 text-neutral-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z"/>
+                        </svg>
+                        <p>No bookings for this date</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Event listeners
+        document.getElementById('show-skeleton').addEventListener('click', showTestSkeleton);
+        document.getElementById('show-content').addEventListener('click', showTestContent);
+        document.getElementById('show-empty').addEventListener('click', showTestEmpty);
+
+        // Show skeleton by default
+        showTestSkeleton();
+    </script>
+</body>
+</html>
