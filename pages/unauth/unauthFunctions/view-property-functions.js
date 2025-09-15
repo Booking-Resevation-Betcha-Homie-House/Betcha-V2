@@ -952,22 +952,21 @@ function updateBookingDatesDisplay() {
     const checkOutTime = currentPropertyData?.timeOut || '';
 
     if (checkInDate && checkOutDate) {
-        // Format dates
-        const formatDate = (dateStr) => {
+        // Format dates as MM/DD/YYYY | Time
+        const formatDate = (dateStr, time) => {
             const date = new Date(dateStr);
-            return date.toLocaleDateString('en-US', { 
-                weekday: 'short', 
-                month: 'short', 
-                day: 'numeric',
-                year: 'numeric'
-            });
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            const year = date.getFullYear();
+            const formattedDate = `${month}/${day}/${year}`;
+            return time ? `${formattedDate} | ${time}` : formattedDate;
         };
 
         // Update display
-        checkInDateEl.textContent = formatDate(checkInDate);
-        checkInTimeEl.textContent = checkInTime ? `at ${checkInTime}` : '';
-        checkOutDateEl.textContent = formatDate(checkOutDate);
-        checkOutTimeEl.textContent = checkOutTime ? `at ${checkOutTime}` : '';
+        checkInDateEl.textContent = formatDate(checkInDate, checkInTime);
+        checkInTimeEl.textContent = ''; // Clear since we're combining date and time
+        checkOutDateEl.textContent = formatDate(checkOutDate, checkOutTime);
+        checkOutTimeEl.textContent = ''; // Clear since we're combining date and time
         
         displayContainer.classList.remove('hidden');
     } else {
