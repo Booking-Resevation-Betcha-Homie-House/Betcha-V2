@@ -37,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
               </svg>
               <p class="font-roboto text-muted text-sm">${truncateText(property.city, 20)}</p>
             </div>
-            <p class="font-roboto text-primary-text">₱ <span class="font-roboto text-primary-text">${property.packagePrice.toLocaleString()}</span> <span class="font-roboto text-muted">/ day</span></p>
+            <p class="font-roboto text-primary-text">₱ <span class="font-roboto text-primary-text">${property.packagePrice.toLocaleString()}</span> <span class="font-roboto text-muted">/ night</span></p>
           </div>
         </div>
       </a>

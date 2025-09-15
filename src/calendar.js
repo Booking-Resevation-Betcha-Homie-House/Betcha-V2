@@ -1,15 +1,35 @@
-// Format a date as YYYY/MM/DD
+// Format a date as MM/DD/YYYY
 function formatDate(dateStr) {
   const date = new Date(dateStr);
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const day = String(date.getDate()).padStart(2, '0');
-  return `${year}/${month}/${day}`;
+  return `${month}/${day}/${year}`;
 }
 
 // Store booked and maintenance dates globally
 let bookedDates = new Set();
 let maintenanceDates = new Set();
+
+// Function to check if a date is checkout-only
+function isCheckoutOnlyDate(dateStr) {
+  // A date is checkout-only if:
+  // 1. It's booked
+  // 2. The previous day is available (not booked and not maintenance)
+  if (!bookedDates.has(dateStr)) {
+    return false;
+  }
+  
+  const date = new Date(dateStr);
+  const previousDay = new Date(date);
+  previousDay.setDate(previousDay.getDate() - 1);
+  const previousDayStr = previousDay.toISOString().split('T')[0];
+  
+  // Check if previous day is available
+  const isPreviousDayAvailable = !bookedDates.has(previousDayStr) && !maintenanceDates.has(previousDayStr);
+  
+  return isPreviousDayAvailable;
+}
 
 // Function to fetch calendar data
 async function fetchCalendarData(propertyId) {
@@ -253,6 +273,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       leftCal.innerHTML = buildCalendar(left);
       rightCal.innerHTML = buildCalendar(right);
+      
+      // Add tooltip listeners after rendering
+      setTimeout(() => addTooltipListeners(), 0);
     };
 
     const buildCalendar = (date) => {
@@ -274,7 +297,7 @@ document.addEventListener("DOMContentLoaded", () => {
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
         const isBooked = bookedDates.has(dateStr);
         const isMaintenance = maintenanceDates.has(dateStr);
-        const isUnavailable = isBooked || isMaintenance;
+        const isCheckoutOnly = isCheckoutOnlyDate(dateStr);
         const isSelected = selectedDates.has(dateStr);
         
         // Get today's date for comparison
@@ -296,8 +319,10 @@ document.addEventListener("DOMContentLoaded", () => {
               const rangeEnd = new Date(hoverDate);
               
               if (rangeStart <= rangeEnd) {
+                // Forward range - show all dates from start to hover, even if some are booked
                 isInRange = dateObj >= rangeStart && dateObj <= rangeEnd;
               } else {
+                // Backward range - show all dates from hover to start
                 isInRange = dateObj <= rangeStart && dateObj >= rangeEnd;
               }
             } else {
@@ -314,17 +339,49 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (isPast) {
           classes += "bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-50";
-        } else if (isBooked) {
-          classes += "bg-neutral-200 text-neutral-600 cursor-not-allowed"; // Grey for booked dates
         } else if (isMaintenance) {
           classes += "bg-red-100 text-red-600 cursor-not-allowed"; // Red tint for maintenance
+        } else if (isBooked && !isCheckoutOnly) {
+          classes += "bg-neutral-200 text-neutral-600 cursor-not-allowed"; // Grey for unavailable booked dates
         } else if (isSelected || isInRange) {
-          classes += "bg-primary text-white font-bold"; // Selected or in range
+          // Check if this is the last date in the selection (checkout date)
+          const allSelectedDates = Array.from(selectedDates).sort();
+          const isLastDate = allSelectedDates.length > 0 && dateStr === allSelectedDates[allSelectedDates.length - 1];
+          
+          // For range previews during hover, check if this is the end of the hover range
+          if (isInRange && !isSelected && selectionStart && isRangeSelection) {
+            const hoverDate = calendarEl.dataset.hoverDate;
+            if (hoverDate) {
+              const rangeStart = new Date(selectionStart);
+              const rangeEnd = new Date(hoverDate);
+              const isHoverEndDate = dateStr === (rangeStart <= rangeEnd ? hoverDate : selectionStart);
+              
+              // If this is a booked date in the hover range, show it differently
+              if (isBooked && !isCheckoutOnlyDate(dateStr)) {
+                classes += "bg-neutral-300 text-neutral-700 cursor-not-allowed"; // Darker grey for blocked dates in range
+              } else if (isHoverEndDate) {
+                classes += "bg-green-200 text-green-700 font-bold checkout-preview"; // Light green for hover checkout
+              } else {
+                classes += "bg-primary/60 text-white font-bold"; // Slightly transparent for hover range
+              }
+            } else {
+              classes += "bg-primary text-white font-bold"; // Regular styling when no hover
+            }
+          } else if (isLastDate && allSelectedDates.length > 1) {
+            classes += "bg-green-200 text-green-700 font-bold checkout-selected"; // Light green for final checkout date
+          } else {
+            classes += "bg-primary text-white font-bold"; // Regular selected styling
+          }
+        } else if (isCheckoutOnly) {
+          classes += "bg-orange-100 text-orange-600 cursor-pointer hover:bg-orange-200 checkout-only"; // Special styling for unselected checkout-only
         } else {
           classes += "bg-background text-black hover:bg-secondary";
         }
 
-        html += `<div class="${classes}" data-date="${dateStr}" ${isUnavailable || isPast ? 'style="pointer-events: none;"' : ''}>${d}</div>`;
+        // Add tooltip data attribute for checkout-only dates
+        const tooltipAttr = isCheckoutOnly ? 'data-tooltip="Checkout only"' : '';
+        
+        html += `<div class="${classes}" data-date="${dateStr}" ${tooltipAttr} ${(isBooked && !isCheckoutOnly) || isMaintenance || isPast ? 'style="pointer-events: none;"' : ''}>${d}</div>`;
       }
 
       html += "</div>";
@@ -334,9 +391,15 @@ document.addEventListener("DOMContentLoaded", () => {
     // Handle date selection
     const handleDateSelect = (dateEl) => {
       const date = dateEl.dataset.date;
+      const isCheckoutOnly = isCheckoutOnlyDate(date);
       
       if (!selectionStart) {
         // First click - start range selection
+        // Don't allow checkout-only dates as start dates
+        if (isCheckoutOnly) {
+          return; // Silently ignore click on checkout-only date when no selection started
+        }
+        
         selectionStart = date;
         selectedDates.clear();
         selectedDates.add(date);
@@ -366,9 +429,15 @@ document.addEventListener("DOMContentLoaded", () => {
         const current = new Date(startDate);
         while (current <= endDate) {
           const dateStr = current.toISOString().split('T')[0];
-          // Only add if date is available
+          // Add available dates and checkout-only end dates
           if (!bookedDates.has(dateStr) && !maintenanceDates.has(dateStr)) {
             selectedDates.add(dateStr);
+          } else if (bookedDates.has(dateStr) && isCheckoutOnlyDate(dateStr) && dateStr === endDate.toISOString().split('T')[0]) {
+            // Allow checkout-only dates as the final checkout date
+            selectedDates.add(dateStr);
+          } else if (bookedDates.has(dateStr) && !isCheckoutOnlyDate(dateStr)) {
+            // If we hit a non-checkout-only booked date, stop the range
+            break;
           }
           current.setDate(current.getDate() + 1);
         }
@@ -391,8 +460,19 @@ document.addEventListener("DOMContentLoaded", () => {
     // Click listener for dates
     calendarEl.addEventListener("click", e => {
       const dateEl = e.target.closest("[data-date]");
-      if (dateEl && !dateEl.classList.contains("cursor-not-allowed")) {
-        handleDateSelect(dateEl);
+      if (dateEl) {
+        const dateStr = dateEl.dataset.date;
+        const isCheckoutOnly = isCheckoutOnlyDate(dateStr);
+        
+        // Allow click if:
+        // 1. Date is not disabled (cursor-not-allowed)
+        // 2. OR it's a checkout-only date and we have a selection started
+        const isDisabled = dateEl.classList.contains("cursor-not-allowed");
+        const canClick = !isDisabled || (isCheckoutOnly && selectionStart);
+        
+        if (canClick) {
+          handleDateSelect(dateEl);
+        }
       }
     });
 
@@ -401,10 +481,16 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!isRangeSelection) return; // Only show preview while actively selecting
       
       const dateEl = e.target.closest("[data-date]");
-      if (dateEl && !dateEl.classList.contains("cursor-not-allowed")) {
-        // Store hover date at calendar level for smoother updates
-        calendarEl.dataset.hoverDate = dateEl.dataset.date;
-        requestAnimationFrame(() => render()); // Smoother updates
+      if (dateEl) {
+        const dateStr = dateEl.dataset.date;
+        const isPast = new Date(dateStr) < new Date().setHours(0,0,0,0);
+        
+        // Allow hover over any date that's not in the past
+        if (!isPast) {
+          // Store hover date at calendar level for smoother updates
+          calendarEl.dataset.hoverDate = dateStr;
+          requestAnimationFrame(() => render()); // Smoother updates
+        }
       }
     });
     
@@ -437,6 +523,40 @@ document.addEventListener("DOMContentLoaded", () => {
 
     // Initial render
     render();
+
+    // Add tooltip functionality
+    const addTooltipListeners = () => {
+      calendarEl.querySelectorAll('[data-tooltip]').forEach(element => {
+        let tooltip = null;
+        
+        element.addEventListener('mouseenter', (e) => {
+          const tooltipText = e.target.getAttribute('data-tooltip');
+          if (!tooltipText) return;
+          
+          // Create tooltip element
+          tooltip = document.createElement('div');
+          tooltip.className = 'absolute bg-gray-800 text-white text-xs px-2 py-1 rounded shadow-lg z-50 pointer-events-none';
+          tooltip.textContent = tooltipText;
+          tooltip.style.transform = 'translateX(-50%)';
+          tooltip.style.top = '-30px';
+          tooltip.style.left = '50%';
+          
+          // Position relative to the hovered element
+          e.target.style.position = 'relative';
+          e.target.appendChild(tooltip);
+        });
+        
+        element.addEventListener('mouseleave', () => {
+          if (tooltip) {
+            tooltip.remove();
+            tooltip = null;
+          }
+        });
+      });
+    };
+
+    // Add tooltips after initial render
+    addTooltipListeners();
 
     // Listen for date selection events on calendar
     calendarEl.addEventListener('dateSelection', (e) => {

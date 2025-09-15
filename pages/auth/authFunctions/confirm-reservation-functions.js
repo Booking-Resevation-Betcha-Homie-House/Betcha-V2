@@ -167,13 +167,14 @@ function getBookingDataFromPage() {
     };
 }
 
-// Function to generate date range array
+// Function to generate date range array (excluding checkout date)
 function generateDateRange(startDate, endDate) {
     const dates = [];
     const currentDate = new Date(startDate);
     const end = new Date(endDate);
     
-    while (currentDate <= end) {
+    // Only include dates up to (but NOT including) the checkout date
+    while (currentDate < end) {
         dates.push(currentDate.toISOString().split('T')[0]); // Format: YYYY-MM-DD
         currentDate.setDate(currentDate.getDate() + 1);
     }
@@ -263,7 +264,15 @@ function getReservationDataFromURL(urlParams) {
     data.checkInDate = urlParams.get('checkInDate');
     data.checkOutDate = urlParams.get('checkOutDate');
     data.guestCount = parseInt(urlParams.get('guestCount')) || 1;
-    data.daysOfStay = parseInt(urlParams.get('daysOfStay')) || 1;
+    
+    // Calculate days of stay correctly (number of nights)
+    if (data.checkInDate && data.checkOutDate) {
+        const checkIn = new Date(data.checkInDate);
+        const checkOut = new Date(data.checkOutDate);
+        data.daysOfStay = Math.ceil((checkOut - checkIn) / (1000 * 60 * 60 * 24));
+    } else {
+        data.daysOfStay = parseInt(urlParams.get('daysOfStay')) || 1;
+    }
     
     // Pricing details
     data.pricePerDay = parseFloat(urlParams.get('pricePerDay')) || 0;

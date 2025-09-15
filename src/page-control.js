@@ -104,7 +104,54 @@
     function modifyHeader() {
         // Only modify header for unauth pages when user has no role
         if (!userRole && pageCategories.unauth.test(currentPath)) {
-            replaceWithHamburgerNavigation();
+            // Special handling for rooms.html - only hide notification and profile, keep search
+            if (currentPath.includes('rooms.html')) {
+                hideNotificationAndProfile();
+            } else {
+                // For all other unauth pages, replace with full hamburger navigation
+                replaceWithHamburgerNavigation();
+            }
+        }
+    }
+
+    /**
+     * Hides only notification and profile elements for rooms.html while keeping search visible
+     */
+    function hideNotificationAndProfile() {
+        // Hide notification bell and dropdown
+        const notificationElements = document.querySelectorAll('#notifBellBtnDesktop, [data-modal-target="notifModalSmall"], #notificationDropdown, #notifBadge');
+        notificationElements.forEach(element => {
+            if (element) {
+                element.style.display = 'none';
+            }
+        });
+
+        // Hide profile dropdown menu and replace profile button with hamburger
+        const profileMenuBtn = document.querySelector('#menuBtn');
+        const dropdownMenu = document.querySelector('#dropdownMenu');
+        
+        if (profileMenuBtn && dropdownMenu) {
+            // Replace the profile dropdown content with simple navigation links
+            dropdownMenu.innerHTML = `
+                <div class="space-y-1">
+                    <a href="/pages/unauth/rooms.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">Rooms</a>
+                    <a href="/pages/unauth/about-us.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">About us</a>
+                    <a href="/pages/unauth/faqs.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">FAQs</a>
+                    <div class="border-t border-neutral-200 my-2"></div>
+                    <a href="/pages/unauth/login.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">Login</a>
+                    <a href="/pages/unauth/register.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">Register</a>
+                </div>
+            `;
+
+            // Update the button styling to look like a hamburger menu
+            profileMenuBtn.className = "h-10 w-full group aspect-square rounded-full border border-neutral-200 bg-neutral-100 flex items-center justify-center text-white cursor-pointer overflow-hidden hover:bg-primary/10 hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out";
+            
+            // Replace the profile icon with hamburger icon
+            profileMenuBtn.innerHTML = `
+                <svg class="w-6 h-6 fill-primary-text group-hover:fill-primary transition-all duration-300 ease-in-out" viewBox="0 0 24 24">
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                </svg>
+            `;
         }
     }
 

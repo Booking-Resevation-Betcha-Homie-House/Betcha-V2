@@ -964,13 +964,12 @@ function updateBookingDatesDisplay() {
 
         // Update display
         checkInDateEl.textContent = formatDate(checkInDate, checkInTime);
-        checkInTimeEl.textContent = ''; // Clear since we're combining date and time
+        checkInTimeEl.textContent = '';
         checkOutDateEl.textContent = formatDate(checkOutDate, checkOutTime);
-        checkOutTimeEl.textContent = ''; // Clear since we're combining date and time
+        checkOutTimeEl.textContent = ''; 
         
         displayContainer.classList.remove('hidden');
     } else {
-        // Reset to default
         checkInDateEl.textContent = 'Select date';
         checkInTimeEl.textContent = '';
         checkOutDateEl.textContent = 'Select date';

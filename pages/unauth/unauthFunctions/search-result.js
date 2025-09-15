@@ -155,7 +155,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     </svg>
                     <p id="roomAdress" class="font-roboto text-muted text-sm" id="adress">${truncateText(property.city, 20)}</p>
                   </div>
-                  <p class="font-roboto text-primary-text">₱ <span id="roomPrice" class="font-roboto text-primary-text" id="packagePrice">${property.packagePrice.toLocaleString()}</span> <span class="font-roboto text-muted">/ day</span></p>
+                  <p class="font-roboto text-primary-text">₱ <span id="roomPrice" class="font-roboto text-primary-text" id="packagePrice">${property.packagePrice.toLocaleString()}</span> <span class="font-roboto text-muted">/ night</span></p>
                 </div>
               </div>
             </a>
@@ -215,7 +215,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (!properties || properties.length === 0) {
             console.log('No properties found - showing no results message');
             roomListingsContainer.innerHTML = `
-                <div class="col-span-full flex flex-col items-center justify-center py-16 px-4">
+                <div class="col-span-full flex flex-col items-center justify-center min-h-[60vh] px-4">
                     <svg class="w-16 h-16 mb-4 fill-neutral-300" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                         <path d="M20 4H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V6h16v12zM6 10h12v2H6zm0-3h12v2H6zm0 6h8v2H6z"/>
                     </svg>
