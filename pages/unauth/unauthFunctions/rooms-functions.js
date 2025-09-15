@@ -32,7 +32,7 @@ function createPropertyCard(property) {
                     </svg>
                     <p id="roomAdress" class="font-roboto text-muted text-sm" id="adress">${truncateText(property.city, 20)}</p>
                   </div>
-                  <p class="font-roboto text-primary-text">₱ <span id="roomPrice" class="font-roboto text-primary-text" id="packagePrice">${property.packagePrice.toLocaleString()}</span> <span class="font-roboto text-muted">/ day</span></p>
+                  <p class="font-roboto text-primary-text">₱ <span id="roomPrice" class="font-roboto text-primary-text" id="packagePrice">${property.packagePrice.toLocaleString()}</span> <span class="font-roboto text-muted">/ night</span></p>
                 </div>
               </div>
             </a>

@@ -396,48 +396,50 @@
 
               <!-- Property Info Grid -->
               <div class="md:px-5 mb-5">
-                  <div class="flex flex-col lg:flex-row gap-x-6 gap-y-4">
-                      <div class="flex flex-col gap-2 w-full group">
-                          <label for="input-prop-name" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                              Property name
-                          </label>
-                          <div class="input-style3 flex items-center justify-center gap-3 ">
-                              <input 
-                              id="input-prop-name"
-                              type="text" 
-                              placeholder="Property name" 
-                              class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
-                              />
-                          </div>
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
+                    <div class="flex flex-col gap-2 w-full group">
+                      <label for="input-prop-name" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                        Property name
+                      </label>
+                      <div class="input-style3 flex items-center justify-center gap-3 ">
+                        <input 
+                          id="input-prop-name"
+                          type="text" 
+                          placeholder="Property name" 
+                          class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
+                        />
                       </div>
-                      <div class="flex flex-col gap-2 w-full group">
-                        <label for="input-prop-city" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                            City
-                        </label>
-                        <div class="input-style3 flex items-center justify-center gap-3 ">
-                            <input 
-                            id="input-prop-city"
-                            type="text" 
-                            placeholder="City" 
-                            class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
-                            />
-                        </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full group">
+                      <label for="input-prop-city" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                        City
+                      </label>
+                      <div class="input-style3 flex items-center justify-center gap-3 ">
+                        <input 
+                          id="input-prop-city"
+                          type="text" 
+                          placeholder="City" 
+                          class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
+                        />
                       </div>
-    
-                      <div class="flex flex-col gap-2 w-full group">
-                          <label for="input-prop-address" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                              Full address
-                          </label>
-                          <div class="input-style3 flex items-center justify-center gap-3 ">
-                              <input 
-                              id="input-prop-address"
-                              type="text" 
-                              placeholder="Full address" 
-                              class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
-                              />
-                          </div>
+                    </div>
+
+                    <div class="flex flex-col gap-2 w-full group lg:col-span-2">
+                      <label for="input-prop-address" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                        Full address
+                      </label>
+                      <div class="input-style3 flex items-center justify-center gap-3 ">
+                        <input 
+                          id="input-prop-address"
+                          type="text" 
+                          placeholder="Full address" 
+                          class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
+                        />
                       </div>
+                    </div>
                   </div>
+
                   <hr class="my-4 border-t border-neutral-300">
                   <div class="flex flex-col gap-2 w-full group">
                       <label for="input-prop-desc" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">

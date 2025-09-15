@@ -477,7 +477,7 @@
                 <span class="font-manrope text-neutral-500 text-xs md:text-sm">Pricing</span>
                 <div class="flex gap-1">
                   <span id="roomPrice" class="block  font-inter text-primary-text text-sm md:text-lg">₱000</span>
-                  <span class="block font-inter text-primary-text text-sm md:text-lg">/day</span>
+                  <span class="block font-inter text-primary-text text-sm md:text-lg">/night</span>
                 </div>
               </div>
             </div>
@@ -1509,20 +1509,29 @@
 
             <!-- Dynamic Check-in/Check-out Text -->
             <div id="bookingDatesDisplay" class="px-4 py-3 mt-4 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-2xl hidden">
-              <div class="text-center space-y-2">
-                <div class="text-sm text-neutral-700">
-                  <span class="font-medium text-primary">Check-in:</span>
-                  <span id="displayCheckInDate" class="text-primary-text font-semibold ml-1">Select date</span>
-                  <span id="displayCheckInTime" class="text-primary font-semibold ml-1"></span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 sm:divide-x divide-neutral-300 text-sm text-neutral-700 font-inter">
+                
+                <!-- Check-in -->
+                <div class="flex flex-col items-center sm:items-start py-2 sm:py-0 px-2">
+                  <span class="font-medium text-primary-text font-manrope">Check-in</span>
+                  <div class="flex items-center gap-1 text-lg md:text-base">
+                    <span id="displayCheckInDate" class="text-primary font-semibold">Select date</span>
+                    <span id="displayCheckInTime" class="text-primary font-semibold"></span>
+                  </div>
                 </div>
-                <div class="w-8 h-px bg-neutral-300 mx-auto"></div>
-                <div class="text-sm text-neutral-700">
-                  <span class="font-medium text-primary">Check-out:</span>
-                  <span id="displayCheckOutDate" class="text-primary-text font-semibold ml-1">Select date</span>
-                  <span id="displayCheckOutTime" class="text-primary font-semibold ml-1"></span>
+                
+                <!-- Check-out -->
+                <div class="flex flex-col items-center sm:items-start py-2 sm:py-0 px-2">
+                  <span class="font-medium text-primary-text font-manrope">Check-out</span>
+                  <div class="flex items-center gap-1 text-lg md:text-base">
+                    <span id="displayCheckOutDate" class="text-primary font-semibold">Select date</span>
+                    <span id="displayCheckOutTime" class="text-primary font-semibold"></span>
+                  </div>
                 </div>
+                
               </div>
             </div>
+
 
             <div class="items-center py-5 mt-auto">
               <button type="button" 

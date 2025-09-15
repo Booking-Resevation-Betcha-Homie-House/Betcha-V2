@@ -135,10 +135,12 @@
                         <!-- Right Hamburger -->
                         <div class="relative">
                             <!-- Button to toggle dropdown -->
-                            <div id="menuBtn" class="h-10 w-full aspect-square rounded-full bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
-                            hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
+                            <div id="menuBtn" class="h-10 w-full group aspect-square rounded-full border border-neutral-200 bg-neutral-100 flex items-center justify-center text-white cursor-pointer overflow-hidden
+                            hover:bg-primary/10 hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
                             transition-all duration-300 ease-in-out">
-                                <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                                <svg class="w-6 h-6 fill-primary-text 
+                                     group-hover:fill-primary
+                                    transition-all duration-300 ease-in-out" viewBox="0 0 24 24">
                                     <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
                                 </svg>
                             </div>
