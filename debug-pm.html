@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PM Debug</title>
+</head>
+<body>
+    <h1>PM Debug Console</h1>
+    <div id="output"></div>
+    
+    <script>
+        const output = document.getElementById('output');
+        
+        function log(message) {
+            output.innerHTML += `<p>${message}</p>`;
+            console.log(message);
+        }
+        
+        // Check localStorage
+        log('=== LocalStorage Debug ===');
+        log(`employeeId: ${localStorage.getItem('employeeId')}`);
+        log(`userData: ${localStorage.getItem('userData')}`);
+        log(`properties: ${localStorage.getItem('properties')}`);
+        
+        // Set test properties if none exist
+        if (!localStorage.getItem('properties')) {
+            log('Setting test properties...');
+            localStorage.setItem('properties', JSON.stringify(['test-property-1', 'test-property-2']));
+            log('Test properties set!');
+        }
+        
+        // Check all localStorage keys
+        log('=== All localStorage keys ===');
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            const value = localStorage.getItem(key);
+            log(`${key}: ${value.substring(0, 100)}${value.length > 100 ? '...' : ''}`);
+        }
+    </script>
+</body>
+</html>

@@ -93,6 +93,21 @@ async function loadAssignedProperties() {
         
         if (properties.length > 0) {
             displayAssignedProperties(properties);
+            
+            // Trigger PM functions to reload now that properties are available
+            if (typeof window.loadTodaysCheckins === 'function') {
+                console.log('🔄 Triggering PM functions reload after properties loaded');
+                setTimeout(() => {
+                    window.loadTodaysCheckins();
+                }, 100);
+            }
+            
+            // Trigger calendar overview reload if on PM page
+            if (document.querySelector('.calendar-instance') && typeof window.fetchPMCalendarOverview === 'function') {
+                setTimeout(() => {
+                    window.fetchPMCalendarOverview();
+                }, 200);
+            }
         } else {
             displayNoProperties();
         }
@@ -117,6 +132,15 @@ function displayAssignedProperties(properties) {
     if (!properties || properties.length === 0) {
         displayNoProperties();
         return;
+    }
+
+    // Save properties to localStorage for use by other functions (PM, TS, etc.)
+    try {
+        const propertyIds = properties.map(property => property._id || property.id).filter(id => id);
+        localStorage.setItem('properties', JSON.stringify(propertyIds));
+        console.log('✅ Properties saved to localStorage:', propertyIds);
+    } catch (error) {
+        console.error('❌ Error saving properties to localStorage:', error);
     }
 
     // Clear existing content

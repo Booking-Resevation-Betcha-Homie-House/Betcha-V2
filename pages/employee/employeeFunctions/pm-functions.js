@@ -99,7 +99,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
     initializePropertyMonitoringFeatures();
-    initializeCalendarBookings();
 });
 
 // Role Privilege Checking Functions
@@ -298,6 +297,8 @@ function showAccessDeniedMessage() {
 
 // Additional PM-specific functions can be added here
 function initializePropertyMonitoringFeatures() {
+    console.log('🚀 Initializing Property Monitoring Features...');
+    
     // Initialize PM-specific tab switching functionality
     setupPMTabSwitching();
     
@@ -317,11 +318,11 @@ function initializePropertyMonitoringFeatures() {
     initializeCheckinConfirmationModal(); // Safe now - only sets up internal button listeners
     initializePMCalendar(); // Use PM-specific single-selection calendar
 
-    // Handle cancel modal opening (no longer need to load admin dropdown)
+    // Load admins when cancel modal is opened
     document.addEventListener('click', function(e) {
         const openCancelBtn = e.target.closest('[data-modal-target="cancelBookingModal"]');
         if (openCancelBtn) {
-            // Remove admin loading call since we'll send to all admins automatically
+            try { loadAdminsIntoCancelModal(); } catch (_) {}
             try {
                 const modal = document.getElementById('cancelBookingModal');
                 if (modal) {
@@ -413,11 +414,13 @@ function initializePropertyMonitoringFeatures() {
 
 // PM-Specific Tab Switching Function
 function setupPMTabSwitching() {
-    
+    console.log('📊 Setting up PM tab switching...');
     
     // Get all tab buttons and content containers
     const tabButtons = document.querySelectorAll('.tab-btn');
     const tabContents = document.querySelectorAll('.tab-content');
+    
+    console.log(`Found ${tabButtons.length} tab buttons and ${tabContents.length} tab contents`);
     
     if (tabButtons.length === 0 || tabContents.length === 0) {
         console.warn('PM - No tab buttons or content found');
@@ -432,7 +435,7 @@ function setupPMTabSwitching() {
     // Add click event listeners to all tab buttons
     tabButtons.forEach((button, index) => {
         button.addEventListener('click', function() {
-            
+            console.log(`🖱️ Tab ${index} clicked`);
             setActivePMTab(index);
         });
     });
@@ -568,10 +571,17 @@ function openBookingModalFromDashboard(booking) {
 // Function to get property IDs from localStorage
 async function getPropertyIds() {
     try {
+        console.log('🏠 Getting property IDs from localStorage...');
         const propertiesData = localStorage.getItem('properties');
-        if (!propertiesData) return [];
+        console.log('💾 Raw properties data:', propertiesData);
+        
+        if (!propertiesData) {
+            console.warn('⚠️ No properties data found in localStorage');
+            return [];
+        }
         
         const properties = JSON.parse(propertiesData);
+        console.log('📋 Parsed properties:', properties);
         let propertyIds = [];
         
         if (Array.isArray(properties)) {
@@ -585,9 +595,10 @@ async function getPropertyIds() {
             propertyIds = properties.propertyIds;
         }
         
+        console.log('🏠 Final property IDs:', propertyIds);
         return propertyIds;
     } catch (error) {
-        console.error('Error getting property IDs:', error);
+        console.error('❌ Error getting property IDs:', error);
         return [];
     }
 }
@@ -595,11 +606,17 @@ async function getPropertyIds() {
 // Function to call the check-in API
 async function fetchTodaysCheckins() {
     try {
+        console.log('🔍 Fetching today\'s check-ins...');
         const propertyIds = await getPropertyIds();
+        console.log('📍 Property IDs:', propertyIds);
         
-        if (propertyIds.length === 0) return null;
+        if (propertyIds.length === 0) {
+            console.warn('⚠️ No property IDs found - user may need to assign properties');
+            return null;
+        }
         
         const requestBody = { propertyIds: propertyIds };
+        console.log('📤 Request body:', requestBody);
         
         const response = await fetch(`${API_BASE_URL}/pm/bookings/checkinToday`, {
             method: 'POST',
@@ -607,13 +624,18 @@ async function fetchTodaysCheckins() {
             body: JSON.stringify(requestBody)
         });
         
+        console.log('📡 API Response status:', response.status);
+        
         if (response.ok) {
             const data = await response.json();
+            console.log('📊 Raw API data:', data);
             const enhancedData = await enhanceBookingDataWithStatus(data);
+            console.log('✨ Enhanced data:', enhancedData);
             window.lastCheckInData = enhancedData;
             return enhancedData;
         } else {
-            console.error('Failed to fetch check-in data:', response.status);
+            const errorText = await response.text();
+            console.error('❌ Failed to fetch check-in data:', response.status, errorText);
             return null;
         }
     } catch (error) {
@@ -625,8 +647,7 @@ async function fetchTodaysCheckins() {
 // Function to populate the check-in tab with data
 function populateCheckinTab(checkinData) {
     try {
-        const tabGroup = document.querySelector('[data-tab-group]');
-        const checkinTabContent = tabGroup ? tabGroup.querySelector('.tab-content .space-y-4') : null;
+        const checkinTabContent = document.getElementById('checkin-tab-content');
         
         if (!checkinTabContent) {
             console.error('Check-in tab content container not found');
@@ -816,20 +837,7 @@ function createCheckinBookingElement(booking) {
     const propertyName = booking.propertyName || booking.nameOfProperty || booking.property?.name || booking.property?.title || 'Property Name';
     const bookingId = booking._id || booking.bookingId || booking.id || '';
     const checkInDate = booking.checkIn || '';
-    
-    // Add 1 day to checkout date
-    let checkOutDate = booking.checkOut || '';
-    if (checkOutDate) {
-        try {
-            const originalDate = new Date(checkOutDate);
-            originalDate.setDate(originalDate.getDate() + 1);
-            checkOutDate = originalDate.toISOString().split('T')[0];
-        } catch (error) {
-            console.warn('Error adding day to checkout date:', error);
-            checkOutDate = booking.checkOut || '';
-        }
-    }
-    
+    const checkOutDate = booking.checkOut || '';
     const status = booking.status || 'Reserved';
     
     // Enhanced guestId extraction with debugging
@@ -947,20 +955,7 @@ function createCheckoutBookingElement(booking) {
     const propertyName = booking.propertyName || booking.nameOfProperty || booking.property?.name || booking.property?.title || 'Property Name';
     const bookingId = booking._id || booking.bookingId || booking.id || '';
     const checkInDate = booking.checkIn || '';
-    
-    // Add 1 day to checkout date
-    let checkOutDate = booking.checkOut || '';
-    if (checkOutDate) {
-        try {
-            const originalDate = new Date(checkOutDate);
-            originalDate.setDate(originalDate.getDate() + 1);
-            checkOutDate = originalDate.toISOString().split('T')[0];
-        } catch (error) {
-            console.warn('Error adding day to checkout date:', error);
-            checkOutDate = booking.checkOut || '';
-        }
-    }
-    
+    const checkOutDate = booking.checkOut || '';
     const status = booking.status || 'Checked-Out';
     const guestId = booking.guestId || '';
     const transNo = booking.transNo || '';
@@ -1430,7 +1425,8 @@ async function processCheckinCancellation(bookingId) {
             if (ctx.transNo) cancelModal.dataset.transNo = ctx.transNo;
             if (ctx.guestId) cancelModal.dataset.guestId = ctx.guestId;
 
-            // No longer need to load admin dropdown since we send to all admins
+            // Ensure admin list is loaded
+            try { await loadAdminsIntoCancelModal(); } catch(_) {}
 
             // Show modal
             cancelModal.classList.remove('hidden');
@@ -1580,9 +1576,10 @@ async function loadAdminsIntoCancelModal() {
 
 // prepareCancelModalContext removed (redundant). Context is hydrated by the enrichment block and BookingContext.
 
-// Build request and POST to notify all admins about cancellation
+// Build request and POST to notify cancellation endpoint
 async function sendCancellationNoticeToAdmin() {
     try {
+        // Simplified context-driven path (early return)
         const modal = document.getElementById('cancelBookingModal') || document.getElementById('checkinConfirmModal');
         const selectEl = document.getElementById('select-cancel-admin');
         const reasonSelectEl = document.getElementById('select-cancel-reason');
@@ -1606,20 +1603,16 @@ async function sendCancellationNoticeToAdmin() {
         }
 
         const bookingId = BookingContext.get().bookingId || resolveBookingId(modal);
-        if (!bookingId) { 
-            console.error('Missing booking id. Open the booking card first.'); 
-            return; 
-        }
-        
+        if (!bookingId) { console.error('Missing booking id. Open the booking card first.'); return; }
         const ctx = await BookingContext.hydrateFromBooking(bookingId);
-        if (!ctx.transNo) { 
-            console.error('Missing transaction number. Open the booking card first.'); 
-            return; 
-        }
+        if (!ctx.transNo) { console.error('Missing transaction number. Open the booking card first.'); return; }
 
         const fromId = localStorage.getItem('employeeId') || localStorage.getItem('userId') || 'unknown-employee';
         const fromName = `${localStorage.getItem('firstName') || 'Employee'} ${localStorage.getItem('lastName') || ''}`.trim();
         const fromRole = 'employee';
+        const toId = selectEl.value;
+        const toName = 'admin';
+        if (!toId) { console.error('Please select an admin to notify.'); return; }
 
         // Calculate refund amount based on who requested the cancellation
         let calculatedRefundAmount = undefined;
@@ -1673,17 +1666,11 @@ async function sendCancellationNoticeToAdmin() {
         await window.notify.sendCancellation(payload);
         console.log('✅ Cancellation notice sent to admin.');
         const cancelModal = document.getElementById('cancelBookingModal');
-        if (cancelModal) { 
-            cancelModal.classList.add('hidden'); 
-            document.body.classList.remove('modal-open'); 
-        }
-        
+        if (cancelModal) { cancelModal.classList.add('hidden'); document.body.classList.remove('modal-open'); }
         return;
     } catch (err) {
         console.error('Error sending cancellation notice:', err);
-        try { 
-            if (window.showToastError) window.showToastError('error', 'Failed to send cancellation notice', `Error: ${err.message}`); 
-        } catch(_) {}
+        console.error(`Failed to send cancellation notice: ${err.message}`);
     }
 }
 
@@ -1692,6 +1679,7 @@ window.setActivePMTab = setActivePMTab;
 
 // Main function to load today's check-ins (make globally accessible)
 window.loadTodaysCheckins = async function() {
+    console.log('📋 Loading today\'s check-ins...');
     try {       
         // Show loading state
         showLoadingState();
@@ -1699,21 +1687,21 @@ window.loadTodaysCheckins = async function() {
         
         // Fetch data from API
         const checkinData = await fetchTodaysCheckins();
+        console.log('✅ Check-in data received:', checkinData);
         
         // Populate both check-in and check-out tabs
         populateCheckinTab(checkinData);
         populateCheckoutTab(checkinData);
         
     } catch (error) {
-        console.error('Error loading today\'s check-ins:', error);
+        console.error('❌ Error loading today\'s check-ins:', error);
         showErrorState();
         showCheckoutErrorState();
     }
 }
 // Function to show loading state
 function showLoadingState() {
-    const tabGroup = document.querySelector('[data-tab-group]');
-    const checkinTabContent = tabGroup ? tabGroup.querySelector('.tab-content .space-y-4') : null;
+    const checkinTabContent = document.getElementById('checkin-tab-content');
     if (checkinTabContent) {
         checkinTabContent.innerHTML = `
             <div class="flex items-center justify-center h-40">
@@ -1728,8 +1716,7 @@ function showLoadingState() {
 }
 // Function to show error state
 function showErrorState() {
-    const tabGroup = document.querySelector('[data-tab-group]');
-    const checkinTabContent = tabGroup ? tabGroup.querySelector('.tab-content .space-y-4') : null;
+    const checkinTabContent = document.getElementById('checkin-tab-content');
     if (checkinTabContent) {
         checkinTabContent.innerHTML = `
             <div class="flex items-center justify-center h-40">
@@ -1782,55 +1769,6 @@ function showCheckoutErrorState() {
 // Function to initialize calendar date selection for booking display
 function initializeCalendarBookings() {
     
-    console.log('InitializeCalendarBookings called - setting up modal event listener');
-    
-    // Test listener for any modalOpened events
-    document.addEventListener('modalOpened', (event) => {
-        console.log('ANY modalOpened event received:', event.detail);
-    });
-    
-    // Listen for the custom modalOpened event from modal.js
-    document.addEventListener('modalOpened', (event) => {
-        console.log('ModalOpened event received:', event.detail);
-        const { modalId } = event.detail;
-        
-        if (modalId === 'viewBookingModal') {
-            console.log('ViewBookingModal opened via modalOpened event');
-            
-            // Find the most recently clicked booking card
-            const recentBookingCard = document.querySelector('[data-modal-target="viewBookingModal"].recently-clicked');
-            console.log('Looking for recently clicked card:', recentBookingCard);
-            
-            if (recentBookingCard) {
-                console.log('Found recently clicked booking card, populating modal');
-                
-                const bookingData = {
-                    bookingId: recentBookingCard.dataset.bookingId,
-                    propertyId: recentBookingCard.dataset.propertyId,
-                    propertyName: recentBookingCard.dataset.propertyName,
-                    propertyAddress: recentBookingCard.dataset.propertyAddress,
-                    guestName: recentBookingCard.dataset.guestName,
-                    checkInDate: recentBookingCard.dataset.checkinDate,
-                    checkOutDate: recentBookingCard.dataset.checkoutDate,
-                    checkInTime: recentBookingCard.dataset.checkinTime,
-                    checkOutTime: recentBookingCard.dataset.checkoutTime,
-                    guestId: recentBookingCard.dataset.guestId,
-                    transNo: recentBookingCard.dataset.transNo
-                };
-                
-                console.log('BookingData extracted from recently clicked card:', bookingData);
-                
-                // Populate the modal immediately
-                populateViewBookingModal(bookingData);
-                
-                // Remove the recently-clicked class
-                recentBookingCard.classList.remove('recently-clicked');
-            } else {
-                console.log('No recently clicked booking card found');
-            }
-        }
-    });
-    
     
     // Listen for calendar date clicks
     document.addEventListener('click', function(e) {
@@ -1846,35 +1784,91 @@ function initializeCalendarBookings() {
         // Listen for booking card clicks to open view modal
         const bookingCard = e.target.closest('[data-modal-target="viewBookingModal"]');
         if (bookingCard) {
-            console.log('Booking card clicked, marking as recently clicked');
-            console.log('Card element:', bookingCard);
-            console.log('Card data attributes before:', {
+            
+            // Extract booking data from the card
+            const bookingData = {
+                bookingId: bookingCard.dataset.bookingId,
                 propertyName: bookingCard.dataset.propertyName,
-                guestName: bookingCard.dataset.guestName
-            });
+                propertyAddress: bookingCard.dataset.propertyAddress,
+                guestName: bookingCard.dataset.guestName,
+                checkInDate: bookingCard.dataset.checkinDate,
+                checkOutDate: bookingCard.dataset.checkoutDate,
+                checkInTime: bookingCard.dataset.checkinTime,
+                checkOutTime: bookingCard.dataset.checkoutTime,
+                guestId: bookingCard.dataset.guestId,
+                transNo: bookingCard.dataset.transNo
+            };
             
-            // Clear any other recently-clicked cards
-            const existingRecentCards = document.querySelectorAll('.recently-clicked');
-            console.log('Clearing existing recently-clicked cards:', existingRecentCards.length);
-            existingRecentCards.forEach(card => {
-                card.classList.remove('recently-clicked');
-            });
             
-            // Mark this card as recently clicked
-            bookingCard.classList.add('recently-clicked');
-            console.log('Added recently-clicked class to card');
-            console.log('Card classes after:', bookingCard.className);
+            // Populate and show the modal
+            populateViewBookingModal(bookingData);
+            
+            // Manually open the modal
+            const modal = document.getElementById('viewBookingModal');
+            if (modal) {
+                
+                modal.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+                // Attach for cancel flow
+                const cancelBtn = modal.querySelector('[data-modal-target="cancelBookingModal"]');
+                if (cancelBtn) {
+                    // Persist booking context globally for downstream modals
+                    try {
+                        if (bookingData.bookingId) localStorage.setItem('currentBookingId', bookingData.bookingId);
+                        if (bookingData.transNo) localStorage.setItem('currentTransNo', bookingData.transNo);
+                        if (bookingData.guestId) localStorage.setItem('currentGuestId', bookingData.guestId);
+                    } catch(_) {}
+                    if (bookingData.transNo) cancelBtn.setAttribute('data-trans-no', bookingData.transNo);
+                    if (bookingData.guestId) cancelBtn.setAttribute('data-guest-id', bookingData.guestId);
+                    
+
+                    // If details are missing, fetch from /booking/{id} before user opens cancel modal
+                    (async () => {
+                        try {
+                            if (!cancelBtn.getAttribute('data-trans-no') || !cancelBtn.getAttribute('data-guest-id')) {
+                                const id = bookingData.bookingId;
+                                if (id) {
+                                    const resp = await fetch(`${API_BASE_URL}/booking/${id}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
+                                    if (resp.ok) {
+                                        const data = await resp.json();
+                                        const b = data?.booking || {};
+                                        if (b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo) {
+                                            const t = b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo;
+                                            cancelBtn.setAttribute('data-trans-no', t);
+                                        }
+                                        if (b.guestId || b?.guest?.id) {
+                                            cancelBtn.setAttribute('data-guest-id', b.guestId || b?.guest?.id);
+                                        }
+                                        // For completeness store ewallet
+                                        if (b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets) {
+                                            cancelBtn.setAttribute('data-ewallet', b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets);
+                                        }
+                                        
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.warn('ViewBooking: enrichment fetch failed', e);
+                        }
+                    })();
+                }
+            }
         }
     });
 }
 
 // PM-Specific Single-Selection Calendar Function
 function initializePMCalendar() {
+    console.log('📅 Initializing PM Calendar...');
     const calendarEl = document.querySelector('.calendar-instance');
-    if (!calendarEl) return;
+    if (!calendarEl) {
+        console.error('❌ Calendar element not found');
+        return;
+    }
 
-    // Fetch and display calendar overview data (auto-load today's bookings on initial load)
-    fetchPMCalendarOverview(true);
+    console.log('✅ Calendar element found, fetching overview data...');
+    // Fetch and display calendar overview data
+    fetchPMCalendarOverview();
 
     // Adapter: respond to calendar2.js selections
     calendarEl.addEventListener('datesSelected', (e) => {
@@ -1890,39 +1884,33 @@ function initializePMCalendar() {
     
     if (prevMonthBtn) {
         prevMonthBtn.addEventListener('click', () => {
-            // Show skeleton loading in selected date container immediately
-            showCalendarBookingsLoading();
-            
             // Clear cache on month navigation
             setTimeout(async () => {
                 bookingsCache.data.clear();
                 bookingsCache.month = null;
                 bookingsCache.year = null;
-                // Refetch calendar overview for new month (don't auto-load today)
-                await fetchPMCalendarOverview(false);
+                // Refetch calendar overview for new month
+                await fetchPMCalendarOverview();
             }, 100); // Small delay to ensure calendar has updated
         });
     }
     
     if (nextMonthBtn) {
         nextMonthBtn.addEventListener('click', () => {
-            // Show skeleton loading in selected date container immediately
-            showCalendarBookingsLoading();
-            
             // Clear cache on month navigation
             setTimeout(async () => {
                 bookingsCache.data.clear();
                 bookingsCache.month = null;
                 bookingsCache.year = null;
-                // Refetch calendar overview for new month (don't auto-load today)
-                await fetchPMCalendarOverview(false);
+                // Refetch calendar overview for new month
+                await fetchPMCalendarOverview();
             }, 100); // Small delay to ensure calendar has updated
         });
     }
 }
 
 // Function to fetch PM calendar overview data
-async function fetchPMCalendarOverview(autoLoadToday = false) {
+async function fetchPMCalendarOverview() {
     try {
         // Get property IDs from localStorage
         const propertyIds = await getPropertyIds();
@@ -1954,7 +1942,7 @@ async function fetchPMCalendarOverview(autoLoadToday = false) {
         updatePMCalendarWithDates(calendarData);
 
         // Pre-load booking data for all dates in current month
-        await preLoadCurrentMonthBookings(autoLoadToday);
+        await preLoadCurrentMonthBookings();
 
     } catch (error) {
         console.error('Error fetching PM calendar overview:', error);
@@ -2019,55 +2007,31 @@ function updatePMCalendarWithDates(multiPropertyData) {
 
 // Function to update PM calendar legend with actual counts
 function updatePMCalendarLegend(bookedCount, maintenanceCount) {
-    // Find or create legend container
+    // Find existing legend container
     let legendContainer = document.querySelector('.pm-calendar-legend');
     
     if (!legendContainer) {
-        // Create legend container if it doesn't exist
-        const calendarContainer = document.querySelector('.calendar-instance').parentElement;
-        
-        if (calendarContainer) {
-            legendContainer = document.createElement('div');
-            legendContainer.className = 'pm-calendar-legend mt-4';
-            legendContainer.innerHTML = `
-                <div class="flex flex-col">
-                    <div class="flex items-center justify-between mb-3">
-                        <p class="text-lg font-manrope md:text-xl">Calendar legend</p>
-                    </div>
-                    <div class="flex gap-2 ml-3">
-                        <div class="aspect-square h-5 bg-primary rounded shadow"></div>
-                        <p class="font-inter text-primary-text pm-booked-legend">- Booked (0)</p>
-                    </div>
-                    <div class="flex gap-2 ml-3">
-                        <div class="aspect-square h-5 bg-rose-700 rounded shadow"></div>
-                        <p class="font-inter text-primary-text pm-maintenance-legend">- Maintenance (0)</p>
-                    </div>
-                </div>
-            `;
-            calendarContainer.appendChild(legendContainer);
-        } else {
-            console.warn('❌ Calendar container not found, cannot create legend');
-        }
+        console.warn('❌ Calendar legend container not found in DOM');
+        return;
     }
 
     // Update legend text with counts
-    if (legendContainer) {
-        const bookedLegend = legendContainer.querySelector('.pm-booked-legend');
-        const maintenanceLegend = legendContainer.querySelector('.pm-maintenance-legend');
-        
-        if (bookedLegend) {
-            bookedLegend.textContent = `- Booked (${bookedCount})`;
-        }
-        if (maintenanceLegend) {
-            maintenanceLegend.textContent = `- Maintenance (${maintenanceCount})`;
-        }
-    } else {
-        console.warn('❌ Legend container not available for update');
+    const bookedLegend = legendContainer.querySelector('.pm-booked-legend');
+    const maintenanceLegend = legendContainer.querySelector('.pm-maintenance-legend');
+    
+    if (bookedLegend) {
+        bookedLegend.textContent = `- Booked (${bookedCount})`;
     }
+    
+    if (maintenanceLegend) {
+        maintenanceLegend.textContent = `- Maintenance (${maintenanceCount})`;
+    }
+    
+    console.log(`✅ Updated PM calendar legend: ${bookedCount} booked, ${maintenanceCount} maintenance`);
 }
 
 // Function to pre-load booking data for all dates in the current month
-async function preLoadCurrentMonthBookings(autoLoadToday = false) {
+async function preLoadCurrentMonthBookings() {
     try {
         console.log('📅 Pre-loading booking data for current month...');
         
@@ -2137,22 +2101,14 @@ async function preLoadCurrentMonthBookings(autoLoadToday = false) {
 
         console.log(`📅 Successfully pre-loaded booking data for ${datesToFetch.length} dates`);
         
-        // Auto-load bookings for today only if explicitly requested (initial load)
-        if (autoLoadToday) {
-            const todayStr = today.toISOString().split('T')[0];
-            if (datesToFetch.includes(todayStr)) {
-                console.log('📅 Auto-loading today\'s bookings on initial load');
-                loadBookingsByDate(todayStr);
-            }
-        } else {
-            // If not auto-loading today, show the default "Select a date" message
-            showDefaultDateSelection();
+        // Auto-load bookings for today if it's in the current month
+        const todayStr = today.toISOString().split('T')[0];
+        if (datesToFetch.includes(todayStr)) {
+            loadBookingsByDate(todayStr);
         }
 
     } catch (error) {
         console.error('Error pre-loading current month bookings:', error);
-        // Show default state if there's an error
-        showDefaultDateSelection();
     }
 }
 
@@ -2164,74 +2120,9 @@ let bookingsCache = {
 };
 
 // Function to load bookings by date
-// Function to show loading skeleton in the selected date container
-function showCalendarBookingsLoading() {
-    const calendarBookingsContainer = document.getElementById('selected-date-container');
-    
-    if (!calendarBookingsContainer) {
-        console.warn('Selected date container not found');
-        return;
-    }
-    
-    console.log('📅 Showing skeleton loading for month navigation...');
-    
-    // Clear existing content
-    calendarBookingsContainer.innerHTML = '';
-    
-    // Create skeleton loading elements
-    const skeletonHTML = `
-        <div class="space-y-4 animate-pulse">
-            ${Array.from({length: 3}, () => `
-                <div class="rounded-lg bg-white p-5 shadow-sm border border-neutral-200">
-                    <div class="flex flex-col md:flex-row justify-between gap-3">
-                        <div class="flex-1 space-y-2">
-                            <div class="h-4 bg-neutral-200 rounded w-3/4"></div>
-                            <div class="h-3 bg-neutral-200 rounded w-1/2"></div>
-                            <div class="h-3 bg-neutral-200 rounded w-2/3"></div>
-                        </div>
-                        <div class="flex flex-col justify-center gap-2">
-                            <div class="h-8 bg-neutral-200 rounded w-20"></div>
-                            <div class="h-6 bg-neutral-200 rounded w-16"></div>
-                        </div>
-                    </div>
-                </div>
-            `).join('')}
-        </div>
-    `;
-    
-    calendarBookingsContainer.innerHTML = skeletonHTML;
-}
-
-// Function to show the default "Select a date" message
-function showDefaultDateSelection() {
-    const calendarBookingsContainer = document.getElementById('selected-date-container');
-    
-    if (!calendarBookingsContainer) {
-        console.warn('Selected date container not found');
-        return;
-    }
-    
-    console.log('📅 Showing default date selection message...');
-    
-    // Show the default "Select a date" message
-    const defaultHTML = `
-        <div class="w-full h-full flex justify-center items-center text-center text-sm font-manrope text-neutral-500">
-            <div class="flex flex-col items-center">
-                <svg class="w-12 h-12 text-neutral-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z"/>
-                </svg>
-                <p>Select a date to view bookings</p>
-            </div>
-        </div>
-    `;
-    
-    calendarBookingsContainer.innerHTML = defaultHTML;
-}
-
 async function loadBookingsByDate(selectedDate) {
     try {
-        // Show loading skeleton immediately
-        showCalendarBookingsLoading();
+        
         
         // Get property IDs from localStorage
         const propertyIds = await getPropertyIds();
@@ -2478,9 +2369,6 @@ function populateCalendarBookings(bookingsData, selectedDate) {
 
 // Function to create a calendar booking element
 function createCalendarBookingElement(booking) {
-    // Debug log to see the actual booking data structure
-    console.log('Booking data received:', booking);
-    
     const bookingDiv = document.createElement('div');
     bookingDiv.className = `rounded-lg cursor-pointer px-5 py-3 w-full h-fit flex flex-col md:flex-row justify-between gap-3 shadow-sm bg-white border border-neutral-200 group 
         hover:border-neutral-500 transition-all duration-500 ease-in-out overflow-hidden`;
@@ -2488,74 +2376,13 @@ function createCalendarBookingElement(booking) {
     // Add data attributes for modal population
     bookingDiv.setAttribute('data-modal-target', 'viewBookingModal');
     bookingDiv.setAttribute('data-booking-id', booking.bookingId || booking._id || booking.id || '');
-    
-    // Enhanced property name mapping
-    const propertyName = booking.nameOfProperty || 
-                        booking.propertyName || 
-                        booking.property?.name || 
-                        booking.property?.nameOfProperty ||
-                        booking.room?.property?.name ||
-                        booking.property ||
-                        'Property Name';
-    console.log('Property name mapping result:', propertyName, 'from booking.nameOfProperty:', booking.nameOfProperty);
-    bookingDiv.setAttribute('data-property-name', propertyName);
-    
-    // Store property ID for fetching address later if needed
-    const propertyId = booking.propertyId || booking.property?.id || booking.property?._id || '';
-    bookingDiv.setAttribute('data-property-id', propertyId);
-    
-    // Enhanced property address mapping  
-    const propertyAddress = booking.address || 
-                           booking.propertyAddress ||
-                           booking.property?.address || 
-                           booking.property?.location ||
-                           booking.room?.property?.address ||
-                           booking.location ||
-                           'Loading property address...';
-    bookingDiv.setAttribute('data-property-address', propertyAddress);
-    
-    // Enhanced guest name mapping - handle "null null" case
-    let guestName = booking.nameOfGuest || 
-                   booking.guestName || 
-                   booking.customerName ||
-                   booking.guest?.name ||
-                   booking.customer?.name ||
-                   'Guest Name';
-    
-    // Fix "null null" issue
-    if (guestName === 'null null' || guestName === 'null' || guestName === '') {
-        guestName = 'Guest Name';
-    }
-    console.log('Guest name mapping result:', guestName, 'from booking.nameOfGuest:', booking.nameOfGuest);
-    bookingDiv.setAttribute('data-guest-name', guestName);
+    bookingDiv.setAttribute('data-property-name', booking.nameOfProperty || booking.propertyName || booking.property?.name || 'Property Name');
+    bookingDiv.setAttribute('data-property-address', booking.address || booking.property?.address || '123 Sunshine Street, Manila');
+    bookingDiv.setAttribute('data-guest-name', booking.nameOfGuest || booking.guestName || booking.customerName || 'Guest Name');
     bookingDiv.setAttribute('data-checkin-date', booking.checkIn || '');
-    
-    // Set checkout date data attribute with +1 day
-    let checkoutDateForDataAttr = booking.checkOut || '';
-    if (checkoutDateForDataAttr) {
-        try {
-            const originalDate = new Date(checkoutDateForDataAttr);
-            originalDate.setDate(originalDate.getDate() + 1);
-            checkoutDateForDataAttr = originalDate.toISOString().split('T')[0];
-        } catch (error) {
-            console.warn('Error adding day to checkout date for data attribute:', error);
-            checkoutDateForDataAttr = booking.checkOut || '';
-        }
-    }
-    
-    bookingDiv.setAttribute('data-checkout-date', checkoutDateForDataAttr);
-    bookingDiv.setAttribute('data-checkin-time', booking.timeIn || booking.checkInTime || '2:00 PM');
-    bookingDiv.setAttribute('data-checkout-time', booking.timeOut || booking.checkOutTime || '11:00 AM');
-    
-    console.log('All data attributes set:', {
-        propertyName: bookingDiv.getAttribute('data-property-name'),
-        propertyAddress: bookingDiv.getAttribute('data-property-address'),
-        guestName: bookingDiv.getAttribute('data-guest-name'),
-        checkIn: bookingDiv.getAttribute('data-checkin-date'),
-        checkOut: bookingDiv.getAttribute('data-checkout-date'),
-        timeIn: bookingDiv.getAttribute('data-checkin-time'),
-        timeOut: bookingDiv.getAttribute('data-checkout-time')
-    });
+    bookingDiv.setAttribute('data-checkout-date', booking.checkOut || '');
+    bookingDiv.setAttribute('data-checkin-time', booking.timeIn || formatTime(booking.checkInTime || '2:00 PM'));
+    bookingDiv.setAttribute('data-checkout-time', booking.timeOut || formatTime(booking.checkOutTime || '11:00 AM'));
     // Propagate ids for downstream modals
     if (booking.guestId || booking.guest?.id) {
         bookingDiv.setAttribute('data-guest-id', booking.guestId || booking.guest?.id);
@@ -2582,28 +2409,19 @@ function createCalendarBookingElement(booking) {
         } catch(_) {}
     });
     
-    // Extract data from the API response structure (reuse variables from data attributes)
+    // Extract data from the API response structure
+    const propertyName = booking.nameOfProperty || booking.propertyName || booking.property?.name || booking.property?.title || 'Property Name';
+    const guestName = booking.nameOfGuest || booking.guestName || booking.customerName || booking.customer?.name || 'Guest Name';
     const checkInDate = booking.checkIn || '';
-    
-    // Add 1 day to checkout date for display
-    let checkOutDate = booking.checkOut || '';
-    let checkOutDateForDisplay = checkOutDate;
-    if (checkOutDate) {
-        try {
-            const originalDate = new Date(checkOutDate);
-            originalDate.setDate(originalDate.getDate() + 1);
-            checkOutDateForDisplay = originalDate.toISOString().split('T')[0];
-        } catch (error) {
-            console.warn('Error adding day to checkout date for calendar display:', error);
-            checkOutDateForDisplay = checkOutDate;
-        }
-    }
-    
+    const checkOutDate = booking.checkOut || '';
+    const checkInTime = booking.timeIn || formatTime(booking.checkInTime || booking.time || '12:00 PM');
+    const checkOutTime = booking.timeOut || formatTime(booking.checkOutTime || '11:00 AM');
+    const bookingId = booking.bookingId || booking._id || booking.id || '';
     const status = booking.status || 'Reserved';
     
-    // Format dates for display (use the +1 day for checkout)
+    // Format dates for display
     const checkInFormatted = formatDate(checkInDate);
-    const checkOutFormatted = formatDate(checkOutDateForDisplay);
+    const checkOutFormatted = formatDate(checkOutDate);
     
     // Determine status color
     let statusColor = 'bg-green-100 text-green-800';
@@ -2791,13 +2609,81 @@ function populateViewBookingModal(bookingData) {
     const cancelBookingBtn = modal.querySelector('[data-modal-target="cancelBookingModal"]');
     if (cancelBookingBtn && bookingId) {
         cancelBookingBtn.setAttribute('data-booking-id', bookingId);
+    }
+}
 
+// Function to check if a booking status should go to check-out tab
+function isCheckoutStatus(status) {
+    if (!status) return false; // Return false for undefined/null status
     
-    // Update the cancel booking button with the booking ID
-    const cancelBookingBtn = document.querySelector('#viewBookingModal [data-modal-target="cancelBookingModal"]');
-    if (cancelBookingBtn && bookingData.bookingId) {
-        cancelBookingBtn.setAttribute('data-booking-id', bookingData.bookingId);
-etDate(showDate.getDate() + 1);
+    const statusLower = status.toString().toLowerCase();
+    
+    // Check for exact status matches from validBookingStatuses
+    if (statusLower === 'checked-out' || statusLower === 'completed' || statusLower === 'cancel') {
+        return true;
+    }
+    
+    // Check for partial matches
+    if (statusLower.includes('checkout') || 
+        statusLower.includes('checked-out') || 
+        statusLower.includes('checked out') ||
+        statusLower.includes('complete') ||
+        statusLower.includes('finished') ||
+        statusLower.includes('ended')) {
+        return true;
+    }
+    
+    return false;
+}
+
+// Function to check if a booking status should go to check-in tab
+function isCheckinStatus(status) {
+    if (!status) return false; // Return false for undefined/null status
+    
+    const statusLower = status.toString().toLowerCase();
+    
+    // Check for exact status matches from validBookingStatuses
+    if (statusLower === 'pending payment' || statusLower === 'reserved' || statusLower === 'fully-paid' || statusLower === 'checked-in') {
+        return true;
+    }
+    
+    // Check for partial matches
+    if (statusLower.includes('pending') || 
+        statusLower.includes('reserved') || 
+        statusLower.includes('confirmed') ||
+        statusLower.includes('checked-in') ||
+        statusLower.includes('checked in')) {
+        return true;
+    }
+    
+    return false;
+}
+
+// Function to check if a booking should be excluded due to missing status
+function shouldExcludeBooking(item) {
+    // If no status is available, we can't determine which tab it belongs to
+    if (!item.status) {
+        console.warn('Booking has no status, excluding from both tabs:', item);
+        return true;
+    }
+    return false;
+}
+
+// Function to check if a booking's checkout date is today
+function isCheckoutDateToday(checkOutDate) {
+    if (!checkOutDate) return false;
+    
+    try {
+        const today = new Date();
+        const checkoutDate = new Date(checkOutDate);
+        
+        // Reset time to compare only dates
+        const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+        const checkoutDateOnly = new Date(checkoutDate.getFullYear(), checkoutDate.getMonth(), checkoutDate.getDate());
+        
+        // Business rule: show in checkout tab on the day AFTER actual checkout date
+        const showDate = new Date(checkoutDateOnly);
+        showDate.setDate(showDate.getDate() + 1);
         
         const isToday = todayDate.getTime() === showDate.getTime();
         console.log('Date comparison:', {
