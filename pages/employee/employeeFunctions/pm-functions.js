@@ -1584,12 +1584,6 @@ async function loadAdminsIntoCancelModal() {
 async function sendCancellationNoticeToAdmin() {
     try {
         const modal = document.getElementById('cancelBookingModal') || document.getElementById('checkinConfirmModal');
-<<<<<<< Updated upstream
-        const messageTextarea = document.getElementById('input-cancel-admin');
-        if (!modal || !messageTextarea) { 
-            console.error('Missing modal or message field.'); 
-            return; 
-=======
         const selectEl = document.getElementById('select-cancel-admin');
         const reasonSelectEl = document.getElementById('select-cancel-reason');
         const messageTextarea = document.getElementById('input-cancel-admin');
@@ -1601,19 +1595,12 @@ async function sendCancellationNoticeToAdmin() {
             try { if (window.showToastError) window.showToastError('warning', 'Cancellation reason required', 'Please select a cancellation reason.'); } catch(_) {}
             reasonSelectEl.focus();
             return;
->>>>>>> Stashed changes
         }
 
         // Require a non-empty message before proceeding
         const messageValue = (messageTextarea.value || '').trim();
         if (!messageValue) {
-<<<<<<< Updated upstream
-            try { 
-                if (window.showToastError) window.showToastError('warning', 'Cancellation reason required', 'Please add a message before sending the cancellation.'); 
-            } catch(_) {}
-=======
             try { if (window.showToastError) window.showToastError('warning', 'Cancellation note required', 'Please add a message before sending the cancellation.'); } catch(_) {}
->>>>>>> Stashed changes
             messageTextarea.focus();
             return;
         }
@@ -1634,80 +1621,6 @@ async function sendCancellationNoticeToAdmin() {
         const fromName = `${localStorage.getItem('firstName') || 'Employee'} ${localStorage.getItem('lastName') || ''}`.trim();
         const fromRole = 'employee';
 
-<<<<<<< Updated upstream
-        // Fetch all admins
-        console.log('📧 Fetching all admins for cancellation notification...');
-        const resp = await fetch(`${API_BASE_URL}/admin/display`, { method: 'GET' });
-        if (!resp.ok) throw new Error(`Failed to fetch admins: ${resp.status}`);
-        const admins = await resp.json();
-        
-        if (!admins || admins.length === 0) {
-            console.error('No admins found to notify');
-            try { 
-                if (window.showToastError) window.showToastError('error', 'No admins found', 'No admins available to send cancellation notice.'); 
-            } catch(_) {}
-            return;
-        }
-
-        console.log(`📧 Sending cancellation notice to ${admins.length} admin(s)...`);
-
-        // Send notification to each admin
-        const notificationPromises = admins.map(async (admin) => {
-            const adminId = admin._id || admin.id || '';
-            const adminName = [admin.firstname, admin.minitial, admin.lastname].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || 'Admin';
-            
-            if (!adminId) {
-                console.warn('Skipping admin with no ID:', admin);
-                return;
-            }
-
-            const payload = {
-                fromId,
-                fromName,
-                fromRole,
-                toId: adminId,
-                toName: adminName,
-                toRole: 'admin',
-                message: messageValue,
-                transNo: ctx.transNo,
-                numberEwalletBank: ctx.ewallet || undefined,
-                amountRefund: ctx.amountRefund || undefined,
-                modeOfRefund: ctx.modeOfRefund || undefined,
-                reasonToGuest: messageValue,
-                bookingId
-            };
-            
-            // Remove undefined values
-            Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
-
-            try {
-                await window.notify.sendCancellation(payload);
-                console.log(`✅ Cancellation notice sent to admin: ${adminName} (${adminId})`);
-            } catch (error) {
-                console.error(`❌ Failed to send cancellation notice to admin ${adminName}:`, error);
-                throw error; // Re-throw to handle in Promise.allSettled
-            }
-        });
-
-        // Wait for all notifications to complete (but don't fail if some fail)
-        const results = await Promise.allSettled(notificationPromises);
-        const successful = results.filter(r => r.status === 'fulfilled').length;
-        const failed = results.filter(r => r.status === 'rejected').length;
-
-        console.log(`📧 Cancellation notice summary: ${successful} successful, ${failed} failed`);
-        
-        if (successful > 0) {
-            try { 
-                if (window.showToastSuccess) window.showToastSuccess('success', 'Cancellation notice sent', `Successfully notified ${successful} admin(s) about the cancellation.`); 
-            } catch(_) {}
-        }
-        
-        if (failed > 0) {
-            console.warn(`Some notifications failed. ${failed} out of ${admins.length} notifications failed.`);
-        }
-
-        // Close the modal
-=======
         // Calculate refund amount based on who requested the cancellation
         let calculatedRefundAmount = undefined;
         try {
@@ -1759,7 +1672,6 @@ async function sendCancellationNoticeToAdmin() {
 
         await window.notify.sendCancellation(payload);
         console.log('✅ Cancellation notice sent to admin.');
->>>>>>> Stashed changes
         const cancelModal = document.getElementById('cancelBookingModal');
         if (cancelModal) { 
             cancelModal.classList.add('hidden'); 
@@ -2750,90 +2662,6 @@ function showCalendarBookingsError(message) {
     `;
 }
 
-<<<<<<< Updated upstream
-// Function to fetch property details by ID
-async function fetchPropertyDetails(propertyId) {
-    try {
-        const authToken = localStorage.getItem('authToken');
-        if (!authToken) {
-            console.error('No auth token found');
-            return null;
-        }
-
-        const response = await fetch(`https://betcha-booking-api-master.onrender.com/property/${propertyId}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': `Bearer ${authToken}`,
-                'Content-Type': 'application/json'
-            }
-        });
-
-        if (!response.ok) {
-            throw new Error(`Failed to fetch property details: ${response.status}`);
-        }
-
-        const propertyData = await response.json();
-        console.log('Fetched property details:', propertyData);
-        return propertyData;
-    } catch (error) {
-        console.error('Error fetching property details:', error);
-        return null;
-    }
-}
-
-// Function to populate the view booking modal with booking data
-function populateViewBookingModal(bookingData) {
-    console.log('PopulateViewBookingModal received data:', bookingData);
-    
-    // Update property name - target the specific text content
-    const propertyNameElement = document.querySelector('#viewBookingModal .text-lg.font-bold.font-manrpoe');
-    if (propertyNameElement) {
-        console.log('Setting property name to:', bookingData.propertyName);
-        propertyNameElement.textContent = bookingData.propertyName || 'Property Name';
-    } else {
-        console.error('Property name element not found with selector: #viewBookingModal .text-lg.font-bold.font-manrpoe');
-    }
-    
-    // Update transaction number - target the text element right after property name
-    const transactionElement = propertyNameElement?.nextElementSibling;
-    if (transactionElement && transactionElement.classList.contains('text-neutral-600')) {
-        console.log('Setting transaction number to:', bookingData.transNo);
-        transactionElement.textContent = `Transaction: #${bookingData.transNo || '000000000'}`;
-    } else {
-        console.error('Transaction number element not found');
-    }
-    
-    // Update guest name - target the specific guest name element
-    const guestNameElement = document.querySelector('#viewBookingModal .text-neutral-900.font-semibold');
-    if (guestNameElement) {
-        console.log('Setting guest name to:', bookingData.guestName);
-        guestNameElement.textContent = bookingData.guestName || 'Guest Name';
-    } else {
-        console.error('Guest name element not found');
-    }
-    
-    // Update check-in date and time - target specific grid elements
-    const checkInContainer = document.querySelector('#viewBookingModal .grid.grid-cols-2 > div:first-child .text-neutral-900');
-    if (checkInContainer) {
-        const checkInFormatted = formatDate(bookingData.checkInDate);
-        const checkInTime = bookingData.checkInTime || '2:00 PM';
-        console.log('Setting check-in to:', checkInFormatted, checkInTime);
-        checkInContainer.innerHTML = `<span>${checkInFormatted}</span> — <span>${checkInTime}</span>`;
-    } else {
-        console.error('Check-in container not found');
-    }
-    
-    // Update check-out date and time
-    const checkOutContainer = document.querySelector('#viewBookingModal .grid.grid-cols-2 > div:last-child .text-neutral-900');
-    if (checkOutContainer) {
-        const checkOutFormatted = formatDate(bookingData.checkOutDate);
-        const checkOutTime = bookingData.checkOutTime || '11:00 AM';
-        console.log('Setting check-out to:', checkOutFormatted, checkOutTime);
-        checkOutContainer.innerHTML = `<span>${checkOutFormatted}</span> — <span>${checkOutTime}</span>`;
-    } else {
-        console.error('Check-out container not found');
-    }
-=======
 // Function to show loading state in booking modal
 function showBookingModalLoading(modal) {
     // For checkin and checkout modals, use overlay instead of replacing content
@@ -2958,87 +2786,18 @@ function populateViewBookingModal(bookingData) {
             </div>
         </div>
     `;
->>>>>>> Stashed changes
     
     // Update the cancel booking button with the booking ID
     const cancelBookingBtn = modal.querySelector('[data-modal-target="cancelBookingModal"]');
     if (cancelBookingBtn && bookingId) {
         cancelBookingBtn.setAttribute('data-booking-id', bookingId);
-    }
-}
 
-// Function to check if a booking status should go to check-out tab
-function isCheckoutStatus(status) {
-    if (!status) return false; // Return false for undefined/null status
     
-    const statusLower = status.toString().toLowerCase();
-    
-    // Check for exact status matches from validBookingStatuses
-    if (statusLower === 'checked-out' || statusLower === 'completed' || statusLower === 'cancel') {
-        return true;
-    }
-    
-    // Check for partial matches
-    if (statusLower.includes('checkout') || 
-        statusLower.includes('checked-out') || 
-        statusLower.includes('checked out') ||
-        statusLower.includes('complete') ||
-        statusLower.includes('finished') ||
-        statusLower.includes('ended')) {
-        return true;
-    }
-    
-    return false;
-}
-
-// Function to check if a booking status should go to check-in tab
-function isCheckinStatus(status) {
-    if (!status) return false; // Return false for undefined/null status
-    
-    const statusLower = status.toString().toLowerCase();
-    
-    // Check for exact status matches from validBookingStatuses
-    if (statusLower === 'pending payment' || statusLower === 'reserved' || statusLower === 'fully-paid' || statusLower === 'checked-in') {
-        return true;
-    }
-    
-    // Check for partial matches
-    if (statusLower.includes('pending') || 
-        statusLower.includes('reserved') || 
-        statusLower.includes('confirmed') ||
-        statusLower.includes('checked-in') ||
-        statusLower.includes('checked in')) {
-        return true;
-    }
-    
-    return false;
-}
-
-// Function to check if a booking should be excluded due to missing status
-function shouldExcludeBooking(item) {
-    // If no status is available, we can't determine which tab it belongs to
-    if (!item.status) {
-        console.warn('Booking has no status, excluding from both tabs:', item);
-        return true;
-    }
-    return false;
-}
-
-// Function to check if a booking's checkout date is today
-function isCheckoutDateToday(checkOutDate) {
-    if (!checkOutDate) return false;
-    
-    try {
-        const today = new Date();
-        const checkoutDate = new Date(checkOutDate);
-        
-        // Reset time to compare only dates
-        const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-        const checkoutDateOnly = new Date(checkoutDate.getFullYear(), checkoutDate.getMonth(), checkoutDate.getDate());
-        
-        // Business rule: show in checkout tab on the day AFTER actual checkout date
-        const showDate = new Date(checkoutDateOnly);
-        showDate.setDate(showDate.getDate() + 1);
+    // Update the cancel booking button with the booking ID
+    const cancelBookingBtn = document.querySelector('#viewBookingModal [data-modal-target="cancelBookingModal"]');
+    if (cancelBookingBtn && bookingData.bookingId) {
+        cancelBookingBtn.setAttribute('data-booking-id', bookingData.bookingId);
+etDate(showDate.getDate() + 1);
         
         const isToday = todayDate.getTime() === showDate.getTime();
         console.log('Date comparison:', {
