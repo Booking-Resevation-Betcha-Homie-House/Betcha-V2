@@ -314,7 +314,7 @@ function initializePropertyMonitoringFeatures() {
         endBookingConfirmBtn.addEventListener('click', handleEndBookingConfirm);
     }
     
-    initializeCheckinConfirmationModal(); // Safe now - only sets up internal button listeners
+    initializeCheckinConfirmationModal();
     initializePMCalendar(); // Use PM-specific single-selection calendar
 
     // Handle cancel modal opening (no longer need to load admin dropdown)
@@ -994,7 +994,7 @@ function createCheckoutBookingElement(booking) {
 }
 
 // Function to open the End Booking modal
-async function openEndBookingModal(bookingId, propertyName, guestName, checkInDate, checkOutDate, guestId, transNo) {
+function openEndBookingModal(bookingId, propertyName, guestName, checkInDate, checkOutDate, guestId, transNo) {
     // Find the modal elements
     const modal = document.getElementById('checkoutModal');
     
@@ -1003,43 +1003,31 @@ async function openEndBookingModal(bookingId, propertyName, guestName, checkInDa
         return;
     }
     
-    // Show loading state first
-    if (typeof showBookingModalLoading === 'function') {
-        showBookingModalLoading(modal);
+    // Set the modal content with booking details
+    const modalTitle = modal.querySelector('.text-xl.font-bold');
+    
+    if (modalTitle) {
+        modalTitle.textContent = `End Booking - ${propertyName}`;
     }
     
-    // Show the modal immediately with loading state
-    modal.classList.remove('hidden');
-    
+    // Store booking data for the confirm action
+    modal.dataset.bookingId = bookingId;
+    modal.dataset.propertyName = propertyName;
+    modal.dataset.guestName = guestName;
+    modal.dataset.checkInDate = checkInDate;
+    modal.dataset.checkOutDate = checkOutDate;
+    modal.dataset.guestId = guestId || '';
+    modal.dataset.transNo = transNo || '';
+    // Try to store propertyId if available from the latest cache
     try {
-        // Small delay to show loading state (improve UX)
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Set the modal content with booking details
-        const modalTitle = modal.querySelector('.text-xl.font-bold');
-        
-        if (modalTitle) {
-            modalTitle.textContent = `End Booking - ${propertyName}`;
-        }
-        
-        // Store booking data for the confirm action
-        modal.dataset.bookingId = bookingId;
-        modal.dataset.propertyName = propertyName;
-        modal.dataset.guestName = guestName;
-        modal.dataset.checkInDate = checkInDate;
-        modal.dataset.checkOutDate = checkOutDate;
-        modal.dataset.guestId = guestId || '';
-        modal.dataset.transNo = transNo || '';
-        
-        // Try to store propertyId if available from the latest cache
-        try {
-            const match = (window.lastCheckInData || []).find(b => (b.bookingId === bookingId || b._id === bookingId));
-            if (match && match.propertyId) modal.dataset.propertyId = match.propertyId;
-        } catch (_) {}
+        const match = (window.lastCheckInData || []).find(b => (b.bookingId === bookingId || b._id === bookingId));
+        if (match && match.propertyId) modal.dataset.propertyId = match.propertyId;
+    } catch (_) {}
 
-        // Backfill missing IDs by fetching booking details
-        if (!modal.dataset.guestId || !modal.dataset.transNo || !modal.dataset.propertyId) {
-            try {
+    // Backfill missing IDs by fetching booking details
+    (async () => {
+        try {
+            if (!modal.dataset.guestId || !modal.dataset.transNo || !modal.dataset.propertyId) {
                 const resp = await fetch(`${API_BASE_URL}/booking/${bookingId}`);
                 if (resp.ok) {
                     const payload = await resp.json();
@@ -1056,24 +1044,17 @@ async function openEndBookingModal(bookingId, propertyName, guestName, checkInDa
                 } else {
                     console.warn('Failed to backfill booking details:', resp.status);
                 }
-            } catch (error) {
-                console.error('Error fetching booking details:', error);
             }
+        } catch (e) {
+            console.warn('Error backfilling booking details:', e);
         }
-        
-        // Initialize customer/property report checkbox functionality
-        initializeCustomerReportCheckbox();
-        
-        // Hide loading state
-        if (typeof hideBookingModalLoading === 'function') {
-            hideBookingModalLoading(modal);
-        }
-        
-    } catch (error) {
-        console.error('Error opening checkout modal:', error);
-        // Hide modal on error
-        modal.classList.add('hidden');
-    }
+    })();
+    
+    // Initialize customer/property report checkbox functionality
+    initializeCustomerReportCheckbox();
+    
+    // Show the modal
+    modal.classList.remove('hidden');
 }
 
 // Function to handle End Booking confirmation
@@ -1258,70 +1239,77 @@ function initializeCustomerReportCheckbox() {
     }
 }
 
-// Function to initialize the check-in confirmation modal button listeners only
-// Note: Modal opening is now handled by modal.js, this just sets up internal button listeners
+// Function to initialize the check-in confirmation modal
 function initializeCheckinConfirmationModal() {
-    // Set up event listeners for the confirm/cancel buttons inside the modal
-    // This runs once on page load to set up the internal modal buttons
-    const confirmBtn = document.getElementById('confirm-checkin-btn');
-    const cancelBtn = document.getElementById('cancel-booking-btn');
-    
-    if (confirmBtn && !confirmBtn.hasAttribute('data-listener-attached')) {
-        confirmBtn.setAttribute('data-listener-attached', 'true');
-        confirmBtn.addEventListener('click', () => {
+    document.addEventListener('click', async (e) => {
+        const button = e.target.closest('[data-modal-target="checkinConfirmModal"]');
+        if (button) {
+            const bookingId = button.dataset.bookingId;
+            const propertyName = button.dataset.propertyName;
+            const guestName = button.dataset.guestName;
+            const checkinDate = button.dataset.checkinDate;
+            const checkinTime = button.dataset.checkinTime;
+            const bookingStatus = button.dataset.bookingStatus;
+            const guestId = button.dataset.guestId;
+            const transNo = button.dataset.transNo;
+            
+            console.log('Button dataset extracted:', {
+                bookingId,
+                propertyName,
+                guestName,
+                checkinDate,
+                checkinTime,
+                bookingStatus,
+                guestId: guestId || 'NOT_FOUND',
+                transNo: transNo || 'NOT_FOUND'
+            });
+            
+            // Populate the modal with booking details
+            populateCheckinConfirmModal(bookingId, propertyName, guestName, checkinDate, checkinTime, bookingStatus, guestId, transNo);
+            
+            // Open the modal
             const modal = document.getElementById('checkinConfirmModal');
-            const bookingId = modal?.dataset?.bookingId;
-            if (bookingId) {
-                processCheckinConfirmation(bookingId);
+            if (modal) {
+                modal.classList.remove('hidden');
+                document.body.classList.add('modal-open');
+                
+                // Store guestId and transNo in modal dataset for later use
+                modal.dataset.guestId = guestId;
+                modal.dataset.transNo = transNo;
             } else {
-                console.error('No booking ID found in modal dataset');
+                console.error('checkinConfirmModal not found in DOM');
             }
-        });
-    }
-    
-    if (cancelBtn && !cancelBtn.hasAttribute('data-listener-attached')) {
-        cancelBtn.setAttribute('data-listener-attached', 'true');
-        cancelBtn.addEventListener('click', () => {
-            const modal = document.getElementById('checkinConfirmModal');
-            const bookingId = modal?.dataset?.bookingId;
-            if (bookingId) {
-                processCheckinCancellation(bookingId);
-            } else {
-                console.error('No booking ID found in modal dataset for cancellation');
+            
+            // Customer report UI removed; no initialization needed
+            
+            // Set up event listeners for the buttons
+            const confirmBtn = document.getElementById('confirm-checkin-btn');
+            if (confirmBtn) {
+                confirmBtn.onclick = () => processCheckinConfirmation(bookingId);
             }
-        });
-    }
+            
+            const cancelBtn = document.getElementById('cancel-booking-btn');
+            if (cancelBtn) {
+                cancelBtn.onclick = () => processCheckinCancellation(bookingId);
+            }
+        }
+    });
 }
 
 // Function to populate the check-in confirmation modal
 function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkinDate, checkinTime, bookingStatus, guestId, transNo) {
-    try {
-        // Update modal content
-        const propertyEl = document.getElementById('confirm-property-name');
-        const guestEl = document.getElementById('confirm-guest-name');
-        const dateEl = document.getElementById('confirm-checkin-date');
-        const timeEl = document.getElementById('confirm-checkin-time');
-        const bookingIdEl = document.getElementById('confirm-booking-id');
-        
-        if (propertyEl) propertyEl.textContent = propertyName || '--';
-        if (guestEl) guestEl.textContent = guestName || '--';
-        if (dateEl) dateEl.textContent = checkinDate || '--';
-        if (timeEl) timeEl.textContent = checkinTime || '--';
-        if (bookingIdEl) bookingIdEl.textContent = bookingId || '--';
-        
-        // Store all data in modal dataset for button listeners
-        const modal = document.getElementById('checkinConfirmModal');
-        if (modal) {
-            modal.dataset.bookingId = bookingId || '';
-            modal.dataset.guestId = guestId || '';
-            modal.dataset.transNo = transNo || '';
-            modal.dataset.propertyName = propertyName || '';
-            modal.dataset.guestName = guestName || '';
-        } else {
-            console.error('checkinConfirmModal not found');
-        }
-    } catch (error) {
-        console.error('Error populating checkin confirm modal:', error);
+    // Update modal content
+    document.getElementById('confirm-property-name').textContent = propertyName || '--';
+    document.getElementById('confirm-guest-name').textContent = guestName || '--';
+    document.getElementById('confirm-checkin-date').textContent = checkinDate || '--';
+    document.getElementById('confirm-checkin-time').textContent = checkinTime || '--';
+    document.getElementById('confirm-booking-id').textContent = bookingId || '--';
+    
+    // Store guestId and transNo in modal dataset
+    const modal = document.getElementById('checkinConfirmModal');
+    if (modal) {
+        modal.dataset.guestId = guestId || '';
+        modal.dataset.transNo = transNo || '';
     }
     
     // Store booking ID in the confirm button for later use
@@ -1584,75 +1572,18 @@ async function loadAdminsIntoCancelModal() {
 async function sendCancellationNoticeToAdmin() {
     try {
         const modal = document.getElementById('cancelBookingModal') || document.getElementById('checkinConfirmModal');
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
         const messageTextarea = document.getElementById('input-cancel-admin');
         if (!modal || !messageTextarea) { 
             console.error('Missing modal or message field.'); 
             return; 
-=======
-        const selectEl = document.getElementById('select-cancel-admin');
-        const reasonSelectEl = document.getElementById('select-cancel-reason');
-        const messageTextarea = document.getElementById('input-cancel-admin');
-=======
-        const selectEl = document.getElementById('select-cancel-admin');
-        const reasonSelectEl = document.getElementById('select-cancel-reason');
-        const messageTextarea = document.getElementById('input-cancel-admin');
->>>>>>> Stashed changes
-=======
-        const selectEl = document.getElementById('select-cancel-admin');
-        const reasonSelectEl = document.getElementById('select-cancel-reason');
-        const messageTextarea = document.getElementById('input-cancel-admin');
->>>>>>> Stashed changes
-=======
-        const selectEl = document.getElementById('select-cancel-admin');
-        const reasonSelectEl = document.getElementById('select-cancel-reason');
-        const messageTextarea = document.getElementById('input-cancel-admin');
->>>>>>> Stashed changes
-        if (!modal || !selectEl || !reasonSelectEl || !messageTextarea) { console.error('Missing fields.'); return; }
-
-        // Require a cancellation reason to be selected
-        const reasonValue = reasonSelectEl.value;
-        if (!reasonValue) {
-            try { if (window.showToastError) window.showToastError('warning', 'Cancellation reason required', 'Please select a cancellation reason.'); } catch(_) {}
-            reasonSelectEl.focus();
-            return;
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
-=======
->>>>>>> Stashed changes
         }
 
         // Require a non-empty message before proceeding
         const messageValue = (messageTextarea.value || '').trim();
         if (!messageValue) {
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
             try { 
                 if (window.showToastError) window.showToastError('warning', 'Cancellation reason required', 'Please add a message before sending the cancellation.'); 
             } catch(_) {}
-=======
-            try { if (window.showToastError) window.showToastError('warning', 'Cancellation note required', 'Please add a message before sending the cancellation.'); } catch(_) {}
->>>>>>> Stashed changes
-=======
-            try { if (window.showToastError) window.showToastError('warning', 'Cancellation note required', 'Please add a message before sending the cancellation.'); } catch(_) {}
->>>>>>> Stashed changes
-=======
-            try { if (window.showToastError) window.showToastError('warning', 'Cancellation note required', 'Please add a message before sending the cancellation.'); } catch(_) {}
->>>>>>> Stashed changes
-=======
-            try { if (window.showToastError) window.showToastError('warning', 'Cancellation note required', 'Please add a message before sending the cancellation.'); } catch(_) {}
->>>>>>> Stashed changes
             messageTextarea.focus();
             return;
         }
@@ -1673,7 +1604,6 @@ async function sendCancellationNoticeToAdmin() {
         const fromName = `${localStorage.getItem('firstName') || 'Employee'} ${localStorage.getItem('lastName') || ''}`.trim();
         const fromRole = 'employee';
 
-<<<<<<< Updated upstream
         // Fetch all admins
         console.log('📧 Fetching all admins for cancellation notification...');
         const resp = await fetch(`${API_BASE_URL}/admin/display`, { method: 'GET' });
@@ -1746,134 +1676,6 @@ async function sendCancellationNoticeToAdmin() {
         }
 
         // Close the modal
-=======
-        // Calculate refund amount based on who requested the cancellation
-        let calculatedRefundAmount = undefined;
-        try {
-            const refundResponse = await fetch('https://betcha-api.onrender.com/booking/refund/calculate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    bookingId: bookingId,
-                    refundType: reasonValue
-                })
-            });
-            
-            if (refundResponse.ok) {
-                const refundData = await refundResponse.json();
-                calculatedRefundAmount = refundData.refundAmount;
-                console.log('✅ Refund amount calculated:', calculatedRefundAmount);
-            } else {
-                console.warn('Failed to calculate refund amount:', refundResponse.status);
-            }
-        } catch (error) {
-            console.warn('Error calculating refund amount:', error);
-        }
-
-        // Calculate refund amount based on who requested the cancellation
-        let calculatedRefundAmount = undefined;
-        try {
-            const refundResponse = await fetch('https://betcha-api.onrender.com/booking/refund/calculate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    bookingId: bookingId,
-                    refundType: reasonValue
-                })
-            });
-            
-            if (refundResponse.ok) {
-                const refundData = await refundResponse.json();
-                calculatedRefundAmount = refundData.refundAmount;
-                console.log('✅ Refund amount calculated:', calculatedRefundAmount);
-            } else {
-                console.warn('Failed to calculate refund amount:', refundResponse.status);
-            }
-        } catch (error) {
-            console.warn('Error calculating refund amount:', error);
-        }
-
-        // Calculate refund amount based on who requested the cancellation
-        let calculatedRefundAmount = undefined;
-        try {
-            const refundResponse = await fetch('https://betcha-api.onrender.com/booking/refund/calculate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    bookingId: bookingId,
-                    refundType: reasonValue
-                })
-            });
-            
-            if (refundResponse.ok) {
-                const refundData = await refundResponse.json();
-                calculatedRefundAmount = refundData.refundAmount;
-                console.log('✅ Refund amount calculated:', calculatedRefundAmount);
-            } else {
-                console.warn('Failed to calculate refund amount:', refundResponse.status);
-            }
-        } catch (error) {
-            console.warn('Error calculating refund amount:', error);
-        }
-
-        // Calculate refund amount based on who requested the cancellation
-        let calculatedRefundAmount = undefined;
-        try {
-            const refundResponse = await fetch('https://betcha-api.onrender.com/booking/refund/calculate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    bookingId: bookingId,
-                    refundType: reasonValue
-                })
-            });
-            
-            if (refundResponse.ok) {
-                const refundData = await refundResponse.json();
-                calculatedRefundAmount = refundData.refundAmount;
-                console.log('✅ Refund amount calculated:', calculatedRefundAmount);
-            } else {
-                console.warn('Failed to calculate refund amount:', refundResponse.status);
-            }
-        } catch (error) {
-            console.warn('Error calculating refund amount:', error);
-        }
-
-        const payload = {
-            fromId,
-            fromName,
-            fromRole,
-            toId,
-            toName,
-            toRole: 'admin',
-            message: messageValue,
-            transNo: ctx.transNo,
-            numberEwalletBank: ctx.ewallet || undefined,
-            amountRefund: calculatedRefundAmount || ctx.amountRefund || undefined,
-            modeOfRefund: ctx.modeOfRefund || undefined,
-            reasonToGuest: messageValue,
-            bookingId
-        };
-        Object.keys(payload).forEach(k => payload[k] === undefined && delete payload[k]);
-
-        // Check if notification service is available
-        if (!window.notify || !window.notify.sendCancellation) {
-            console.error('Notification service not available. Please refresh the page.');
-            try { if (window.showToastError) window.showToastError('error', 'Service Error', 'Notification service not available. Please refresh the page.'); } catch(_) {}
-            return;
-        }
-
-        await window.notify.sendCancellation(payload);
-        console.log('✅ Cancellation notice sent to admin.');
->>>>>>> Stashed changes
         const cancelModal = document.getElementById('cancelBookingModal');
         if (cancelModal) { 
             cancelModal.classList.add('hidden'); 
@@ -2770,7 +2572,6 @@ function createCalendarBookingElement(booking) {
         guestId: bookingDiv.getAttribute('data-guest-id') || 'N/A',
         transNo: bookingDiv.getAttribute('data-trans-no') || 'N/A'
     });
-    
     // Persist core identifiers on card click so downstream modals can recover context
     bookingDiv.addEventListener('click', () => {
         try {
@@ -2864,10 +2665,6 @@ function showCalendarBookingsError(message) {
     `;
 }
 
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
-<<<<<<< Updated upstream
 // Function to fetch property details by ID
 async function fetchPropertyDetails(propertyId) {
     try {
@@ -2950,515 +2747,11 @@ function populateViewBookingModal(bookingData) {
     } else {
         console.error('Check-out container not found');
     }
-=======
-// Function to show loading state in booking modal
-function showBookingModalLoading(modal) {
-    // For checkin and checkout modals, use overlay instead of replacing content
-    if (modal.id === 'checkinConfirmModal' || modal.id === 'checkoutModal') {
-        showOverlayModalLoading(modal);
-        return;
-    }
-=======
-// Function to show loading state in booking modal
-function showBookingModalLoading(modal) {
-    // For checkin and checkout modals, use overlay instead of replacing content
-    if (modal.id === 'checkinConfirmModal' || modal.id === 'checkoutModal') {
-        showOverlayModalLoading(modal);
-        return;
-    }
-=======
-// Function to show loading state in booking modal
-function showBookingModalLoading(modal) {
-    // For checkin and checkout modals, use overlay instead of replacing content
-    if (modal.id === 'checkinConfirmModal' || modal.id === 'checkoutModal') {
-        showOverlayModalLoading(modal);
-        return;
-    }
-=======
-// Function to show loading state in booking modal
-function showBookingModalLoading(modal) {
-    // For checkin and checkout modals, use overlay instead of replacing content
-    if (modal.id === 'checkinConfirmModal' || modal.id === 'checkoutModal') {
-        showOverlayModalLoading(modal);
-        return;
-    }
-    
-    // Find the modal content area and replace with loading state
-    const modalContent = modal.querySelector('.space-y-5');
-    if (modalContent) {
-        modalContent.innerHTML = `
-            <div class="flex items-center justify-center py-8">
-                <div class="flex flex-col items-center space-y-3">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <p class="text-sm text-neutral-500">Loading booking details...</p>
-                </div>
-            </div>
-        `;
-    }
-}
-
-// Function to show loading state with overlay (for modals with forms/specific structure)
-function showOverlayModalLoading(modal) {
-    // Create an overlay instead of replacing content
-    const existingOverlay = modal.querySelector('.loading-overlay');
-    if (existingOverlay) return; // Already showing
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay absolute inset-0 bg-white/80 flex items-center justify-center z-10';
-    overlay.innerHTML = `
-        <div class="flex flex-col items-center space-y-3">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p class="text-sm text-neutral-500">Loading booking details...</p>
-        </div>
-    `;
-    
-    const modalContent = modal.querySelector('.modal-animate') || modal.querySelector('.bg-background');
-    if (modalContent) {
-        modalContent.style.position = 'relative';
-        modalContent.appendChild(overlay);
-    }
-}
-
-// Function to show loading state for checkin modal (overlay approach)
-function showCheckinModalLoading(modal) {
-    // This is now handled by showOverlayModalLoading
-    showOverlayModalLoading(modal);
-}
-
-// Function to hide loading state in booking modal
-function hideBookingModalLoading(modal) {
-    // For checkin and checkout modals, remove overlay
-    if (modal.id === 'checkinConfirmModal' || modal.id === 'checkoutModal') {
-        hideOverlayModalLoading(modal);
-        return;
-    }
-    
-    // The loading state will be replaced by populateViewBookingModal
-    // This function exists for consistency and future enhancements
-}
-
-// Function to hide loading state for overlay modals
-function hideOverlayModalLoading(modal) {
-    const overlay = modal.querySelector('.loading-overlay');
-    if (overlay) {
-        overlay.remove();
-    }
-}
-
-// Function to hide loading state for checkin modal
-function hideCheckinModalLoading(modal) {
-    // This is now handled by hideOverlayModalLoading
-    hideOverlayModalLoading(modal);
-}
-
-// Function to populate the view booking modal with booking data
-function populateViewBookingModal(bookingData) {
-    const modal = document.getElementById('viewBookingModal');
-    if (!modal) return;
-    
-    // Find the modal content container
-    const modalContent = modal.querySelector('.space-y-5');
-    if (!modalContent) return;
-    
-    // Extract and prepare data
-    const propertyName = bookingData.propertyName || bookingData.nameOfProperty || 'Property Name';
-    const propertyAddress = bookingData.propertyAddress || bookingData.address || '123 Sunshine Street, Manila';
-    const guestName = bookingData.guestName || bookingData.nameOfGuest || bookingData.customerName || 'Guest Name';
-    const checkInFormatted = formatDate(bookingData.checkInDate || bookingData.checkIn);
-    const checkOutFormatted = formatDate(bookingData.checkOutDate || bookingData.checkOut);
-    const checkInTime = bookingData.checkInTime || bookingData.timeIn || '2:00 PM';
-    const checkOutTime = bookingData.checkOutTime || bookingData.timeOut || '11:00 AM';
-    const bookingId = bookingData.bookingId || bookingData._id || bookingData.id || '';
-    
-    // Rebuild the modal content
-    modalContent.innerHTML = `
-        <!-- Property Name -->
-        <div>
-            <h3 class="text-lg font-bold font-manrope text-primary-text">${propertyName}</h3>
-            <p class="text-neutral-600 text-sm">${propertyAddress}</p>
-        </div>
-
-        <!-- Divider -->
-        <hr class="border-neutral-100">
-
-        <!-- Guest Info -->
-        <div>
-            <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Guest Information</p>
-            <p class="text-neutral-900 font-semibold">${guestName}</p>
-        </div>
-
-        <!-- Dates -->
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Check-in</p>
-                <p class="text-neutral-900">${checkInFormatted} — ${checkInTime}</p>
-            </div>
-            <div>
-                <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Check-out</p>
-                <p class="text-neutral-900">${checkOutFormatted} — ${checkOutTime}</p>
-            </div>
-        </div>
-    `;
->>>>>>> Stashed changes
-    
-    // Find the modal content area and replace with loading state
-    const modalContent = modal.querySelector('.space-y-5');
-    if (modalContent) {
-        modalContent.innerHTML = `
-            <div class="flex items-center justify-center py-8">
-                <div class="flex flex-col items-center space-y-3">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <p class="text-sm text-neutral-500">Loading booking details...</p>
-                </div>
-            </div>
-        `;
-    }
-}
-
-// Function to show loading state with overlay (for modals with forms/specific structure)
-function showOverlayModalLoading(modal) {
-    // Create an overlay instead of replacing content
-    const existingOverlay = modal.querySelector('.loading-overlay');
-    if (existingOverlay) return; // Already showing
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay absolute inset-0 bg-white/80 flex items-center justify-center z-10';
-    overlay.innerHTML = `
-        <div class="flex flex-col items-center space-y-3">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p class="text-sm text-neutral-500">Loading booking details...</p>
-        </div>
-    `;
-    
-    const modalContent = modal.querySelector('.modal-animate') || modal.querySelector('.bg-background');
-    if (modalContent) {
-        modalContent.style.position = 'relative';
-        modalContent.appendChild(overlay);
-    }
-}
-
-// Function to show loading state for checkin modal (overlay approach)
-function showCheckinModalLoading(modal) {
-    // This is now handled by showOverlayModalLoading
-    showOverlayModalLoading(modal);
-}
-
-// Function to hide loading state in booking modal
-function hideBookingModalLoading(modal) {
-    // For checkin and checkout modals, remove overlay
-    if (modal.id === 'checkinConfirmModal' || modal.id === 'checkoutModal') {
-        hideOverlayModalLoading(modal);
-        return;
-    }
-    
-    // The loading state will be replaced by populateViewBookingModal
-    // This function exists for consistency and future enhancements
-}
-
-// Function to hide loading state for overlay modals
-function hideOverlayModalLoading(modal) {
-    const overlay = modal.querySelector('.loading-overlay');
-    if (overlay) {
-        overlay.remove();
-    }
-}
-
-// Function to hide loading state for checkin modal
-function hideCheckinModalLoading(modal) {
-    // This is now handled by hideOverlayModalLoading
-    hideOverlayModalLoading(modal);
-}
-
-// Function to populate the view booking modal with booking data
-function populateViewBookingModal(bookingData) {
-    const modal = document.getElementById('viewBookingModal');
-    if (!modal) return;
-    
-    // Find the modal content container
-    const modalContent = modal.querySelector('.space-y-5');
-    if (!modalContent) return;
-    
-    // Extract and prepare data
-    const propertyName = bookingData.propertyName || bookingData.nameOfProperty || 'Property Name';
-    const propertyAddress = bookingData.propertyAddress || bookingData.address || '123 Sunshine Street, Manila';
-    const guestName = bookingData.guestName || bookingData.nameOfGuest || bookingData.customerName || 'Guest Name';
-    const checkInFormatted = formatDate(bookingData.checkInDate || bookingData.checkIn);
-    const checkOutFormatted = formatDate(bookingData.checkOutDate || bookingData.checkOut);
-    const checkInTime = bookingData.checkInTime || bookingData.timeIn || '2:00 PM';
-    const checkOutTime = bookingData.checkOutTime || bookingData.timeOut || '11:00 AM';
-    const bookingId = bookingData.bookingId || bookingData._id || bookingData.id || '';
-    
-    // Rebuild the modal content
-    modalContent.innerHTML = `
-        <!-- Property Name -->
-        <div>
-            <h3 class="text-lg font-bold font-manrope text-primary-text">${propertyName}</h3>
-            <p class="text-neutral-600 text-sm">${propertyAddress}</p>
-        </div>
-
-        <!-- Divider -->
-        <hr class="border-neutral-100">
-
-        <!-- Guest Info -->
-        <div>
-            <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Guest Information</p>
-            <p class="text-neutral-900 font-semibold">${guestName}</p>
-        </div>
-
-        <!-- Dates -->
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Check-in</p>
-                <p class="text-neutral-900">${checkInFormatted} — ${checkInTime}</p>
-            </div>
-            <div>
-                <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Check-out</p>
-                <p class="text-neutral-900">${checkOutFormatted} — ${checkOutTime}</p>
-            </div>
-        </div>
-    `;
->>>>>>> Stashed changes
-    
-    // Find the modal content area and replace with loading state
-    const modalContent = modal.querySelector('.space-y-5');
-    if (modalContent) {
-        modalContent.innerHTML = `
-            <div class="flex items-center justify-center py-8">
-                <div class="flex flex-col items-center space-y-3">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <p class="text-sm text-neutral-500">Loading booking details...</p>
-                </div>
-            </div>
-        `;
-    }
-}
-
-// Function to show loading state with overlay (for modals with forms/specific structure)
-function showOverlayModalLoading(modal) {
-    // Create an overlay instead of replacing content
-    const existingOverlay = modal.querySelector('.loading-overlay');
-    if (existingOverlay) return; // Already showing
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay absolute inset-0 bg-white/80 flex items-center justify-center z-10';
-    overlay.innerHTML = `
-        <div class="flex flex-col items-center space-y-3">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p class="text-sm text-neutral-500">Loading booking details...</p>
-        </div>
-    `;
-    
-    const modalContent = modal.querySelector('.modal-animate') || modal.querySelector('.bg-background');
-    if (modalContent) {
-        modalContent.style.position = 'relative';
-        modalContent.appendChild(overlay);
-    }
-}
-
-// Function to show loading state for checkin modal (overlay approach)
-function showCheckinModalLoading(modal) {
-    // This is now handled by showOverlayModalLoading
-    showOverlayModalLoading(modal);
-}
-
-// Function to hide loading state in booking modal
-function hideBookingModalLoading(modal) {
-    // For checkin and checkout modals, remove overlay
-    if (modal.id === 'checkinConfirmModal' || modal.id === 'checkoutModal') {
-        hideOverlayModalLoading(modal);
-        return;
-    }
-    
-    // The loading state will be replaced by populateViewBookingModal
-    // This function exists for consistency and future enhancements
-}
-
-// Function to hide loading state for overlay modals
-function hideOverlayModalLoading(modal) {
-    const overlay = modal.querySelector('.loading-overlay');
-    if (overlay) {
-        overlay.remove();
-    }
-}
-
-// Function to hide loading state for checkin modal
-function hideCheckinModalLoading(modal) {
-    // This is now handled by hideOverlayModalLoading
-    hideOverlayModalLoading(modal);
-}
-
-// Function to populate the view booking modal with booking data
-function populateViewBookingModal(bookingData) {
-    const modal = document.getElementById('viewBookingModal');
-    if (!modal) return;
-    
-    // Find the modal content container
-    const modalContent = modal.querySelector('.space-y-5');
-    if (!modalContent) return;
-    
-    // Extract and prepare data
-    const propertyName = bookingData.propertyName || bookingData.nameOfProperty || 'Property Name';
-    const propertyAddress = bookingData.propertyAddress || bookingData.address || '123 Sunshine Street, Manila';
-    const guestName = bookingData.guestName || bookingData.nameOfGuest || bookingData.customerName || 'Guest Name';
-    const checkInFormatted = formatDate(bookingData.checkInDate || bookingData.checkIn);
-    const checkOutFormatted = formatDate(bookingData.checkOutDate || bookingData.checkOut);
-    const checkInTime = bookingData.checkInTime || bookingData.timeIn || '2:00 PM';
-    const checkOutTime = bookingData.checkOutTime || bookingData.timeOut || '11:00 AM';
-    const bookingId = bookingData.bookingId || bookingData._id || bookingData.id || '';
-    
-    // Rebuild the modal content
-    modalContent.innerHTML = `
-        <!-- Property Name -->
-        <div>
-            <h3 class="text-lg font-bold font-manrope text-primary-text">${propertyName}</h3>
-            <p class="text-neutral-600 text-sm">${propertyAddress}</p>
-        </div>
-
-        <!-- Divider -->
-        <hr class="border-neutral-100">
-
-        <!-- Guest Info -->
-        <div>
-            <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Guest Information</p>
-            <p class="text-neutral-900 font-semibold">${guestName}</p>
-        </div>
-
-        <!-- Dates -->
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Check-in</p>
-                <p class="text-neutral-900">${checkInFormatted} — ${checkInTime}</p>
-            </div>
-            <div>
-                <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Check-out</p>
-                <p class="text-neutral-900">${checkOutFormatted} — ${checkOutTime}</p>
-            </div>
-        </div>
-    `;
->>>>>>> Stashed changes
-    
-    // Find the modal content area and replace with loading state
-    const modalContent = modal.querySelector('.space-y-5');
-    if (modalContent) {
-        modalContent.innerHTML = `
-            <div class="flex items-center justify-center py-8">
-                <div class="flex flex-col items-center space-y-3">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                    <p class="text-sm text-neutral-500">Loading booking details...</p>
-                </div>
-            </div>
-        `;
-    }
-}
-
-// Function to show loading state with overlay (for modals with forms/specific structure)
-function showOverlayModalLoading(modal) {
-    // Create an overlay instead of replacing content
-    const existingOverlay = modal.querySelector('.loading-overlay');
-    if (existingOverlay) return; // Already showing
-    
-    const overlay = document.createElement('div');
-    overlay.className = 'loading-overlay absolute inset-0 bg-white/80 flex items-center justify-center z-10';
-    overlay.innerHTML = `
-        <div class="flex flex-col items-center space-y-3">
-            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-            <p class="text-sm text-neutral-500">Loading booking details...</p>
-        </div>
-    `;
-    
-    const modalContent = modal.querySelector('.modal-animate') || modal.querySelector('.bg-background');
-    if (modalContent) {
-        modalContent.style.position = 'relative';
-        modalContent.appendChild(overlay);
-    }
-}
-
-// Function to show loading state for checkin modal (overlay approach)
-function showCheckinModalLoading(modal) {
-    // This is now handled by showOverlayModalLoading
-    showOverlayModalLoading(modal);
-}
-
-// Function to hide loading state in booking modal
-function hideBookingModalLoading(modal) {
-    // For checkin and checkout modals, remove overlay
-    if (modal.id === 'checkinConfirmModal' || modal.id === 'checkoutModal') {
-        hideOverlayModalLoading(modal);
-        return;
-    }
-    
-    // The loading state will be replaced by populateViewBookingModal
-    // This function exists for consistency and future enhancements
-}
-
-// Function to hide loading state for overlay modals
-function hideOverlayModalLoading(modal) {
-    const overlay = modal.querySelector('.loading-overlay');
-    if (overlay) {
-        overlay.remove();
-    }
-}
-
-// Function to hide loading state for checkin modal
-function hideCheckinModalLoading(modal) {
-    // This is now handled by hideOverlayModalLoading
-    hideOverlayModalLoading(modal);
-}
-
-// Function to populate the view booking modal with booking data
-function populateViewBookingModal(bookingData) {
-    const modal = document.getElementById('viewBookingModal');
-    if (!modal) return;
-    
-    // Find the modal content container
-    const modalContent = modal.querySelector('.space-y-5');
-    if (!modalContent) return;
-    
-    // Extract and prepare data
-    const propertyName = bookingData.propertyName || bookingData.nameOfProperty || 'Property Name';
-    const propertyAddress = bookingData.propertyAddress || bookingData.address || '123 Sunshine Street, Manila';
-    const guestName = bookingData.guestName || bookingData.nameOfGuest || bookingData.customerName || 'Guest Name';
-    const checkInFormatted = formatDate(bookingData.checkInDate || bookingData.checkIn);
-    const checkOutFormatted = formatDate(bookingData.checkOutDate || bookingData.checkOut);
-    const checkInTime = bookingData.checkInTime || bookingData.timeIn || '2:00 PM';
-    const checkOutTime = bookingData.checkOutTime || bookingData.timeOut || '11:00 AM';
-    const bookingId = bookingData.bookingId || bookingData._id || bookingData.id || '';
-    
-    // Rebuild the modal content
-    modalContent.innerHTML = `
-        <!-- Property Name -->
-        <div>
-            <h3 class="text-lg font-bold font-manrope text-primary-text">${propertyName}</h3>
-            <p class="text-neutral-600 text-sm">${propertyAddress}</p>
-        </div>
-
-        <!-- Divider -->
-        <hr class="border-neutral-100">
-
-        <!-- Guest Info -->
-        <div>
-            <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Guest Information</p>
-            <p class="text-neutral-900 font-semibold">${guestName}</p>
-        </div>
-
-        <!-- Dates -->
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Check-in</p>
-                <p class="text-neutral-900">${checkInFormatted} — ${checkInTime}</p>
-            </div>
-            <div>
-                <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Check-out</p>
-                <p class="text-neutral-900">${checkOutFormatted} — ${checkOutTime}</p>
-            </div>
-        </div>
-    `;
->>>>>>> Stashed changes
     
     // Update the cancel booking button with the booking ID
-    const cancelBookingBtn = modal.querySelector('[data-modal-target="cancelBookingModal"]');
-    if (cancelBookingBtn && bookingId) {
-        cancelBookingBtn.setAttribute('data-booking-id', bookingId);
+    const cancelBookingBtn = document.querySelector('#viewBookingModal [data-modal-target="cancelBookingModal"]');
+    if (cancelBookingBtn && bookingData.bookingId) {
+        cancelBookingBtn.setAttribute('data-booking-id', bookingData.bookingId);
     }
 }
 
