@@ -79,8 +79,8 @@ async function initializeDashboard() {
         try {
             if (window.AuditTrailFunctions) {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                const userId = userData.userId || userData.user_id || 'unknown';
-                const userType = userData.role || 'admin';
+                const userId = userData.userId || userData.user_id || localStorage.getItem('userId') || localStorage.getItem('userID') || localStorage.getItem('currentUser') || 'unknown';
+                const userType = 'Admin'; // Always use Admin for dashboard functions
                 await window.AuditTrailFunctions.logSystemAccess(userId, userType);
             }
         } catch (auditError) {
@@ -1112,6 +1112,11 @@ window.sendGuestNotification = sendGuestNotification;
  */
 async function sendGuestNotification(notificationData) {
     try {
+        // Check if notification service is available
+        if (!window.notify || typeof window.notify.sendMessage !== 'function') {
+            throw new Error('Notification service is not available. Please ensure admin-notifications.js is loaded.');
+        }
+        
         const result = await window.notify.sendMessage(notificationData);
 
         // Show success message
@@ -1203,8 +1208,10 @@ function initializeGuestNotifications() {
             
             try {
                 // Get admin user data from localStorage or use defaults
-                const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || 'admin-user';
-                const adminName = localStorage.getItem('adminName') || localStorage.getItem('firstName') + ' ' + localStorage.getItem('lastName') || 'Admin User';
+                const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || localStorage.getItem('userID') || localStorage.getItem('currentUser') || 'admin-user';
+                const adminName = localStorage.getItem('adminName') || 
+                    (localStorage.getItem('firstName') ? localStorage.getItem('firstName') + ' ' + (localStorage.getItem('lastName') || '') : '') ||
+                    localStorage.getItem('userName') || 'Admin User';
                 
                 // Create sample notification payload
                 const notificationPayload = {
@@ -1423,8 +1430,8 @@ async function cancelBooking(bookingId) {
         try {
             if (window.AuditTrailFunctions) {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                const userId = userData.userId || userData.user_id || 'unknown';
-                const userType = userData.role || 'admin';
+                const userId = userData.userId || userData.user_id || localStorage.getItem('userId') || localStorage.getItem('userID') || localStorage.getItem('currentUser') || 'unknown';
+                const userType = 'Admin'; // Always use Admin for dashboard functions
                 await window.AuditTrailFunctions.logBookingCancellation(userId, userType, bookingId);
             }
         } catch (auditError) {
@@ -1619,6 +1626,9 @@ function initializeStaticModalButtons() {
         rejectBtn.addEventListener('click', async function(e) {
             e.preventDefault();
             
+            // Declare originalText at the beginning to ensure scope access
+            const originalText = rejectBtn.textContent;
+            
             try {
                 // Get notification data from the modal
                 const modal = document.getElementById('cancelModal');
@@ -1657,7 +1667,6 @@ function initializeStaticModalButtons() {
 
                 
                 // Disable button during processing
-                const originalText = rejectBtn.textContent;
                 rejectBtn.disabled = true;
                 rejectBtn.textContent = 'Processing...';
                 
@@ -1666,8 +1675,10 @@ function initializeStaticModalButtons() {
 
                 // Send a static message back to the requester about rejection
                 try {
-                    const fromId = localStorage.getItem('adminId') || localStorage.getItem('userId') || 'admin-user';
-                    const fromName = localStorage.getItem('adminName') || `${localStorage.getItem('firstName') || 'Admin'} ${localStorage.getItem('lastName') || 'User'}`.trim();
+                    const fromId = localStorage.getItem('adminId') || localStorage.getItem('userId') || localStorage.getItem('userID') || localStorage.getItem('currentUser') || 'admin-user';
+                    const fromName = localStorage.getItem('adminName') || 
+                        (localStorage.getItem('firstName') ? `${localStorage.getItem('firstName')} ${localStorage.getItem('lastName') || ''}`.trim() : '') ||
+                        localStorage.getItem('userName') || 'Admin User';
                     const toId = modal.dataset.fromId || '';
                     const toName = 'Employee';
                     const payload = {
@@ -1717,6 +1728,9 @@ function initializeStaticModalButtons() {
         approveBtn.addEventListener('click', async function(e) {
             e.preventDefault();
             
+            // Declare originalText outside try block to ensure scope access
+            const originalText = approveBtn.textContent;
+            
             try {
                 // Get notification data from the modal
                 const modal = document.getElementById('cancelModal');
@@ -1755,7 +1769,6 @@ function initializeStaticModalButtons() {
                 }
                 
                 // Disable button during processing
-                const originalText = approveBtn.textContent;
                 approveBtn.disabled = true;
                 approveBtn.textContent = 'Processing...';
                 

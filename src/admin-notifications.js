@@ -1,12 +1,13 @@
 // Admin Notification System
 // Consolidated notification functionality for admin and employee pages
 
+// API Base URL - Use window property to avoid duplicate identifier errors
+window.API_BASE = window.API_BASE || 'https://betcha-api.onrender.com';
+
 document.addEventListener("DOMContentLoaded", () => {
     const dropdown = document.getElementById('notificationDropdown');
     const bellBtn = document.getElementById('notifBellBtnDesktop');
     const notifBadge = document.getElementById('notifBadge');
-
-    const API_BASE = 'https://betcha-api.onrender.com';
     // Prevent the dropdown from auto-closing on the very next outside click
     // when a modal was opened/closed from within the dropdown
     let suppressDropdownCloseOnce = false;
@@ -205,7 +206,7 @@ document.addEventListener("DOMContentLoaded", () => {
             
             // Mark notification as seen on server
             if (id) {
-                fetch(`${API_BASE}/notify/seen/${id}`, {
+                fetch(`${window.API_BASE}/notify/seen/${id}`, {
                     method: 'PATCH',
                     headers: {
                         'Content-Type': 'application/json'
@@ -288,7 +289,7 @@ document.addEventListener("DOMContentLoaded", () => {
             return;
         }
         try {
-            const resp = await fetch(`${API_BASE}/notify/to/${uid}`);
+            const resp = await fetch(`${window.API_BASE}/notify/to/${uid}`);
             if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
             const json = await resp.json();
             const items = Array.isArray(json?.data) ? json.data : [];
@@ -461,7 +462,7 @@ async function updateNotificationStatus(notifId, statusRejection) {
             throw new Error('Status must be either "Rejected" or "Complete"');
         }
 
-        const url = `${API_BASE}/notify/status-rejection/${notifId}`;
+        const url = `${window.API_BASE}/notify/status-rejection/${notifId}`;
         const body = { statusRejection };
 
 
@@ -504,7 +505,7 @@ async function cancelBooking(bookingId) {
             throw new Error('Booking ID is required');
         }
         
-        const url = `${API_BASE}/booking/update-status/${bookingId}`;
+        const url = `${window.API_BASE}/booking/update-status/${bookingId}`;
         const body = { status: 'Cancel' };
 
         
@@ -527,9 +528,21 @@ async function cancelBooking(bookingId) {
         try {
             if (window.AuditTrailFunctions) {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                const userId = userData.userId || userData.user_id || 'unknown';
-                const userType = userData.role || 'admin';
-                await window.AuditTrailFunctions.logBookingCancellation(userId, userType, bookingId);
+                const userId = userData._id || userData.userId || userData.user_id || 'unknown';
+                let userType = userData.userType || userData.role || 'admin';
+                
+                // Normalize userType to match API expectations
+                if (userType.toLowerCase() === 'admin') {
+                    userType = 'Admin';
+                } else if (userType.toLowerCase() === 'employee') {
+                    userType = 'Employee';
+                } else if (userType.toLowerCase() === 'guest') {
+                    userType = 'Guest';
+                } else {
+                    userType = 'Admin'; // Default fallback
+                }
+                
+                await window.AuditTrailFunctions.logBookingCancellation(userId, userType);
             }
         } catch (auditError) {
             console.error('Audit trail error:', auditError);
@@ -631,7 +644,7 @@ function initializeStaticModalButtons() {
                     if (transNo) {
                         try {
 
-                            const searchResponse = await fetch(`${API_BASE}/booking/trans/${encodeURIComponent(transNo)}`);
+                            const searchResponse = await fetch(`${window.API_BASE}/booking/trans/${encodeURIComponent(transNo)}`);
                             const searchData = await searchResponse.json();
                             
                             if (searchData && (searchData.booking || searchData.data)) {
@@ -674,7 +687,7 @@ function initializeStaticModalButtons() {
                         message: 'Your cancellation request has been reviewed and rejected by the admin. The booking will remain active. This thread does not accept replies. For any concerns, please reach out to the admin via the designated support channel.'
                     };
 
-                    const msgResp = await fetch(`${API_BASE}/notify/message`, {
+                    const msgResp = await fetch(`${window.API_BASE}/notify/message`, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
@@ -715,6 +728,9 @@ function initializeStaticModalButtons() {
         
         approveBtn.addEventListener('click', async function(e) {
             e.preventDefault();
+            
+            // Declare originalText outside try block to avoid scope issues
+            const originalText = approveBtn.textContent;
 
             
             try {
@@ -738,7 +754,7 @@ function initializeStaticModalButtons() {
 
                     if (transNo) {
                         try {
-                            const searchResponse = await fetch(`${API_BASE}/booking/trans/${encodeURIComponent(transNo)}`);
+                            const searchResponse = await fetch(`${window.API_BASE}/booking/trans/${encodeURIComponent(transNo)}`);
                             const searchData = await searchResponse.json();
                             if (searchData && (searchData.booking || searchData.data)) {
                                 const b = searchData.booking || searchData.data;
@@ -759,7 +775,6 @@ function initializeStaticModalButtons() {
 
                 
                 // Disable button during processing
-                const originalText = approveBtn.textContent;
                 approveBtn.disabled = true;
                 approveBtn.textContent = 'Processing...';
                 
@@ -823,7 +838,7 @@ async function guestCancllationNotification() {
         }
         
         // Fetch booking details to get guest information
-        const bookingResponse = await fetch(`${API_BASE}/booking/${bookingId}`);
+        const bookingResponse = await fetch(`${window.API_BASE}/booking/${bookingId}`);
         const bookingData = await bookingResponse.json();
         
         if (!bookingData || !bookingData.booking) {
@@ -871,7 +886,7 @@ async function guestCancllationNotification() {
 
         
         // Send notification to guest
-        const response = await fetch(`${API_BASE}/notify/message`, {
+        const response = await fetch(`${window.API_BASE}/notify/message`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -914,10 +929,11 @@ document.addEventListener('DOMContentLoaded', () => {
         guestMsgBtn.addEventListener('click', async function(e) {
             e.preventDefault();
 
+            // Declare originalText outside try block to avoid scope issues
+            const originalText = guestMsgBtn.textContent;
             
             try {
                 // Disable button during processing
-                const originalText = guestMsgBtn.textContent;
                 guestMsgBtn.disabled = true;
                 guestMsgBtn.textContent = 'Sending...';
                 
@@ -952,7 +968,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const bookingId = cancelModal?.dataset.bookingId;
                     if (!bookingId) return;
                     
-                    const bookingResponse = await fetch(`${API_BASE}/booking/${bookingId}`);
+                    const bookingResponse = await fetch(`${window.API_BASE}/booking/${bookingId}`);
                     const bookingData = await bookingResponse.json();
                     
                     if (bookingData && bookingData.booking) {

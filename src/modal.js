@@ -120,13 +120,137 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   // Delegate clicks for dynamically-added elements
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', async (e) => {
     const trigger = e.target.closest('[data-modal-target]');
     if (!trigger) return;
     const targetId = trigger.getAttribute('data-modal-target');
     if (!targetId) return;
-    openModalById(targetId);
+    
+    // Special handling for booking modals that need async data loading
+    if (targetId === 'viewBookingModal') {
+      await handleBookingModalOpen(trigger, targetId);
+    } else if (targetId === 'checkinConfirmModal') {
+      await handleCheckinModalOpen(trigger, targetId);
+    } else {
+      openModalById(targetId);
+    }
   });
+
+  // Handle booking modal opening with async data loading
+  async function handleBookingModalOpen(trigger, targetId) {
+    try {
+      const modal = document.getElementById(targetId);
+      if (!modal) {
+        console.error(`Modal with ID '${targetId}' not found`);
+        return;
+      }
+
+      // Show modal with loading state first
+      if (typeof showBookingModalLoading === 'function') {
+        showBookingModalLoading(modal);
+      }
+      
+      // Open the modal immediately to show loading state
+      openModalById(targetId);
+
+      // Extract booking data from the trigger element
+      const bookingData = {
+        bookingId: trigger.getAttribute('data-booking-id'),
+        propertyName: trigger.getAttribute('data-property-name'),
+        propertyAddress: trigger.getAttribute('data-property-address'),
+        guestName: trigger.getAttribute('data-guest-name'),
+        checkInDate: trigger.getAttribute('data-checkin-date'),
+        checkOutDate: trigger.getAttribute('data-checkout-date'),
+        checkInTime: trigger.getAttribute('data-checkin-time'),
+        checkOutTime: trigger.getAttribute('data-checkout-time')
+      };
+
+      // Small delay to show loading state (improve UX)
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Populate the modal with booking data
+      if (typeof populateViewBookingModal === 'function') {
+        populateViewBookingModal(bookingData);
+      }
+
+      // Hydrate booking context if available
+      if (typeof BookingContext !== 'undefined' && BookingContext.hydrateFromBooking && bookingData.bookingId) {
+        await BookingContext.hydrateFromBooking(bookingData.bookingId);
+      }
+
+      // Hide loading state
+      if (typeof hideBookingModalLoading === 'function') {
+        hideBookingModalLoading(modal);
+      }
+
+    } catch (error) {
+      console.error('Error opening booking modal:', error);
+      // Close modal on error
+      const modal = document.getElementById(targetId);
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.classList.remove('modal-open');
+      }
+    }
+  }
+
+  // Handle checkin modal opening with async data loading
+  async function handleCheckinModalOpen(trigger, targetId) {
+    try {
+      const modal = document.getElementById(targetId);
+      if (!modal) {
+        console.error(`Modal with ID '${targetId}' not found`);
+        return;
+      }
+      
+      // Show modal with loading state first if available
+      if (typeof showBookingModalLoading === 'function') {
+        showBookingModalLoading(modal);
+      }
+      
+      // Open the modal immediately to show loading state
+      openModalById(targetId);
+
+      // Extract booking data from the trigger element
+      const bookingId = trigger.getAttribute('data-booking-id');
+      const propertyName = trigger.getAttribute('data-property-name');
+      const guestName = trigger.getAttribute('data-guest-name');
+      const checkinDate = trigger.getAttribute('data-checkin-date');
+      const checkinTime = trigger.getAttribute('data-checkin-time');
+      const bookingStatus = trigger.getAttribute('data-booking-status');
+      const guestId = trigger.getAttribute('data-guest-id');
+      const transNo = trigger.getAttribute('data-trans-no');
+
+      // Small delay to show loading state (improve UX)
+      await new Promise(resolve => setTimeout(resolve, 200));
+      
+      // Populate the checkin modal with booking data
+      if (typeof populateCheckinConfirmModal === 'function') {
+        populateCheckinConfirmModal(bookingId, propertyName, guestName, checkinDate, checkinTime, bookingStatus, guestId, transNo);
+      } else {
+        console.error('populateCheckinConfirmModal function not found');
+      }
+
+      // Hydrate booking context if available
+      if (typeof BookingContext !== 'undefined' && BookingContext.hydrateFromBooking && bookingId) {
+        await BookingContext.hydrateFromBooking(bookingId);
+      }
+
+      // Hide loading state
+      if (typeof hideBookingModalLoading === 'function') {
+        hideBookingModalLoading(modal);
+      }
+
+    } catch (error) {
+      console.error('Error opening checkin modal:', error);
+      // Close modal on error
+      const modal = document.getElementById(targetId);
+      if (modal) {
+        modal.classList.add('hidden');
+        document.body.classList.remove('modal-open');
+      }
+    }
+  }
 
   // Close modal
   document.querySelectorAll('[data-close-modal]').forEach(btn => {

@@ -1,11 +1,135 @@
-//Can now add images from the file input with id="images" but doesnt display the images in the preview
+// Property Add Page Functions
+// Handles form submission, image display, and employee assignment
 
-// Function to update PhotosSection display - defined globally first
+// API Base URL
+const API_BASE = 'https://betcha-api.onrender.com';
+
+console.log('property-add-functions.js: Script loaded!');
+
+// Function to load employees from API
+async function loadEmployees() {
+  console.log('loadEmployees: Starting to load employees...');
+  try {
+    const response = await fetch('https://betcha-api.onrender.com/employee/display');
+    if (!response.ok) {
+      console.error('Failed to fetch employees:', response.status);
+      return;
+    }
+
+    const employees = await response.json();
+    console.log('loadEmployees: API response received:', employees);
+    
+    // Wait for Alpine.js container to be ready
+    const maxAttempts = 20;
+    let attempts = 0;
+    
+    function updateEmployees() {
+      attempts++;
+      console.log(`loadEmployees: Attempt ${attempts} to update employees...`);
+      const container = document.getElementById('assigned-employees-container');
+      console.log('loadEmployees: Container found:', !!container);
+      console.log('loadEmployees: Alpine available:', !!window.Alpine);
+      
+      if (container && window.Alpine) {
+        try {
+          const alpineData = window.Alpine.$data(container);
+          console.log('loadEmployees: Alpine data:', alpineData);
+          
+          if (alpineData && alpineData.employees !== undefined) {
+            // Transform API data to expected format
+            const transformedEmployees = employees.map((emp, index) => {
+              let roleName = 'Employee';
+              if (emp.role && Array.isArray(emp.role) && emp.role.length > 0) {
+                roleName = emp.role[0].name || 'Employee';
+              }
+              
+              return {
+                id: emp.employeeID || emp._id || `emp-${index}`,
+                name: `${emp.firstname || 'Unknown'} ${emp.lastname || 'Employee'}`,
+                position: roleName
+              };
+            });
+            
+            // Ensure unique IDs
+            const uniqueEmployees = [];
+            const usedIds = new Set();
+            
+            transformedEmployees.forEach((emp, index) => {
+              let uniqueId = emp.id;
+              let counter = 1;
+              
+              while (usedIds.has(uniqueId)) {
+                uniqueId = `${emp.id}-${counter}`;
+                counter++;
+              }
+              
+              usedIds.add(uniqueId);
+              uniqueEmployees.push({ ...emp, id: uniqueId });
+            });
+            
+            console.log('loadEmployees: Setting employees to:', uniqueEmployees);
+            alpineData.employees = uniqueEmployees;
+            console.log('loadEmployees: Employees updated successfully!');
+            return;
+          } else {
+            console.log('loadEmployees: Alpine data structure not ready yet');
+          }
+        } catch (error) {
+          console.error('loadEmployees: Error accessing Alpine data:', error);
+        }
+      } else {
+        console.log('loadEmployees: Still waiting for container or Alpine...');
+      }
+      
+      if (attempts < maxAttempts) {
+        setTimeout(updateEmployees, 250);
+      } else {
+        console.error('loadEmployees: Failed to update employees after maximum attempts');
+      }
+    }
+    
+    updateEmployees();
+  } catch (error) {
+    console.error('loadEmployees: Error loading employees:', error);
+  }
+}
+
+// Function to assign employees to a newly created property
+async function assignEmployeesToProperty(propertyId, employeeIds) {
+  const promises = employeeIds.map(async (employeeId) => {
+    try {
+      const response = await fetch(`${API_BASE}/employee/display`);
+      const employees = await response.json();
+      const employee = employees.find(emp => emp._id === employeeId);
+      
+      if (employee) {
+        const currentProperties = employee.properties || [];
+        const updatedProperties = [...currentProperties, propertyId];
+        
+        await fetch(`${API_BASE}/employee/update/${employeeId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            firstname: employee.firstname,
+            lastname: employee.lastname,
+            email: employee.email,
+            role: employee.role,
+            properties: updatedProperties
+          })
+        });
+      }
+    } catch (error) {
+      console.error(`Failed to assign property to employee ${employeeId}:`, error);
+    }
+  });
+  
+  await Promise.all(promises);
+}
+
+// Function to update PhotosSection display
 function updatePhotosSection(images) {
   const photosSection = document.getElementById('PhotosSection');
   if (!photosSection) return;
-
-  console.log('Updating PhotosSection with images:', images); // Debug log
 
   // Clear existing content
   photosSection.innerHTML = '';
@@ -129,14 +253,18 @@ window.updatePhotosSection = updatePhotosSection;
 
 
 document.addEventListener('DOMContentLoaded', function () {
+  console.log('DOMContentLoaded: Event fired!');
+  
   // Find the Confirm button inside the confirmDetailsModal
   const confirmModal = document.getElementById('confirmDetailsModal');
-  if (!confirmModal) return;
-
-  // Find the Confirm button (the one that says Confirm)
-  const confirmBtn = Array.from(confirmModal.querySelectorAll('button'))
-    .find(btn => btn.textContent && btn.textContent.trim().toLowerCase().includes('confirm'));
-  if (!confirmBtn) return;
+  console.log('DOMContentLoaded: confirmModal found:', !!confirmModal);
+  
+  let confirmBtn = null;
+  if (confirmModal) {
+    // Find the Confirm button by ID
+    confirmBtn = document.getElementById('confirmPropertyBtn');
+    console.log('DOMContentLoaded: confirmBtn found:', !!confirmBtn);
+  }
 
   // Function to sync modal state with PhotosSection
   function syncModalWithPhotosSection() {
@@ -237,8 +365,19 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  confirmBtn.addEventListener('click', async function (e) {
+  // Only add confirmBtn event listener if the button exists
+  if (confirmBtn) {
+    confirmBtn.addEventListener('click', async function (e) {
     e.preventDefault();
+
+    // Get selected employees before validation
+    const employeeContainer = document.getElementById('assigned-employees-container');
+    let selectedEmployeeIds = [];
+    
+    if (employeeContainer && window.Alpine) {
+      const alpineData = window.Alpine.$data(employeeContainer);
+      selectedEmployeeIds = alpineData.selected || [];
+    }
 
     // Validate minimum image requirement
     const imageContainer = document.querySelector('[x-data*="images"]');
@@ -282,64 +421,26 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Collect form data
     const formData = new FormData();
-   // Main info
-    const name = document.getElementById('input-prop-name').value.trim();
-    console.log('Name:', name);
-    formData.append('name', name);
-
-    const address = document.getElementById('input-prop-address').value.trim();
-    console.log('Address:', address);
-    formData.append('address', address);
-
-    const mapLink = document.getElementById('input-prop-mapLink').value.trim();
-    console.log('Map Link:', mapLink);
-    formData.append('mapLink', mapLink);
-
-    const city = document.getElementById('input-prop-city').value.trim();
-    console.log('City:', city);
-    formData.append('city', city);
-
-    const description = document.getElementById('input-prop-desc').value.trim();
-    console.log('Description:', description);
-    formData.append('description', description);
+    
+    // Main info
+    formData.append('name', document.getElementById('input-prop-name').value.trim());
+    formData.append('address', document.getElementById('input-prop-address').value.trim());
+    formData.append('mapLink', document.getElementById('input-prop-mapLink').value.trim());
+    formData.append('city', document.getElementById('input-prop-city').value.trim());
+    formData.append('description', document.getElementById('input-prop-desc').value.trim());
 
     // Category
-    const category = document.getElementById('selectedCategory').textContent.trim();
-    console.log('Category:', category);
-    formData.append('category', category);
+    formData.append('category', document.getElementById('selectedCategory').textContent.trim());
 
     // Capacities & Prices
-    const packageCapacity = document.getElementById('input-prop-packCap').value;
-    console.log('Package Capacity:', packageCapacity);
-    formData.append('packageCapacity', packageCapacity);
-
-    const maxCapacity = document.getElementById('input-prop-maxCap').value;
-    console.log('Max Capacity:', maxCapacity);
-    formData.append('maxCapacity', maxCapacity);
-
-    const timeIn = document.getElementById('checkInTimeText').textContent.trim();
-    console.log('Time In:', timeIn);
-    formData.append('timeIn', timeIn);
-
-    const timeOut = document.getElementById('checkOutTimeText').textContent.trim();
-    console.log('Time Out:', timeOut);
-    formData.append('timeOut', timeOut);
-
-    const packagePrice = document.getElementById('input-prop-packPrice').value;
-    console.log('Package Price:', packagePrice);
-    formData.append('packagePrice', packagePrice);
-
-    const additionalPax = document.getElementById('input-prop-addPaxPrice').value;
-    console.log('Additional Pax:', additionalPax);
-    formData.append('additionalPax', additionalPax);
-
-    const reservationFee = document.getElementById('input-prop-rsrvFee').value;
-    console.log('Reservation Fee:', reservationFee);
-    formData.append('reservationFee', reservationFee);
-
-    const discount = document.getElementById('input-prop-discount').value;
-    console.log('Discount:', discount);
-    formData.append('discount', discount);
+    formData.append('packageCapacity', document.getElementById('input-prop-packCap').value);
+    formData.append('maxCapacity', document.getElementById('input-prop-maxCap').value);
+    formData.append('timeIn', document.getElementById('checkInTimeText').textContent.trim());
+    formData.append('timeOut', document.getElementById('checkOutTimeText').textContent.trim());
+    formData.append('packagePrice', document.getElementById('input-prop-packPrice').value);
+    formData.append('additionalPax', document.getElementById('input-prop-addPaxPrice').value);
+    formData.append('reservationFee', document.getElementById('input-prop-rsrvFee').value);
+    formData.append('discount', document.getElementById('input-prop-discount').value);
 
     // Gather default amenities (checked checkboxes NOT in amenitiesList)
     const amenities = [];
@@ -348,7 +449,6 @@ document.addEventListener('DOMContentLoaded', function () {
         amenities.push(cb.value);
       }
     });
-    console.log('Default Amenities:', amenities);
     amenities.forEach(a => formData.append('amenities[]', a));
 
     // Gather otherAmenities (checked checkboxes inside amenitiesList)
@@ -356,23 +456,42 @@ document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll('#amenitiesList input[type="checkbox"]:checked').forEach(cb => {
       if (cb.value) otherAmenities.push(cb.value);
     });
-    console.log('Other Amenities:', otherAmenities);
     otherAmenities.forEach(a => formData.append('amenities[]', a));
 
-    // Add images to form data (we already validated above)
+    // Add images to form data
     for (let i = 0; i < selectedFiles.length; i++) {
-      console.log('Photo:', selectedFiles[i]);
       formData.append('photo', selectedFiles[i]);
     }
 
     // Send to API
     try {
+      console.log('Sending property creation request to:', `${API_BASE}/property/create`);
+      console.log('FormData contents:', Array.from(formData.entries()));
+      
       const response = await fetch(`${API_BASE}/property/create`, {
         method: 'POST',
         body: formData
       });
 
+      console.log('API Response status:', response.status);
+      console.log('API Response ok:', response.ok);
+
       if (response.ok) {
+        const result = await response.json();
+        console.log('Property creation result:', result);
+        const newPropertyId = result._id || result.id || result.propertyId;
+        
+        // Assign selected employees to the new property
+        if (selectedEmployeeIds.length > 0 && newPropertyId) {
+          console.log('Assigning employees to property:', selectedEmployeeIds);
+          try {
+            await assignEmployeesToProperty(newPropertyId, selectedEmployeeIds);
+            console.log('Employee assignment completed');
+          } catch (assignError) {
+            console.warn('Property created but employee assignment failed:', assignError);
+          }
+        }
+        
         alert('Property added successfully!');
         
         // Audit: Log property creation
@@ -388,11 +507,19 @@ document.addEventListener('DOMContentLoaded', function () {
         
         window.location.href = 'property.html'; // Redirect or reset as needed
       } else {
-        const error = await response.json().catch(() => ({}));
+        const errorText = await response.text();
+        console.error('API Error Response:', errorText);
+        const error = await response.json().catch(() => ({ message: errorText }));
         alert('Error: ' + (error.message || 'Failed to add property.'));
       }
     } catch (err) {
+      console.error('Network/Fetch Error:', err);
       alert('Network error: ' + err.message);
     }
   });
+  } // End of confirmBtn conditional
+
+  // Initialize employee loading
+  console.log('DOMContentLoaded: Initializing employee loading...');
+  setTimeout(loadEmployees, 500);
 });

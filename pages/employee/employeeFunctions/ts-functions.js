@@ -887,10 +887,64 @@ function setupPaymentButtons(modal, booking) {
     }
 }
 
+// Set Button Loading State
+function setButtonLoadingState(action, paymentType, isLoading) {
+    try {
+        const modal = document.getElementById('viewTSModal');
+        if (!modal) return;
+        
+        // Determine the button selector based on action and payment type
+        let buttonSelector;
+        if (action === 'approve' && paymentType === 'reservation') {
+            buttonSelector = '[data-approve-reservation]';
+        } else if (action === 'decline' && paymentType === 'reservation') {
+            buttonSelector = '[data-decline-reservation]';
+        } else if (action === 'approve' && paymentType === 'package') {
+            buttonSelector = '[data-approve-package]';
+        } else if (action === 'decline' && paymentType === 'package') {
+            buttonSelector = '[data-decline-package]';
+        }
+        
+        const button = modal.querySelector(buttonSelector);
+        if (!button) return;
+        
+        if (isLoading) {
+            // Store original text and set loading state
+            button.setAttribute('data-original-text', button.textContent);
+            button.innerHTML = `
+                <div class="flex items-center justify-center gap-2">
+                    <svg class="animate-spin h-4 w-4 fill-current" viewBox="0 0 24 24">
+                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span>Processing...</span>
+                </div>
+            `;
+            button.disabled = true;
+            button.style.cursor = 'not-allowed';
+            button.style.opacity = '0.7';
+        } else {
+            // Reset to original state
+            const originalText = button.getAttribute('data-original-text') || (action === 'approve' ? 'Approve' : 'Decline');
+            button.textContent = originalText;
+            button.disabled = false;
+            button.style.cursor = 'pointer';
+            button.style.opacity = '1';
+            button.removeAttribute('data-original-text');
+        }
+        
+    } catch (error) {
+        console.error('Error setting button loading state:', error);
+    }
+}
+
 // Handle Payment Action (Approve/Decline)
 async function handlePaymentAction(action, paymentType, booking) {
     try {
         console.log(`${action} ${paymentType} payment for booking:`, booking._id);
+        
+        // Set button to loading state
+        setButtonLoadingState(action, paymentType, true);
         
         if (action === 'approve') {
             // Handle approve action
@@ -900,8 +954,10 @@ async function handlePaymentAction(action, paymentType, booking) {
             await declinePayment(paymentType, booking);
         }
         
-            } catch (error) {
+    } catch (error) {
         console.error(`Error handling ${action} ${paymentType} payment:`, error);
+        // Reset button state on error
+        setButtonLoadingState(action, paymentType, false);
     }
 }
 
@@ -974,10 +1030,38 @@ async function approvePayment(paymentType, booking) {
             const userDataRaw = localStorage.getItem('userData');
             const emp = userDataRaw ? JSON.parse(userDataRaw) : {};
             const fromId = emp?._id || localStorage.getItem('userId') || '';
-            const fromName = emp?.firstname && emp?.lastname ? `${emp.firstname} ${emp.lastname}` : (emp?.name || 'Employee');
+            
+            // Try multiple ways to get employee name
+            let fromName = 'Employee'; // Default fallback
+            
+            // First try: firstname + lastname from userData
+            if (emp?.firstname && emp?.lastname) {
+                fromName = `${emp.firstname} ${emp.lastname}`;
+            }
+            // Second try: direct name field from userData
+            else if (emp?.name) {
+                fromName = emp.name;
+            }
+            // Third try: firstName + lastName (alternative naming)
+            else if (emp?.firstName && emp?.lastName) {
+                fromName = `${emp.firstName} ${emp.lastName}`;
+            }
+            // Fourth try: get from direct localStorage values
+            else {
+                const firstName = localStorage.getItem('firstName') || localStorage.getItem('firstname');
+                const lastName = localStorage.getItem('lastName') || localStorage.getItem('lastname');
+                if (firstName && lastName) {
+                    fromName = `${firstName} ${lastName}`;
+                } else if (firstName) {
+                    fromName = firstName;
+                }
+            }
+            
+            console.log('[Notify][TS->Guest] Employee name resolution:', { emp, fromName });
+            
             if (window.notify && guestId && fromId) {
                 const message = `Your ${paymentType === 'reservation' ? 'reservation' : 'package'} payment has been approved for transaction #${transNo}.`;
-                console.log('[Notify][TS->Guest] Sending approval message', { toId: guestId, toName: guestName, message });
+                console.log('[Notify][TS->Guest] Sending approval message', { toId: guestId, toName: guestName, fromName, message });
                 await window.notify.sendMessage({
                     fromId,
                     fromName,
@@ -1001,6 +1085,10 @@ async function approvePayment(paymentType, booking) {
         // Hide buttons immediately after successful API call
         const modal = document.getElementById('viewTSModal');
         if (modal) {
+            // Reset loading states before hiding buttons
+            setButtonLoadingState('approve', paymentType, false);
+            setButtonLoadingState('decline', paymentType, false);
+            
             // Hide the specific buttons immediately for instant feedback
             if (paymentType === 'reservation') {
                 const approveBtn = modal.querySelector('[data-approve-reservation]');
@@ -1041,6 +1129,10 @@ async function declinePayment(paymentType, booking) {
         // Hide buttons immediately after successful API call
         const modal = document.getElementById('viewTSModal');
         if (modal) {
+            // Reset loading states before hiding buttons
+            setButtonLoadingState('approve', paymentType, false);
+            setButtonLoadingState('decline', paymentType, false);
+            
             // Hide the specific buttons immediately for instant feedback
             if (paymentType === 'reservation') {
                 const approveBtn = modal.querySelector('[data-approve-reservation]');
@@ -1068,10 +1160,38 @@ async function declinePayment(paymentType, booking) {
             const userDataRaw = localStorage.getItem('userData');
             const emp = userDataRaw ? JSON.parse(userDataRaw) : {};
             const fromId = emp?._id || localStorage.getItem('userId') || '';
-            const fromName = emp?.firstname && emp?.lastname ? `${emp.firstname} ${emp.lastname}` : (emp?.name || 'Employee');
+            
+            // Try multiple ways to get employee name
+            let fromName = 'Employee'; // Default fallback
+            
+            // First try: firstname + lastname from userData
+            if (emp?.firstname && emp?.lastname) {
+                fromName = `${emp.firstname} ${emp.lastname}`;
+            }
+            // Second try: direct name field from userData
+            else if (emp?.name) {
+                fromName = emp.name;
+            }
+            // Third try: firstName + lastName (alternative naming)
+            else if (emp?.firstName && emp?.lastName) {
+                fromName = `${emp.firstName} ${emp.lastName}`;
+            }
+            // Fourth try: get from direct localStorage values
+            else {
+                const firstName = localStorage.getItem('firstName') || localStorage.getItem('firstname');
+                const lastName = localStorage.getItem('lastName') || localStorage.getItem('lastname');
+                if (firstName && lastName) {
+                    fromName = `${firstName} ${lastName}`;
+                } else if (firstName) {
+                    fromName = firstName;
+                }
+            }
+            
+            console.log('[Notify][TS->Guest] Employee name resolution (decline):', { emp, fromName });
+            
             if (window.notify && guestId && fromId) {
                 const message = `Your ${paymentType === 'reservation' ? 'reservation' : 'package'} payment has been declined for transaction #${transNo}.`;
-                console.log('[Notify][TS->Guest] Sending decline message', { toId: guestId, toName: guestName, message });
+                console.log('[Notify][TS->Guest] Sending decline message', { toId: guestId, toName: guestName, fromName, message });
                 await window.notify.sendMessage({
                     fromId,
                     fromName,
@@ -1756,7 +1876,3 @@ function showAccessDeniedMessage() {
     document.body.appendChild(message);
 }
 
-// Additional TS-specific functions can be added here
-// function initializeTransactionFeatures() {
-//     // Transaction-specific functionality
-// }

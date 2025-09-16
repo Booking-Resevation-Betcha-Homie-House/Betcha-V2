@@ -1,6 +1,8 @@
 // Audit Trail Functions for Betcha V2
-// Base API endpoint for creating audit trails
-const AUDIT_API_BASE = 'https://betcha-api.onrender.com/audit/create';
+// Base API endpoint for creating audit trails - Use window property to avoid duplicate identifier errors
+if (!window.AUDIT_API_BASE) {
+    window.AUDIT_API_BASE = 'https://betcha-api.onrender.com/audit/create';
+}
 
 /**
  * Create an audit trail entry
@@ -17,7 +19,7 @@ async function createAuditTrail(userId, userType, activity) {
             activity: activity
         };
 
-        const response = await fetch(AUDIT_API_BASE, {
+        const response = await fetch(window.AUDIT_API_BASE, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

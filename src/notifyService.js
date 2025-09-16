@@ -27,11 +27,11 @@ Usage examples (in any page script):
 */
 
 // Prefer an app-wide base if present; otherwise default to production URL
-const API_BASE = (window && window.API_BASE_URL) || 'https://betcha-api.onrender.com';
+window.API_BASE = window.API_BASE || 'https://betcha-api.onrender.com';
 
 // Shared POST helper with structured error handling
 async function postJson(endpointPath, body) {
-    const url = `${API_BASE}${endpointPath}`;
+    const url = `${window.API_BASE}${endpointPath}`;
     try {
         console.log('[NotifyService] POST', endpointPath, { url, body });
     } catch (_) {}
@@ -147,7 +147,7 @@ async function getEmployeesByPropertyAndPrivilege(propertyId, privilege) {
     try {
         console.log('[NotifyService] getEmployeesByPropertyAndPrivilege body', body);
     } catch (_) {}
-    const url = `${API_BASE}/employee/by-property-and-privilege`;
+    const url = `${window.API_BASE}/employee/by-property-and-privilege`;
     const resp = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
