@@ -1587,6 +1587,7 @@ async function sendCancellationNoticeToAdmin() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         const messageTextarea = document.getElementById('input-cancel-admin');
         if (!modal || !messageTextarea) { 
             console.error('Missing modal or message field.'); 
@@ -1595,6 +1596,11 @@ async function sendCancellationNoticeToAdmin() {
         const selectEl = document.getElementById('select-cancel-admin');
         const reasonSelectEl = document.getElementById('select-cancel-reason');
         const messageTextarea = document.getElementById('input-cancel-admin');
+=======
+        const selectEl = document.getElementById('select-cancel-admin');
+        const reasonSelectEl = document.getElementById('select-cancel-reason');
+        const messageTextarea = document.getElementById('input-cancel-admin');
+>>>>>>> Stashed changes
 =======
         const selectEl = document.getElementById('select-cancel-admin');
         const reasonSelectEl = document.getElementById('select-cancel-reason');
@@ -1615,6 +1621,9 @@ async function sendCancellationNoticeToAdmin() {
             return;
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
@@ -1628,9 +1637,13 @@ async function sendCancellationNoticeToAdmin() {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
             try { 
                 if (window.showToastError) window.showToastError('warning', 'Cancellation reason required', 'Please add a message before sending the cancellation.'); 
             } catch(_) {}
+=======
+            try { if (window.showToastError) window.showToastError('warning', 'Cancellation note required', 'Please add a message before sending the cancellation.'); } catch(_) {}
+>>>>>>> Stashed changes
 =======
             try { if (window.showToastError) window.showToastError('warning', 'Cancellation note required', 'Please add a message before sending the cancellation.'); } catch(_) {}
 >>>>>>> Stashed changes
@@ -1734,6 +1747,31 @@ async function sendCancellationNoticeToAdmin() {
 
         // Close the modal
 =======
+        // Calculate refund amount based on who requested the cancellation
+        let calculatedRefundAmount = undefined;
+        try {
+            const refundResponse = await fetch('https://betcha-api.onrender.com/booking/refund/calculate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    bookingId: bookingId,
+                    refundType: reasonValue
+                })
+            });
+            
+            if (refundResponse.ok) {
+                const refundData = await refundResponse.json();
+                calculatedRefundAmount = refundData.refundAmount;
+                console.log('✅ Refund amount calculated:', calculatedRefundAmount);
+            } else {
+                console.warn('Failed to calculate refund amount:', refundResponse.status);
+            }
+        } catch (error) {
+            console.warn('Error calculating refund amount:', error);
+        }
+
         // Calculate refund amount based on who requested the cancellation
         let calculatedRefundAmount = undefined;
         try {
@@ -2829,6 +2867,7 @@ function showCalendarBookingsError(message) {
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 // Function to fetch property details by ID
 async function fetchPropertyDetails(propertyId) {
     try {
@@ -2935,6 +2974,132 @@ function showBookingModalLoading(modal) {
         showOverlayModalLoading(modal);
         return;
     }
+=======
+// Function to show loading state in booking modal
+function showBookingModalLoading(modal) {
+    // For checkin and checkout modals, use overlay instead of replacing content
+    if (modal.id === 'checkinConfirmModal' || modal.id === 'checkoutModal') {
+        showOverlayModalLoading(modal);
+        return;
+    }
+    
+    // Find the modal content area and replace with loading state
+    const modalContent = modal.querySelector('.space-y-5');
+    if (modalContent) {
+        modalContent.innerHTML = `
+            <div class="flex items-center justify-center py-8">
+                <div class="flex flex-col items-center space-y-3">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p class="text-sm text-neutral-500">Loading booking details...</p>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Function to show loading state with overlay (for modals with forms/specific structure)
+function showOverlayModalLoading(modal) {
+    // Create an overlay instead of replacing content
+    const existingOverlay = modal.querySelector('.loading-overlay');
+    if (existingOverlay) return; // Already showing
+    
+    const overlay = document.createElement('div');
+    overlay.className = 'loading-overlay absolute inset-0 bg-white/80 flex items-center justify-center z-10';
+    overlay.innerHTML = `
+        <div class="flex flex-col items-center space-y-3">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            <p class="text-sm text-neutral-500">Loading booking details...</p>
+        </div>
+    `;
+    
+    const modalContent = modal.querySelector('.modal-animate') || modal.querySelector('.bg-background');
+    if (modalContent) {
+        modalContent.style.position = 'relative';
+        modalContent.appendChild(overlay);
+    }
+}
+
+// Function to show loading state for checkin modal (overlay approach)
+function showCheckinModalLoading(modal) {
+    // This is now handled by showOverlayModalLoading
+    showOverlayModalLoading(modal);
+}
+
+// Function to hide loading state in booking modal
+function hideBookingModalLoading(modal) {
+    // For checkin and checkout modals, remove overlay
+    if (modal.id === 'checkinConfirmModal' || modal.id === 'checkoutModal') {
+        hideOverlayModalLoading(modal);
+        return;
+    }
+    
+    // The loading state will be replaced by populateViewBookingModal
+    // This function exists for consistency and future enhancements
+}
+
+// Function to hide loading state for overlay modals
+function hideOverlayModalLoading(modal) {
+    const overlay = modal.querySelector('.loading-overlay');
+    if (overlay) {
+        overlay.remove();
+    }
+}
+
+// Function to hide loading state for checkin modal
+function hideCheckinModalLoading(modal) {
+    // This is now handled by hideOverlayModalLoading
+    hideOverlayModalLoading(modal);
+}
+
+// Function to populate the view booking modal with booking data
+function populateViewBookingModal(bookingData) {
+    const modal = document.getElementById('viewBookingModal');
+    if (!modal) return;
+    
+    // Find the modal content container
+    const modalContent = modal.querySelector('.space-y-5');
+    if (!modalContent) return;
+    
+    // Extract and prepare data
+    const propertyName = bookingData.propertyName || bookingData.nameOfProperty || 'Property Name';
+    const propertyAddress = bookingData.propertyAddress || bookingData.address || '123 Sunshine Street, Manila';
+    const guestName = bookingData.guestName || bookingData.nameOfGuest || bookingData.customerName || 'Guest Name';
+    const checkInFormatted = formatDate(bookingData.checkInDate || bookingData.checkIn);
+    const checkOutFormatted = formatDate(bookingData.checkOutDate || bookingData.checkOut);
+    const checkInTime = bookingData.checkInTime || bookingData.timeIn || '2:00 PM';
+    const checkOutTime = bookingData.checkOutTime || bookingData.timeOut || '11:00 AM';
+    const bookingId = bookingData.bookingId || bookingData._id || bookingData.id || '';
+    
+    // Rebuild the modal content
+    modalContent.innerHTML = `
+        <!-- Property Name -->
+        <div>
+            <h3 class="text-lg font-bold font-manrope text-primary-text">${propertyName}</h3>
+            <p class="text-neutral-600 text-sm">${propertyAddress}</p>
+        </div>
+
+        <!-- Divider -->
+        <hr class="border-neutral-100">
+
+        <!-- Guest Info -->
+        <div>
+            <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Guest Information</p>
+            <p class="text-neutral-900 font-semibold">${guestName}</p>
+        </div>
+
+        <!-- Dates -->
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Check-in</p>
+                <p class="text-neutral-900">${checkInFormatted} — ${checkInTime}</p>
+            </div>
+            <div>
+                <p class="text-xs text-neutral-500 font-medium uppercase tracking-wide mb-1">Check-out</p>
+                <p class="text-neutral-900">${checkOutFormatted} — ${checkOutTime}</p>
+            </div>
+        </div>
+    `;
+>>>>>>> Stashed changes
     
     // Find the modal content area and replace with loading state
     const modalContent = modal.querySelector('.space-y-5');
