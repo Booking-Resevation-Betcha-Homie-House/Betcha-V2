@@ -177,14 +177,16 @@ document.addEventListener("DOMContentLoaded", () => {
                     // Reset action buttons to default state each time modal opens
                     try {
                         const approveBtn = document.getElementById('approveCancelBtn');
+                        const approveLbl = document.getElementById('approveLabel');
                         if (approveBtn) {
                             approveBtn.disabled = false;
-                            approveBtn.textContent = 'Approve';
+                            approveLabel.textContent = 'Approve';
                         }
                         const rejectBtn = document.getElementById('cancelRejectBtn');
+                        const rejectLbl = document.getElementById('rejectLabel');
                         if (rejectBtn) {
                             rejectBtn.disabled = false;
-                            rejectBtn.textContent = 'Reject';
+                            rejectLbl.textContent = 'Reject';
                         }
                     } catch (_) {}
                 }
@@ -611,6 +613,7 @@ async function handleCancellationRequest(notifId, bookingId, action) {
 // Initialize static modal buttons for cancellation management
 function initializeStaticModalButtons() {
     const rejectBtn = document.getElementById('cancelRejectBtn');
+    const rejectLbl = document.getElementById('rejectLabel');
     if (rejectBtn) {
         
         rejectBtn.addEventListener('click', async function(e) {
@@ -664,9 +667,9 @@ function initializeStaticModalButtons() {
 
                 
                 // Disable button during processing
-                const originalText = rejectBtn.textContent;
+                const originalText = rejectLbl.textContent;
                 rejectBtn.disabled = true;
-                rejectBtn.textContent = 'Processing...';
+                rejectLbl.textContent = 'Processing...';
                 
                 // Update notification status to "Rejected"
                 await updateNotificationStatus(notifId, 'Rejected');
@@ -717,20 +720,21 @@ function initializeStaticModalButtons() {
             } finally {
                 // Re-enable button
                 rejectBtn.disabled = false;
-                rejectBtn.textContent = originalText;
+                rejectLbl.textContent = originalText;
             }
         });
         
     }
     
     const approveBtn = document.getElementById('approveCancelBtn');
+    const approvelbl = document.getElementById('approveLabel');
     if (approveBtn) {
         
         approveBtn.addEventListener('click', async function(e) {
             e.preventDefault();
             
             // Declare originalText outside try block to avoid scope issues
-            const originalText = approveBtn.textContent;
+            const originalText = approvelbl.textContent;
 
             
             try {
@@ -776,7 +780,7 @@ function initializeStaticModalButtons() {
                 
                 // Disable button during processing
                 approveBtn.disabled = true;
-                approveBtn.textContent = 'Processing...';
+                approvelbl.textContent = 'Processing...';
                 
                 // Handle the complete cancellation workflow
                 await handleCancellationRequest(notifId, bookingId, 'accept');
@@ -800,7 +804,7 @@ function initializeStaticModalButtons() {
             } finally {
                 // Re-enable button
                 approveBtn.disabled = false;
-                approveBtn.textContent = originalText;
+                approvelbl.textContent = originalText;
             }
         });
         

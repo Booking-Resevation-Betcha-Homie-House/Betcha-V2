@@ -620,21 +620,28 @@ function loadMapPreview(mapLink, mapContainer) {
 // Update Archive button to Activate when status is Archived
 function updateArchiveButtonUI(status) {
     const btn = document.getElementById('archivePropertyBtn');
+    const btnIcon = document.getElementById('archiveIcon');
     if (!btn) return;
 
     const isArchived = (status || '').toLowerCase() === 'archived';
     if (isArchived) {
         btn.classList.remove('bg-rose-100', 'hover:bg-rose-200');
-        btn.classList.add('bg-emerald-100', 'hover:bg-emerald-200');
+        btnIcon.classList.remove('stroke-rose-700');
+        btnIcon.classList.add('stroke-secondary-text');
+        btn.classList.add('bg-primary');
         btn.querySelector('span')?.classList?.remove('text-rose-700');
-        btn.querySelector('span')?.classList?.add('text-emerald-700');
+        btn.querySelector('span')?.classList?.add('text-secondary-text');
         // Update label if it exists or rebuild content minimally
         const labelSpan = btn.querySelector('span');
         if (labelSpan) labelSpan.textContent = 'Activate';
         else btn.innerText = 'Activate';
     } else {
-        btn.classList.remove('bg-emerald-100', 'hover:bg-emerald-200');
+        btn.classList.remove('bg-primary');
+        btnIcon.classList.remove('stroke-secondary-text');
+        btnIcon.classList.add('stroke-rose-700');
         btn.classList.add('bg-rose-100', 'hover:bg-rose-200');
+        btn.querySelector('span')?.classList?.remove('text-secondary-text');
+        btn.querySelector('span')?.classList?.add('text-rose-700');
         const labelSpan = btn.querySelector('span');
         if (labelSpan) labelSpan.textContent = 'Archive';
         else btn.innerText = 'Archive';
@@ -1907,9 +1914,9 @@ function displayCurrentMaintenanceDates(maintenanceDates) {
                 <div class="flex items-center justify-between p-3 bg-rose-50 border border-rose-200 rounded-lg" 
                      data-maintenance-id="${maintenance._id || maintenance.id || index}"
                      data-maintenance-dates='${datesJson}'>
-                    <div class="flex-1">
+                    <div class="flex-1 font-inter">
                         <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm font-medium text-rose-800">${startDate}${endDate !== startDate ? ` - ${endDate}` : ''}</span>
+                            <span class="text-sm font-medium font-manrope text-rose-800">${startDate}${endDate !== startDate ? ` - ${endDate}` : ''}</span>
                             <span class="px-2 py-1 text-xs ${statusColor} rounded-full">${status}</span>
                         </div>
                         <p class="text-xs text-rose-600">${reason}</p>
@@ -1917,9 +1924,12 @@ function displayCurrentMaintenanceDates(maintenanceDates) {
                     <div class="flex gap-2">
                         <button 
                             onclick="removeMaintenanceDate('${maintenance._id || maintenance.id || index}')"
-                            class="p-1 text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 rounded transition-colors"
+                            class="!p-2 rounded-full group
+                            transition-all duration-300
+                            hover:bg-rose-200
+                            active:scale-95 hover:scale-105"
                             title="Delete Maintenance (Permanently Remove)">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <svg class="w-4 h-4 stroke-rose-700 "  viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
                             </svg>
                         </button>

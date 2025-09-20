@@ -32,8 +32,9 @@ document.addEventListener('DOMContentLoaded', async function() {
 // Function to setup the confirm button click handler
 function setupConfirmButton() {
     const confirmButton = document.getElementById('confirm');
-    if (!confirmButton) {
-        console.warn('Confirm button not found');
+    const confirmText = document.getElementById('confirm-text'); // 👈 grab the span
+    if (!confirmButton || !confirmText) {
+        console.warn('Confirm button or text span not found');
         return;
     }
 
@@ -56,9 +57,10 @@ function setupConfirmButton() {
 
         // Disable button during API call and show loading
         confirmButton.disabled = true;
-        confirmButton.classList.add('opacity-50');
-        const originalText = confirmButton.textContent;
-        confirmButton.textContent = 'Creating Booking...';
+        confirmButton.classList.add('opacity-70');
+        confirmButton.classList.remove('group-hover:-translate-x-1');
+        const originalText = confirmText.textContent;
+        confirmText.textContent = 'Creating Booking...'; // 👈 only update span text
         
         // Show loading toast
         showToastError('info', 'Processing...', 'Creating your booking, please wait...');
@@ -68,41 +70,35 @@ function setupConfirmButton() {
             const bookingResult = await createBooking(bookingData);
             
             if (bookingResult.success) {
-                // Show success toast
                 showToastError('success', 'Booking Confirmed!', 'Your booking has been created successfully. Redirecting to payment...');
                 
-                // Audit: booking created
+                // Audit logging
                 try {
                     const uid = localStorage.getItem('userId') || bookingData.guestId;
                     const role = localStorage.getItem('role') || 'Guest';
-                    if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logBookingCreation === 'function' && uid) {
+                    if (window.AuditTrailFunctions?.logBookingCreation && uid) {
                         window.AuditTrailFunctions.logBookingCreation(uid, role.charAt(0).toUpperCase() + role.slice(1));
                     }
                 } catch (e) {
                     console.warn('Audit booking creation failed:', e);
                 }
                 
-                // Fire-and-forget: notify TS employees for this property
+                // Notify TS employees (fire-and-forget)
                 try {
                     const propertyId = bookingData.propertyId;
                     const urlParams = new URLSearchParams(window.location.search);
                     const propertyName = urlParams.get('propertyName') || '';
                     
-                    console.log('🔔 Attempting to notify TS employees...', { propertyId, propertyName });
-                    
                     if (window.notify && propertyId) {
-                        // Don't await this - fire and forget
                         window.notify.notifyReservationConfirmedToTS({ propertyId, propertyName })
                             .then(() => console.log('✅ TS notification sent successfully'))
-                            .catch(error => console.warn('⚠️ TS notification failed (non-critical):', error));
-                    } else {
-                        console.warn('⚠️ Notification service not available or missing propertyId');
+                            .catch(error => console.warn('⚠️ TS notification failed:', error));
                     }
                 } catch (e) {
-                    console.warn('⚠️ notifyReservationConfirmedToTS failed (non-critical):', e);
+                    console.warn('⚠️ notifyReservationConfirmedToTS failed:', e);
                 }
                 
-                // Redirect after 1 second with booking ID and payment type
+                // Redirect after 1 second
                 setTimeout(() => {
                     const params = new URLSearchParams();
                     params.append('bookingId', bookingResult.bookingId);
@@ -113,19 +109,22 @@ function setupConfirmButton() {
                 showToastError('error', 'Booking Failed', bookingResult.message || 'Failed to create booking. Please try again.');
                 // Restore button
                 confirmButton.disabled = false;
-                confirmButton.classList.remove('opacity-50');
-                confirmButton.textContent = originalText;
+                confirmButton.classList.remove('opacity-70');
+                confirmButton.classList.add('group-hover:-translate-x-1');
+                confirmText.textContent = originalText; // 👈 restore text
             }
         } catch (error) {
             console.error('Booking API error:', error);
             showToastError('error', 'Booking Failed', 'An error occurred while creating your booking. Please try again.');
             // Restore button
             confirmButton.disabled = false;
-            confirmButton.classList.remove('opacity-50');
-            confirmButton.textContent = originalText;
+            confirmButton.classList.remove('opacity-70');
+            confirmButton.classList.add('group-hover:-translate-x-1');
+            confirmText.textContent = originalText; // 👈 restore text
         }
     });
 }
+
 
 // Function to get booking data from the current page
 function getBookingDataFromPage() {
@@ -214,7 +213,7 @@ async function createBooking(bookingData) {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            status: "Pending Payment"
+                            // status: "Pending Payment"
                         })
                     });
                     

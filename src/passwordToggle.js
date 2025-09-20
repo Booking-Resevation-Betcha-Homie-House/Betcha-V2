@@ -1,28 +1,33 @@
 document.addEventListener('DOMContentLoaded', () => {
-
   document.querySelectorAll('.toggle-password').forEach(button => {
     button.addEventListener('click', () => {
       const wrapper = button.closest('.password-wrapper');
+      if (!wrapper) return;
+
       const input = wrapper.querySelector('.password-input');
-      const eyeOpen = button.querySelector('.eye-open');
-      const eyeClosed = button.querySelector('.eye-closed');
+      const eyeOpen = button.querySelector('.eye-open');   // 👁️ show password
+      const eyeClosed = button.querySelector('.eye-closed'); // 🙈 hide password
 
       if (!input || !eyeOpen || !eyeClosed) {
-        console.warn("Missing one of the required elements.");
+        console.warn("⚠️ Missing required elements for password toggle.");
         return;
       }
 
-      const isPassword = input.type === 'password';
-      input.type = isPassword ? 'text' : 'password';
-
-      // When password is hidden (type="password"), show open eye (to indicate "click to show")
-      // When password is visible (type="text"), show closed eye (to indicate "click to hide")
-      eyeOpen.classList.toggle('hidden', !isPassword);
-      eyeClosed.classList.toggle('hidden', isPassword);
+      if (input.type === 'password') {
+        // Password is hidden → show it
+        input.type = 'text';
+        eyeOpen.classList.add('hidden');   // hide open eye
+        eyeClosed.classList.remove('hidden'); // show closed eye
+      } else {
+        // Password is visible → hide it
+        input.type = 'password';
+        eyeOpen.classList.remove('hidden'); // show open eye
+        eyeClosed.classList.add('hidden');  // hide closed eye
+      }
     });
   });
 
-  console.log("Password toggle initialized 🔥");
-
+  console.log("✅ Password toggle initialized");
 });
+
 

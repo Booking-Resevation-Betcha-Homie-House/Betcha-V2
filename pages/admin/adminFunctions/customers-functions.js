@@ -671,13 +671,13 @@ function updateDeactivateButton(customer) {
     if (customer.archived) {
         // Customer is already deactivated - show reactivate option
         deactivateBtn.classList.remove('bg-rose-700', 'disabled:bg-rose-700/60');
-        deactivateBtn.classList.add('bg-green-600', 'disabled:bg-green-600/60');
+        deactivateBtn.classList.add('bg-primary', 'disabled:bg-primary/60');
         if (buttonText) {
             buttonText.textContent = 'Reactivate';
         }
     } else {
         // Customer is active - show deactivate option
-        deactivateBtn.classList.remove('bg-green-600', 'disabled:bg-green-600/60');
+        deactivateBtn.classList.remove('bg-primary', 'disabled:bg-primary/60');
         deactivateBtn.classList.add('bg-rose-700', 'disabled:bg-rose-700/60');
         if (buttonText) {
             buttonText.textContent = 'Deactivate';

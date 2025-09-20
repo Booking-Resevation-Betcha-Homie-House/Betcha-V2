@@ -589,93 +589,105 @@
                 <div class="bg-white h-fit w-full rounded-3xl shadow-md p-6 flex flex-col mb-6">
                     <p class="font-manrope text-xl text-primary-text font-medium py-3 md:text-2xl">Location</p>
                     <hr class="my-2 border-t border-neutral-300">
+                    <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full mx-auto shadow-sm mb-5">
+                      <button class=" text-sm !px-2 !py-1 rounded-full flex-1
+                        hover:bg-primary/10 group active:scale-95
+                        transition-all duration-200 bg-white text-primary font-semibold shadow">
+                      
+                        <span class="text-primary text-sm group-hover:text-primary ">Search</span>
+                      </button>
+                      <button class=" text-sm !px-2 !py-1 rounded-full flex-1
+                        hover:bg-primary/10 group active:scale-95
+                        transition-all duration-200">
+                        <span class="text-neutral-500 text-sm group-hover:text-primary">Manual</span>
+                      </button>
+                    </div>
                     <div class="flex flex-col gap-5">
-                        <div class="flex flex-col gap-2 w-full group">
-                            <label for="input-prop-mapLink" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                                Map link
-                            </label>
-                            
-                            <!-- Address Search Section -->
-                            <div class="bg-primary/5 border border-primary/20 rounded-lg p-4 mb-3">
-                                <div class="flex items-center gap-2 mb-3">
-                                    <svg class="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    <p class="text-xs font-medium text-primary-text sm:text-sm">Quick Address Search (Places pin at exact location)</p>
-                                </div>
-                                
-                                <div class="flex flex-col gap-3">
-                                    <div class="input-style3 flex items-center gap-2 w-full">
-                                        <svg class="w-4 h-4 text-neutral-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
-                                        </svg>
-                                        <input 
-                                            id="address-search-input"
-                                            type="text" 
-                                            placeholder="Type to search for address or place name..." 
-                                            class="flex-1 w-full bg-transparent focus:outline-none text-sm md:text-base" 
-                                        />
-                                        <!-- Loading indicator -->
-                                        <div id="search-loading" class="hidden">
-                                            <svg class="w-4 h-4 text-primary animate-spin" fill="currentColor" viewBox="0 0 20 20">
-                                                <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm6 14a6 6 0 100-12 6 6 0 000 12z" clip-rule="evenodd"></path>
-                                            </svg>
-                                        </div>
-                                    </div>
-                                    
-                                    <!-- Search Results Dropdown -->
-                                    <div id="address-results" class="hidden">
-                                        <div class="bg-white border border-neutral-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-                                            <!-- Results will be populated here -->
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Manual Input Instructions -->
-                            <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-3 mb-3">
-                                <div class="flex items-start gap-2">
-                                    <svg class="w-4 h-4 text-neutral-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                                    </svg>
-                                    <div class="text-neutral-600">
-                                        <p class="text-xs font-medium mb-1 sm:text-sm">Or manually paste Google Maps embed link:</p>
-                                        <ol class="text-xs space-y-1 pl-3 sm:text-sm">
-                                            <li class="list-decimal">Go to <a href="https://www.google.com/maps" target="_blank" class="text-primary hover:text-primary/80 underline">Google Maps</a></li>
-                                            <li class="list-decimal">Search for your property location</li>
-                                            <li class="list-decimal">Click "Share" → "Embed a map"</li>
-                                            <li class="list-decimal">Copy the link and paste it below</li>
-                                        </ol>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="flex items-stretch h-fit mb-5" id="input-maplinkgroup">
-                                <div class="input-style3 flex items-center justify-center gap-3 flex-1 transition-all duration-300" id="maplink-container">
-                                    <input 
-                                    id="input-prop-mapLink"
-                                    type="text" 
-                                    placeholder="Paste Google Maps embed link here..." 
-                                    class="flex-1 w-full bg-transparent focus:outline-none text-sm md:text-base" 
-                                    />
-                                    <!-- Validation indicator -->
-                                    <div id="maplink-validation" class="hidden">
-                                        <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
-                                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
-                                        </svg>
-                                    </div>
-                                </div>
-                            </div>
-                            </div>
-                        </div>
-                        <div id="mapContainer" class="w-full h-[300px] bg-neutral-100 rounded-2xl overflow-hidden flex items-center justify-center">
-                            <!-- Map will be loaded here dynamically from input value -->
-                            <div class="text-neutral-500 text-center">
-                                <svg class="w-12 h-12 mx-auto mb-2 text-neutral-400" fill="currentColor" viewBox="0 0 20 20">
+                      <div class="flex flex-col gap-2 w-full group">
+                        <label for="input-prop-mapLink" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                            Map link
+                        </label>
+                        <!-- Address Search Section -->
+                        <div class=" ">
+                            <!-- <div class="flex items-center gap-2 mb-3">
+                                <svg class="w-4 h-4 text-primary flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
                                 </svg>
-                                <p class="text-sm">Map preview will appear here</p>
+                                <p class="text-xs font-medium text-primary-text sm:text-sm">Quick Address Search (Places pin at exact location)</p>
+                            </div> -->
+                            
+                            <div class="flex flex-col gap-3">
+                                <div class="input-style3 flex items-center gap-2 w-full">
+                                    <svg class="w-4 h-4 text-neutral-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
+                                    </svg>
+                                    <input 
+                                        id="address-search-input"
+                                        type="text" 
+                                        placeholder="Type to search for address or place name..." 
+                                        class="flex-1 w-full bg-transparent focus:outline-none text-sm md:text-base" 
+                                    />
+                                    <!-- Loading indicator -->
+                                    <div id="search-loading" class="hidden">
+                                        <svg class="w-4 h-4 text-primary animate-spin" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M4 2a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V4a2 2 0 00-2-2H4zm6 14a6 6 0 100-12 6 6 0 000 12z" clip-rule="evenodd"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                
+                                <!-- Search Results Dropdown -->
+                                <div id="address-results" class="hidden">
+                                    <div class="bg-white border border-neutral-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+                                        <!-- Results will be populated here -->
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Manual Input Instructions -->
+                        <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-3 mb-3">
+                            <div class="flex items-start gap-2">
+                                <svg class="w-4 h-4 text-neutral-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
+                                </svg>
+                                <div class="text-neutral-600">
+                                    <p class="text-xs font-medium mb-1 sm:text-sm">How to manually paste Google Maps embed link?</p>
+                                    <ol class="text-xs space-y-1 pl-3 sm:text-sm">
+                                        <li class="list-decimal">Go to <a href="https://www.google.com/maps" target="_blank" class="text-primary hover:text-primary/80 underline">Google Maps</a></li>
+                                        <li class="list-decimal">Search for your property location</li>
+                                        <li class="list-decimal">Click "Share" → "Embed a map"</li>
+                                        <li class="list-decimal">Copy the link and paste it below</li>
+                                    </ol>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-stretch h-fit mb-5" id="input-maplinkgroup">
+                            <div class="input-style3 flex items-center justify-center gap-3 flex-1 transition-all duration-300" id="maplink-container">
+                                <input 
+                                id="input-prop-mapLink"
+                                type="text" 
+                                placeholder="Paste Google Maps embed link here..." 
+                                class="flex-1 w-full bg-transparent focus:outline-none text-sm md:text-base" 
+                                />
+                                <!-- Validation indicator -->
+                                <div id="maplink-validation" class="hidden">
+                                    <svg class="w-4 h-4 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                        </div>
+                        </div>
+                      </div>
+                      <div id="mapContainer" class="w-full h-[300px] bg-neutral-100 rounded-2xl overflow-hidden flex items-center justify-center">
+                          <!-- Map will be loaded here dynamically from input value -->
+                          <div class="text-neutral-500 text-center">
+                              <svg class="w-12 h-12 mx-auto mb-2 text-neutral-400" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"></path>
+                              </svg>
+                              <p class="text-sm">Map preview will appear here</p>
+                          </div>
+                      </div>
                   </div>
                   
                 </div>

@@ -29,7 +29,7 @@
         <!-- Navigation Links -->
         <div class="flex gap-2 sm:gap-5 items-center font-manrope">
           <button 
-            onclick="window.open('/pages/unauth/login.html', '_blank')" 
+            onclick="window.location.href='/pages/unauth/login.html'" 
             class="pointer-events-auto rounded-full hidden
             hover:cursor-pointer hover:bg-white/15 active:scale-95
             md:block 
@@ -38,7 +38,7 @@
           </button>
           
           <button 
-            onclick="window.open('/pages/unauth/register.html', '_blank')"  
+            onclick="window.location.href='/pages/unauth/register.html'"
             class="group relative rounded-full bg-primary font-bold z-50 flex items-center justify-center overflow-hidden 
             hover:cursor-pointer active:scale-95
             transition-all duration-300 ease-in-out ">
@@ -64,8 +64,10 @@
         </div>
       </nav>
 
+      
       <!-- Hero Section -->
       <div class="flex flex-col items-center justify-center h-full z-30">
+        
         <div class="w-fit text-secondary-text text-5xl md:text-7xl lg:text-8xl font-playfairDisplay italic font-bold text-center flex flex-col">
           <span class="text-stroke">Feel at Home,</span>
           <span class="text-stroke">Every Stay.</span>
@@ -536,16 +538,49 @@
     </footer>
 
     <!-- Opening Modal -->
-    <div id="fullscreenModalCard" class="fixed inset-0 z-[99] flex items-center justify-center transition-opacity duration-300 opacity-100 bg-white">
+    <!-- <div id="fullscreenModalCard" class="fixed inset-0 z-[99] flex items-center justify-center transition-opacity duration-300 opacity-100 bg-white">
       <div class="bg-primary flex flex-col justify-center items-center w-full h-full">
-        <svg class="fill-accent w-auto h-[50%] md:h-[70%] my-10 " viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g clip-path="url(#clip0_464_848)">
-          <path d="M23.7101 11.2899L20.5701 8.15994C20.5315 8.11473 20.5071 8.05903 20.5001 7.99994V1.99994C20.5001 1.73472 20.3948 1.48037 20.2072 1.29283C20.0197 1.1053 19.7654 0.999939 19.5001 0.999939H16.5001C16.2349 0.999939 15.9806 1.1053 15.793 1.29283C15.6055 1.48037 15.5001 1.73472 15.5001 1.99994V2.47994C15.5003 2.52873 15.4862 2.57651 15.4595 2.61738C15.4329 2.65825 15.3949 2.69042 15.3501 2.70994C15.3083 2.73665 15.2598 2.75085 15.2101 2.75085C15.1605 2.75085 15.1119 2.73665 15.0701 2.70994L12.7101 0.289939C12.6172 0.19621 12.5066 0.121816 12.3847 0.0710475C12.2629 0.0202789 12.1322 -0.00585938 12.0001 -0.00585937C11.8681 -0.00585938 11.7374 0.0202789 11.6156 0.0710475C11.4937 0.121816 11.3831 0.19621 11.2901 0.289939L0.290139 11.2899C0.151382 11.4306 0.0573856 11.6091 0.0200115 11.8031C-0.0173626 11.9971 0.00356003 12.1978 0.0801395 12.3799C0.15516 12.5626 0.282557 12.7189 0.446278 12.8292C0.609998 12.9396 0.802714 12.999 1.00014 12.9999H2.25014C2.31644 12.9999 2.38003 13.0263 2.42692 13.0732C2.4738 13.12 2.50014 13.1836 2.50014 13.2499V22.9999C2.50014 23.2652 2.6055 23.5195 2.79303 23.707C2.98057 23.8946 3.23492 23.9999 3.50014 23.9999H20.5001C20.7654 23.9999 21.0197 23.8946 21.2072 23.707C21.3948 23.5195 21.5001 23.2652 21.5001 22.9999V13.2499C21.5001 13.1836 21.5265 13.12 21.5734 13.0732C21.6202 13.0263 21.6838 12.9999 21.7501 12.9999H23.0001C23.1976 12.999 23.3903 12.9396 23.554 12.8292C23.7177 12.7189 23.8451 12.5626 23.9201 12.3799C23.9967 12.1978 24.0176 11.9971 23.9803 11.8031C23.9429 11.6091 23.8489 11.4306 23.7101 11.2899Z"/>
-          </g>
-          <defs>
-        </svg>
+        
+        <div class="relative flex items-center justify-center w-full h-[300px] sm:h-[400px] md:h-[500px] lg:h-[600px]">
 
-        <!-- Infinite Scroll border -->
+          <svg class="absolute fill-accent w-auto h-[50%] md:h-[70%]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <g clip-path="url(#clip0_464_848)">
+            <path d="M23.7101 11.2899L20.5701 8.15994C20.5315 8.11473 20.5071 8.05903 20.5001 7.99994V1.99994C20.5001 1.73472 20.3948 1.48037 20.2072 1.29283C20.0197 1.1053 19.7654 0.999939 19.5001 0.999939H16.5001C16.2349 0.999939 15.9806 1.1053 15.793 1.29283C15.6055 1.48037 15.5001 1.73472 15.5001 1.99994V2.47994C15.5003 2.52873 15.4862 2.57651 15.4595 2.61738C15.4329 2.65825 15.3949 2.69042 15.3501 2.70994C15.3083 2.73665 15.2598 2.75085 15.2101 2.75085C15.1605 2.75085 15.1119 2.73665 15.0701 2.70994L12.7101 0.289939C12.6172 0.19621 12.5066 0.121816 12.3847 0.0710475C12.2629 0.0202789 12.1322 -0.00585938 12.0001 -0.00585937C11.8681 -0.00585938 11.7374 0.0202789 11.6156 0.0710475C11.4937 0.121816 11.3831 0.19621 11.2901 0.289939L0.290139 11.2899C0.151382 11.4306 0.0573856 11.6091 0.0200115 11.8031C-0.0173626 11.9971 0.00356003 12.1978 0.0801395 12.3799C0.15516 12.5626 0.282557 12.7189 0.446278 12.8292C0.609998 12.9396 0.802714 12.999 1.00014 12.9999H2.25014C2.31644 12.9999 2.38003 13.0263 2.42692 13.0732C2.4738 13.12 2.50014 13.1836 2.50014 13.2499V22.9999C2.50014 23.2652 2.6055 23.5195 2.79303 23.707C2.98057 23.8946 3.23492 23.9999 3.50014 23.9999H20.5001C20.7654 23.9999 21.0197 23.8946 21.2072 23.707C21.3948 23.5195 21.5001 23.2652 21.5001 22.9999V13.2499C21.5001 13.1836 21.5265 13.12 21.5734 13.0732C21.6202 13.0263 21.6838 12.9999 21.7501 12.9999H23.0001C23.1976 12.999 23.3903 12.9396 23.554 12.8292C23.7177 12.7189 23.8451 12.5626 23.9201 12.3799C23.9967 12.1978 24.0176 11.9971 23.9803 11.8031C23.9429 11.6091 23.8489 11.4306 23.7101 11.2899Z"/>
+            </g>
+            <defs>
+          </svg>
+
+          <div class="relative flex flex-col items-center text-center space-y-6">
+            <div class="flex flex-col w-fit text-secondary-text text-5xl md:text-7xl lg:text-8xl font-playfairDisplay italic font-bold text-center text-stroke ">
+              <span>Feel at Home,</span>
+              <span>Every Stay.</span>
+            </div>
+            <button id="closeFullscreenModal"
+              class="group relative rounded-full bg-primary-text flex items-center justify-center overflow-hidden 
+              hover:cursor-pointer active:scale-95
+              transition-all duration-500 ease-in-out ">
+
+              <span class="text-secondary-text font-manrope text-base font-bold 
+              group-hover:-translate-x-1
+              transition-transform duration-500 ease-in-out
+              md:text-lg">
+                Explore now
+              </span>
+
+                <span class="overflow-hidden max-w-[30px] lg:max-w-0 lg:group-hover:max-w-[30px] transition-all duration-500 ease-in-out">
+                  <svg class="w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
+                    <g clip-path="url(#clip0_18_84)">
+                      <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1975 7.45773 13.1213 7.34739 13.0689 7.22538C13.0165 7.10338 12.9889 6.97216 12.9877 6.83938C12.9866 6.7066 13.0119 6.57492 13.0622 6.45202C13.1125 6.32913 13.1867 6.21747 13.2806 6.12358C13.3745 6.02969 13.4861 5.95544 13.609 5.90516C13.7319 5.85487 13.8636 5.82957 13.9964 5.83073C14.1292 5.83188 14.2604 5.85947 14.3824 5.91188C14.5044 5.96428 14.6148 6.04047 14.707 6.13598Z"/>
+                    </g>
+                  </svg>
+                </span>
+            </button>
+          </div>
+        </div>
+        
+
+        
+
         <div class="overflow-hidden z-50 mt-5">
           <div id="scrolling-content" class=" p-4 font-playfairDisplay flex select-none">
             <ul class="list-none flex shrink-0 justify-between items-center gap-10 min-w-full text-secondary-text">
@@ -651,37 +686,8 @@
             </ul>
           </div>  
         </div>
-
-        <div class="absolute inset-0 top-10 flex flex-col items-center justify-center">
-          <div class="flex flex-col w-fit text-secondary-text text-5xl md:text-7xl lg:text-8xl font-playfairDisplay italic font-bold text-center text-stroke ">
-            <span>Feel at Home,</span>
-            <span>Every Stay.</span>
-          </div>
-
-          <button id="closeFullscreenModal"
-            class="group relative rounded-full bg-primary-text px-6 py-3 mt-10 z-50 flex items-center justify-center overflow-hidden 
-            hover:cursor-pointer active:scale-95
-            transition-all duration-500 ease-in-out ">
-
-            <span class="text-secondary-text font-manrope text-base font-bold 
-            group-hover:-translate-x-1
-            transition-transform duration-500 ease-in-out
-            md:text-lg">
-              Explore now
-            </span>
-
-              <span class="overflow-hidden max-w-[30px] lg:max-w-0 lg:group-hover:max-w-[30px] transition-all duration-500 ease-in-out">
-                <svg class="w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
-                  <g clip-path="url(#clip0_18_84)">
-                    <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1975 7.45773 13.1213 7.34739 13.0689 7.22538C13.0165 7.10338 12.9889 6.97216 12.9877 6.83938C12.9866 6.7066 13.0119 6.57492 13.0622 6.45202C13.1125 6.32913 13.1867 6.21747 13.2806 6.12358C13.3745 6.02969 13.4861 5.95544 13.609 5.90516C13.7319 5.85487 13.8636 5.82957 13.9964 5.83073C14.1292 5.83188 14.2604 5.85947 14.3824 5.91188C14.5044 5.96428 14.6148 6.04047 14.707 6.13598Z"/>
-                  </g>
-                </svg>
-              </span>
-          </button>
-
-        </div>
       </div>
-    </div>
+    </div> -->
 
     <script src="pages/unauth/unauthFunctions/landingPage-functions.js"></script>
     <script defer src="src/modal.js"></script>
