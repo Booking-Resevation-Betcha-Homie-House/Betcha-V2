@@ -381,24 +381,22 @@ function populatePropertyList(searchTerm = '') {
         propertyListHTML = filteredProperties.map(property => {
             const isChecked = currentFeaturedIds.includes(property._id);
             const location = property.city ? `${property.address}, ${property.city}` : property.address;
-            
+            const checkboxId = `property-checkbox-${property._id}`;
             return `
-                <label class="relative flex items-center gap-2 p-2 hover:bg-neutral-50 cursor-pointer">
-                    <input 
-                        type="checkbox" 
-                        class="peer appearance-none w-4 h-4 rounded border-2 mr-2 border-neutral-300 checked:bg-primary checked:border-primary focus:outline-none property-checkbox"
+                <label for="${checkboxId}" class="relative flex items-center p-2 hover:bg-gray-50 cursor-pointer rounded-lg">
+                    <input
+                        id="${checkboxId}"
+                        type="checkbox"
+                        class="mr-2 w-4 h-4 rounded border-2 border-neutral-300 checked:bg-primary checked:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 accent-primary"
                         value="${property._id}"
                         data-name="${property.name}"
                         ${isChecked ? 'checked' : ''}
                         onchange="handlePropertySelection(this)"
                     >
-                    <svg class="absolute left-2 mt-[2px] w-4 h-4 text-white pointer-events-none opacity-0 peer-checked:opacity-100 transition-opacity duration-200" viewBox="0 0 20 20" fill="none">
-                        <path d="M5 10.5L8.5 14L15 7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    </svg>
-                    <div class="flex flex-col">
+                    <span class="flex flex-col">
                         <span class="font-medium font-manrope">${property.name || 'Unnamed Property'}</span>
                         <span class="text-xs font-inter text-neutral-500">${location || 'No address'}</span>
-                    </div>
+                    </span>
                 </label>
             `;
         }).join('');

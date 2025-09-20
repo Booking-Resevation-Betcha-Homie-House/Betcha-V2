@@ -289,18 +289,7 @@ function updateGalleryDisplay(images) {
     const mainImage = document.createElement('div');
     mainImage.className = 'rounded-2xl bg-cover bg-center h-full col-span-1 sm:col-span-3 relative group';
     mainImage.style.backgroundImage = `url(${images[0]})`;
-    
-    // Add delete button for main image
-    mainImage.innerHTML = `
-        <button onclick="deleteExistingImage('${images[0]}', this)" 
-                class="absolute top-2 right-2 bg-red-500/50 hover:bg-red-600/70 text-white rounded-full w-8 h-8 flex items-center justify-center 
-                       opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
-                       hover:scale-110 active:scale-95 text-xl font-bold leading-none border border-red-400"
-                style="color: white;">
-            ×
-        </button>
-    `;
-    
+    // No delete button in main gallery
     photoSection.appendChild(mainImage);
 
     // Create side images container
@@ -312,15 +301,7 @@ function updateGalleryDisplay(images) {
         const secondImage = document.createElement('div');
         secondImage.className = 'rounded-2xl bg-cover bg-center relative group';
         secondImage.style.backgroundImage = `url(${images[1]})`;
-        secondImage.innerHTML = `
-            <button onclick="deleteExistingImage('${images[1]}', this)" 
-                    class="absolute top-2 right-2 bg-red-500/50 hover:bg-red-600/70 text-white rounded-full w-8 h-8 flex items-center justify-center 
-                           opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
-                           hover:scale-110 active:scale-95 text-xl font-bold leading-none border border-red-400"
-                    style="color: white;">
-                ×
-            </button>
-        `;
+        // No delete button in main gallery
         sideContainer.appendChild(secondImage);
     } else {
         // Show placeholder for second image
@@ -335,15 +316,7 @@ function updateGalleryDisplay(images) {
         const thirdImage = document.createElement('div');
         thirdImage.className = 'rounded-2xl bg-cover bg-center relative group';
         thirdImage.style.backgroundImage = `url(${images[2]})`;
-        thirdImage.innerHTML = `
-            <button onclick="deleteExistingImage('${images[2]}', this)" 
-                    class="absolute top-2 right-2 bg-red-500/50 hover:bg-red-600/70 text-white rounded-full w-8 h-8 flex items-center justify-center 
-                           opacity-0 group-hover:opacity-100 transition-all duration-200 shadow-lg backdrop-blur-sm
-                           hover:scale-110 active:scale-95 text-xl font-bold leading-none border border-red-400"
-                    style="color: white;">
-                ×
-            </button>
-        `;
+        // No delete button in main gallery
         sideContainer.appendChild(thirdImage);
     } else {
         // Show placeholder for third image
@@ -918,13 +891,14 @@ function initializeImageEditing() {
         console.log('Image upload already initialized, skipping...');
         return;
     }
-    
     const fileInput = document.querySelector('#editGalleryModal input[type="file"]');
     if (fileInput) {
-        fileInput.addEventListener('change', handleImageSelection);
+        fileInput.addEventListener('change', async (e) => {
+            handleImageSelection(e);
+            await uploadAllImages(); // Automatically upload after selection
+        });
         imageUploadInitialized = true;
         console.log('Image upload functionality initialized');
-        
         // Populate existing images in the modal
         populateGalleryModal();
     } else {
@@ -949,6 +923,10 @@ function populateGalleryModal() {
     // Clear existing images (except file input)
     const existingImages = gallery.querySelectorAll('.existing-image');
     existingImages.forEach(img => img.remove());
+
+    // Remove Save Images button if present (legacy)
+    const saveBtn = gallery.parentElement?.querySelector('button[onclick="uploadAllImages()"]');
+    if (saveBtn) saveBtn.remove();
 
     console.log('📸 Displaying', currentPropertyImages.length, 'existing images');
 
@@ -1224,7 +1202,7 @@ async function uploadAllImages() {
 }
 
 // Make function globally accessible for onclick handlers
-window.uploadAllImages = uploadAllImages;
+// No longer needed to expose uploadAllImages globally since upload is automatic
 
 // ==================== SAVE & DISCARD FUNCTIONALITY ====================
 function initializeSaveAndDiscardFunctionality() {
