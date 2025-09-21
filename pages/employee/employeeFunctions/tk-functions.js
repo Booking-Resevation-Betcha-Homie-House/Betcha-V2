@@ -354,7 +354,9 @@ function populateTicketList(tickets, groupEl) {
     const pendingTickets = tickets.filter(t => t.status !== 'resolved');
     const completedTickets = tickets.filter(t => t.status === 'resolved');
 
-    renderTicketGroup(pendingTickets, pendingContainer, false, 'No pending tickets...');
+
+    // Render pending tickets and auto-select the first one if present
+    renderTicketGroup(pendingTickets, pendingContainer, false, 'No pending tickets...', true);
     renderTicketGroup(completedTickets, completedContainer, true, 'No completed tickets...');
 
     // Update tab labels
@@ -370,7 +372,7 @@ function renderTicketGroup(tickets, container, isCompleted, emptyMsg) {
     }
     const wrapper = document.createElement('div');
     wrapper.className = 'space-y-4 p-4';
-    tickets.forEach(ticket => wrapper.appendChild(createTicketCard(ticket, isCompleted)));
+    tickets.forEach((ticket, idx) => wrapper.appendChild(createTicketCard(ticket, isCompleted, idx === 0)));
     container.appendChild(wrapper);
 }
 
@@ -382,9 +384,9 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
     // 🔥 Fix: pull customer name from messages[0]
     const customerName = ticket.messages?.[0]?.userName || 'Unknown Customer';
 
+    // Show date as 'Xd ago'
     const d = new Date(ticket.createdAt);
-    const formattedDate = d.toLocaleDateString();
-    const formattedTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const daysAgo = getDaysAgoString(d);
 
     card.innerHTML = `
         <div class="grid grid-cols-[1fr_auto] gap-2 items-center w-full">
@@ -398,10 +400,19 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
                 <span class="text-xs font-medium px-2 py-1 in-queue rounded-full">
                     ${ticket.category || 'No Category'}
                 </span>
-                <span class="text-xs text-neutral-400">${formattedDate} | ${formattedTime}</span>
+                <span class="text-xs text-neutral-400">${daysAgo}</span>
             </div>
         </div>
     `;
+// Helper: returns 'Xd ago' for a given date
+function getDaysAgoString(date) {
+    const now = new Date();
+    const diffMs = now - date;
+    const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return '1d ago';
+    return `${diffDays}d ago`;
+}
 
     // ✅ Click to select
     card.addEventListener('click', () => {
@@ -482,8 +493,11 @@ function createMessageElement(message) {
     const currentUserId = localStorage.getItem("userId"); // your logged-in employee ID
     const isMine = message.userId === currentUserId;      // check if this message is mine
 
+
     const d = new Date(message.dateTime);
     const formattedTime = d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    // Optionally, you could show days ago for messages as well:
+    // const daysAgo = getDaysAgoString(d);
 
     const el = document.createElement('div');
     el.className = isMine ? 'flex justify-end' : 'flex justify-start';

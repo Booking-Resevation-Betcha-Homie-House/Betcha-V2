@@ -104,7 +104,7 @@ function setupConfirmButton() {
                     params.append('bookingId', bookingResult.bookingId);
                     params.append('paymentType', paymentType);
                     window.location.href = `confirm-payment.html?${params.toString()}`;
-                }, 1000);
+                }, 10000);
             } else {
                 showToastError('error', 'Booking Failed', bookingResult.message || 'Failed to create booking. Please try again.');
                 // Restore button
