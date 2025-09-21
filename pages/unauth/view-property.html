@@ -250,7 +250,7 @@
 
     <!-- Rooms Detail Navigation -->
     <div class="w-[80%] sticky top-0 z-50 hidden md:block">
-      <ul class="flex justify-start items-end gap-6 border-b bg-background border-neutral-300 px-4">
+      <ul id="roomNav" class="flex justify-start items-end gap-6 border-b bg-background border-neutral-300 px-4">
         <li class="h-full py-5 border-b-2 border-background group
           hover:border-primary
           transition-all duration-300 ease-in-out">
@@ -284,55 +284,54 @@
             md:text-start md:text-5xl md:mb-10">
             Room name
           </p>
-          <div class="flex items-center gap-2 mb-2.5">
-            <svg class="w-auto h-3 fill-neutral-500
-              md:h-4" 
-              viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-              <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
-            </svg>
-            <p id="roomAdress" class="font-inter text-neutral-500 text-xs
-              md:text-sm">
-              Barangay/City
-            </p>
-          </div>
-          
-          <div class="flex items-center justify-start gap-10 mb-10">
+          <div class="w-full grid grid-cols-2 gap-x-6 gap-y-4 mb-5 md:flex md:items-center md:justify-start md:gap-10">
             <div class="flex items-center gap-1">
-              <svg class="w-auto h-3 fill-neutral-500
-                md:h-4" 
+              <svg class="w-4 h-4 fill-neutral-500 flex-shrink-0" 
                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M2 18V13C2 12.55 2.09167 12.1417 2.275 11.775C2.45833 11.4083 2.7 11.0833 3 10.8V8C3 7.16667 3.29167 6.45833 3.875 5.875C4.45833 5.29167 5.16667 5 6 5H10C10.3833 5 10.7417 5.071 11.075 5.213C11.4083 5.355 11.7167 5.55067 12 5.8C12.2833 5.55 12.5917 5.35433 12.925 5.213C13.2583 5.07167 13.6167 5.00067 14 5H18C18.8333 5 19.5417 5.29167 20.125 5.875C20.7083 6.45833 21 7.16667 21 8V10.8C21.3 11.0833 21.5417 11.4083 21.725 11.775C21.9083 12.1417 22 12.55 22 13V18C22 18.2833 21.904 18.521 21.712 18.713C21.52 18.905 21.2827 19.0007 21 19C20.7173 18.9993 20.48 18.9033 20.288 18.712C20.096 18.5207 20 18.2833 20 18V17H4V18C4 18.2833 3.904 18.521 3.712 18.713C3.52 18.905 3.28267 19.0007 3 19C2.71733 18.9993 2.48 18.9033 2.288 18.712C2.096 18.5207 2 18.2833 2 18ZM13 10H19V8C19 7.71667 18.904 7.47933 18.712 7.288C18.52 7.09667 18.2827 7.00067 18 7H14C13.7167 7 13.4793 7.096 13.288 7.288C13.0967 7.48 13.0007 7.71733 13 8V10ZM5 10H11V8C11 7.71667 10.904 7.47933 10.712 7.288C10.52 7.09667 10.2827 7.00067 10 7H6C5.71667 7 5.47933 7.096 5.288 7.288C5.09667 7.48 5.00067 7.71733 5 8V10Z"/>
               </svg>
-              <p id="category" class="font-inter text-neutral-500 text-xs
-                md:text-sm">
+              <p id="category" class="font-inter text-neutral-500 text-sm leading-none
+                md:text-base">
                 Category
               </p>
             </div>
             <div class="flex items-center gap-1">
-              <svg class="w-auto h-3 fill-neutral-500
-                md:h-4" 
+              <svg class="w-4 h-4 fill-neutral-500 flex-shrink-0" 
                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 12C10.9 12 9.95833 11.6083 9.175 10.825C8.39167 10.0417 8 9.1 8 8C8 6.9 8.39167 5.95833 9.175 5.175C9.95833 4.39167 10.9 4 12 4C13.1 4 14.0417 4.39167 14.825 5.175C15.6083 5.95833 16 6.9 16 8C16 9.1 15.6083 10.0417 14.825 10.825C14.0417 11.6083 13.1 12 12 12ZM4 18V17.2C4 16.6333 4.146 16.1127 4.438 15.638C4.73 15.1633 5.11733 14.8007 5.6 14.55C6.63333 14.0333 7.68333 13.646 8.75 13.388C9.81667 13.13 10.9 13.0007 12 13C13.1 12.9993 14.1833 13.1287 15.25 13.388C16.3167 13.6473 17.3667 14.0347 18.4 14.55C18.8833 14.8 19.271 15.1627 19.563 15.638C19.855 16.1133 20.0007 16.634 20 17.2V18C20 18.55 19.8043 19.021 19.413 19.413C19.0217 19.805 18.5507 20.0007 18 20H6C5.45 20 4.97933 19.8043 4.588 19.413C4.19667 19.0217 4.00067 18.5507 4 18Z"/>
               </svg>
-              <p id="packageCapacity" class="font-inter text-neutral-500 text-xs
-                md:text-sm">
-                00
+              <p class="font-inter text-neutral-500 text-sm md:text-base">
+                <span id="packageCapacity" >00</span>
+                <span >(suggested)</span>
               </p>
             </div>
             <div class="flex items-center gap-1 ">
-              <svg class="w-auto h-3 fill-yellow-400" viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
+              <svg class="w-4 h-4 fill-yellow-400 flex-shrink-0" viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">
                 <path d="M7.82768 1.10245C8.33862 -0.367484 10.4175 -0.367484 10.9284 1.10245L12.0903 4.44504C12.3157 5.09349 12.9209 5.53316 13.6072 5.54715L17.1453 5.61925C18.7011 5.65096 19.3435 7.62805 18.1034 8.56823L15.2835 10.7062C14.7364 11.1209 14.5053 11.8323 14.7041 12.4894L15.7288 15.8766C16.1795 17.3661 14.4976 18.588 13.2203 17.6991L10.3156 15.6779C9.75205 15.2857 9.00404 15.2857 8.44053 15.6779L5.53583 17.6991C4.25845 18.588 2.57664 17.3661 3.02728 15.8766L4.05202 12.4894C4.25082 11.8323 4.01967 11.1209 3.4726 10.7062L0.652656 8.56823C-0.587445 7.62805 0.0549511 5.65096 1.61084 5.61925L5.14887 5.54715C5.83524 5.53316 6.44039 5.09349 6.66579 4.44504L7.82768 1.10245Z" />
               </svg>
-              <span class="font-inter text-neutral-500" id="rate">4.5</span>
+              <span class="font-inter text-neutral-500 leading-none" id="rate">4.5</span>
             </div>
             <div class="flex items-center gap-1 " id="timeInOutGroup">
-              <svg class="w-auto h-3 fill-neutral-500" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <svg class="w-4 h-4 fill-neutral-500 flex-shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm.5-13H11v6l5.25 3.15.75-1.23-4.5-2.67V7z"/>
               </svg>
-              <span class="font-inter text-neutral-500" id="timeInOut">11:00 AM - 1:00 PM</span>
+              <span class="font-inter text-neutral-500 leading-none text-sm
+                md:text-base" id="timeInOut">11:00 AM - 1:00 PM</span>
             </div>
           </div>
 
+          <!-- Removed due to redundancy with location section -->
+          <!-- <div class="flex items-start gap-2 mb-10 ">
+            <svg class="w-3 h-3 fill-neutral-500 flex-shrink-0" 
+              viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
+              <path d="M6 0C2.68628 0 0 2.86538 0 6.4C9.53674e-07 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 1.69648e-07 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z" />
+            </svg>
+            <p id="roomAdress" class="font-inter text-neutral-500 text-sm leading-none
+              md:text-base">
+              Barangay/City
+            </p>
+          </div> -->
+          
           <div class="flex flex-col w-full mb-10 md:mb-20">
             <div id="descWrapper" class="overflow-hidden transition-[max-height] duration-500 ease-in-out max-h-[6rem]">
               <p id="roomDescription" class="font-inter text-primary-text text-sm md:text-base">
@@ -653,7 +652,6 @@
       </div>
     </div>
 
-    <!-- Ammenities Modal -->
     <!-- Ammenities Modal -->
     <div id="ammenitiesModal" class="modal fixed inset-0 z-50 bg-black/50 flex items-center justify-center hidden">
       <div class="bg-background w-full h-full rounded-none overflow-hidden flex flex-col modal-animate md:max-h-[80%] md:rounded-3xl md:max-w-6xl md:min-w-[700px] md:w-auto md:h-auto">
@@ -1625,6 +1623,7 @@
             </button>
           </div>
         </div>
+        
 
         <!-- Bottom nav -->
         <div class="items-center py-5 mt-auto">
@@ -1651,8 +1650,8 @@
     <script defer src="../../src/roomsNavigationTabs.js"></script>
     <script defer src="unauthFunctions/unauth-profile.js"></script>
     <script defer src="unauthFunctions/view-property-functions.js"></script>
-  <script defer src="../../src/navbar.js"></script>
-  <script defer src="../../src/universal-logout.js"></script>
+    <script defer src="../../src/navbar.js"></script>
+    <script defer src="../../src/universal-logout.js"></script>
     <script defer src="../../src/locationSearch.js"></script>
     <script defer src="../../src/calendar.js"></script>
     <script defer src="../../src/guestCount.js"></script>
@@ -1662,6 +1661,8 @@
     <script defer src="../../src/modal.js"></script>
     <script defer src="../../src/notification.js"></script>
     <script defer src="../../src/readTextToggle.js"></script>
+
+    
 </body>
 </html>
 

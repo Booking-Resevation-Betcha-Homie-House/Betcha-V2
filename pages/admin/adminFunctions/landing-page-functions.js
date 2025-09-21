@@ -273,7 +273,7 @@ function updateUnitElement(unitElement, unitData) {
         }
         
         // Update location (combine address and city)
-        const locationElement = unitElement.querySelector('p.font-inter.text-secondary-text.text-sm');
+        const locationElement = unitElement.querySelector('p.font-inter.text-secondary-text.text-sm.leading-none');
         if (locationElement) {
             const location = unitData.city ? `${unitData.address}, ${unitData.city}` : unitData.address;
             if (location) {
@@ -383,7 +383,7 @@ function populatePropertyList(searchTerm = '') {
             const location = property.city ? `${property.address}, ${property.city}` : property.address;
             const checkboxId = `property-checkbox-${property._id}`;
             return `
-                <label for="${checkboxId}" class="relative flex items-center p-2 hover:bg-gray-50 cursor-pointer rounded-lg">
+                <label for="${checkboxId}" class="relative flex items-center p-2 hover:bg-neutral-50 cursor-pointer rounded-lg">
                     <input
                         id="${checkboxId}"
                         type="checkbox"

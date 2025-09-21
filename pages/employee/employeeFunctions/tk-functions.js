@@ -144,8 +144,8 @@ function showAccessDeniedMessage() {
                           d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4
                           c-.77-.833-1.964-.833-2.732 0L4.732 19.5c-.77.833.192 2.5 1.732 2.5z"/>
                 </svg>
-                <h2 class="text-xl font-bold text-gray-800 mb-2">Access Denied</h2>
-                <p class="text-gray-600 mb-4">You don't have permission to access the Ticketing module.</p>
+                <h2 class="text-xl font-bold text-neutral-800 mb-2">Access Denied</h2>
+                <p class="text-neutral-600 mb-4">You don't have permission to access the Ticketing module.</p>
                 <button onclick="window.location.href='dashboard.html'"
                         class="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90">
                     Return to Dashboard
@@ -395,7 +395,7 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
                 <p class="text-xs text-neutral-500 truncate">${customerName}</p>
             </div>
             <div class="flex flex-col items-end gap-1">
-                <span class="text-xs font-medium text-neutral-900 px-2 py-1 bg-neutral-100 rounded-full">
+                <span class="text-xs font-medium px-2 py-1 in-queue rounded-full">
                     ${ticket.category || 'No Category'}
                 </span>
                 <span class="text-xs text-neutral-400">${formattedDate} | ${formattedTime}</span>
@@ -405,7 +405,7 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
 
     // ✅ Click to select
     card.addEventListener('click', () => {
-        document.querySelectorAll('.ticket-item').forEach(i => i.classList.remove('bg-primaryy', 'border-primary', 'selected-ticket'));
+        document.querySelectorAll('.ticket-item').forEach(i => i.classList.remove('bg-primary', 'border-primary', 'selected-ticket'));
         card.classList.add('bg-primaryy', 'border-primary', 'selected-ticket');
         loadTicketDetails(ticket);
 

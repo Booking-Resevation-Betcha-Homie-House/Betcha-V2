@@ -149,7 +149,7 @@ function displayAssignedProperties(properties) {
     // Create property items
     properties.forEach((property) => {
         const propertyElement = document.createElement('div');
-        propertyElement.className = 'flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 bg-gray-50 rounded-xl border border-gray-200 w-full min-w-0';
+        propertyElement.className = 'flex flex-col p-3 bg-neutral-100 rounded-xl border border-neutral-200 w-full min-w-0 sm:flex-row items-center sm:justify-between sm:gap-5';
         
         // Extract location from address or use city
         const location = property.city || property.address || 'Location not specified';
@@ -157,20 +157,20 @@ function displayAssignedProperties(properties) {
         
         // Determine status color
         const isActive = property.status && property.status.toLowerCase() === 'active';
-        const statusClass = isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-600';
+        const statusClass = isActive ? 'bg-green-100 text-green-800' : 'bg-rose-100 text-rose-600';
         const statusText = isActive ? 'Active' : 'Inactive';
         
         propertyElement.innerHTML = `
-            <div class="flex flex-col sm:flex-row sm:items-center gap-2 flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-1 min-w-0">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm font-semibold text-primary-text font-manrope truncate">${property.name || 'Property Name'}</p>
-                        <p class="text-xs text-neutral-500 font-inter truncate">${shortLocation}</p>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3 flex-1 min-w-0">
+                <div class="flex items-center gap-3 flex-1 min-w-0">
+                    <div class="flex-1 min-w-0 sm:text-start">
+                        <p class="text-base font-semibold text-primary-text font-manrope truncate">${property.name || 'Property Name'}</p>
+                        <p class="text-sm text-neutral-500 font-inter truncate">${shortLocation}</p>
                     </div>
                 </div>
             </div>
-            <div class="flex items-center gap-2 mt-2 sm:mt-0 flex-shrink-0">
-                <span class="text-xs px-2 py-1 rounded-full ${statusClass}">
+            <div class="flex items-center gap-2 mt-3 sm:mt-0 flex-shrink-0">
+                <span class="text-xs px-3 py-1 rounded-full ${statusClass} font-medium">
                     ${statusText}
                 </span>
             </div>

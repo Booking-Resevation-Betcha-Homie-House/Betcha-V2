@@ -191,16 +191,16 @@ document.addEventListener('DOMContentLoaded', () => {
            data-agent-name="${agentName}"
            data-status="${status || 'open'}">
         <div class="flex items-center justify-between">
-          <p class="text-base font-bold text-gray-900 font-manrope tracking-wide group-hover:text-primary transition">
+          <p class="text-base font-bold text-neutral-900 font-manrope tracking-wide group-hover:text-primary transition">
             #${ticketNumber}
           </p>
           ${getStatusBadge(status)}
         </div>
         <div class="flex items-center justify-between mt-1">
-          <p class="text-xs text-gray-500 font-inter">
-            CSR: <span class="text-sm text-gray-700 font-medium">${agentName}</span>
+          <p class="text-xs text-neutral-500 font-inter">
+            CSR: <span class="text-sm text-neutral-700 font-medium">${agentName}</span>
           </p>
-          <span class="text-xs text-gray-400">${timeAgo}</span>
+          <span class="text-xs text-neutral-400">${timeAgo}</span>
         </div>
       </div>
     `;
@@ -257,15 +257,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return `
           <div class="animate-pulse w-full px-10 py-4 border-b border-neutral-100 last:border-b-0">
             <div class="flex items-center justify-between mb-3">
-              <div class="h-4 bg-gray-200 rounded-full ${titleWidths[index]}"></div>
-              <div class="h-5 bg-gray-200 rounded-full ${statusWidths[index]}"></div>
+              <div class="h-4 bg-neutral-200 rounded-full ${titleWidths[index]}"></div>
+              <div class="h-5 bg-neutral-200 rounded-full ${statusWidths[index]}"></div>
             </div>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <div class="h-3 bg-gray-200 rounded-full w-8"></div>
-                <div class="h-3 bg-gray-200 rounded-full ${nameWidths[index]}"></div>
+                <div class="h-3 bg-neutral-200 rounded-full w-8"></div>
+                <div class="h-3 bg-neutral-200 rounded-full ${nameWidths[index]}"></div>
               </div>
-              <div class="h-3 bg-gray-200 rounded-full ${timeWidths[index]}"></div>
+              <div class="h-3 bg-neutral-200 rounded-full ${timeWidths[index]}"></div>
             </div>
           </div>
         `;
@@ -281,50 +281,50 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="animate-pulse space-y-6">
           <!-- Date separator skeleton -->
           <div class="flex items-center justify-center my-4">
-            <div class="bg-gray-200 h-6 w-40 rounded-full"></div>
+            <div class="bg-neutral-200 h-6 w-40 rounded-full"></div>
           </div>
           
           <!-- Left side message skeleton (CSR) -->
           <div class="flex justify-start">
-            <div class="bg-gray-200 rounded-2xl p-4 max-w-[70%] space-y-2">
-              <div class="h-4 bg-gray-300 rounded w-full"></div>
-              <div class="h-4 bg-gray-300 rounded w-3/4"></div>
-              <div class="h-3 bg-gray-300 rounded w-16 mt-2"></div>
+            <div class="bg-neutral-200 rounded-2xl p-4 max-w-[70%] space-y-2">
+              <div class="h-4 bg-neutral-300 rounded w-full"></div>
+              <div class="h-4 bg-neutral-300 rounded w-3/4"></div>
+              <div class="h-3 bg-neutral-300 rounded w-16 mt-2"></div>
             </div>
           </div>
 
           <!-- Right side message skeleton (User) -->
           <div class="flex justify-end">
-            <div class="bg-gray-200 rounded-2xl p-4 max-w-[70%] space-y-2">
-              <div class="h-4 bg-gray-300 rounded w-full"></div>
-              <div class="h-4 bg-gray-300 rounded w-2/3"></div>
-              <div class="h-3 bg-gray-300 rounded w-16 mt-2"></div>
+            <div class="bg-neutral-200 rounded-2xl p-4 max-w-[70%] space-y-2">
+              <div class="h-4 bg-neutral-300 rounded w-full"></div>
+              <div class="h-4 bg-neutral-300 rounded w-2/3"></div>
+              <div class="h-3 bg-neutral-300 rounded w-16 mt-2"></div>
             </div>
           </div>
 
           <!-- Left side message skeleton -->
           <div class="flex justify-start">
-            <div class="bg-gray-200 rounded-2xl p-4 max-w-[70%] space-y-2">
-              <div class="h-4 bg-gray-300 rounded w-5/6"></div>
-              <div class="h-3 bg-gray-300 rounded w-16 mt-2"></div>
+            <div class="bg-neutral-200 rounded-2xl p-4 max-w-[70%] space-y-2">
+              <div class="h-4 bg-neutral-300 rounded w-5/6"></div>
+              <div class="h-3 bg-neutral-300 rounded w-16 mt-2"></div>
             </div>
           </div>
 
           <!-- Right side message skeleton -->
           <div class="flex justify-end">
-            <div class="bg-gray-200 rounded-2xl p-4 max-w-[70%] space-y-2">
-              <div class="h-4 bg-gray-300 rounded w-full"></div>
-              <div class="h-4 bg-gray-300 rounded w-4/5"></div>
-              <div class="h-4 bg-gray-300 rounded w-1/2"></div>
-              <div class="h-3 bg-gray-300 rounded w-16 mt-2"></div>
+            <div class="bg-neutral-200 rounded-2xl p-4 max-w-[70%] space-y-2">
+              <div class="h-4 bg-neutral-300 rounded w-full"></div>
+              <div class="h-4 bg-neutral-300 rounded w-4/5"></div>
+              <div class="h-4 bg-neutral-300 rounded w-1/2"></div>
+              <div class="h-3 bg-neutral-300 rounded w-16 mt-2"></div>
             </div>
           </div>
 
           <!-- Loading indicator at bottom -->
           <div class="flex items-center justify-center py-4 opacity-75">
             <div class="flex items-center gap-3">
-              <div class="w-4 h-4 border-2 border-gray-300 border-t-gray-400 rounded-full animate-spin"></div>
-              <span class="text-gray-400 text-sm">Loading your conversations...</span>
+              <div class="w-4 h-4 border-2 border-neutral-300 border-t-neutral-400 rounded-full animate-spin"></div>
+              <span class="text-neutral-400 text-sm">Loading your conversations...</span>
             </div>
           </div>
         </div>
@@ -339,15 +339,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusElement = document.getElementById('status');
     
     if (ticketNoElement) {
-      ticketNoElement.innerHTML = '<div class="animate-pulse h-4 bg-gray-200 rounded w-20 inline-block"></div>';
+      ticketNoElement.innerHTML = '<div class="animate-pulse h-4 bg-neutral-200 rounded w-20 inline-block"></div>';
     }
     
     if (customerServiceNameElement) {
-      customerServiceNameElement.innerHTML = '<div class="animate-pulse h-3 bg-gray-200 rounded w-24 inline-block"></div>';
+      customerServiceNameElement.innerHTML = '<div class="animate-pulse h-3 bg-neutral-200 rounded w-24 inline-block"></div>';
     }
     
     if (statusElement) {
-      statusElement.innerHTML = '<div class="animate-pulse h-5 bg-gray-200 rounded-full w-16"></div>';
+      statusElement.innerHTML = '<div class="animate-pulse h-5 bg-neutral-200 rounded-full w-16"></div>';
       statusElement.className = 'animate-pulse';
     }
 
@@ -363,10 +363,10 @@ document.addEventListener('DOMContentLoaded', () => {
     if (container) {
       container.innerHTML = `
         <div class="flex flex-col items-center justify-center py-10 px-5">
-          <svg class="w-12 h-12 text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-12 h-12 text-neutral-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2M4 13h2m13-8l-4 4-4-4m5 8v4"></path>
           </svg>
-          <p class="text-gray-500 text-center">${message}</p>
+          <p class="text-neutral-500 text-center">${message}</p>
         </div>
       `;
     }
@@ -422,13 +422,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!ticket.messages || ticket.messages.length === 0) {
       messageContainer.innerHTML = `
         <div class="flex flex-col items-center justify-center py-10 px-5">
-          <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-            <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
+            <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.447L3 21l2.447-5.094A8.959 8.959 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path>
             </svg>
           </div>
-          <p class="text-gray-500 text-center">No messages in this ticket yet.</p>
-          <p class="text-gray-400 text-sm text-center mt-2">Start the conversation by sending a message below.</p>
+          <p class="text-neutral-500 text-center">No messages in this ticket yet.</p>
+          <p class="text-neutral-400 text-sm text-center mt-2">Start the conversation by sending a message below.</p>
         </div>
       `;
       return;
@@ -444,9 +444,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const messagesHTML = sortedMessages.map((message, index) => {
       const isGuest = message.userLevel === 'Guest';
       // Guest messages should be on right side (green) = message-csr
-      // Employee messages should be on left side (gray) = message-guest
+      // Employee messages should be on left side (neutral) = message-guest
       const messageClass = isGuest ? 'message-csr' : 'message-guest';
-      const timeClass = isGuest ? 'text-xs text-white/70 mt-2' : 'text-xs text-gray-400 mt-2';
+      const timeClass = isGuest ? 'text-xs text-white/70 mt-2' : 'text-xs text-neutral-400 mt-2';
       
       // Format the message time
       const messageDate = new Date(message.dateTime);
@@ -461,7 +461,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // First message, always show date
         dateSeparator = `
           <div class="flex items-center justify-center my-4">
-            <div class="bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-500">
+            <div class="bg-neutral-100 px-3 py-1 rounded-full text-xs text-neutral-500">
               ${messageDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
             </div>
           </div>
@@ -471,7 +471,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (messageDate.toDateString() !== prevMessageDate.toDateString()) {
           dateSeparator = `
             <div class="flex items-center justify-center my-4">
-              <div class="bg-gray-100 px-3 py-1 rounded-full text-xs text-gray-500">
+              <div class="bg-neutral-100 px-3 py-1 rounded-full text-xs text-neutral-500">
                 ${messageDate.toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </div>
             </div>
@@ -565,21 +565,21 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="animate-pulse space-y-6 py-6">
           <!-- Quick skeleton for message switching -->
           <div class="flex justify-start">
-            <div class="bg-gray-200 rounded-2xl p-4 max-w-[70%]">
+            <div class="bg-neutral-200 rounded-2xl p-4 max-w-[70%]">
               <div class="space-y-2">
-                <div class="h-4 bg-gray-300 rounded w-full"></div>
-                <div class="h-4 bg-gray-300 rounded w-3/4"></div>
-                <div class="h-3 bg-gray-300 rounded w-16 mt-2"></div>
+                <div class="h-4 bg-neutral-300 rounded w-full"></div>
+                <div class="h-4 bg-neutral-300 rounded w-3/4"></div>
+                <div class="h-3 bg-neutral-300 rounded w-16 mt-2"></div>
               </div>
             </div>
           </div>
 
           <div class="flex justify-end">
-            <div class="bg-gray-200 rounded-2xl p-4 max-w-[70%]">
+            <div class="bg-neutral-200 rounded-2xl p-4 max-w-[70%]">
               <div class="space-y-2">
-                <div class="h-4 bg-gray-300 rounded w-full"></div>
-                <div class="h-4 bg-gray-300 rounded w-2/3"></div>
-                <div class="h-3 bg-gray-300 rounded w-16 mt-2"></div>
+                <div class="h-4 bg-neutral-300 rounded w-full"></div>
+                <div class="h-4 bg-neutral-300 rounded w-2/3"></div>
+                <div class="h-3 bg-neutral-300 rounded w-16 mt-2"></div>
               </div>
             </div>
           </div>
@@ -587,7 +587,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <div class="flex items-center justify-center py-4">
             <div class="flex items-center gap-3">
               <div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-              <span class="text-gray-500 text-sm">Loading messages...</span>
+              <span class="text-neutral-500 text-sm">Loading messages...</span>
             </div>
           </div>
         </div>
@@ -690,12 +690,12 @@ document.addEventListener('DOMContentLoaded', () => {
       case 'closed':
         return {
           text: 'Closed',
-          className: 'text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 font-medium'
+          className: 'text-xs px-3 py-1 rounded-full bg-neutral-100 text-neutral-700 font-medium'
         };
       default:
         return {
           text: status,
-          className: 'text-xs px-3 py-1 rounded-full bg-gray-100 text-gray-700 font-medium'
+          className: 'text-xs px-3 py-1 rounded-full bg-neutral-100 text-neutral-700 font-medium'
         };
     }
   }
@@ -735,12 +735,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (messageContainer) {
         messageContainer.innerHTML = `
           <div class="flex flex-col items-center justify-center py-10 px-5">
-            <div class="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-              <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <div class="w-16 h-16 bg-neutral-100 rounded-full flex items-center justify-center mb-4">
+              <svg class="w-8 h-8 text-neutral-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-3.582 8-8 8a8.959 8.959 0 01-4.906-1.447L3 21l2.447-5.094A8.959 8.959 0 013 12c0-4.418 3.582-8 8-8s8 3.582 8 8z"></path>
               </svg>
             </div>
-            <p class="text-gray-500 text-center">Select a ticket to start viewing messages.</p>
+            <p class="text-neutral-500 text-center">Select a ticket to start viewing messages.</p>
           </div>
         `;
       }
@@ -963,7 +963,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!messageContainer) return;
 
     const messageClass = isFromCurrentUser ? 'message-csr' : 'message-guest';
-    const timeClass = isFromCurrentUser ? 'text-xs text-white/70 mt-2' : 'text-xs text-gray-400 mt-2';
+    const timeClass = isFromCurrentUser ? 'text-xs text-white/70 mt-2' : 'text-xs text-neutral-400 mt-2';
     
     const currentTime = new Date().toLocaleTimeString('en-US', {
       hour: '2-digit',

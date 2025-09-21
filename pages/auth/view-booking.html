@@ -220,7 +220,16 @@
     
     <!-- Booking details -->
     <div class="flex justify-center w-full">
-      <div class="w-full flex flex-col mt-10 px-5 :mt-20 md:w-[70%] md:px-0">
+      <div class="w-full flex flex-col mt-10 px-5 md:w-[70%] md:px-0">
+        <a href="my-bookings.html" class="flex items-center gap-2 mb-10 hover:text-primary w-fit text-neutral-500 group
+            hover:scale-105 
+            active:scale-95
+            transition-all duration-300">
+            <svg class="w-5 stroke-neutral-500 group-hover:stroke-primary" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M7.625 12.5L3.125 8L7.625 3.5M3.75 8H12.875" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Back
+        </a>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
             <div class="space-y-5">
                 <div class="space-y-4">
@@ -348,47 +357,47 @@
                 <p class="text-primary-text font-bold font-manrope">Price details</p>
                 <div class="flex justify-between items-center">
                   <div class="text-primary-text font-inter">
-                      <p>₱ <span id="pricePerDay">00</span><span> x </span> <span id="daysOfStay">00</span> <span>night/s</span></p>
+                      <p>₱ <span id="pricePerDay">00</span><span> x </span> <span id="daysOfStay">00</span> <span>night(s)</span></p>
                   </div>
                   <p class="text-primary-text font-inter">₱ <span id="totalPriceDay">00</span></p>
-              </div>
-              <div class="flex justify-between items-center">
-                  <div class="text-primary-text font-inter">
-                      <p>₱ <span id="addGuestPrice">00</span><span> x </span> <span id="addGuestCount">00</span> <span>guest/s</span></p>
-                  </div>
-                  <p class="text-primary-text font-inter">₱ <span id="totalAddGuest">00</span></p>
-              </div>
-              
-              <div class="flex justify-between items-center mb-5">
-                  <p class="text-primary-text font-inter">Reservation fee</p>
-                  <p class="text-primary-text font-inter">₱ <span id="reservationFee">00</span></p>
-              </div>
-
-              <div class="flex justify-between items-center">
-                  <p class="text-primary-text font-manrope font-bold">Subtotal</p>
-                  <p class="text-primary-text font-inter">₱ <span id="subtotal">00</span></p>
-              </div>
-              <div id="discountSection" class="flex justify-between items-center mb-2" style="display: flex;">
-                  <p class="text-primary-text font-inter">Discount (<span id="discountPercentage">0%</span>)</p>
-                  <p class="text-primary-text font-inter">- ₱ <span id="discount">00</span></p>
-              </div>
-
-              <div class="h-[1px] w-full border border-neutral-300 mb-5"></div>
-              <div class="flex justify-between items-center">
-                  <p class="text-primary-text font-bold font-manrope">Total:</p>
-                  <p class="text-primary-text font-inter">₱ <span id="totalPrice">00</span></p>
-              </div>
-              <div class="flex justify-between items-center mb-5">
-                  <p class="text-primary-text font-bold font-manrope">Paid:</p>
-                  <p class="text-primary-text font-inter">₱ <span id="totalPrice">00</span></p>
-              </div>
-
-              <div class="w-full h-fit p-5 bg-primary/10 border border-primary/20 rounded-lg mb-5">
-                <div class="flex flex-col justify-center items-center mb-5 gap-3">
-                  <p class="text-primary font-manrope">Remaining Balance</p>
-                  <p class="text-primary font-inter font-bold text-5xl">₱ <span id="remainingBal">00</span></p>
                 </div>
-              </div>
+                <div class="flex justify-between items-center mb-5">
+                    <div class="text-primary-text font-inter">
+                        <p>₱ <span id="addGuestPrice">00</span><span> x </span> <span id="addGuestCount">00</span> <span>extra guest(s)</span></p>
+                    </div>
+                    <p class="text-primary-text font-inter">₱ <span id="totalAddGuest">00</span></p>
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <p class="text-primary-text font-manrope font-bold">Subtotal</p>
+                    <p class="text-primary-text font-inter">₱ <span id="subtotal">00</span></p>
+                </div>
+                <div id="discountSection" class="flex justify-between items-center mb-5" style="display: flex;">
+                    <p class="text-primary-text font-inter">Discount (<span id="discountPercentage">0%</span>)</p>
+                    <p class="text-primary-text font-inter">- ₱ <span id="discount">00</span></p>
+                </div>
+
+                <div class="flex justify-between items-center mb-2">
+                    <p class="text-primary-text font-inter">Reservation fee</p>
+                    <p class="text-primary-text font-inter">₱ <span id="reservationFee">00</span></p>
+                </div>
+
+                <div class="h-[1px] w-full border border-neutral-300 mb-5"></div>
+                <div class="flex justify-between items-center">
+                    <p class="text-primary-text font-bold font-manrope">Total:</p>
+                    <p class="text-primary-text font-inter">₱ <span id="totalPrice">00</span></p>
+                </div>
+                <div class="flex justify-between items-center mb-5">
+                    <p class="text-primary-text font-bold font-manrope">Paid:</p>
+                    <p class="text-primary-text font-inter">₱ <span id="totalPrice">00</span></p>
+                </div>
+
+                <div class="w-full h-fit p-5 bg-primary/10 border border-primary/20 rounded-lg mb-5">
+                  <div class="flex flex-col justify-center items-center mb-5 gap-3">
+                    <p class="text-primary font-manrope">Remaining Balance</p>
+                    <p class="text-primary font-inter font-bold text-5xl">₱ <span id="remainingBal">00</span></p>
+                  </div>
+                </div>
 
                 <div class="flex justify-between items-center">
                   <button id="paymentButton"  
@@ -419,7 +428,6 @@
             </div>
         </div>
       </div>
-
     </div>
     
 

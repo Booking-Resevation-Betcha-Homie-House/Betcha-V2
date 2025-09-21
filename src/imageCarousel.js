@@ -20,7 +20,7 @@ document.addEventListener('DOMContentLoaded', () => {
     index++;
 
     // Slide to next
-    track.style.transition = "transform 0.5s ease-in-out";
+    track.style.transition = "transform 0.7s ease-in-out";
     track.style.transform = `translateX(-${index * 100}%)`;
 
     // If it's the last (cloned) slide
@@ -39,6 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Init first dot as active
   updateDots(0);
-  setInterval(slide, 4000);
+  setInterval(slide, 7000);
 });
 

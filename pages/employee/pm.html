@@ -429,58 +429,61 @@
                 </span>
             </button>
         </div>
-        <div class="flex flex-col space-y-5 px-5 mb-5 flex-1">
-          <p class="text-xs italic text-primary font-semibold mb-3">(Pending admin approval. If not approved or no response, the cancellation request will not proceed.)</p>
-          <div class="flex flex-col gap-2 w-full group mb-3">
-              <label for="select-cancel-admin" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                  Select admin:
-              </label>
-              <select id="select-cancel-admin" class="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white">
-                  <option value="" selected disabled>Loading admins...</option>
-              </select>
+        <div class="overflow-y-auto flex flex-col h-full">
+          <div class=" flex flex-col space-y-5 px-5 mb-5 flex-1">
+            <p class="text-xs italic text-primary font-semibold mb-3">(Pending admin approval. If not approved or no response, the cancellation request will not proceed.)</p>
+            <div class="flex flex-col gap-2 w-full group mb-3">
+                <label for="select-cancel-admin" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                    Select admin:
+                </label>
+                <select id="select-cancel-admin" class="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white">
+                    <option value="" selected disabled>Loading admins...</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-2 w-full group mb-3">
+                <label for="select-cancel-reason" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                    Requested by:
+                </label>
+                <select id="select-cancel-reason" class="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white">
+                    <option value="" selected disabled>Select a reason</option>
+                    <option value="G">Guest</option>
+                    <option value="P">PM</option>
+                    <option value="DNA">Did not Arrive</option>
+                </select>
+            </div>
+            <div class="flex flex-col gap-2 w-full group">
+                <label for="input-cancel-admin" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                    Cancellation note for administrators:
+                </label>
+                
+                <div class="input-style3 flex items-center justify-center gap-3">
+                    <textarea
+                        id="input-cancel-admin"
+                        placeholder="Enter reason here..."
+                        rows="10"
+                        class="w-full resize-none max-h-50 overflow-y-auto bg-transparent focus:outline-none text-sm md:text-base font-normal"
+                    ></textarea>
+                </div>
+            </div>
           </div>
-          <div class="flex flex-col gap-2 w-full group mb-3">
-              <label for="select-cancel-reason" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                  Requested by:
-              </label>
-              <select id="select-cancel-reason" class="w-full border border-neutral-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-white">
-                  <option value="" selected disabled>Select a reason</option>
-                  <option value="G">Guest</option>
-                  <option value="P">PM</option>
-                  <option value="DNA">Did not Arrive</option>
-              </select>
-          </div>
-          <div class="flex flex-col gap-2 w-full group">
-              <label for="input-cancel-admin" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                  Cancellation note for administrators:
-              </label>
-              
-              <div class="input-style3 flex items-center justify-center gap-3">
-                  <textarea
-                      id="input-cancel-admin"
-                      placeholder="Enter reason here..."
-                      rows="10"
-                      class="w-full resize-none max-h-50 overflow-y-auto bg-transparent focus:outline-none text-sm md:text-base font-normal"
-                  ></textarea>
-              </div>
+          <div class="flex flex-col md:flex-row items-center py-5 gap-3">
+            <button type="button" data-close-modal
+            class=" w-full btn rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden shadow-s order-2 md:order-1
+            hover:cursor-pointer active:scale-95 
+            transition-all duration-300 ease-in-out">
+                <span class="text-primary-text text-base  
+                md:text-lg">Close</span>
+            </button>
+            <button type="button" id="send-cancel-notice-btn"
+            class=" w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-sm order-1 md:order-2
+            hover:cursor-pointer active:scale-95
+            transition-all duration-300 ease-in-out">
+                <span class="text-white text-base  
+                md:text-lg">Send</span>
+            </button>
           </div>
         </div>
-        <div class="flex flex-col md:flex-row items-center py-5 gap-3">
-          <button type="button" data-close-modal
-          class=" w-full btn rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden shadow-s order-2 md:order-1
-          hover:cursor-pointer active:scale-95 
-          transition-all duration-300 ease-in-out">
-              <span class="text-primary-text text-base  
-              md:text-lg">Close</span>
-          </button>
-          <button type="button" id="send-cancel-notice-btn"
-          class=" w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-sm order-1 md:order-2
-          hover:cursor-pointer active:scale-95
-          transition-all duration-300 ease-in-out">
-              <span class="text-white text-base  
-              md:text-lg">Send</span>
-          </button>
-        </div>
+        
       </div>
     </div>
 

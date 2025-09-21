@@ -1,17 +1,24 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const tabs = document.querySelectorAll(".tab");
+  const nav = document.getElementById("roomNav");
+  const tabs = nav.querySelectorAll(".tab");
 
-    tabs.forEach(tab => {
-      tab.addEventListener("click", (e) => {
-        e.preventDefault(); // Prevent default anchor behavior
-        
-        // tabs.forEach(t => t.classList.remove("border-b-2", "border-blue-500", "text-blue-500", "font-medium" ));
-        // tab.classList.add("border-b-2", "border-primary", "text-blue-500", "font-medium");
+  tabs.forEach(tab => {
+    tab.addEventListener("click", function (e) {
+      e.preventDefault();
 
-        const target = document.querySelector(tab.getAttribute("href"));
-        if (target) {
-          target.scrollIntoView({ behavior: "smooth", block: "start" });
-        }
-      });
+      const targetId = this.getAttribute("href").substring(1);
+      const target = document.getElementById(targetId);
+
+      if (target) {
+        const headerOffset = 80; // adjust if sticky nav height changes
+        const elementPosition = target.getBoundingClientRect().top + window.scrollY;
+        const offsetPosition = elementPosition - headerOffset;
+
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: "smooth"
+        });
+      }
     });
   });
+});
