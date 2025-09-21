@@ -1598,10 +1598,19 @@
             </button>
         </div>
         
-        <div class="guest-counter flex justify-between items-center w-full mt-3" data-max="10">
+        <div class="guest-counter flex justify-between items-center w-full mt-3" data-max="2" data-package-capacity="1">
           <div class="space-y-1">
-            <p class="font-semibold font-manrope text-primary-text">Guests</p>
-            <p class="text-xs font-inter text-neutral-500">Up to <span class="maxGuestNum">10</span> guests</p>
+            <p class="font-semibold font-manrope text-primary-text" id="guestTitle">Additional Guests</p>
+            <p class="text-xs font-inter text-neutral-500" id="guestDescription">
+              <span class="packageCapacityText">1 guest included</span> + 
+              <span class="additionalGuestText">up to <span class="maxGuestNum">1</span> additional guest</span>
+            </p>
+            <p class="text-xs font-inter text-neutral-400 italic">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              All guests must be 18+ years old with valid ID
+            </p>
           </div>
           <div class="flex items-center gap-3 bg-neutral-100 rounded-full p-2 border border-neutral-300">
             <button class="decreaseGuest text-lg text-neutral-600 !p-4 rounded-full 
@@ -1612,7 +1621,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4" />
               </svg>
             </button>
-            <span class="guestCount w-6 text-center text-primary-text font-medium">1</span>
+            <span class="guestCount w-6 text-center text-primary-text font-medium">0</span>
             <button class="increaseGuest text-lg text-neutral-600 !p-4 rounded-full 
               hover:bg-primary/10 hover:text-black active:bg-primary/10 active:scale-95
               transition-all duration-300 ease-in-out" 

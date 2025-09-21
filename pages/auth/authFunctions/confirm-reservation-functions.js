@@ -5,8 +5,6 @@
 import { showToastError } from '/src/toastNotification.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
-    console.log('Confirm Reservation page loaded');
-    
     // Get data from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     const reservationData = getReservationDataFromURL(urlParams);
@@ -98,13 +96,11 @@ function setupConfirmButton() {
                     console.warn('⚠️ notifyReservationConfirmedToTS failed:', e);
                 }
                 
-                // Redirect after 1 second
-                setTimeout(() => {
-                    const params = new URLSearchParams();
-                    params.append('bookingId', bookingResult.bookingId);
-                    params.append('paymentType', paymentType);
-                    window.location.href = `confirm-payment.html?${params.toString()}`;
-                }, 10000);
+                // Redirect immediately to payment page
+                const params = new URLSearchParams();
+                params.append('bookingId', bookingResult.bookingId);
+                params.append('paymentType', paymentType);
+                window.location.href = `confirm-payment.html?${params.toString()}`;
             } else {
                 showToastError('error', 'Booking Failed', bookingResult.message || 'Failed to create booking. Please try again.');
                 // Restore button
@@ -137,6 +133,11 @@ function getBookingDataFromPage() {
     // Get data from URL parameters
     const urlParams = new URLSearchParams(window.location.search);
     
+    console.log('🔍 All URL parameters:');
+    for (const [key, value] of urlParams.entries()) {
+        console.log(`  ${key}: ${value}`);
+    }
+    
     // Extract required data
     const propertyId = urlParams.get('propertyId');
     // Prefer name from localStorage; fallback to URL params; finally to 'Guest'
@@ -146,8 +147,14 @@ function getBookingDataFromPage() {
     const nameFromUrl = (urlParams.get('guestName') || `${urlParams.get('firstName') || ''} ${urlParams.get('lastName') || ''}`).trim();
     const guestName = nameFromLocalStorage || nameFromUrl;
     const guestCount = parseInt(urlParams.get('guestCount')) || 1;
+    const packageCapacity = parseInt(urlParams.get('packageCapacity')) || 1;
     const checkInDate = urlParams.get('checkInDate');
     const checkOutDate = urlParams.get('checkOutDate');
+
+    console.log('📊 Extracted values before calculation:');
+    console.log(`  guestCount: ${guestCount}`);
+    console.log(`  packageCapacity: ${packageCapacity}`);
+    console.log(`  additionalPax from URL: ${urlParams.get('additionalPax')}`);
 
     if (!propertyId || !checkInDate || !checkOutDate) {
         console.error('Missing required booking data:', { propertyId, checkInDate, checkOutDate });
@@ -157,12 +164,53 @@ function getBookingDataFromPage() {
     // Generate dates array between check-in and check-out
     const datesOfBooking = generateDateRange(checkInDate, checkOutDate);
 
+    // Calculate additional pax correctly (guests beyond package capacity)
+    const additionalPax = Math.max(0, guestCount - packageCapacity);
+    
+    // Also get additionalPax from URL if provided (this should override calculation)
+    const additionalPaxFromURL = urlParams.get('additionalPax');
+    const finalAdditionalPax = additionalPaxFromURL !== null ? parseInt(additionalPaxFromURL) : additionalPax;
+    
+    console.log('🎯 Additional Pax calculation:');
+    console.log(`  Calculated additionalPax: ${additionalPax}`);
+    console.log(`  AdditionalPax from URL: ${additionalPaxFromURL}`);
+    console.log(`  Final additionalPax to use: ${finalAdditionalPax}`);
+
+    // Get additional booking details from URL
+    const packageFee = parseFloat(urlParams.get('pricePerDay')) || 0;
+    const additionalPaxPrice = parseFloat(urlParams.get('addGuestPrice')) || 0;
+    const reservationFee = parseFloat(urlParams.get('reservationFee')) || 0;
+    const discount = parseFloat(urlParams.get('discount')) || 0;
+    const numOfDays = datesOfBooking.length;
+
+    console.log('Booking data being sent to API:', {
+        propertyId,
+        guestId: userId,
+        guestName: guestName || 'Guest',
+        additionalPax: finalAdditionalPax,
+        datesOfBooking,
+        packageFee,
+        additionalPaxPrice,
+        reservationFee,
+        discount,
+        numOfDays,
+        guestCount,
+        packageCapacity
+    });
+
     return {
         propertyId,
         guestId: userId,
         guestName: guestName || 'Guest',
-        additionalPax: Math.max(0, guestCount - 1), // Additional pax is guest count minus 1
-        datesOfBooking
+        additionalPax: finalAdditionalPax,
+        datesOfBooking,
+        packageFee,
+        additionalPaxPrice,
+        reservationFee,
+        discount,
+        numOfDays,
+        guestCount,
+        packageCapacity
     };
 }
 
@@ -278,18 +326,34 @@ function getReservationDataFromURL(urlParams) {
     data.addGuestPrice = parseFloat(urlParams.get('addGuestPrice')) || 0;
     data.reservationFee = parseFloat(urlParams.get('reservationFee')) || 0;
     data.packageCapacity = parseInt(urlParams.get('packageCapacity')) || 1;
+    data.discount = parseFloat(urlParams.get('discount')) || 0;
     
     // Time details
     data.timeIn = urlParams.get('timeIn') || '';
     data.timeOut = urlParams.get('timeOut') || '';
     
-    // Calculate additional guests and pricing
-    data.additionalGuests = Math.max(0, data.guestCount - data.packageCapacity);
+    // Calculate additional guests - prefer additionalPax param if provided, otherwise calculate
+    const additionalPaxParam = urlParams.get('additionalPax');
+    
+    if (additionalPaxParam !== null) {
+        data.additionalGuests = parseInt(additionalPaxParam) || 0;
+    } else {
+        data.additionalGuests = Math.max(0, data.guestCount - data.packageCapacity);
+    }
+    
     data.totalPriceDay = data.pricePerDay * data.daysOfStay;
     data.totalAddGuest = data.addGuestPrice * data.additionalGuests;
-    data.totalPrice = data.totalPriceDay + data.totalAddGuest + data.reservationFee;
     
-    console.log('Extracted reservation data:', data);
+    // Calculate subtotal before discount (package + additional guests, NOT including reservation fee)
+    data.subtotal = data.totalPriceDay + data.totalAddGuest;
+    
+    // Apply discount if any
+    data.discountAmount = (data.subtotal * data.discount) / 100;
+    data.totalAfterDiscount = data.subtotal - data.discountAmount;
+    
+    // Final total is after discount, and reservation fee is subtracted (not added)
+    data.totalPrice = data.totalAfterDiscount - data.reservationFee;
+    
     return data;
 }
 
@@ -303,7 +367,6 @@ function populateReservationData(data) {
         // Booking details
         updateElementText('checkInDate', formatDate(data.checkInDate) || 'Date');
         updateElementText('checkOutDate', formatDate(data.checkOutDate) || 'Date');
-        updateElementText('guestCount', data.guestCount || '1');
         
         // Time details
         updateElementText('timein', data.timeIn || 'Time not available');
@@ -314,15 +377,22 @@ function populateReservationData(data) {
         updateElementText('daysOfStay', data.daysOfStay || '00');
         updateElementText('totalPriceDay', data.totalPriceDay.toLocaleString() || '00');
         updateElementText('addGuestPrice', data.addGuestPrice.toLocaleString() || '00');
-        updateElementText('addGuestCount', data.additionalGuests || '00');
+        updateElementText('addGuestCount', data.additionalGuests || '0');
         updateElementText('totalAddGuest', data.totalAddGuest.toLocaleString() || '00');
         updateElementText('reservationFee', data.reservationFee.toLocaleString() || '00');
-        updateElementText('totalPrice', data.totalPrice.toLocaleString() || '00');
         
-        console.log('Reservation data populated successfully');
+        // Discount details
+        const discountAmount = data.discountAmount || 0;
+        
+        updateElementText('discountPercentage', (data.discount || 0) + '%');
+        updateElementText('discount', discountAmount.toLocaleString());
+        updateElementText('subtotal', data.subtotal ? data.subtotal.toLocaleString() : '00'); // Subtotal without reservation fee
+        
+        updateElementText('totalPrice', data.totalPrice.toLocaleString() || '00'); // Final total after discount and reservation fee deduction
         
     } catch (error) {
-        console.error('Error populating reservation data:', error);
+        console.error('❌ Error populating reservation data:', error);
+        console.error('Stack trace:', error.stack);
     }
 }
 
@@ -335,10 +405,11 @@ function truncateText(text, maxLength = 50) {
 // Helper function to update element text content
 function updateElementText(elementId, text) {
     const element = document.getElementById(elementId);
+    
     if (element) {
         element.textContent = text;
     } else {
-        console.warn(`Element with id '${elementId}' not found`);
+        console.error(`❌ Element with id '${elementId}' not found`);
     }
 }
 
@@ -564,11 +635,22 @@ function navigateToConfirmReservation(propertyData, bookingData) {
     params.append('guestCount', bookingData.guestCount || '1');
     params.append('daysOfStay', bookingData.daysOfStay || '1');
     
+    // Calculate additional guests for this booking
+    const guestCount = parseInt(bookingData.guestCount) || 1;
+    const packageCapacity = parseInt(propertyData.packageCapacity) || 1;
+    const additionalPax = Math.max(0, guestCount - packageCapacity);
+    
     // Pricing data
     params.append('pricePerDay', propertyData.packagePrice || '0');
     params.append('addGuestPrice', propertyData.additionalPax || '0');
     params.append('reservationFee', propertyData.reservationFee || '0');
     params.append('packageCapacity', propertyData.packageCapacity || '1');
+    params.append('discount', propertyData.discount || '0');
+    params.append('additionalPax', additionalPax.toString());
+    
+    // Time data (if available)
+    params.append('timeIn', propertyData.timeIn || '');
+    params.append('timeOut', propertyData.timeOut || '');
     
     // Navigate to confirm reservation page
     window.location.href = `../auth/confirm-reservation.html?${params.toString()}`;

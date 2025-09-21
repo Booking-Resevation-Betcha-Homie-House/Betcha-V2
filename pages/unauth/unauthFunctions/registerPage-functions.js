@@ -4,7 +4,7 @@ let resendTimer = 60;
 
 // Regular expressions for validation
 const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
-const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&.])[A-Za-z\d@$!%*?&.]{8,}$/;
 
 // Function to calculate age from birthdate
 function calculateAge(birthMonth, birthDay, birthYear) {
@@ -78,19 +78,19 @@ function validateStep2() {
 
     // Check if elements exist before accessing properties
     if (!firstName) {
-        showError('First name field not found', 2);
+        showError('First name field not found');
         return false;
     }
     if (!lastName) {
-        showError('Last name field not found', 2);
+        showError('Last name field not found');
         return false;
     }
     if (!selectedSex) {
-        showError('Sex selection not found', 2);
+        showError('Sex selection not found');
         return false;
     }
     if (!monthElement || !dayElement || !yearElement) {
-        showError('Birthdate fields not found', 2);
+        showError('Birthdate fields not found');
         return false;
     }
 
@@ -100,19 +100,19 @@ function validateStep2() {
 
     // Validate required fields (except middle initial)
     if (!firstName.trim()) {
-        showError('First name is required', 2);
+        showError('First name is required');
         return false;
     }
     if (!lastName.trim()) {
-        showError('Last name is required', 2);
+        showError('Last name is required');
         return false;
     }
     if (selectedSex === 'Sex') {
-        showError('Please select your sex', 2);
+        showError('Please select your sex');
         return false;
     }
     if (monthElement.textContent === 'Month' || day === 'Month' || year === 'Month') {
-        showError('Please select your complete birthdate', 2);
+        showError('Please select your complete birthdate');
         return false;
     }
 
@@ -131,9 +131,9 @@ function validateStep2() {
         
         if (age === 17) {
             const daysUntil18 = Math.ceil((nextBirthday - today) / (1000 * 60 * 60 * 24));
-            showError(`You must be 18 years old to register. You will turn 18 in ${daysUntil18} day${daysUntil18 === 1 ? '' : 's'}.`, 2);
+            showError(`You must be 18 years old to register. You will turn 18 in ${daysUntil18} day${daysUntil18 === 1 ? '' : 's'}.`);
         } else {
-            showError('You must be at least 18 years old to register', 2);
+            showError('You must be at least 18 years old to register');
         }
         return false;
     }
@@ -151,36 +151,36 @@ function validateStep3() {
 
     // Check if elements exist
     if (!email) {
-        showError('Email field not found', 3);
+        showError('Email field not found');
         return false;
     }
     if (!phone) {
-        showError('Phone field not found', 3);
+        showError('Phone field not found');
         return false;
     }
     if (!password) {
-        showError('Password field not found', 3);
+        showError('Password field not found');
         return false;
     }
     if (!confirmPassword) {
-        showError('Confirm password field not found', 3);
+        showError('Confirm password field not found');
         return false;
     }
 
     if (!emailRegex.test(email)) {
-        showError('Please enter a valid email address', 3);
+        showError('Please enter a valid email address');
         return false;
     }
     if (!phone.trim()) {
-        showError('Phone number is required', 3);
+        showError('Phone number is required');
         return false;
     }
     if (!passwordRegex.test(password)) {
-        showError('Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character', 3);
+        showError('Password must be at least 8 characters long and contain uppercase, lowercase, number, and special character');
         return false;
     }
     if (password !== confirmPassword) {
-        showError('Passwords do not match', 3);
+        showError('Passwords do not match');
         return false;
     }
 
@@ -189,18 +189,40 @@ function validateStep3() {
 }
 
 // Show error message
-function showError(message, step = 1) {
+function showError(message) {
     // Hide all error containers first
     hideError();
     
-    // Show error for specific step
-    const errorContainer = document.getElementById(`errorContainer${step === 1 ? '' : step}`);
-    const errorText = document.getElementById(`errorText${step === 1 ? '' : step}`);
-
-    if (errorContainer && errorText) {
-        errorContainer.classList.remove('hidden');
-        errorText.textContent = message;
+    // Create or update floating error message
+    let floatingError = document.getElementById('floating-error');
+    if (!floatingError) {
+        floatingError = document.createElement('div');
+        floatingError.id = 'floating-error';
+        floatingError.className = `
+            fixed top-4 left-1/2 transform -translate-x-1/2 z-50
+            bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg shadow-lg
+            max-w-sm w-auto text-center text-sm font-medium
+            transition-all duration-300 ease-in-out
+            animate-pulse
+        `.replace(/\s+/g, ' ').trim();
+        document.body.appendChild(floatingError);
     }
+    
+    floatingError.textContent = message;
+    floatingError.style.display = 'block';
+    floatingError.style.opacity = '1';
+    
+    // Auto-hide after 5 seconds
+    setTimeout(() => {
+        if (floatingError) {
+            floatingError.style.opacity = '0';
+            setTimeout(() => {
+                if (floatingError && floatingError.style.opacity === '0') {
+                    floatingError.style.display = 'none';
+                }
+            }, 300);
+        }
+    }, 5000);
 
     // Update button states when error is shown
     updateRegisterButtonState();
@@ -209,8 +231,18 @@ function showError(message, step = 1) {
 
 // Hide error message
 function hideError() {
-    const errorContainers = document.querySelectorAll('[id^="errorContainer"]');
+    const floatingError = document.getElementById('floating-error');
+    if (floatingError) {
+        floatingError.style.opacity = '0';
+        setTimeout(() => {
+            if (floatingError && floatingError.style.opacity === '0') {
+                floatingError.style.display = 'none';
+            }
+        }, 300);
+    }
     
+    // Also hide any existing error containers (fallback)
+    const errorContainers = document.querySelectorAll('[id^="errorContainer"]');
     errorContainers.forEach(container => {
         container.classList.add('hidden');
         container.classList.remove('flex');
@@ -344,12 +376,12 @@ function updateNextButtonState() {
 // Function to send OTP
 async function sendOTP(email) {
     if (!canResendOTP) {
-        showError('Please wait before requesting another OTP.', 3);
+        showError('Please wait before requesting another OTP.');
         return;
     }
 
     if (!email) {
-        showError('Email address is required.', 3);
+        showError('Email address is required.');
         return;
     }
 
@@ -929,12 +961,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (validateStep3()) {
                 const emailElement = document.querySelector('#step3 input[type="email"]');
                 if (!emailElement) {
-                    showError('Email field not found. Please refresh the page.', 3);
+                    showError('Email field not found. Please refresh the page.');
                     return;
                 }
                 const email = emailElement.value.trim();
                 if (!email) {
-                    showError('Please enter your email address.', 3);
+                    showError('Please enter your email address.');
                     return;
                 }
                 
@@ -1149,16 +1181,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     throw new Error(error.message || 'Registration failed. Please try again.');
                 });
 
-                // Store the user data for the login/verify buttons
-                window.registeredUserData = {
-                    firstName: formData.get('firstname'),
-                    middleInitial: formData.get('minitial'),
-                    lastName: formData.get('lastname'),
-                    userId: response.guest._id,
-                    email: formData.get('email'),
-                    pfplink: response.guest.pfplink || '',
-                    verified: response.guest.verified
-                };
+                console.log('Registration successful:', response);
 
                 // Close the email OTP modal
                 const emailOTPModal = document.getElementById('emailOTPModal');
@@ -1166,12 +1189,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     emailOTPModal.classList.add('hidden');
                 }
 
-                // Show the success modal with login/verify buttons
-                const confirmModal = document.getElementById('confirmModal');
-                if (confirmModal) {
-                    confirmModal.classList.remove('hidden');
-                    document.body.classList.add('modal-open');
-                }
+                // Redirect to login page after successful registration
+                window.location.href = 'login.html';
 
             } catch (error) {
                 // Show error modal for any failure (OTP or registration)
@@ -1232,12 +1251,42 @@ document.addEventListener('DOMContentLoaded', () => {
     if (emailInput) {
         emailInput.addEventListener('input', () => {
             const emailParent = emailInput.closest('.input-style2');
-            if (emailInput.value && !emailRegex.test(emailInput.value)) {
-                if (emailParent) {
-                    emailParent.classList.add('!border-red-500');
-                    emailParent.classList.remove('focus-within:!border-primary');
+            const emailValue = emailInput.value.trim();
+            
+            if (emailValue) {
+                if (!emailRegex.test(emailValue)) {
+                    // Show specific email error
+                    let emailError = '';
+                    if (!emailValue.includes('@')) {
+                        emailError = 'Missing @ symbol';
+                    } else if (!emailValue.includes('.')) {
+                        emailError = 'Missing domain extension';
+                    } else if (emailValue.indexOf('@') > emailValue.lastIndexOf('.')) {
+                        emailError = 'Invalid format';
+                    } else if (!/^[a-zA-Z0-9._-]+@/.test(emailValue)) {
+                        emailError = 'Invalid characters';
+                    } else if (!/@[a-zA-Z0-9.-]+\./.test(emailValue)) {
+                        emailError = 'Invalid domain';
+                    } else if (!/\.[a-zA-Z]{2,6}$/.test(emailValue)) {
+                        emailError = 'Invalid extension';
+                    } else {
+                        emailError = 'Invalid email';
+                    }
+                    
+                    showError(emailError);
+                    if (emailParent) {
+                        emailParent.classList.add('!border-red-500');
+                        emailParent.classList.remove('focus-within:!border-primary');
+                    }
+                } else {
+                    hideError();
+                    if (emailParent) {
+                        emailParent.classList.remove('!border-red-500');
+                        emailParent.classList.add('focus-within:!border-primary');
+                    }
                 }
             } else {
+                hideError();
                 if (emailParent) {
                     emailParent.classList.remove('!border-red-500');
                     emailParent.classList.add('focus-within:!border-primary');
@@ -1256,17 +1305,43 @@ document.addEventListener('DOMContentLoaded', () => {
     if (passwordInput) {
         passwordInput.addEventListener('input', () => {
             const passwordParent = passwordInput.closest('.input-style2');
-            if (passwordInput.value) {
-                if (!passwordRegex.test(passwordInput.value)) {
+            const passwordValue = passwordInput.value;
+            
+            if (passwordValue) {
+                if (!passwordRegex.test(passwordValue)) {
+                    // Show specific password error
+                    let passwordError = '';
+                    if (passwordValue.length < 8) {
+                        passwordError = 'Min 8 characters';
+                    } else if (!/(?=.*[a-z])/.test(passwordValue)) {
+                        passwordError = 'Need lowercase letter';
+                    } else if (!/(?=.*[A-Z])/.test(passwordValue)) {
+                        passwordError = 'Need uppercase letter';
+                    } else if (!/(?=.*\d)/.test(passwordValue)) {
+                        passwordError = 'Need number';
+                    } else if (!/(?=.*[@$!%*?&.])/.test(passwordValue)) {
+                        passwordError = 'Need special character';
+                    } else {
+                        passwordError = 'Invalid password';
+                    }
+                    
+                    showError(passwordError);
                     if (passwordParent) {
                         passwordParent.classList.add('!border-red-500');
                         passwordParent.classList.remove('focus-within:!border-primary');
                     }
                 } else {
+                    hideError();
                     if (passwordParent) {
                         passwordParent.classList.remove('!border-red-500');
                         passwordParent.classList.add('focus-within:!border-primary');
                     }
+                }
+            } else {
+                hideError();
+                if (passwordParent) {
+                    passwordParent.classList.remove('!border-red-500');
+                    passwordParent.classList.add('focus-within:!border-primary');
                 }
             }
             updateRegisterButtonState();
@@ -1276,17 +1351,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (confirmPasswordInput) {
         confirmPasswordInput.addEventListener('input', () => {
             const confirmParent = confirmPasswordInput.closest('.input-style2');
-            if (passwordInput && confirmPasswordInput.value) {
-                if (passwordInput.value !== confirmPasswordInput.value) {
+            const confirmPasswordValue = confirmPasswordInput.value;
+            
+            if (passwordInput && confirmPasswordValue) {
+                if (passwordInput.value !== confirmPasswordValue) {
+                    showError('Passwords don\'t match');
                     if (confirmParent) {
                         confirmParent.classList.add('!border-red-500');
                         confirmParent.classList.remove('focus-within:!border-primary');
                     }
                 } else {
+                    hideError();
                     if (confirmParent) {
                         confirmParent.classList.remove('!border-red-500');
                         confirmParent.classList.add('focus-within:!border-primary');
                     }
+                }
+            } else {
+                hideError();
+                if (confirmParent) {
+                    confirmParent.classList.remove('!border-red-500');
+                    confirmParent.classList.add('focus-within:!border-primary');
                 }
             }
             updateRegisterButtonState();

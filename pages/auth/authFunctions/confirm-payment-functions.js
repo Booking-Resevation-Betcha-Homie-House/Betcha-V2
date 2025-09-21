@@ -296,14 +296,429 @@ function setupPaymentMethodHandlers() {
         radio.addEventListener('change', function() {
             if (this.checked) {
                 showQRCode(this);
+                // Update validation rules when payment method changes
+                updateBankAccountValidation(this);
             }
             // Always update visual states when a selection changes
             updateOptionStates();
+            
+            // Check if any payment method is selected
+            updateInputStatesBasedOnSelection();
+            
+            // Update confirm button state
+            updateConfirmButtonState();
         });
     });
 
     // Initialize option states on load (normal if none selected; gray others after selection)
     updateOptionStates();
+    
+    // Check initial selection state
+    updateInputStatesBasedOnSelection();
+    
+    // Setup bank account/e-wallet validation
+    setupBankAccountValidation();
+    
+    // Setup confirm button validation
+    setupConfirmButtonValidation();
+}
+
+// Function to update input states based on payment method selection
+function updateInputStatesBasedOnSelection() {
+    const paymentRadios = document.querySelectorAll('input[name="payment"]');
+    const anySelected = Array.from(paymentRadios).some(radio => radio.checked);
+    
+    if (anySelected) {
+        console.log('✅ Payment method selected - inputs enabled');
+    } else {
+        console.log('❌ No payment method selected - inputs disabled');
+        disablePaymentInputs();
+        hideFloatingValidation();
+        // Clear validation rules
+        window.currentValidationRules = null;
+        // Update confirm button state
+        updateConfirmButtonState();
+    }
+}
+
+// Function to setup bank account/e-wallet validation
+function setupBankAccountValidation() {
+    const bankAccountInput = document.getElementById('bankAccountNumber');
+    const transactionInput = document.getElementById('transactionNumber');
+    
+    if (!bankAccountInput || !transactionInput) {
+        console.warn('Input fields not found');
+        return;
+    }
+
+    // Initially disable inputs since no payment method is selected
+    disablePaymentInputs();
+
+    // Create floating validation tooltip
+    createFloatingValidationTooltip();
+
+    // Add real-time validation
+    bankAccountInput.addEventListener('input', function() {
+        validateBankAccountInput(this.value);
+        updateConfirmButtonState();
+    });
+
+    // Add input restriction to only allow numbers for bank account
+    bankAccountInput.addEventListener('keypress', function(e) {
+        // Allow only numbers (0-9), backspace, delete, tab, and arrow keys
+        if (!/[0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+            e.preventDefault();
+        }
+    });
+
+    // Add input restriction to only allow numbers and letters for transaction number
+    transactionInput.addEventListener('keypress', function(e) {
+        // Allow only alphanumeric characters (a-z, A-Z, 0-9), backspace, delete, tab, and arrow keys
+        if (!/[a-zA-Z0-9]/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
+            e.preventDefault();
+        }
+    });
+
+    // Add input validation for transaction number
+    transactionInput.addEventListener('input', function() {
+        updateConfirmButtonState();
+    });
+
+    // Prevent pasting non-numeric content in bank account field
+    bankAccountInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const paste = (e.clipboardData || window.clipboardData).getData('text');
+        const numericPaste = paste.replace(/\D/g, '');
+        this.value = numericPaste;
+        validateBankAccountInput(numericPaste);
+    });
+
+    // Prevent pasting invalid content in transaction number field
+    transactionInput.addEventListener('paste', function(e) {
+        e.preventDefault();
+        const paste = (e.clipboardData || window.clipboardData).getData('text');
+        const alphanumericPaste = paste.replace(/[^a-zA-Z0-9]/g, '');
+        this.value = alphanumericPaste;
+    });
+
+    // Hide tooltip when input loses focus and is valid
+    bankAccountInput.addEventListener('blur', function() {
+        const rules = window.currentValidationRules;
+        if (rules && this.value) {
+            const cleanValue = this.value.replace(/\D/g, '');
+            if (cleanValue.length === rules.expectedLength && 
+                (!rules.isEWallet || cleanValue.startsWith('09'))) {
+                hideFloatingValidation();
+            }
+        }
+    });
+
+    console.log('✅ Bank account validation setup complete');
+}
+
+// Function to update validation rules based on selected payment method
+function updateBankAccountValidation(selectedRadio) {
+    const category = selectedRadio.dataset.category || '';
+    const paymentName = selectedRadio.dataset.paymentName || '';
+    
+    console.log(`🔧 Updating validation for payment method: ${paymentName} (${category})`);
+    
+    // Enable inputs when payment method is selected
+    enablePaymentInputs();
+    
+    // Store current validation rules globally
+    window.currentValidationRules = {
+        category: category,
+        paymentName: paymentName,
+        isEWallet: category === 'GCash' || category === 'Maya',
+        expectedLength: (category === 'GCash' || category === 'Maya') ? 11 : 9
+    };
+    
+    // Update placeholder text
+    const bankAccountInput = document.getElementById('bankAccountNumber');
+    if (bankAccountInput) {
+        if (window.currentValidationRules.isEWallet) {
+            bankAccountInput.placeholder = `Enter your ${category} number (11 digits)`;
+        } else {
+            bankAccountInput.placeholder = `Enter your ${paymentName} account number (9 digits)`;
+        }
+    }
+    
+    // Validate current input
+    if (bankAccountInput && bankAccountInput.value) {
+        validateBankAccountInput(bankAccountInput.value);
+    }
+}
+
+// Function to validate bank account input
+function validateBankAccountInput(value) {
+    // Get current validation rules
+    const rules = window.currentValidationRules;
+    if (!rules) {
+        // No payment method selected yet
+        hideFloatingValidation();
+        return;
+    }
+
+    // Clean the input (remove non-numeric characters for validation)
+    const cleanValue = value.replace(/\D/g, '');
+    const expectedLength = rules.expectedLength;
+    const isEWallet = rules.isEWallet;
+    const paymentName = rules.paymentName;
+
+    console.log(`🔍 Validating: "${value}" (clean: "${cleanValue}") for ${paymentName}`);
+
+    if (cleanValue.length === 0) {
+        hideFloatingValidation();
+        return;
+    }
+
+    if (cleanValue.length < expectedLength) {
+        showFloatingValidation(
+            `${isEWallet ? 'E-wallet' : 'Account'} number must be ${expectedLength} digits. Currently ${cleanValue.length}/${expectedLength}`
+        );
+    } else if (cleanValue.length > expectedLength) {
+        showFloatingValidation(
+            `${isEWallet ? 'E-wallet' : 'Account'} number must be exactly ${expectedLength} digits. Currently ${cleanValue.length}/${expectedLength}`
+        );
+    } else {
+        // Exactly the right length
+        if (isEWallet) {
+            // Additional validation for e-wallets - must start with "09"
+            if (!cleanValue.startsWith('09')) {
+                showFloatingValidation(
+                    `${rules.category} numbers must start with "09"`
+                );
+            } else {
+                showFloatingValidation(
+                    `Valid ${rules.category} number format`
+                );
+            }
+        } else {
+            showFloatingValidation(
+                `Valid account number format`
+            );
+        }
+    }
+}
+
+// Function to create floating validation tooltip
+function createFloatingValidationTooltip() {
+    // Create tooltip element if it doesn't exist
+    if (document.getElementById('floatingValidationTooltip')) {
+        return; // Already exists
+    }
+
+    const tooltip = document.createElement('div');
+    tooltip.id = 'floatingValidationTooltip';
+    tooltip.className = 'absolute z-50 px-3 py-2 text-sm rounded-lg shadow-lg pointer-events-none transition-all duration-200 opacity-0';
+    tooltip.style.transform = 'translateY(-5px) scale(0.95)';
+    
+    document.body.appendChild(tooltip);
+    console.log('✅ Floating validation tooltip created');
+}
+
+// Function to show floating validation message
+function showFloatingValidation(message) {
+    const tooltip = document.getElementById('floatingValidationTooltip');
+    const bankAccountInput = document.getElementById('bankAccountNumber');
+    
+    if (!tooltip || !bankAccountInput) return;
+
+    // Update tooltip content and styling
+    tooltip.textContent = message;
+    tooltip.className = 'absolute z-50 px-3 py-2 text-sm rounded-lg shadow-lg pointer-events-none transition-all duration-200';
+    
+    // Use neutral styling similar to refund information
+    tooltip.classList.add('bg-neutral-700', 'text-white', 'border-neutral-600');
+
+    // Position tooltip directly below the input field, aligned horizontally
+    const inputRect = bankAccountInput.getBoundingClientRect();
+    const margin = 4; // Small margin between input and tooltip
+
+    // Position relative to the input element's parent for better alignment
+    tooltip.style.position = 'absolute';
+    tooltip.style.left = `${inputRect.left + window.scrollX}px`;
+    tooltip.style.top = `${inputRect.bottom + margin + window.scrollY}px`;
+    tooltip.style.width = `${inputRect.width}px`; // Match input width
+    tooltip.style.textAlign = 'left';
+    
+    // Show tooltip with animation
+    tooltip.style.opacity = '1';
+    tooltip.style.transform = 'translateY(0) scale(1)';
+    
+    // Auto-hide messages after 3 seconds for better readability
+    clearTimeout(window.validationTimeout);
+    window.validationTimeout = setTimeout(() => {
+        hideFloatingValidation();
+    }, 3000);
+}
+
+// Function to hide floating validation message
+function hideFloatingValidation() {
+    const tooltip = document.getElementById('floatingValidationTooltip');
+    if (tooltip) {
+        tooltip.style.opacity = '0';
+        tooltip.style.transform = 'translateY(-5px) scale(0.95)';
+    }
+    
+    // Clear any pending timeout
+    if (window.validationTimeout) {
+        clearTimeout(window.validationTimeout);
+    }
+}
+
+// Function to disable payment inputs when no payment method is selected
+function disablePaymentInputs() {
+    const bankAccountInput = document.getElementById('bankAccountNumber');
+    const transactionInput = document.getElementById('transactionNumber');
+    
+    if (bankAccountInput) {
+        bankAccountInput.disabled = true;
+        bankAccountInput.placeholder = 'Select a payment method first';
+        bankAccountInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+        bankAccountInput.value = ''; // Clear any existing value
+        
+        // Add click handler to show reminder
+        bankAccountInput.addEventListener('click', showPaymentMethodReminder);
+        console.log('🔒 Bank account input disabled');
+    }
+    
+    if (transactionInput) {
+        transactionInput.disabled = true;
+        transactionInput.placeholder = 'Select a payment method first';
+        transactionInput.classList.add('bg-gray-100', 'cursor-not-allowed');
+        transactionInput.value = ''; // Clear any existing value
+        
+        // Add click handler to show reminder
+        transactionInput.addEventListener('click', showPaymentMethodReminder);
+        console.log('🔒 Transaction input disabled');
+    }
+    
+    // Update confirm button state after clearing inputs
+    updateConfirmButtonState();
+}
+
+// Function to enable payment inputs when payment method is selected
+function enablePaymentInputs() {
+    const bankAccountInput = document.getElementById('bankAccountNumber');
+    const transactionInput = document.getElementById('transactionNumber');
+    
+    if (bankAccountInput) {
+        bankAccountInput.disabled = false;
+        bankAccountInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+        
+        // Remove click handler
+        bankAccountInput.removeEventListener('click', showPaymentMethodReminder);
+        console.log('🔓 Bank account input enabled');
+    }
+    
+    if (transactionInput) {
+        transactionInput.disabled = false;
+        transactionInput.placeholder = 'Enter transaction number';
+        transactionInput.classList.remove('bg-gray-100', 'cursor-not-allowed');
+        
+        // Remove click handler
+        transactionInput.removeEventListener('click', showPaymentMethodReminder);
+        console.log('🔓 Transaction input enabled');
+    }
+    
+    // Update confirm button state after enabling inputs
+    updateConfirmButtonState();
+}
+
+// Function to show reminder when clicking disabled inputs
+function showPaymentMethodReminder() {
+    showToastError('info', 'Payment Method Required', 'Please select a payment method first before entering payment details.');
+}
+
+// Function to setup confirm button validation
+function setupConfirmButtonValidation() {
+    const confirmButton = document.getElementById('confirmPaymentButton');
+    if (!confirmButton) {
+        console.warn('Confirm payment button not found');
+        return;
+    }
+
+    // Initially disable the confirm button
+    disableConfirmButton();
+    
+    console.log('✅ Confirm button validation setup complete');
+}
+
+// Function to validate all form inputs
+function validateAllInputs() {
+    const paymentSelected = document.querySelector('input[name="payment"]:checked');
+    const transactionInput = document.getElementById('transactionNumber');
+    const bankAccountInput = document.getElementById('bankAccountNumber');
+    
+    // Check if payment method is selected
+    if (!paymentSelected) {
+        return { isValid: false, reason: 'No payment method selected' };
+    }
+    
+    // Check if transaction number is filled
+    if (!transactionInput || !transactionInput.value.trim()) {
+        return { isValid: false, reason: 'Transaction number is empty' };
+    }
+    
+    // Check if bank account number is filled
+    if (!bankAccountInput || !bankAccountInput.value.trim()) {
+        return { isValid: false, reason: 'Bank account number is empty' };
+    }
+    
+    // Validate bank account format
+    const rules = window.currentValidationRules;
+    if (rules) {
+        const cleanValue = bankAccountInput.value.replace(/\D/g, '');
+        
+        // Check correct length
+        if (cleanValue.length !== rules.expectedLength) {
+            return { isValid: false, reason: 'Bank account number has incorrect length' };
+        }
+        
+        // Check "09" prefix for e-wallets
+        if (rules.isEWallet && !cleanValue.startsWith('09')) {
+            return { isValid: false, reason: 'E-wallet number must start with "09"' };
+        }
+    }
+    
+    return { isValid: true, reason: 'All inputs are valid' };
+}
+
+// Function to update confirm button state
+function updateConfirmButtonState() {
+    const validation = validateAllInputs();
+    
+    console.log('🔍 Form validation result:', validation);
+    
+    if (validation.isValid) {
+        enableConfirmButton();
+    } else {
+        disableConfirmButton();
+    }
+}
+
+// Function to disable confirm button
+function disableConfirmButton() {
+    const confirmButton = document.getElementById('confirmPaymentButton');
+    if (confirmButton) {
+        confirmButton.disabled = true;
+        confirmButton.classList.add('opacity-50', 'cursor-not-allowed');
+        confirmButton.classList.remove('hover:bg-primary-dark', 'focus:ring-primary');
+        console.log('🔒 Confirm button disabled');
+    }
+}
+
+// Function to enable confirm button
+function enableConfirmButton() {
+    const confirmButton = document.getElementById('confirmPaymentButton');
+    if (confirmButton) {
+        confirmButton.disabled = false;
+        confirmButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        confirmButton.classList.add('hover:bg-primary-dark', 'focus:ring-primary');
+        console.log('🔓 Confirm button enabled');
+    }
 }
 
 // Function to show QR code when payment method is selected
@@ -744,25 +1159,66 @@ function getPaymentAmount(booking, paymentType) {
     if (paymentType === 'Reservation') {
         return booking.reservationFee || 0;
     } else if (paymentType === 'Package') {
-        // Package amount = (packageFee × days) + (additionalPaxPrice × additionalPax)
+        // Package amount = (packageFee × days) + (additionalPaxPrice × additionalPax) - reservationFee
+        // Reservation fee is subtracted because it's already paid separately
         const packageFee = booking.packageFee || 0;
         const numOfDays = booking.numOfDays || 1;
         const additionalPaxPrice = booking.additionalPaxPrice || 0;
         const additionalPax = booking.additionalPax || 0;
+        const reservationFee = booking.reservationFee || 0;
         
         const packageTotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax);
+        const packageAmountAfterReservation = packageTotal - reservationFee;
+        
         console.log('Package payment calculation:', {
             packageFee,
             numOfDays,
             additionalPaxPrice,
             additionalPax,
-            packageTotal: packageTotal
+            reservationFee,
+            packageTotal: packageTotal,
+            finalPackageAmount: packageAmountAfterReservation
         });
         
-        return packageTotal;
+        return Math.max(0, packageAmountAfterReservation); // Ensure it's never negative
     } else {
-        // For full payment, use totalFee
-        return booking.totalFee || 0;
+        // For full payment, calculate the total manually to ensure correct discount application
+        const packageFee = booking.packageFee || 0;
+        const numOfDays = booking.numOfDays || 1;
+        const additionalPaxPrice = booking.additionalPaxPrice || 0;
+        const additionalPax = booking.additionalPax || 0;
+        const reservationFee = booking.reservationFee || 0;
+        const discount = booking.discount || 0;
+        
+        // Calculate original subtotal (before discount)
+        const originalSubtotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax) + reservationFee;
+        
+        // Apply discount if it's a percentage
+        let discountAmount = 0;
+        if (discount > 0 && discount <= 100) {
+            discountAmount = (originalSubtotal * discount) / 100;
+        } else if (discount > 100) {
+            discountAmount = discount; // Already an absolute amount
+        }
+        
+        // Calculate total after discount, then subtract reservation fee (since it's paid separately)
+        const totalAfterDiscount = originalSubtotal - discountAmount;
+        const fullPaymentAmount = totalAfterDiscount - reservationFee;
+        
+        console.log('Full payment calculation:', {
+            packageFee,
+            numOfDays,
+            additionalPaxPrice,
+            additionalPax,
+            reservationFee,
+            discount,
+            originalSubtotal,
+            discountAmount,
+            totalAfterDiscount,
+            finalFullPaymentAmount: fullPaymentAmount
+        });
+        
+        return Math.max(0, fullPaymentAmount); // Ensure it's never negative
     }
 }
 
@@ -815,23 +1271,35 @@ function calculateDiscountPercentage(booking) {
 function calculateDiscountAmount(booking) {
     try {
         const discount = booking.discount || 0;
-        const totalFee = booking.totalFee || 0;
         
-        if (discount === 0 || totalFee === 0) {
+        if (discount === 0) {
             return 0;
         }
         
         // Check if discount is already a percentage or absolute amount
         if (discount <= 100) {
-            // Discount is a percentage, calculate the amount
-            // We need to calculate based on the original total before discount
-            // If totalFee is after discount: originalTotal = totalFee / (1 - discount/100)
-            // But it's safer to calculate: discountAmount = totalFee * (discount / (100 - discount))
-            const discountAmount = totalFee * (discount / (100 - discount));
+            // Discount is a percentage, calculate the amount from the original total
+            // We need to calculate the original total before discount
+            const packageFee = booking.packageFee || 0;
+            const numOfDays = booking.numOfDays || 1;
+            const additionalPaxPrice = booking.additionalPaxPrice || 0;
+            const additionalPax = booking.additionalPax || 0;
+            const reservationFee = booking.reservationFee || 0;
+            
+            // Calculate original subtotal (before discount)
+            const originalSubtotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax) + reservationFee;
+            
+            // Calculate discount amount from percentage
+            const discountAmount = (originalSubtotal * discount) / 100;
             
             console.log('Discount amount calculation (from percentage):', {
                 discountPercentage: discount,
-                totalFee,
+                packageFee,
+                numOfDays,
+                additionalPaxPrice,
+                additionalPax,
+                reservationFee,
+                originalSubtotal,
                 calculatedDiscountAmount: discountAmount
             });
             
@@ -1567,7 +2035,7 @@ async function processPaymentConfirmation(bookingId, paymentType) {
                             'Content-Type': 'application/json',
                         },
                         body: JSON.stringify({
-                            // status: "Pending Payment"
+                            status: "Pending Payment"
                         })
                     });
                     
@@ -1737,16 +2205,52 @@ function validatePaymentForm(formData) {
     
     if (!formData.numberBankEwallets) {
         errors.push('Please enter the bank account or e-wallet number');
+    } else {
+        // Validate bank account/e-wallet number format
+        const validationResult = validateBankAccountFormat(formData.numberBankEwallets);
+        if (!validationResult.isValid) {
+            errors.push(validationResult.message);
+        }
     }
     
     if (errors.length > 0) {
         console.log('❌ Validation errors:', errors);
-        showToastError('error', 'Missing Information', errors.join('. '));
+        showToastError('error', 'Invalid Information', errors.join('. '));
         return false;
     }
     
     console.log('✅ Form validation passed');
     return true;
+}
+
+// Function to validate bank account format during form submission
+function validateBankAccountFormat(value) {
+    const rules = window.currentValidationRules;
+    if (!rules) {
+        return { isValid: true }; // No validation rules set
+    }
+
+    const cleanValue = value.replace(/\D/g, '');
+    const expectedLength = rules.expectedLength;
+    const isEWallet = rules.isEWallet;
+    const paymentName = rules.paymentName;
+
+    if (cleanValue.length !== expectedLength) {
+        return {
+            isValid: false,
+            message: `${isEWallet ? 'E-wallet' : 'Account'} number must be exactly ${expectedLength} digits for ${paymentName}`
+        };
+    }
+
+    // Additional validation for e-wallets - must start with "09"
+    if (isEWallet && !cleanValue.startsWith('09')) {
+        return {
+            isValid: false,
+            message: `${rules.category} numbers must start with "09"`
+        };
+    }
+
+    return { isValid: true };
 }
 
 function getPaymentApiEndpoint(paymentType, bookingId) {

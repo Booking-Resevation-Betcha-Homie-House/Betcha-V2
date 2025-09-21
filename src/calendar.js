@@ -147,7 +147,7 @@ function initializeSearchCalendar(calendarId) {
     for (let day = 1; day <= totalDays; day++) {
       const currentDateObj = new Date(year, month, day);
       const dateStr = currentDateObj.toISOString().split('T')[0];
-      const isDisabled = currentDateObj < new Date().setHours(0,0,0,0);
+      const isDisabled = currentDateObj <= new Date().setHours(0,0,0,0); // Include today as disabled
       const isSelected = (selectedStartDate && dateStr === selectedStartDate) ||
                         (selectedEndDate && dateStr === selectedEndDate);
       const isInRange = selectedStartDate && selectedEndDate &&
@@ -303,34 +303,38 @@ document.addEventListener("DOMContentLoaded", () => {
         // Get today's date for comparison
         const today = new Date();
         today.setHours(0, 0, 0, 0);
-        const dateObj = new Date(dateStr);
-        const isPast = dateObj < today;
+        
+        // Parse the date string and set to start of day for accurate comparison
+        const dateObj = new Date(dateStr + 'T00:00:00');
+        dateObj.setHours(0, 0, 0, 0);
+        
+        const isPast = dateObj <= today; // Include today as unavailable
+        
+        // Debug logging for today's date
+        if (dateStr === today.toISOString().split('T')[0]) {
+          console.log('Today detected:', dateStr, 'isPast:', isPast);
+        }
 
-        // Handle highlighting for selected dates and preview
         let isInRange = false;
         let isStartDate = dateStr === selectionStart;
         
         if (selectionStart) {
           if (isRangeSelection) {
-            // During range selection - show preview
+
             const hoverDate = calendarEl.dataset.hoverDate;
             if (hoverDate) {
               const rangeStart = new Date(selectionStart);
               const rangeEnd = new Date(hoverDate);
               
               if (rangeStart <= rangeEnd) {
-                // Forward range - show all dates from start to hover, even if some are booked
                 isInRange = dateObj >= rangeStart && dateObj <= rangeEnd;
               } else {
-                // Backward range - show all dates from hover to start
                 isInRange = dateObj <= rangeStart && dateObj >= rangeEnd;
               }
             } else {
-              // Only highlight start date if no hover
               isInRange = isStartDate;
             }
           } else {
-            // After range selection complete - show fixed selection
             isInRange = selectedDates.has(dateStr);
           }
         }
@@ -340,9 +344,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (isPast) {
           classes += "bg-neutral-100 text-neutral-400 cursor-not-allowed opacity-50";
         } else if (isMaintenance) {
-          classes += "bg-red-100 text-red-600 cursor-not-allowed"; // Red tint for maintenance
+          classes += "bg-red-100 text-red-600 cursor-not-allowed";
         } else if (isBooked && !isCheckoutOnly) {
-          classes += "bg-neutral-200 text-neutral-600 cursor-not-allowed"; // Grey for unavailable booked dates
+          classes += "bg-neutral-200 text-neutral-600 cursor-not-allowed";
         } else if (isSelected || isInRange) {
           // Check if this is the last date in the selection (checkout date)
           const allSelectedDates = Array.from(selectedDates).sort();

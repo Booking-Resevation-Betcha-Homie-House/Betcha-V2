@@ -159,13 +159,17 @@ function getStatusStyle(status) {
 }
 
 // Function to create a booking card
-function createBookingCard(booking, propertyPhoto = null) {
+function createBookingCard(booking, propertyPhoto = null, isLoading = false) {
     const statusStyle = getStatusStyle(booking.status);
     const checkInDate = formatDate(booking.checkIn);
-    const checkOutDate = formatDate(booking.checkOut);
     
-    // Use property photo if available, otherwise fallback
-    const roomImage = propertyPhoto || '/images/unit03.jpg';
+    // Add 1 day to check-out date
+    const checkOutDateObj = new Date(booking.checkOut);
+    checkOutDateObj.setDate(checkOutDateObj.getDate() + 1);
+    const checkOutDate = formatDate(checkOutDateObj.toISOString());
+    
+    // Use property photo if available, otherwise white background
+    const roomImage = propertyPhoto || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMSIgaGVpZ2h0PSIxIiB2aWV3Qm94PSIwIDAgMSAxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IndoaXRlIi8+PC9zdmc+';
 
     return `
         <div class="relative rounded-2xl cursor-pointer p-5 w-full h-auto md:h-[200px] flex flex-col md:flex-row gap-5 shadow-sm bg-white border border-neutral-300 group hover:shadow-lg hover:border-primary-text transition-all duration-500 ease-in-out overflow-hidden"
@@ -173,7 +177,9 @@ function createBookingCard(booking, propertyPhoto = null) {
 
             <!-- 🖼️ Room Image -->
             <div class="w-full md:w-[30%] group-hover:md:w-[35%] h-[200px] md:h-full bg-cover bg-center rounded-xl z-10 transition-all duration-500 ease-in-out"
-                 style="background-image: url('${roomImage}')">
+                 style="background-image: url('${roomImage}')" 
+                 data-property-id="${booking.propertyId}"
+                 data-booking-id="${booking._id}">
             </div>
 
             <!-- 📋 Booking Details -->
@@ -258,6 +264,42 @@ async function fetchPropertyPhoto(propertyId) {
         photoCache.set(propertyId, null); // Cache the failure
         return null;
     }
+}
+
+// Function to update card image once loaded
+function updateCardImage(bookingId, propertyId, imageUrl) {
+    if (!imageUrl) return;
+    
+    // Find the image element for this booking
+    const imageElement = document.querySelector(`[data-booking-id="${bookingId}"][data-property-id="${propertyId}"]`);
+    if (imageElement) {
+        // Update the background image with smooth transition
+        imageElement.style.backgroundImage = `url('${imageUrl}')`;
+        console.log(`✅ Updated image for booking ${bookingId}`);
+    }
+}
+
+// Function to load images progressively
+async function loadImagesProgressively(bookings) {
+    console.log(`🖼️ Starting progressive image loading for ${bookings.length} bookings...`);
+    
+    // Process images with controlled concurrency
+    await processWithConcurrency(
+        bookings,
+        async (booking) => {
+            try {
+                const photo = await fetchPropertyPhoto(booking.propertyId);
+                if (photo) {
+                    updateCardImage(booking._id, booking.propertyId, photo);
+                }
+            } catch (error) {
+                console.warn(`Failed to load progressive image for ${booking.propertyId}:`, error);
+            }
+        },
+        6 // Higher concurrency for background loading
+    );
+    
+    console.log(`🎉 Progressive image loading completed`);
 }
 
 // Function to navigate to booking details
@@ -351,34 +393,24 @@ async function renderBookings(bookings, containerId) {
     // Sort bookings by transaction number (newest first)
     const sortedBookings = sortBookingsByTransactionNumber(bookings);
     
-    console.log(`🏗️ Loading photos for ${sortedBookings.length} bookings in ${containerId}...`);
+    console.log(`⚡ Rendering booking cards immediately with placeholder images...`);
     
-    // Keep skeleton loading while fetching all photos with controlled concurrency
-    const allBookingsWithPhotos = await processWithConcurrency(
-        sortedBookings,
-        async (booking) => {
-            try {
-                const photo = await fetchPropertyPhoto(booking.propertyId);
-                return { booking, photo };
-            } catch (error) {
-                console.warn(`Failed to load photo for ${booking.propertyId}:`, error);
-                return { booking, photo: null };
-            }
-        },
-        4 // Process 4 photos at a time
-    );
-    
-    console.log(`✅ All photos processed for ${containerId}, rendering complete cards...`);
-    
-    // Now render all cards at once with their photos
-    const completeHTML = allBookingsWithPhotos
-        .map(({ booking, photo }) => createBookingCard(booking, photo))
+    // Render all cards immediately with fallback images
+    const immediateHTML = sortedBookings
+        .map(booking => createBookingCard(booking, null)) // No photo = fallback image
         .join('');
     
-    // Replace skeleton with complete content all at once
-    container.innerHTML = completeHTML;
+    // Display cards immediately
+    container.innerHTML = immediateHTML;
     
-    console.log(`🎉 Successfully rendered ${allBookingsWithPhotos.length} complete cards in ${containerId}`);
+    console.log(`✅ ${sortedBookings.length} booking cards displayed immediately in ${containerId}`);
+    
+    // Load images progressively in background (non-blocking)
+    loadImagesProgressively(sortedBookings).catch(error => {
+        console.warn('Progressive image loading failed:', error);
+    });
+    
+    console.log(`🖼️ Progressive image loading started for ${containerId}`);
 }
 
 // Function to show skeleton loading
@@ -475,7 +507,7 @@ async function fetchAndRenderBookings() {
             completed: globalBookingsData.completed.length
         });
         
-        // Render bookings in their respective tabs (already sorted)
+        // Render bookings in their respective tabs (immediately with progressive image loading)
         const renderStartTime = performance.now();
         await Promise.all([
             renderBookings(globalBookingsData.all, 'allContainer'),
@@ -486,7 +518,8 @@ async function fetchAndRenderBookings() {
 
         const totalTime = performance.now() - startTime;
         const renderTime = performance.now() - renderStartTime;
-        console.log(`✅ All bookings rendered in ${renderTime.toFixed(2)}ms (total: ${totalTime.toFixed(2)}ms)`);
+        console.log(`✅ All booking data displayed in ${renderTime.toFixed(2)}ms (total: ${totalTime.toFixed(2)}ms)`);
+        console.log(`🖼️ Images will continue loading in background...`);
 
     } catch (error) {
         console.error('❌ Error fetching bookings:', error);

@@ -549,10 +549,11 @@ async function fetchAndDisplayProperty() {
             name: data.name,
             address: data.address,
             packagePrice: data.packagePrice,
-            additionalPax: data.additionalPax,
+            additionalPax: data.additionalPax, // This is the PRICE per additional guest
             reservationFee: data.reservationFee,
             packageCapacity: data.packageCapacity,
             maxCapacity: data.maxCapacity,
+            discount: data.discount, // Add discount from API response
             images: data.photoLinks || [],
             timeIn: data.timeIn,
             timeOut: data.timeOut,
@@ -565,8 +566,9 @@ async function fetchAndDisplayProperty() {
             photoLinks: data.photoLinks || []
         };
 
-        // Update guest counter limits based on API maxCapacity
-        updateGuestCounterLimits(data.maxCapacity);
+        // Update guest counter limits based on API maxCapacity and packageCapacity
+        console.log('Property data received - maxCapacity:', data.maxCapacity, 'packageCapacity:', data.packageCapacity);
+        updateGuestCounterLimits(data.maxCapacity, data.packageCapacity);
 
         // Setup Reserve button functionality
         setupReserveButton();
@@ -601,32 +603,39 @@ async function fetchAndDisplayProperty() {
     }
 }
 
-// Function to update guest counter limits based on API maxCapacity
-function updateGuestCounterLimits(maxCapacity) {
+// Function to update guest counter limits based on API maxCapacity and packageCapacity
+function updateGuestCounterLimits(maxCapacity, packageCapacity = 1) {
     if (!maxCapacity || maxCapacity < 1) {
         console.warn('Invalid maxCapacity from API:', maxCapacity);
         return;
     }
 
-    console.log('Updating guest counter limits to:', maxCapacity);
+    console.log('Updating guest counter limits - Max:', maxCapacity, 'Package:', packageCapacity, 'Additional:', maxCapacity - packageCapacity);
 
     // Update all guest counter containers
-    document.querySelectorAll('.guest-counter').forEach(counter => {
-        // Update the data-max attribute
+    document.querySelectorAll('.guest-counter').forEach((counter, index) => {
+        console.log(`Updating guest counter ${index}:`, counter);
+        // Update the data attributes
         counter.setAttribute('data-max', maxCapacity);
-        
-        // Update the display text for max guest number
-        const maxGuestDisplay = counter.querySelector('.maxGuestNum');
-        if (maxGuestDisplay) {
-            maxGuestDisplay.textContent = maxCapacity;
-        }
+        counter.setAttribute('data-package-capacity', packageCapacity);
     });
 
-    // Update the guestCount.js functionality by triggering a re-initialization
-    // We need to dispatch a custom event to let guestCount.js know about the new limit
+    // Call the global function to update guest counter capacity if available
+    if (window.updateGuestCounterCapacity) {
+        console.log('Calling window.updateGuestCounterCapacity...');
+        window.updateGuestCounterCapacity(maxCapacity, packageCapacity);
+    } else {
+        console.warn('window.updateGuestCounterCapacity not available');
+    }
+
+    // Also dispatch the custom event for backward compatibility
     const updateEvent = new CustomEvent('updateGuestLimit', {
-        detail: { maxCapacity: maxCapacity }
+        detail: { 
+            maxCapacity: maxCapacity,
+            packageCapacity: packageCapacity 
+        }
     });
+    console.log('Dispatching updateGuestLimit event:', updateEvent.detail);
     document.dispatchEvent(updateEvent);
 }
 
@@ -703,6 +712,12 @@ function setupReserveButton() {
         const urlParams = new URLSearchParams(window.location.search);
         const bookingData = getBookingDataFromURL(urlParams);
         
+        // Update booking data with current guest count from the counter
+        const guestCount = window.currentGuestCount || bookingData.guestCount || 1;
+        bookingData.guestCount = guestCount;
+        
+        console.log('Updated booking data with current guest count:', guestCount);
+        
         if (!currentPropertyData) {
             console.error('Property data not available');
             showToastError('error', 'Property Data Missing', 'Property information is not loaded. Please refresh the page and try again.');
@@ -719,7 +734,6 @@ function setupReserveButton() {
         }
 
         // Additional validation for guest count
-        const guestCount = window.currentGuestCount || bookingData.guestCount || 1;
         if (guestCount < 1) {
             showToastError('warning', 'Guest Count Required', 'Please select at least one guest for your reservation.');
             return;
@@ -891,17 +905,37 @@ function navigateToConfirmReservation(propertyData, bookingData) {
     params.append('guestCount', bookingData.guestCount || '1');
     params.append('daysOfStay', bookingData.daysOfStay || '1');
     
+    // Get the actual additional guests count from the guest counter display (not calculated)
+    const additionalPaxCount = window.currentGuestCount || 0; // This is the value shown in the +/- counter
+    const packageCapacity = parseInt(propertyData.packageCapacity) || 1;
+    
+    // Calculate total guest count for display (package capacity + additional guests from counter)
+    const totalGuestCount = packageCapacity + additionalPaxCount;
+    
     // Pricing data
     params.append('pricePerDay', propertyData.packagePrice || '0');
-    params.append('addGuestPrice', propertyData.additionalPax || '0');
+    params.append('addGuestPrice', propertyData.additionalPax || '0'); // This is the PRICE per additional guest from API
     params.append('reservationFee', propertyData.reservationFee || '0');
     params.append('packageCapacity', propertyData.packageCapacity || '1');
+    params.append('discount', propertyData.discount || '0');
+    params.append('additionalPax', additionalPaxCount.toString()); // This is the COUNT from the guest counter display
+    params.append('guestCount', totalGuestCount.toString()); // Total guests for booking
     
     // Time data
     params.append('timeIn', propertyData.timeIn || '');
     params.append('timeOut', propertyData.timeOut || '');
     
-    console.log('Passing time data to confirm reservation:', { timeIn: propertyData.timeIn, timeOut: propertyData.timeOut });
+    console.log('Passing pricing data to confirm reservation:', { 
+        packagePrice: propertyData.packagePrice, 
+        additionalPaxPrice: propertyData.additionalPax, // PRICE per additional guest from API
+        reservationFee: propertyData.reservationFee,
+        discount: propertyData.discount, // Discount percentage from API
+        additionalPaxCount: additionalPaxCount, // COUNT from guest counter display (window.currentGuestCount)
+        totalGuestCount: totalGuestCount, // Package capacity + additional guests
+        packageCapacity: packageCapacity,
+        timeIn: propertyData.timeIn, 
+        timeOut: propertyData.timeOut 
+    });
     
     // Debug: Log the final URL
     const finalUrl = `../auth/confirm-reservation.html?${params.toString()}`;
