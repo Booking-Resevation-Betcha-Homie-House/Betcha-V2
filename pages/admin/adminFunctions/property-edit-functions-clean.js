@@ -15,10 +15,13 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('  - window.getAmenityIcon:', typeof window.getAmenityIcon);
     
     const propertyId = getPropertyIdFromUrl();
+    console.log('🔍 Property ID from URL:', propertyId);
+    
     if (propertyId) {
+        console.log('📄 Initializing with property ID:', propertyId);
         initializePropertyEdit(propertyId);
     } else {
-        console.log('No property ID provided. Initializing form components for manual testing.');
+        console.log('📄 No property ID provided. Initializing form components for manual testing.');
         initializeFormComponents();
     }
 });
@@ -160,6 +163,12 @@ function populateForm(data) {
     populateAmenities(data.amenities, data.otherAmenities);
     populateMapLink(data.mapLink);
     storePropertyId(data._id);
+    
+    // Dispatch event to notify that form has been populated
+    console.log('📋 Form populated with property data - dispatching event');
+    document.dispatchEvent(new CustomEvent('property-data-loaded', { 
+        detail: { propertyId: data._id, data: data } 
+    }));
 }
 
 function populateBasicInfo(data) {
@@ -678,10 +687,12 @@ function storePropertyId(propertyId) {
 
 // ==================== FORM COMPONENTS INITIALIZATION ====================
 function initializeFormComponents() {
+    console.log('🔧 Initializing form components...');
     initializeModalSystem();
     initializeDropdowns();
     initializeImageEditing();
     initializeSaveAndDiscardFunctionality();
+    console.log('✅ Form components initialization complete');
 }
 
 function initializeModalSystem() {

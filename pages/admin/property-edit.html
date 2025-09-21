@@ -398,7 +398,7 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-4">
                       <div class="flex flex-col gap-2 w-full group">
                         <label for="input-prop-name" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                          Property name
+                          Property name <span class="text-red-500">*</span>
                         </label>
                         <div class="input-style3 flex items-center justify-center gap-3 ">
                           <input 
@@ -406,34 +406,39 @@
                             type="text" 
                             placeholder="Property name" 
                             class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
+                            required
                           />
                         </div>
                       </div>
 
                       <div class="flex flex-col gap-2 w-full group">
                         <label for="input-prop-city" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                          City
+                          City <span class="text-red-500">*</span>
                         </label>
                         <div class="input-style3 flex items-center justify-center gap-3 ">
                           <input 
                             id="input-prop-city"
                             type="text" 
                             placeholder="City" 
+                            title="This field will be automatically cleared when using manual map entry"
                             class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
+                            required
                           />
                         </div>
                       </div>
 
                       <div class="flex flex-col gap-2 w-full group lg:col-span-2">
                         <label for="input-prop-address" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                          Full address
+                          Full address <span class="text-red-500">*</span>
                         </label>
                         <div class="input-style3 flex items-center justify-center gap-3 ">
                           <input 
                             id="input-prop-address"
                             type="text" 
                             placeholder="Full address" 
+                            title="This field will be automatically cleared when using manual map entry"
                             class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
+                            required
                           />
                         </div>
                       </div>
@@ -442,7 +447,7 @@
                     <hr class="my-4 border-t border-neutral-300">
                     <div class="flex flex-col gap-2 w-full group">
                         <label for="input-prop-desc" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                            Description
+                            Description <span class="text-red-500">*</span>
                         </label>
                         <div class="input-style3 flex items-center justify-center gap-3 ">
                             <textarea
@@ -450,6 +455,7 @@
                                 placeholder="Enter description..."
                                 rows="15"
                                 class="w-full resize-none max-h-40 overflow-y-auto bg-transparent focus:outline-none text-sm md:text-base font-normal"
+                                required
                             ></textarea>
                         </div>
                     </div>
@@ -487,7 +493,7 @@
                         </div>
                         <div class="flex flex-col gap-2 w-full group">
                             <label for="input-prop-maxCap" class="font-manrope text-sm font-bold text-neutral-600 group-hover:text-primary transition-all duration-300">
-                                Maximum capacity
+                                Maximum capacity <span class="text-red-500">*</span>
                             </label>
                             <div class="input-style3 flex items-center justify-center gap-3 ">
                                 <input 
@@ -495,6 +501,7 @@
                                 type="number" 
                                 placeholder="00" 
                                 class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
+                                required
                                 />
                             </div>
                         </div>
@@ -526,7 +533,7 @@
                         </div>
                         <div class="flex flex-col gap-2 w-full group">
                             <label for="input-prop-packPrice" class="font-manrope text-sm font-bold text-neutral-600 group-hover:text-primary transition-all duration-300">
-                                Package price
+                                Package price <span class="text-red-500">*</span>
                             </label>
                             <div class="input-style3 flex items-center justify-center gap-2 ">
                                 <span>₱</span>
@@ -535,6 +542,7 @@
                                 type="number" 
                                 placeholder="00" 
                                 class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
+                                required
                                 />
                             </div>
                         </div>
@@ -589,14 +597,14 @@
                 <div class="bg-white h-fit w-full rounded-3xl shadow-md p-6 flex flex-col mb-6">
                     <p class="font-manrope text-xl text-primary-text font-medium py-3 md:text-2xl">Location</p>
                     <hr class="my-2 border-t border-neutral-300">
-                    <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full mx-auto shadow-sm mb-5">
-                      <button class=" text-sm !px-2 !py-1 rounded-full flex-1
+                    <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full mx-auto shadow-sm mb-5" id="locationTabSwitch">
+                      <button id="searchTabBtn" onclick="console.log('Search clicked'); setLocationTabActive('search')" class=" text-sm !px-2 !py-1 rounded-full flex-1
                         hover:bg-primary/10 group active:scale-95
                         transition-all duration-200 bg-white text-primary font-semibold shadow">
                       
                         <span class="text-primary text-sm group-hover:text-primary ">Search</span>
                       </button>
-                      <button class=" text-sm !px-2 !py-1 rounded-full flex-1
+                      <button id="manualTabBtn" onclick="console.log('Manual clicked'); setLocationTabActive('manual')" class=" text-sm !px-2 !py-1 rounded-full flex-1
                         hover:bg-primary/10 group active:scale-95
                         transition-all duration-200">
                         <span class="text-neutral-500 text-sm group-hover:text-primary">Manual</span>
@@ -616,7 +624,7 @@
                                 <p class="text-xs font-medium text-primary-text sm:text-sm">Quick Address Search (Places pin at exact location)</p>
                             </div> -->
                             
-                            <div class="flex flex-col gap-3">
+                            <div class="flex flex-col gap-3 mb-5" id="searchGroup">
                                 <div class="input-style3 flex items-center gap-2 w-full">
                                     <svg class="w-4 h-4 text-neutral-400" fill="currentColor" viewBox="0 0 20 20">
                                         <path fill-rule="evenodd" d="M8 4a4 4 0 100 8 4 4 0 000-8zM2 8a6 6 0 1110.89 3.476l4.817 4.817a1 1 0 01-1.414 1.414l-4.816-4.816A6 6 0 012 8z" clip-rule="evenodd"></path>
@@ -645,7 +653,7 @@
                         </div>
 
                         <!-- Manual Input Instructions -->
-                        <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-3 mb-3">
+                        <div class="bg-neutral-50 border border-neutral-200 rounded-lg p-3 mb-3 hidden" id="manualInstruction">
                             <div class="flex items-start gap-2">
                                 <svg class="w-4 h-4 text-neutral-500 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                                     <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
@@ -661,7 +669,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-stretch h-fit mb-5" id="input-maplinkgroup">
+                        <div class="flex items-stretch h-fit mb-5 hidden" id="input-maplinkgroup">
                             <div class="input-style3 flex items-center justify-center gap-3 flex-1 transition-all duration-300" id="maplink-container">
                                 <input 
                                 id="input-prop-mapLink"
@@ -2799,6 +2807,431 @@
       
       // Run initialization after DOM is fully ready
       setTimeout(initializeMapPreview, 500); // Increased delay to ensure everything is loaded
+    });
+
+    // Location Tab Switching Logic (similar to multipleTabs.js)
+    window.setLocationTabActive = function(tabType) {
+      console.log('🎯 Setting location tab active:', tabType);
+      
+      const searchTabBtn = document.getElementById('searchTabBtn');
+      const manualTabBtn = document.getElementById('manualTabBtn');
+      const searchGroup = document.getElementById('searchGroup');
+      const manualInstruction = document.getElementById('manualInstruction');
+      const inputMaplinkGroup = document.getElementById('input-maplinkgroup');
+
+      console.log('🔍 Found elements:', {
+        searchTabBtn: !!searchTabBtn,
+        manualTabBtn: !!manualTabBtn,
+        searchGroup: !!searchGroup,
+        manualInstruction: !!manualInstruction,
+        inputMaplinkGroup: !!inputMaplinkGroup
+      });
+
+      if (!searchTabBtn || !manualTabBtn || !searchGroup || !manualInstruction || !inputMaplinkGroup) {
+        console.error('❌ Location tab elements not found');
+        console.log('Missing elements details:', {
+          searchTabBtn,
+          manualTabBtn,
+          searchGroup,
+          manualInstruction,
+          inputMaplinkGroup
+        });
+        return;
+      }
+
+      if (tabType === 'search') {
+        console.log('🔵 Activating search tab');
+        
+        // Update button styles
+        searchTabBtn.className = 'text-sm !px-2 !py-1 rounded-full flex-1 hover:bg-primary/10 group active:scale-95 transition-all duration-200 bg-white text-primary font-semibold shadow';
+        searchTabBtn.querySelector('span').className = 'text-primary text-sm group-hover:text-primary';
+        
+        manualTabBtn.className = 'text-sm !px-2 !py-1 rounded-full flex-1 hover:bg-primary/10 group active:scale-95 transition-all duration-200';
+        manualTabBtn.querySelector('span').className = 'text-neutral-500 text-sm group-hover:text-primary';
+
+        // Show search elements, hide manual elements
+        searchGroup.classList.remove('hidden');
+        manualInstruction.classList.add('hidden');
+        inputMaplinkGroup.classList.add('hidden');
+        
+        console.log('✅ Search tab activated');
+      } else if (tabType === 'manual') {
+        console.log('🟠 Activating manual tab');
+        
+        // Update button styles
+        manualTabBtn.className = 'text-sm !px-2 !py-1 rounded-full flex-1 hover:bg-primary/10 group active:scale-95 transition-all duration-200 bg-white text-primary font-semibold shadow';
+        manualTabBtn.querySelector('span').className = 'text-primary text-sm group-hover:text-primary';
+        
+        searchTabBtn.className = 'text-sm !px-2 !py-1 rounded-full flex-1 hover:bg-primary/10 group active:scale-95 transition-all duration-200';
+        searchTabBtn.querySelector('span').className = 'text-neutral-500 text-sm group-hover:text-primary';
+
+        // Show manual elements, hide search elements
+        searchGroup.classList.add('hidden');
+        manualInstruction.classList.remove('hidden');
+        inputMaplinkGroup.classList.remove('hidden');
+        
+        console.log('✅ Manual tab activated');
+      }
+    };
+
+    // Function to show floating tooltip for manual mode
+    function showManualModeNotification() {
+      // Remove any existing notification
+      const existingNotification = document.getElementById('manualModeNotification');
+      if (existingNotification) {
+        existingNotification.remove();
+      }
+
+      // Find the city input to position tooltip near it
+      const cityInput = document.getElementById('input-prop-city');
+      if (!cityInput) {
+        console.error('City input not found for tooltip positioning');
+        return;
+      }
+
+      // Get position of city input
+      const cityRect = cityInput.getBoundingClientRect();
+      
+      // Create floating tooltip
+      const tooltip = document.createElement('div');
+      tooltip.id = 'manualModeNotification';
+      tooltip.className = `
+        absolute z-50 bg-amber-50 border border-amber-200 rounded-lg p-3 shadow-lg
+        transform opacity-0 scale-95 transition-all duration-300 ease-in-out
+        max-w-xs pointer-events-auto
+      `;
+      
+      // Position the tooltip to the right of the city input
+      tooltip.style.left = `${cityRect.right + 10}px`;
+      tooltip.style.top = `${cityRect.top + window.scrollY}px`;
+      
+      tooltip.innerHTML = `
+        <div class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-amber-500 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"></path>
+          </svg>
+          <div class="flex-1">
+            <p class="text-xs text-amber-800 font-medium mb-1">Fields Cleared</p>
+            <p class="text-xs text-amber-700">City and address fields cleared for manual entry with map link.</p>
+          </div>
+          <button onclick="hideManualModeNotification()" class="text-amber-400 hover:text-amber-600 transition-colors ml-1">
+            <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="absolute -left-2 top-3 w-0 h-0 border-t-4 border-b-4 border-r-4 border-transparent border-r-amber-200"></div>
+      `;
+
+      document.body.appendChild(tooltip);
+
+      // Animate in
+      setTimeout(() => {
+        tooltip.classList.remove('opacity-0', 'scale-95');
+        tooltip.classList.add('opacity-100', 'scale-100');
+      }, 50);
+
+      // Auto hide after 5 seconds
+      setTimeout(() => {
+        hideManualModeNotification();
+      }, 5000);
+    }
+
+    // Function to hide the manual mode notification
+    window.hideManualModeNotification = function() {
+      const notification = document.getElementById('manualModeNotification');
+      if (notification) {
+        notification.classList.add('opacity-0', 'scale-95');
+        setTimeout(() => {
+          notification.remove();
+        }, 300);
+      }
+    };
+
+    // Initialize location tabs when DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🔄 Initializing location tab switching...');
+      
+      // Test function to verify script loading
+      window.testTabFunction = function() {
+        console.log('✅ Tab function test - script is loaded and working!');
+        const searchGroup = document.getElementById('searchGroup');
+        const manualInstruction = document.getElementById('manualInstruction');
+        console.log('searchGroup:', searchGroup);
+        console.log('manualInstruction:', manualInstruction);
+      };
+      
+      // Set initial state (Search tab active) after a small delay
+      setTimeout(() => {
+        console.log('🎯 Setting initial state to search');
+        window.setLocationTabActive('search');
+      }, 100);
+      
+      // Initialize map link input handler immediately
+      initializeMapLinkInputHandler();
+      
+      // Add fallback initialization to ensure it works
+      setTimeout(initializeMapLinkInputHandler, 1000);
+      
+      console.log('✅ Location tab switching initialized');
+    });
+
+    // Function to initialize map link input handler
+    function initializeMapLinkInputHandler() {
+      const mapLinkInput = document.getElementById('input-prop-mapLink');
+      let hasBeenCleared = false; // Flag to prevent multiple clears
+      
+      console.log('🔧 Initializing map link input handler for:', mapLinkInput);
+      
+      if (mapLinkInput) {
+        // Add multiple event listeners for more reliable detection
+        ['input', 'keyup', 'paste'].forEach(eventType => {
+          mapLinkInput.addEventListener(eventType, function(e) {
+            console.log(`📝 Map link ${eventType} detected, value length:`, e.target.value.length, 'hasBeenCleared:', hasBeenCleared);
+            
+            // Handle paste events immediately
+            if (eventType === 'paste') {
+              setTimeout(() => {
+                if (e.target.value.length > 0 && !hasBeenCleared) {
+                  clearFieldsAndNotify();
+                }
+              }, 10);
+              return;
+            }
+            
+            // Only trigger on the first character typed and if fields haven't been cleared yet
+            if (e.target.value.length === 1 && !hasBeenCleared) {
+              clearFieldsAndNotify();
+            } else if (e.target.value.length > 1 && !hasBeenCleared) {
+              // Handle case where value was set programmatically or user typed fast
+              clearFieldsAndNotify();
+            }
+            
+            // Reset flag if input becomes empty (user deleted everything)
+            if (e.target.value.length === 0) {
+              hasBeenCleared = false;
+              console.log('🔄 Reset clear flag - map link input is empty');
+            }
+          });
+        });
+        
+        // Function to clear fields and show notification
+        function clearFieldsAndNotify() {
+          console.log('🎯 Clearing address and city fields due to map link input');
+          
+          // Clear address and city fields
+          const cityInput = document.getElementById('input-prop-city');
+          const addressInput = document.getElementById('input-prop-address');
+          
+          if (cityInput) {
+            cityInput.value = '';
+            console.log('🧹 Cleared city field');
+          }
+          if (addressInput) {
+            addressInput.value = '';
+            console.log('🧹 Cleared address field');
+          }
+          
+          // Show floating notification
+          showManualModeNotification();
+          
+          // Set flag to prevent multiple clears
+          hasBeenCleared = true;
+          console.log('✅ Fields cleared due to map link input');
+        }
+        
+        // Also add focus event for additional debugging
+        mapLinkInput.addEventListener('focus', function() {
+          console.log('🎯 Map link input focused');
+        });
+        
+        console.log('✅ Map link input handler initialized successfully');
+      } else {
+        console.error('❌ Map link input (input-prop-mapLink) not found!');
+        // Try again after a short delay
+        setTimeout(initializeMapLinkInputHandler, 500);
+      }
+    }
+
+    // ==================== REAL-TIME FORM VALIDATION ====================
+    // Function to validate required fields and enable/disable save button
+    function validateFormRealTime() {
+      const requiredFields = [
+        'input-prop-name',
+        'input-prop-city', 
+        'input-prop-address',
+        'input-prop-desc',
+        'input-prop-packPrice',
+        'input-prop-maxCap'
+      ];
+      
+      // Get both save buttons (the trigger button and the confirm button)
+      const saveButton = document.querySelector('[data-modal-target="confirmDetailsModal"]');
+      const confirmButton = document.getElementById('confirmUpdateButton');
+      
+      // Check if all required fields have values
+      const allFieldsValid = requiredFields.every(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (!element) {
+          console.warn(`❌ Field element not found: ${fieldId}`);
+          return false;
+        }
+        return element.value?.trim().length > 0;
+      });
+      
+      // Update save button state
+      if (saveButton) {
+        if (allFieldsValid) {
+          saveButton.disabled = false;
+          saveButton.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+          saveButton.classList.add('cursor-pointer');
+          saveButton.setAttribute('title', 'Save property changes');
+        } else {
+          saveButton.disabled = true;
+          saveButton.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+          saveButton.classList.remove('cursor-pointer');
+          saveButton.setAttribute('title', 'Please fill in all required fields');
+        }
+      }
+      
+      // Update confirm button state
+      if (confirmButton) {
+        if (allFieldsValid) {
+          confirmButton.disabled = false;
+          confirmButton.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+          confirmButton.classList.add('cursor-pointer');
+          confirmButton.setAttribute('title', 'Confirm and save changes');
+        } else {
+          confirmButton.disabled = true;
+          confirmButton.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+          confirmButton.classList.remove('cursor-pointer');
+          confirmButton.setAttribute('title', 'Please fill in all required fields');
+        }
+      }
+      
+      console.log('🔄 Form validation:', allFieldsValid ? 'Valid - Save enabled' : 'Invalid - Save disabled');
+      return allFieldsValid;
+    }
+
+    // Function to initialize real-time validation
+    function initializeRealTimeValidation() {
+      const requiredFields = [
+        'input-prop-name',
+        'input-prop-city', 
+        'input-prop-address',
+        'input-prop-desc',
+        'input-prop-packPrice',
+        'input-prop-maxCap'
+      ];
+      
+      console.log('🔧 Initializing real-time form validation...');
+      
+      // Add event listeners to all required fields
+      requiredFields.forEach(fieldId => {
+        const element = document.getElementById(fieldId);
+        if (element) {
+          // Add multiple event types for comprehensive coverage
+          ['input', 'blur', 'change', 'keyup', 'paste'].forEach(eventType => {
+            element.addEventListener(eventType, function() {
+              // Small delay to ensure value is updated
+              setTimeout(validateFormRealTime, 50);
+            });
+          });
+          console.log(`✅ Added validation listeners to ${fieldId}`);
+        } else {
+          console.warn(`❌ Required field not found: ${fieldId}`);
+        }
+      });
+      
+      // Run initial validation immediately
+      console.log('🔄 Running initial validation check...');
+      validateFormRealTime();
+      
+      // Also run validation after short delays to catch async population
+      setTimeout(() => {
+        console.log('🔄 Running delayed validation check (500ms)...');
+        validateFormRealTime();
+      }, 500);
+      
+      setTimeout(() => {
+        console.log('🔄 Running delayed validation check (1500ms)...');
+        validateFormRealTime();
+      }, 1500);
+      
+      console.log('✅ Real-time validation initialized');
+    }
+
+    // Initialize validation when DOM is ready
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('🔧 Setting up validation initialization...');
+      
+      // Wait for other initializations to complete, then set up validation
+      setTimeout(initializeRealTimeValidation, 200);
+      
+      // Also run validation after a longer delay to catch auto-filled data
+      setTimeout(() => {
+        console.log('🔄 Running delayed validation check for auto-filled data...');
+        validateFormRealTime();
+      }, 1000);
+      
+      // Additional validation check after even longer delay for slow loading
+      setTimeout(() => {
+        console.log('🔄 Running final validation check for auto-filled data...');
+        validateFormRealTime();
+      }, 2000);
+    });
+
+    // Run validation when property data is loaded (for edit mode)
+    document.addEventListener('property-data-loaded', function() {
+      console.log('🔄 Property data loaded - running validation...');
+      setTimeout(validateFormRealTime, 100);
+    });
+
+    // Also initialize validation when modal is opened (fallback)
+    document.addEventListener('click', function(e) {
+      if (e.target.matches('[data-modal-target="confirmDetailsModal"]')) {
+        setTimeout(validateFormRealTime, 100);
+      }
+    });
+
+    // Add mutation observer to catch when fields are programmatically filled
+    function observeFormChanges() {
+      const formContainer = document.getElementById('location-input');
+      if (formContainer) {
+        const observer = new MutationObserver(function(mutations) {
+          let shouldRevalidate = false;
+          mutations.forEach(function(mutation) {
+            if (mutation.type === 'childList' || mutation.type === 'attributes') {
+              // Check if any input values changed
+              const inputs = formContainer.querySelectorAll('input, textarea');
+              inputs.forEach(input => {
+                if (input.value && input.value.trim().length > 0) {
+                  shouldRevalidate = true;
+                }
+              });
+            }
+          });
+          
+          if (shouldRevalidate) {
+            console.log('🔄 Form changes detected - revalidating...');
+            setTimeout(validateFormRealTime, 100);
+          }
+        });
+        
+        observer.observe(formContainer, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+          attributeFilter: ['value']
+        });
+        
+        console.log('👀 Form mutation observer initialized');
+      }
+    }
+
+    // Initialize mutation observer
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(observeFormChanges, 500);
     });
   </script>
 
