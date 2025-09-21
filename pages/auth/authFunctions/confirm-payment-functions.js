@@ -1553,6 +1553,35 @@ async function processPaymentConfirmation(bookingId, paymentType) {
         
         if (response.ok) {
             console.log('✅ Payment confirmation successful');
+
+            const responseBookingId = result.booking?._id || result.booking?.id || result.id || result._id || bookingId;
+            
+            if (responseBookingId) {
+
+                try {
+                    console.log('Updating booking status to Pending Payment for booking ID:', responseBookingId);
+                    
+                    const statusResponse = await fetch(`https://betcha-api.onrender.com/booking/update-status/${responseBookingId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            // status: "Pending Payment"
+                        })
+                    });
+                    
+                    if (statusResponse.ok) {
+                        console.log('Booking status updated to Pending Payment successfully');
+                    } else {
+                        console.warn('Failed to update booking status, but payment was processed');
+                    }
+                } catch (statusError) {
+                    console.warn('Error updating booking status:', statusError);
+                    // Don't fail the entire process if status update fails
+                }
+            }
+            
             showToastError('success', 'Payment Confirmed!', 'Your payment has been successfully processed.');
             
             // Audit: payment completed
