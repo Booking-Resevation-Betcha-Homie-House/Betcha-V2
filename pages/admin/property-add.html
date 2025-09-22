@@ -180,20 +180,18 @@
             </div>
             
             <!-- Dropdown Panel -->
-            <div data-tab-group id="notificationDropdown" class="hidden absolute right-0 mt-2 w-[400px] p-5 bg-white border border-gray-300 rounded-3xl shadow-lg z-50">
+            <div data-tab-group="notification" id="notificationDropdown" class="hidden absolute right-0 mt-2 w-[400px] p-5 bg-white border border-gray-300 rounded-3xl shadow-lg z-50">
               
               <!-- Tabs -->
               <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full mx-auto shadow-sm mb-5">
-                <button class="tab-btn text-sm !px-4 !py-2 rounded-full flex-1
+                <button class="notif-tab-btn text-sm !px-4 !py-2 rounded-full flex-1
                   hover:bg-primary/10 group active:scale-95
-                  transition-all duration-200 bg-white text-primary font-semibold shadow" 
-                  onclick="setActiveTab(0)">
+                  transition-all duration-200 bg-white text-primary font-semibold shadow">
                   <span class="text-primary text-sm group-hover:text-primary ">Notification</span>
                 </button>
-                <button class="tab-btn text-sm !px-4 !py-2 rounded-full flex-1
+                <button class="notif-tab-btn text-sm !px-4 !py-2 rounded-full flex-1
                   hover:bg-primary/10 group active:scale-95
-                  transition-all duration-200" 
-                  onclick="setActiveTab(1)">
+                  transition-all duration-200">
                   <span class="text-neutral-500 text-sm group-hover:text-primary">Cancellations</span>
                 </button>
               </div>
@@ -355,16 +353,16 @@
 
 
                 <!-- Big Left Image -->
-                <div class="rounded-2xl bg-neutral-300 h-full col-span-1 sm:col-span-3 flex items-center justify-center text-white">
+                <div id="photo1" class="rounded-2xl bg-neutral-300 h-full col-span-1 sm:col-span-3 flex items-center justify-center text-white">
                   No photos
                 </div>
 
                 <!-- Right side two images -->
                 <div class="hidden sm:grid sm:col-span-2 sm:grid-rows-2 sm:gap-3 h-full">
-                  <div class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white">
+                  <div id="photo2" class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white">
                     No photos
                   </div>
-                  <div class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white">
+                  <div id="photo3" class="rounded-2xl bg-neutral-300 flex items-center justify-center text-white">
                     No photos
                   </div>
                 </div>
@@ -690,7 +688,7 @@
                       </div>
                   </div>
                   <div class="flex flex-col gap-2 w-full group">
-                    <label for="input-prop-city" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                    <!-- <label for="input-prop-city" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
                         City <span class="text-neutral-400">*</span>
                     </label>
                     <div class="input-style3 flex items-center justify-center gap-3">
@@ -700,10 +698,10 @@
                         placeholder="Enter property city..." 
                         class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
                         />
-                    </div>
+                    </div> -->
                   </div>
                   <div class="flex flex-col gap-2 w-full group">
-                    <label for="input-prop-address" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                    <!-- <label for="input-prop-address" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
                         Address <span class="text-neutral-400">*</span>
                     </label>
                     <div class="input-style3 flex items-center justify-center gap-3">
@@ -713,7 +711,7 @@
                         placeholder="Enter property address..." 
                         class="flex-1 bg-transparent focus:outline-none text-sm md:text-base" 
                         />
-                    </div>
+                    </div> -->
                   </div>
                 </div>
               </div>
@@ -912,20 +910,18 @@
 
         <!-- SCROLLABLE NOTIF LIST -->
         <div class="flex-1 overflow-y-auto custom-scroll flex flex-col">
-          <div data-tab-group id="notificationDropdown" class=" p-5 ">
+          <div data-tab-group="notification" id="notificationDropdownMobile" class=" p-5 ">
                 
             <!-- Tabs -->
             <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full mx-auto shadow-sm mb-5">
-              <button class="tab-btn text-sm !px-2 !py-1 rounded-full flex-1
+              <button class="notif-tab-btn text-sm !px-2 !py-1 rounded-full flex-1
                 hover:bg-primary/10 group active:scale-95
-                transition-all duration-200 bg-white text-primary font-semibold shadow" 
-                onclick="setActiveTab(0)">
+                transition-all duration-200 bg-white text-primary font-semibold shadow">
                 <span class="text-primary text-sm group-hover:text-primary ">Notification</span>
               </button>
-              <button class="tab-btn text-sm !px-2 !py-1 rounded-full flex-1
+              <button class="notif-tab-btn text-sm !px-2 !py-1 rounded-full flex-1
                 hover:bg-primary/10 group active:scale-95
-                transition-all duration-200" 
-                onclick="setActiveTab(1)">
+                transition-all duration-200">
                 <span class="text-neutral-500 text-sm group-hover:text-primary">Cancellations</span>
               </button>
             </div>
@@ -1340,7 +1336,8 @@
                 }"
                 @drop="handleDrop"
                 @dragover="handleDragOver"
-                @dragleave="handleDragLeave">
+                @dragleave="handleDragLeave"
+                id="imageEditContainer">
 
                 <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                     
@@ -1354,22 +1351,9 @@
                         </svg>
                         <span class="text-xs text-center transition-colors duration-200" 
                               :class="isDragOver ? 'text-primary font-medium' : 'text-neutral-600'">
-                            <span x-show="!isDragOver">Drop images here or click to browse</span>
+                            <span x-show="!isDragOver">Add Images</span>
                             <span x-show="isDragOver">Drop images here!</span>
                         </span>
-                        <div class="text-xs mt-2 space-y-1" x-show="!isDragOver">
-                            <div class="flex items-center justify-center gap-1.5">
-                                <span class="font-semibold text-rose-600">Minimum 3 images required</span>
-                                <span class="text-neutral-400">•</span>
-                                <span class="text-neutral-600">Max 10 images, 5MB each</span>
-                            </div>
-                        </div>
-                        <div class="mt-2" x-show="images.length > 0">
-                            <span class="inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-xs font-medium"
-                                  :class="images.length >= 3 ? 'bg-green-100 text-green-700' : 'bg-rose-100 text-rose-700'">
-                                <span x-text="`${images.length}/3 images selected`"></span>
-                        </span>
-                        </div>
                         <input id="images" type="file" multiple accept="image/*" class="hidden" @change="previewImages">
                     </label>
 
@@ -1398,10 +1382,9 @@
 
                 </div>
                 
-                <!-- Image Summary and Clear All Button -->
-                <div class="flex flex-col sm:flex-row justify-between items-center mt-4 gap-4" x-show="images.length > 0">
-                    <!-- Image Summary -->
-                    <div class="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-3 text-sm">
+                <!-- Image Summary -->
+                <div class="flex justify-center mt-4" x-show="images.length > 0">
+                    <div class="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-sm">
                         <!-- Image Count -->
                         <div class="flex items-center gap-2">
                             <span class="font-medium text-neutral-700" x-text="`${images.length} image${images.length !== 1 ? 's' : ''} selected`"></span>
@@ -1425,16 +1408,20 @@
                             </span>
                         </div>
                     </div>
-                    
-                    <!-- Clear All Button -->
-                    <button @click="clearAllImages()" 
-                            class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors duration-200 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1-1H9a1 1 0 00-1 1v3M4 7h16" />
-                        </svg>
-                        Clear All Images
-                    </button>
                 </div>
+            </div>
+            
+            <!-- Upload and Close Buttons -->
+            <div class="sticky bottom-0 bg-background p-4 border-t border-neutral-200">
+              <div class="flex justify-center gap-3">
+                <button 
+                    data-close-modal=""
+                    class="flex gap-2 justify-center items-center px-6 py-3
+                    transition-all duration-300 ease-in-out bg-neutral-200
+                    hover:bg-neutral-300 hover:scale-105 rounded-2xl active:scale-95">
+                    <span class="text-sm text-neutral-700">Close</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -2702,6 +2689,7 @@
               transition-all duration-300 ease-in-out 
               hover:cursor-pointer active:scale-95  
               lg:order-2">
+               <span class="text-secondary-text text-lg transition-transform duration-500 ease-in-out group-hover:-translate-x-1">Confirm</span>
                 <span class="text-secondary-text text-lg transition-transform duration-500 ease-in-out group-hover:-translate-x-1" x-text="images.length >= 3 ? 'Confirm' : 'Need 3+ Images'"></span>
                 <span class="overflow-hidden max-w-[30px] lg:max-w-0 lg:group-hover:max-w-[30px] transition-all duration-500 ease-in-out">
                     <svg class="w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

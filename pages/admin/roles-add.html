@@ -148,43 +148,58 @@
             <div class="flex gap-2 items-center shrink-0">
             <!-- Notification Bell Dropdown -->
             <div class="relative inline-block text-left">
-                <!-- Bell Icon -->
+              <!-- Bell Icon -->
+              <div class="relative">
                 <button id="notifBellBtnDesktop" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
                 hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
                 transition-all buration-300 ease-in-out
                 hidden md:block">
-                <svg class="w-6 h-6 stroke-primary-text 
-                group-hover:rotate-10 group-hover:stroke-primary
-                transition-all duration-300 ease-in-out" 
-                fill="none" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
+                    <svg class="w-6 h-6 stroke-primary-text 
+                      group-hover:rotate-10 group-hover:stroke-primary
+                      transition-all duration-300 ease-in-out" 
+                      fill="none" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                    </svg>
                 </button>
-
                 <button data-modal-target="notifModalSmall" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
                 hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
                 transition-all buration-300 ease-in-out
                 block md:hidden">
-                <svg class="w-6 h-6 stroke-primary-text 
-                group-hover:rotate-10 group-hover:stroke-primary
-                transition-all duration-300 ease-in-out" 
-                fill="none" viewBox="0 0 24 24">
+                  <svg class="w-6 h-6 stroke-primary-text 
+                  group-hover:rotate-10 group-hover:stroke-primary
+                  transition-all duration-300 ease-in-out" 
+                  fill="none" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
-                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-                </svg>
+                      d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                  </svg>
                 </button>
+                <span id="notifBadge" class="notif-badge">
+                    2
+                </span>
+              </div>
 
                 <!-- Dropdown Panel -->
-                <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-[400px] p-5 bg-white border border-gray-300 rounded-3xl shadow-lg z-50">
-                <div class="mb-3">
-                    <div class="flex items-center justify-between">
-                    <p class="font-semibold font-manrope text-lg text-primary-text">Notifications</p>
-                    <button onclick="markAllAsRead()" class="!p-0 !text-sm !text-primary hover:underline cursor-pointer">Mark all as read</button>
-                    </div>
+                <div data-tab-group="notification" id="notificationDropdown" class="hidden absolute right-0 mt-2 w-[400px] p-5 bg-white border border-gray-300 rounded-3xl shadow-lg z-50">
+                
+                <!-- Tabs -->
+                <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full mx-auto shadow-sm mb-5">
+                  <button class="notif-tab-btn text-sm !px-4 !py-2 rounded-full flex-1
+                    hover:bg-primary/10 group active:scale-95
+                    transition-all duration-200 bg-white text-primary font-semibold shadow" 
+                    data-tab-group="notification">
+                    <span class="text-primary text-sm group-hover:text-primary ">Notification</span>
+                  </button>
+                  <button class="notif-tab-btn text-sm !px-4 !py-2 rounded-full flex-1
+                    hover:bg-primary/10 group active:scale-95
+                    transition-all duration-200" 
+                    data-tab-group="notification">
+                    <span class="text-neutral-500 text-sm group-hover:text-primary">Cancellations</span>
+                  </button>
                 </div>
-                <div class="h-[1px] w-full border border-neutral-300"></div>
-                <div class="max-h-[400px] overflow-y-auto">
+                
+                <div class="tab-content">
+                  <div class="max-h-[400px] overflow-y-auto">
                     <div class="py-4 text-sm font-inter text-gray-500">Today</div>
 
                     <!-- NOTIFICATION ITEM -->
@@ -234,8 +249,32 @@
                     </div>
                     
                     </div>
+                  </div>
                 </div>
+                
+                <div class="tab-content hidden">
+                  <div class="max-h-[400px] overflow-y-auto">
+                    <div class="pb-4 text-sm font-inter text-neutral-500">Today</div>
+                    <div id="cancelContainer" class="flex flex-col pb-4">
+                      <div class="notification unread cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out">
+                        <div class="flex items-start gap-2">
+                          <div class="w-full">
+                            <div class="flex justify-between">
+                              <div class="flex gap-2 items-center">
+                                <div class="dot-notif"></div>
+                                <p class="font-semibold text-neutral-900">Cancellation Request</p>
+                              </div>
+                              <span class="text-xs text-neutral-400">15:30</span>
+                            </div>
+                            <p class="text-xs text-neutral-400">Booking ID: #12345</p>
+                            <p class="text-sm text-neutral-700 line-clamp-2">Customer has requested to cancel their booking.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
             </div>
 
             <!-- Right Hamburger + Profile -->

@@ -185,34 +185,34 @@ function updatePhotosSection(images) {
   if (images.length === 1) {
     // Single image - take full width
     photosHTML = `
-      <div class="rounded-2xl h-full col-span-1 sm:col-span-5 overflow-hidden">
-        <img src="${images[0].url}" alt="Property photo" class="w-full h-full object-cover">
+      <div class="rounded-2xl h-full col-span-1 sm:col-span-5 bg-cover bg-center bg-no-repeat" 
+           style="background-image: url('${images[0].url}')">
       </div>
     `;
   } else if (images.length === 2) {
     // Two images - left large, right small
     photosHTML = `
-      <div class="rounded-2xl h-full col-span-1 sm:col-span-3 overflow-hidden">
-        <img src="${images[0].url}" alt="Property photo" class="w-full h-full object-cover">
+      <div class="rounded-2xl h-full col-span-1 sm:col-span-3 bg-cover bg-center bg-no-repeat" 
+           style="background-image: url('${images[0].url}')">
       </div>
       <div class="hidden sm:block sm:col-span-2 h-full">
-        <div class="rounded-2xl h-full overflow-hidden">
-          <img src="${images[1].url}" alt="Property photo" class="w-full h-full object-cover">
+        <div class="rounded-2xl h-full bg-cover bg-center bg-no-repeat" 
+             style="background-image: url('${images[1].url}')">
         </div>
       </div>
     `;
   } else {
     // Three or more images - left large, right grid
     photosHTML = `
-      <div class="rounded-2xl h-full col-span-1 sm:col-span-3 overflow-hidden">
-        <img src="${images[0].url}" alt="Property photo" class="w-full h-full object-cover">
+      <div class="rounded-2xl h-full col-span-1 sm:col-span-3 bg-cover bg-center bg-no-repeat" 
+           style="background-image: url('${images[0].url}')">
       </div>
       <div class="hidden sm:grid sm:col-span-2 sm:grid-rows-2 sm:gap-3 h-full">
-        <div class="rounded-2xl overflow-hidden">
-          <img src="${images[1].url}" alt="Property photo" class="w-full h-full object-cover">
+        <div class="rounded-2xl bg-cover bg-center bg-no-repeat" 
+             style="background-image: url('${images[1].url}')">
         </div>
-        <div class="rounded-2xl overflow-hidden">
-          <img src="${images[2].url}" alt="Property photo" class="w-full h-full object-cover">
+        <div class="rounded-2xl bg-cover bg-center bg-no-repeat" 
+             style="background-image: url('${images[2].url}')">
         </div>
       </div>
     `;
@@ -370,7 +370,32 @@ document.addEventListener('DOMContentLoaded', function () {
     confirmBtn.addEventListener('click', async function (e) {
     e.preventDefault();
 
-    // Get selected employees before validation
+    // Prevent double submission by disabling button and showing loading
+    if (confirmBtn.disabled) return;
+    
+    // Store original button content
+    const originalContent = confirmBtn.innerHTML;
+    
+    // Set loading state
+    confirmBtn.disabled = true;
+    confirmBtn.innerHTML = `
+      <div class="flex items-center justify-center gap-2">
+        <svg class="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>Creating Property...</span>
+      </div>
+    `;
+    
+    // Function to restore button state
+    const restoreButton = () => {
+      confirmBtn.disabled = false;
+      confirmBtn.innerHTML = originalContent;
+    };
+
+    try {
+      // Get selected employees before validation
     const employeeContainer = document.getElementById('assigned-employees-container');
     let selectedEmployeeIds = [];
     
@@ -399,6 +424,7 @@ document.addEventListener('DOMContentLoaded', function () {
     // Check if at least 3 images are selected
     if (selectedFiles.length < 3) {
       alert(`Please select at least 3 images. You currently have ${selectedFiles.length} image(s) selected.`);
+      restoreButton();
       return;
     }
 
@@ -415,6 +441,7 @@ document.addEventListener('DOMContentLoaded', function () {
       if (!element || !element.value.trim()) {
         alert(`Please fill in the ${field.label} field.`);
         if (element) element.focus();
+        restoreButton();
         return;
       }
     }
@@ -511,12 +538,19 @@ document.addEventListener('DOMContentLoaded', function () {
         console.error('API Error Response:', errorText);
         const error = await response.json().catch(() => ({ message: errorText }));
         alert('Error: ' + (error.message || 'Failed to add property.'));
+        restoreButton();
       }
     } catch (err) {
       console.error('Network/Fetch Error:', err);
       alert('Network error: ' + err.message);
+      restoreButton();
     }
-  });
+    } catch (outerErr) {
+      console.error('Unexpected error in property creation:', outerErr);
+      alert('An unexpected error occurred. Please try again.');
+      restoreButton();
+    }
+  }); // End of confirmBtn event listener
   } // End of confirmBtn conditional
 
   // Initialize employee loading

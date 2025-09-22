@@ -349,12 +349,12 @@ document.addEventListener("DOMContentLoaded", () => {
 function initializeScopedTabs(container) {
     if (!container) return;
     // Find the nearest data-tab-group containers that include notifications UI
-    const groups = container.matches('[data-tab-group]') ? [container] : container.querySelectorAll('[data-tab-group]');
+    const groups = container.matches('[data-tab-group="notification"]') ? [container] : container.querySelectorAll('[data-tab-group="notification"]');
     groups.forEach((group) => {
         // Only handle groups that contain our notifications containers
         if (!group.querySelector('#notificationsContainer') && !group.querySelector('#cancelContainer')) return;
 
-        const tabButtons = group.querySelectorAll('.tab-btn');
+        const tabButtons = group.querySelectorAll('.notif-tab-btn');
         const contents = group.querySelectorAll('.tab-content');
         if (tabButtons.length < 2 || contents.length < 2) return;
 
@@ -388,7 +388,7 @@ function initializeScopedTabs(container) {
 
 function initializeAllNotificationTabs() {
     // Desktop dropdowns and small modals may already be in DOM; set up both.
-    const candidates = document.querySelectorAll('[data-tab-group]');
+    const candidates = document.querySelectorAll('[data-tab-group="notification"]');
     candidates.forEach((c) => initializeScopedTabs(c));
 }
 

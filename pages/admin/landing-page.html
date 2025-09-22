@@ -185,16 +185,16 @@
                     
                     <!-- Tabs -->
                     <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full mx-auto shadow-sm mb-5">
-                    <button class="tab-btn text-sm !px-4 !py-2 rounded-full flex-1
+                    <button class="notif-tab-btn text-sm !px-4 !py-2 rounded-full flex-1
                         hover:bg-primary/10 group active:scale-95
                         transition-all duration-200 bg-white text-primary font-semibold shadow" 
-                        onclick="setActiveTab(0)">
+                        data-tab-group="notification">
                         <span class="text-primary text-sm group-hover:text-primary ">Notification</span>
                     </button>
-                    <button class="tab-btn text-sm !px-4 !py-2 rounded-full flex-1
+                    <button class="notif-tab-btn text-sm !px-4 !py-2 rounded-full flex-1
                         hover:bg-primary/10 group active:scale-95
                         transition-all duration-200" 
-                        onclick="setActiveTab(1)">
+                        data-tab-group="notification">
                         <span class="text-neutral-500 text-sm group-hover:text-primary">Cancellations</span>
                     </button>
                     </div>
@@ -428,20 +428,20 @@
 
         <!-- SCROLLABLE NOTIF LIST -->
         <div class="flex-1 overflow-y-auto custom-scroll flex flex-col">
-          <div data-tab-group id="notificationDropdown" class=" p-5 ">
+          <div data-tab-group="notification" id="notificationDropdown" class=" p-5 ">
                 
             <!-- Tabs -->
             <div class="flex gap-1 bg-neutral-100 rounded-full p-1 w-full mx-auto shadow-sm mb-5">
-              <button class="tab-btn text-sm !px-2 !py-1 rounded-full flex-1
+              <button class="notif-tab-btn text-sm !px-2 !py-1 rounded-full flex-1
                 hover:bg-primary/10 group active:scale-95
                 transition-all duration-200 bg-white text-primary font-semibold shadow" 
-                onclick="setActiveTab(0)">
+                data-tab-group="notification">
                 <span class="text-primary text-sm group-hover:text-primary ">Notification</span>
               </button>
-              <button class="tab-btn text-sm !px-2 !py-1 rounded-full flex-1
+              <button class="notif-tab-btn text-sm !px-2 !py-1 rounded-full flex-1
                 hover:bg-primary/10 group active:scale-95
                 transition-all duration-200" 
-                onclick="setActiveTab(1)">
+                data-tab-group="notification">
                 <span class="text-neutral-500 text-sm group-hover:text-primary">Cancellations</span>
               </button>
             </div>
