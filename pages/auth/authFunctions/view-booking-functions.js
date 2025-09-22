@@ -158,25 +158,32 @@ function populateBookingData(booking) {
 
         populateElement('reservationFee', booking.reservationFee?.toLocaleString() || '0');
         
+        // Update reservation fee display with parentheses and tooltip
+        updateReservationFeeDisplay(booking.reservationFee);
+        
         // Calculate base subtotal (package fee + additional guest fees)
         const baseSubtotal = (booking.packageFee * booking.numOfDays) + (booking.additionalPaxPrice * booking.additionalPax);
         
         // Handle discount calculation
         const discount = booking.discount || 0;
+        const reservationFee = booking.reservationFee || 0;
         let discountAmount = 0;
         let subtotalAfterDiscount = baseSubtotal;
         
         if (discount > 0) {
+            // Discount should be calculated on (subtotal - reservationFee)
+            const discountBase = baseSubtotal - reservationFee;
+            
             // Check if discount is a percentage or absolute amount
             if (discount <= 100) {
-                // Percentage discount - apply to base subtotal
-                discountAmount = Math.round((baseSubtotal * discount) / 100);
+                // Percentage discount - apply to discount base (subtotal - reservation fee)
+                discountAmount = Math.round((discountBase * discount) / 100);
                 populateElement('discountPercentage', `${discount}%`);
             } else {
                 // Absolute discount amount
                 discountAmount = discount;
-                // Calculate percentage for display
-                const percentage = ((discount / baseSubtotal) * 100).toFixed(1);
+                // Calculate percentage for display based on discount base
+                const percentage = ((discount / discountBase) * 100).toFixed(1);
                 populateElement('discountPercentage', `${percentage}%`);
             }
             
@@ -192,13 +199,14 @@ function populateBookingData(booking) {
                 discountSection.style.display = 'flex';
             }
             
-            console.log('Discount calculation:', {
+            console.log('Discount calculation (reservation fee excluded from discount):', {
                 baseSubtotal: baseSubtotal,
+                reservationFee: reservationFee,
+                discountBase: discountBase,
                 discountPercent: discount,
                 discountAmount: discountAmount,
                 subtotalAfterDiscount: subtotalAfterDiscount,
-                reservationFee: booking.reservationFee,
-                calculatedTotal: subtotalAfterDiscount + (booking.reservationFee || 0)
+                calculation: `(${baseSubtotal} - ${reservationFee}) × ${discount}% = ${discountAmount}`
             });
             
         } else {
@@ -401,6 +409,8 @@ function calculateAndDisplayPaymentStatus(booking) {
             
             if (reservationApproved && packageApproved) {
                 status = 'Fully-Paid';
+            } else if (packageApproved && !reservationApproved) {
+                status = 'Fully-Paid'; // Package approved means full payment (check package first)
             } else if (reservationApproved && !packageApproved) {
                 status = 'Reserved';
             } else if (reservationAttempted || packageAttempted) {
@@ -451,12 +461,16 @@ function updateTotalPaidField(booking, correctTotal) {
                 displayText = `${correctTotal.toLocaleString()}`;
                 actualPaidAmount = correctTotal;
                 isPending = false;
+            } else if (packageApproved) {
+                // Package approved (check package first) - show full amount without parentheses
+                displayText = `${correctTotal.toLocaleString()}`;
+                actualPaidAmount = correctTotal;
+                isPending = false;
             } else {
-                // At least one is pending - show full amount with parentheses (yellow)
+                // Package not approved (even if reservation is approved) - show full amount with parentheses (yellow)
                 displayText = `(${correctTotal.toLocaleString()})`;
                 // For pending, we consider it as not fully paid yet
                 actualPaidAmount = reservationApproved ? (booking.reservationFee || 0) : 0;
-                if (packageApproved) actualPaidAmount += (correctTotal - (booking.reservationFee || 0));
                 isPending = true;
                 tooltipText = 'Payment is pending approval';
             }
@@ -528,6 +542,67 @@ function updateTotalPaidField(booking, correctTotal) {
     } catch (error) {
         console.error('Error updating totalPaid field:', error);
         return 0;
+    }
+}
+
+// Function to update reservation fee display with parentheses and tooltip
+function updateReservationFeeDisplay(reservationFee) {
+    try {
+        const reservationFeeElement = document.getElementById('reservationFee');
+        if (!reservationFeeElement) {
+            console.warn('reservationFee element not found');
+            return;
+        }
+
+        const amount = reservationFee || 0;
+        // Display in parentheses to indicate it's not included in total
+        reservationFeeElement.textContent = `(${amount.toLocaleString()})`;
+        
+        // Add tooltip to explain it's not included in total
+        reservationFeeElement.title = 'Reservation fee is non-discountable but it is included in the package fee.';
+        
+        // Add subtle styling to indicate it's informational (removed italic)
+        reservationFeeElement.style.color = '#6b7280'; // Gray-500
+        reservationFeeElement.style.fontStyle = 'normal'; // Remove italic
+        
+        // Try to move the reservation fee element above subtotal if possible
+        moveReservationFeeAboveSubtotal();
+
+        console.log('Reservation fee display updated:', {
+            amount: amount,
+            displayText: `(${amount.toLocaleString()})`
+        });
+
+    } catch (error) {
+        console.error('Error updating reservation fee display:', error);
+    }
+}
+
+// Function to move reservation fee element above subtotal in the DOM
+function moveReservationFeeAboveSubtotal() {
+    try {
+        const reservationFeeElement = document.getElementById('reservationFee');
+        const subtotalElement = document.getElementById('subtotal');
+        
+        if (!reservationFeeElement || !subtotalElement) {
+            console.warn('Could not find reservation fee or subtotal elements for reordering');
+            return;
+        }
+        
+        // Find the parent containers (likely the row elements)
+        const reservationFeeRow = reservationFeeElement.closest('div, tr, li') || reservationFeeElement.parentElement;
+        const subtotalRow = subtotalElement.closest('div, tr, li') || subtotalElement.parentElement;
+        
+        if (reservationFeeRow && subtotalRow && reservationFeeRow !== subtotalRow) {
+            // Move reservation fee row before subtotal row
+            subtotalRow.parentNode.insertBefore(reservationFeeRow, subtotalRow);
+            console.log('✅ Moved reservation fee above subtotal');
+        } else {
+            console.log('⚠️ Could not move reservation fee - elements not found or same row');
+        }
+        
+    } catch (error) {
+        console.error('Error moving reservation fee above subtotal:', error);
     }
 }
 

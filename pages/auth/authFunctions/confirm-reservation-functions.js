@@ -347,12 +347,23 @@ function getReservationDataFromURL(urlParams) {
     // Calculate subtotal before discount (package + additional guests, NOT including reservation fee)
     data.subtotal = data.totalPriceDay + data.totalAddGuest;
     
-    // Apply discount if any
-    data.discountAmount = (data.subtotal * data.discount) / 100;
+    // Apply discount if any - discount calculated on (subtotal - reservationFee)
+    const discountBase = data.subtotal - data.reservationFee;
+    data.discountAmount = (discountBase * data.discount) / 100;
     data.totalAfterDiscount = data.subtotal - data.discountAmount;
     
     // Final total is after discount (reservation fee is displayed separately, not subtracted)
     data.totalPrice = data.totalAfterDiscount;
+    
+    console.log('Discount calculation (reservation fee excluded):', {
+        subtotal: data.subtotal,
+        reservationFee: data.reservationFee,
+        discountBase: discountBase,
+        discountPercent: data.discount,
+        discountAmount: data.discountAmount,
+        totalAfterDiscount: data.totalAfterDiscount,
+        calculation: `(${data.subtotal} - ${data.reservationFee}) × ${data.discount}% = ${data.discountAmount}`
+    });
     
     return data;
 }
@@ -379,13 +390,16 @@ function populateReservationData(data) {
         updateElementText('addGuestPrice', data.addGuestPrice.toLocaleString() || '00');
         updateElementText('addGuestCount', data.additionalGuests || '0');
         updateElementText('totalAddGuest', data.totalAddGuest.toLocaleString() || '00');
-        updateElementText('reservationFee', data.reservationFee.toLocaleString() || '00');
+        
+        // Update reservation fee with parentheses (no negative sign)
+        updateReservationFeeDisplay(data.reservationFee);
         
         // Discount details
         const discountAmount = data.discountAmount || 0;
         
         updateElementText('discountPercentage', (data.discount || 0) + '%');
-        updateElementText('discount', discountAmount.toLocaleString());
+        // Update discount display without negative sign and matching colors
+        updateDiscountDisplay(discountAmount);
         updateElementText('subtotal', data.subtotal ? data.subtotal.toLocaleString() : '00'); // Subtotal without reservation fee
         
         updateElementText('totalPrice', data.totalPrice.toLocaleString() || '00'); // Final total after discount and reservation fee deduction
@@ -410,6 +424,94 @@ function updateElementText(elementId, text) {
         element.textContent = text;
     } else {
         console.error(`❌ Element with id '${elementId}' not found`);
+    }
+}
+
+// Function to update reservation fee display with parentheses and positioning
+function updateReservationFeeDisplay(reservationFee) {
+    try {
+        const reservationFeeElement = document.getElementById('reservationFee');
+        if (!reservationFeeElement) {
+            console.warn('reservationFee element not found');
+            return;
+        }
+
+        const amount = reservationFee || 0;
+        // Display in parentheses to indicate it's not included in total (no negative sign)
+        reservationFeeElement.textContent = `(${amount.toLocaleString()})`;
+        
+        // Add tooltip to explain it's not included in total
+        reservationFeeElement.title = 'The reservation fee is not summed up to your total payment';
+        
+        // Add subtle styling to indicate it's informational
+        reservationFeeElement.style.color = '#6b7280'; // Gray-500
+        reservationFeeElement.style.fontStyle = 'normal'; // No italic
+        
+        // Try to move the reservation fee element above subtotal if possible
+        moveReservationFeeAboveSubtotal();
+
+        console.log('Reservation fee display updated:', {
+            amount: amount,
+            displayText: `(${amount.toLocaleString()})`
+        });
+
+    } catch (error) {
+        console.error('Error updating reservation fee display:', error);
+    }
+}
+
+// Function to update discount display without negative sign and uniform styling
+function updateDiscountDisplay(discountAmount) {
+    try {
+        const discountElement = document.getElementById('discount');
+        if (!discountElement) {
+            console.warn('discount element not found');
+            return;
+        }
+
+        const amount = discountAmount || 0;
+        // Display without negative sign
+        discountElement.textContent = amount.toLocaleString();
+        
+        // Apply same styling as reservation fee for uniformity
+        discountElement.style.color = '#6b7280'; // Gray-500 to match reservation fee
+        discountElement.style.fontStyle = 'normal'; // No italic
+
+        console.log('Discount display updated:', {
+            amount: amount,
+            displayText: amount.toLocaleString()
+        });
+
+    } catch (error) {
+        console.error('Error updating discount display:', error);
+    }
+}
+
+// Function to move reservation fee element above subtotal in the DOM
+function moveReservationFeeAboveSubtotal() {
+    try {
+        const reservationFeeElement = document.getElementById('reservationFee');
+        const subtotalElement = document.getElementById('subtotal');
+        
+        if (!reservationFeeElement || !subtotalElement) {
+            console.warn('Could not find reservation fee or subtotal elements for reordering');
+            return;
+        }
+        
+        // Find the parent containers (likely the row elements)
+        const reservationFeeRow = reservationFeeElement.closest('div, tr, li') || reservationFeeElement.parentElement;
+        const subtotalRow = subtotalElement.closest('div, tr, li') || subtotalElement.parentElement;
+        
+        if (reservationFeeRow && subtotalRow && reservationFeeRow !== subtotalRow) {
+            // Move reservation fee row before subtotal row
+            subtotalRow.parentNode.insertBefore(reservationFeeRow, subtotalRow);
+            console.log('✅ Moved reservation fee above subtotal');
+        } else {
+            console.log('⚠️ Could not move reservation fee - elements not found or same row');
+        }
+        
+    } catch (error) {
+        console.error('Error moving reservation fee above subtotal:', error);
     }
 }
 

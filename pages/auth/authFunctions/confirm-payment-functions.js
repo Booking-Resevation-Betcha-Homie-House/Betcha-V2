@@ -1001,6 +1001,10 @@ function populatePaymentData(booking, paymentType) {
         // Update payment type indicator
         updatePaymentTypeIndicator(paymentType, amountToPay);
         
+        // Calculate subtotal (package fee + additional guests)
+        const subtotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax);
+        console.log('🧮 Calculated subtotal:', subtotal);
+        
         // Populate price elements that exist in HTML
         populateElement('pricePerDay', packageFee.toLocaleString());
         populateElement('daysOfStay', numOfDays.toString());
@@ -1010,7 +1014,31 @@ function populatePaymentData(booking, paymentType) {
         populateElement('addGuestCount', additionalPax.toString());
         populateElement('totalAddGuest', (additionalPaxPrice * additionalPax).toLocaleString());
         
-        populateElement('reservationFee', reservationFee.toLocaleString());
+        // Populate subtotal
+        populateElement('subtotal', subtotal.toLocaleString());
+        
+        // Handle reservation fee display based on payment type
+        const reservationFeeSection = document.getElementById('reservationFeeSection') || 
+                                     document.querySelector('.reservation-fee-row') ||
+                                     document.getElementById('reservationFee')?.closest('div');
+        
+        if (paymentType === 'Full Payment') {
+            // Hide reservation fee for full payment
+            console.log('🎨 Hiding reservation fee for Full Payment');
+            populateElement('reservationFee', '0');
+            if (reservationFeeSection) {
+                reservationFeeSection.style.display = 'none';
+                console.log('✅ Reservation fee section hidden for Full Payment');
+            }
+        } else {
+            // Show reservation fee for other payment types
+            console.log('🎨 Showing reservation fee for', paymentType);
+            populateElement('reservationFee', reservationFee.toLocaleString());
+            if (reservationFeeSection) {
+                reservationFeeSection.style.display = 'flex';
+                console.log('✅ Reservation fee section shown for', paymentType);
+            }
+        }
         
         // Handle discount display
         console.log('🎨 Processing discount display:', { 
@@ -1159,30 +1187,8 @@ function getPaymentAmount(booking, paymentType) {
     if (paymentType === 'Reservation') {
         return booking.reservationFee || 0;
     } else if (paymentType === 'Package') {
-        // Package amount = (packageFee × days) + (additionalPaxPrice × additionalPax) - reservationFee
-        // Reservation fee is subtracted because it's already paid separately
-        const packageFee = booking.packageFee || 0;
-        const numOfDays = booking.numOfDays || 1;
-        const additionalPaxPrice = booking.additionalPaxPrice || 0;
-        const additionalPax = booking.additionalPax || 0;
-        const reservationFee = booking.reservationFee || 0;
-        
-        const packageTotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax);
-        const packageAmountAfterReservation = packageTotal - reservationFee;
-        
-        console.log('Package payment calculation:', {
-            packageFee,
-            numOfDays,
-            additionalPaxPrice,
-            additionalPax,
-            reservationFee,
-            packageTotal: packageTotal,
-            finalPackageAmount: packageAmountAfterReservation
-        });
-        
-        return Math.max(0, packageAmountAfterReservation); // Ensure it's never negative
-    } else {
-        // For full payment, calculate the total manually to ensure correct discount application
+        // Package amount = ((packageFee × days) + (additionalPaxPrice × additionalPax)) - discount - reservationFee
+        // Step 1: Calculate base subtotal
         const packageFee = booking.packageFee || 0;
         const numOfDays = booking.numOfDays || 1;
         const additionalPaxPrice = booking.additionalPaxPrice || 0;
@@ -1190,32 +1196,85 @@ function getPaymentAmount(booking, paymentType) {
         const reservationFee = booking.reservationFee || 0;
         const discount = booking.discount || 0;
         
-        // Calculate original subtotal (before discount)
-        const originalSubtotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax) + reservationFee;
+        // Step 2: Calculate subtotal (before discount and before reservation fee)
+        const subtotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax);
         
-        // Apply discount if it's a percentage
+        // Step 3: Calculate discount amount on discount base (subtotal - reservation fee)
+        const discountBase = subtotal - reservationFee;
         let discountAmount = 0;
         if (discount > 0 && discount <= 100) {
-            discountAmount = (originalSubtotal * discount) / 100;
+            // Percentage discount on discount base (excludes reservation fee)
+            discountAmount = Math.round((discountBase * discount) / 100);
         } else if (discount > 100) {
-            discountAmount = discount; // Already an absolute amount
+            // Absolute discount amount
+            discountAmount = discount;
         }
         
-        // Calculate total after discount, then subtract reservation fee (since it's paid separately)
-        const totalAfterDiscount = originalSubtotal - discountAmount;
-        const fullPaymentAmount = totalAfterDiscount - reservationFee;
+        // Step 4: Calculate subtotal after discount
+        const subtotalAfterDiscount = subtotal - discountAmount;
         
-        console.log('Full payment calculation:', {
+        // Step 5: Subtract reservation fee (since it's already paid separately)
+        const packageAmount = subtotalAfterDiscount - reservationFee;
+        
+        console.log('Package payment calculation (reservation fee excluded from discount):', {
+            packageFee,
+            numOfDays,
+            additionalPaxPrice,
+            additionalPax,
+            subtotal: subtotal,
+            reservationFee,
+            discountBase,
+            discount: discount,
+            discountAmount: discountAmount,
+            subtotalAfterDiscount: subtotalAfterDiscount,
+            finalPackageAmount: packageAmount,
+            calculation: `((${subtotal} - ${reservationFee}) × ${discount}% = ${discountAmount}) → (${subtotal} - ${discountAmount}) - ${reservationFee} = ${packageAmount}`
+        });
+        
+        return Math.max(0, packageAmount); // Ensure it's never negative
+    } else {
+        // For full payment, calculate: (Subtotal - Discount) without subtracting reservation fee
+        const packageFee = booking.packageFee || 0;
+        const numOfDays = booking.numOfDays || 1;
+        const additionalPaxPrice = booking.additionalPaxPrice || 0;
+        const additionalPax = booking.additionalPax || 0;
+        const reservationFee = booking.reservationFee || 0;
+        const discount = booking.discount || 0;
+        
+        // Calculate subtotal (WITHOUT reservation fee for full payment)
+        const subtotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax);
+        
+        // Calculate discount amount on discount base (subtotal - reservation fee)
+        const discountBase = subtotal - reservationFee;
+        let discountAmount = 0;
+        if (discount > 0) {
+            if (discount <= 1) {
+                // Discount is already a decimal (e.g., 0.05 for 5%)
+                discountAmount = discountBase * discount;
+            } else if (discount <= 100) {
+                // Discount is a percentage (e.g., 5 for 5%) - apply to discount base
+                discountAmount = (discountBase * discount) / 100;
+            } else {
+                // Discount is an absolute amount
+                discountAmount = discount;
+            }
+        }
+        
+        // Full payment = Subtotal - Discount (reservation fee NOT subtracted)
+        const fullPaymentAmount = subtotal - discountAmount;
+        
+        console.log('Full payment calculation (reservation fee excluded from discount):', {
             packageFee,
             numOfDays,
             additionalPaxPrice,
             additionalPax,
             reservationFee,
+            discountBase,
             discount,
-            originalSubtotal,
+            subtotal,
             discountAmount,
-            totalAfterDiscount,
-            finalFullPaymentAmount: fullPaymentAmount
+            finalFullPaymentAmount: fullPaymentAmount,
+            calculation: `((${subtotal} - ${reservationFee}) × ${discount}% = ${discountAmount}) → (${subtotal} - ${discountAmount}) = ${fullPaymentAmount}`
         });
         
         return Math.max(0, fullPaymentAmount); // Ensure it's never negative
@@ -1278,29 +1337,33 @@ function calculateDiscountAmount(booking) {
         
         // Check if discount is already a percentage or absolute amount
         if (discount <= 100) {
-            // Discount is a percentage, calculate the amount from the original total
-            // We need to calculate the original total before discount
+            // Discount is a percentage, calculate the amount from discount base (subtotal - reservation fee)
             const packageFee = booking.packageFee || 0;
             const numOfDays = booking.numOfDays || 1;
             const additionalPaxPrice = booking.additionalPaxPrice || 0;
             const additionalPax = booking.additionalPax || 0;
             const reservationFee = booking.reservationFee || 0;
             
-            // Calculate original subtotal (before discount)
-            const originalSubtotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax) + reservationFee;
+            // Calculate subtotal (before discount and before reservation fee)
+            const subtotal = (packageFee * numOfDays) + (additionalPaxPrice * additionalPax);
             
-            // Calculate discount amount from percentage
-            const discountAmount = (originalSubtotal * discount) / 100;
+            // Discount base = subtotal - reservation fee (reservation fee excluded from discount)
+            const discountBase = subtotal - reservationFee;
             
-            console.log('Discount amount calculation (from percentage):', {
+            // Calculate discount amount from percentage on discount base
+            const discountAmount = (discountBase * discount) / 100;
+            
+            console.log('Discount amount calculation (reservation fee excluded):', {
                 discountPercentage: discount,
                 packageFee,
                 numOfDays,
                 additionalPaxPrice,
                 additionalPax,
                 reservationFee,
-                originalSubtotal,
-                calculatedDiscountAmount: discountAmount
+                subtotal,
+                discountBase,
+                calculatedDiscountAmount: discountAmount,
+                calculation: `(${subtotal} - ${reservationFee}) × ${discount}% = ${discountAmount}`
             });
             
             return Math.round(discountAmount);
