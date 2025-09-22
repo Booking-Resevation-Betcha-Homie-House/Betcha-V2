@@ -336,7 +336,14 @@ function populateBasicInfo(data) {
             // Show and setup the directions button
             if (directionsButtonContainer && directionsBtn) {
                 directionsButtonContainer.classList.remove('hidden');
-                setupDirectionsButton(directionsBtn, mapContainer, data);
+                
+                // Extract address and coordinates for directions
+                const address = data.address || data.city || '';
+                const coordinates = data.mapLink ? extractCoordinatesFromMapLink(data.mapLink) : null;
+                const latitude = coordinates?.lat;
+                const longitude = coordinates?.lng;
+                
+                setupDirectionsButton(address, latitude, longitude);
             }
         } else {
             propertyMapLinkElement.textContent = 'Location not available';
@@ -385,31 +392,29 @@ function populateBasicInfo(data) {
 }
 
 // Function to setup directions button functionality
-function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
+function setupDirectionsButton(address, latitude, longitude) {
     try {
+        const directionsButtonContainer = document.getElementById('directionsButtonContainer');
+        const directionsBtn = document.getElementById('directionsBtn');
+        const mapContainer = document.getElementById('mapContainer');
+        
+        if (!directionsButtonContainer || !directionsBtn || !mapContainer) {
+            console.error('Directions button elements not found');
+            return;
+        }
+
+        // Show the directions button
+        directionsButtonContainer.classList.remove('hidden');
+
         // Create directions query - prefer coordinates if available, fallback to address
         let directionsQuery;
-        
-        // Extract coordinates from mapLink for precise location
-        const coordinates = propertyData.mapLink ? extractCoordinatesFromMapLink(propertyData.mapLink) : null;
-        
-        console.log('Extracted coordinates:', coordinates);
-        
-        if (coordinates && propertyData.address) {
-            // Use coordinates + address for most accurate matching
-            directionsQuery = `${coordinates.lat},${coordinates.lng}+${encodeURIComponent(propertyData.address)}`;
-            console.log('Using coordinates + address for precise location:', directionsQuery);
-        } else if (coordinates) {
-            // Use just coordinates if address not available
-            directionsQuery = `${coordinates.lat},${coordinates.lng}`;
-            console.log('Using coordinates only:', directionsQuery);
-        } else if (propertyData.address) {
-            // Fallback to full address only
-            directionsQuery = encodeURIComponent(propertyData.address);
-            console.log('Using full address only:', propertyData.address);
+        if (latitude && longitude) {
+            directionsQuery = `${latitude},${longitude}`;
+        } else if (address) {
+            directionsQuery = encodeURIComponent(address);
         } else {
-            // Final fallback
-            directionsQuery = encodeURIComponent('Property Location');
+            console.error('No location data available for directions');
+            return;
         }
 
         // Set up click handler for directions button
@@ -423,6 +428,7 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
             const directionsText = document.getElementById('directionsText');
             
             if (!isShowingDirections) {
+                // Store original map content before changing it
                 // Store original map content before changing it
                 originalMapContent = mapContainer.innerHTML;
                 
@@ -484,7 +490,7 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                             
                             // Add a brief delay to show loading, then show fallback
                             setTimeout(() => {
-                                // Use our precise destination for fallback (without user location, driving mode)
+                                // Use simple maps.google.com URL for fallback (no API key needed)
                                 const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                                 
                                 console.log('Generated fallback directions URL:', fallbackEmbedUrl);
@@ -507,10 +513,10 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                                 isShowingDirections = true;
                             }, 800); // 800ms delay to show loading
                         },
-                        {
-                            enableHighAccuracy: true,
-                            timeout: 10000,
-                            maximumAge: 300000 // 5 minutes
+                        { 
+                            enableHighAccuracy: true, 
+                            timeout: 10000, 
+                            maximumAge: 300000 
                         }
                     );
                 } else {
@@ -519,7 +525,7 @@ function setupDirectionsButton(directionsBtn, mapContainer, propertyData) {
                     
                     // Show loading briefly before showing fallback
                     setTimeout(() => {
-                        // Use fallback (satellite view, driving mode)
+                        // Use simple maps.google.com URL (no API key needed)
                         const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
                         
                         console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
