@@ -106,6 +106,9 @@ async function initializeDashboard() {
     }
 }
 
+// Global variable to store dashboard data for animations
+let dashboardStatsData = null;
+
 /**
  * Hide loading states and show actual content
  */
@@ -127,6 +130,16 @@ function hideLoadingStates() {
             element.classList.remove('hidden');
         }
     });
+
+    // Start progress bar animations after skeleton loading is complete
+    setTimeout(() => {
+        if (typeof window.startProgressBarAnimations === 'function') {
+            // Pass real dashboard data if available
+            window.startProgressBarAnimations(dashboardStatsData);
+        } else {
+            console.warn('Progress bar animation function not found');
+        }
+    }, 100); // Small delay to ensure content is visible before animations start
 }
 
 /**
@@ -499,19 +512,34 @@ function populateSummaryData(data) {
  */
 function populateCountsData(data) {
     
-    // Available rentals today
-    const availableElement = document.getElementById('availableRental');
-    if (availableElement) {
-        const availableCount = data.availableToday.availableRoomCount || 0;
-        availableElement.textContent = availableCount;
-    }
+    // Store data globally for progress bar animations
+    const availableCount = data.availableToday.availableRoomCount || 0;
+    const bookedCount = data.todayBookings.activeBookingsToday || 0;
+    const totalProperties = data.properties.count || 1;
     
-    // Booked rooms today  
-    const bookedElement = document.getElementById('bookedRoom');
-    if (bookedElement) {
-        const bookedCount = data.todayBookings.activeBookingsToday || 0;
-        bookedElement.textContent = bookedCount;
-    }
+    dashboardStatsData = {
+        availableRentals: availableCount,
+        bookedRentals: bookedCount,
+        totalRentals: totalProperties
+    };
+    
+    console.log('📊 Dashboard stats data stored for animations:', dashboardStatsData);
+    
+    // DON'T set Available Rentals and Booked Rooms values here
+    // Keep them at 0 until animation starts after skeleton loading
+    // The animation will handle setting these values
+    
+    // Available rentals today - SKIP (will be animated)
+    // const availableElement = document.getElementById('availableRental');
+    // if (availableElement) {
+    //     availableElement.textContent = availableCount;
+    // }
+    
+    // Booked rooms today - SKIP (will be animated)
+    // const bookedElement = document.getElementById('bookedRoom');
+    // if (bookedElement) {
+    //     bookedElement.textContent = bookedCount;
+    // }
     
     // Total employees
     const employeeElement = document.getElementById('totalEmployee');
@@ -537,8 +565,8 @@ function populateCountsData(data) {
         transactionElement.textContent = data.activeBookings.count || 0;
     }
     
-    // Update progress bars if needed
-    updateProgressBars(data);
+    // DON'T update progress bars here - let animations handle them after skeleton loading
+    // updateProgressBars(data);
 }
 
 /**

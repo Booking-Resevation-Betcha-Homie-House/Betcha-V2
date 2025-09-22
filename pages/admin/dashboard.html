@@ -442,21 +442,21 @@
                 <div class="bg-primary rounded-2xl shadow-md p-6">
                   <div class="flex justify-between items-baseline mb-5">
                     <p class="text-secondary-text font-inter">Available Rentals Today</p>
-                    <p id="availableRental" class="text-secondary-text font-inter font-medium text-2xl">60</p>
+                    <p id="availableRental" class="text-secondary-text font-inter font-medium text-2xl">0</p>
                   </div>
                   <div class="w-full bg-secondary/50 rounded-full h-4 overflow-hidden">
                     <!-- Actual Progress -->
-                    <div class="bg-white h-full rounded-full transition-all duration-300 ease-in-out" style="width: 50%;"></div>
+                    <div id="availableRentalProgress" class="bg-white h-full rounded-full transition-all duration-1000 ease-out" style="width: 0%;"></div>
                   </div>
                 </div>
                 <div class="bg-primary rounded-2xl shadow-md p-6">
                   <div class="flex justify-between items-baseline mb-5">
                     <p class="text-secondary-text font-inter">Booked Rentals Today</p>
-                    <p id="bookedRoom" class="text-secondary-text font-inter font-medium text-2xl">60</p>
+                    <p id="bookedRoom" class="text-secondary-text font-inter font-medium text-2xl">0</p>
                   </div>
                   <div class="w-full bg-secondary/50 rounded-full h-4 overflow-hidden">
                     <!-- Actual Progress -->
-                    <div class="bg-white h-full rounded-full transition-all duration-300 ease-in-out" style="width: 50%;"></div>
+                    <div id="bookedRoomProgress" class="bg-white h-full rounded-full transition-all duration-1000 ease-out" style="width: 0%;"></div>
                   </div>
                 </div>
               </div>
@@ -846,5 +846,119 @@
   
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Progress Bar Animation Script -->
+  <script>
+    // Function to animate progress bars
+    function animateProgressBar(progressBarId, targetPercentage, duration = 1500) {
+      const progressBar = document.getElementById(progressBarId);
+      if (!progressBar) return;
+
+      let startTime = null;
+      const startWidth = 0;
+      
+      function animate(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Use easeOutCubic for smooth animation
+        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+        const currentWidth = startWidth + (targetPercentage - startWidth) * easeOutCubic;
+        
+        progressBar.style.width = currentWidth + '%';
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      }
+      
+      requestAnimationFrame(animate);
+    }
+
+    // Function to animate number counting
+    function animateNumber(elementId, targetNumber, duration = 1500) {
+      const element = document.getElementById(elementId);
+      if (!element) return;
+
+      let startTime = null;
+      const startNumber = 0;
+      
+      function animate(currentTime) {
+        if (startTime === null) startTime = currentTime;
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Use easeOutCubic for smooth animation
+        const easeOutCubic = 1 - Math.pow(1 - progress, 3);
+        const currentNumber = Math.round(startNumber + (targetNumber - startNumber) * easeOutCubic);
+        
+        element.textContent = currentNumber;
+        
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      }
+      
+      requestAnimationFrame(animate);
+    }
+
+    // Global function to start progress bar animations (called after skeleton loading)
+    window.startProgressBarAnimations = function(dashboardData = null) {
+      console.log('🎯 Starting progress bar animations after skeleton loading complete');
+      
+      // Use provided data or fallback to example data
+      let availableRentals, bookedRentals, totalRentals;
+      
+      if (dashboardData) {
+        // Real data from dashboard API
+        availableRentals = dashboardData.availableRentals || 0;
+        bookedRentals = dashboardData.bookedRentals || 0;
+        totalRentals = dashboardData.totalRentals || Math.max(availableRentals + bookedRentals, 100);
+        console.log('📊 Using real dashboard data:', dashboardData);
+      } else {
+        // Fallback example data
+        availableRentals = 60;
+        bookedRentals = 40;
+        totalRentals = 100;
+        console.log('📊 Using example data (no real data provided)');
+      }
+      
+      // Calculate percentages
+      const availablePercentage = totalRentals > 0 ? (availableRentals / totalRentals) * 100 : 0;
+      const bookedPercentage = totalRentals > 0 ? (bookedRentals / totalRentals) * 100 : 0;
+      
+      // Small delay to ensure skeleton is fully hidden before starting animations
+      setTimeout(() => {
+        // Animate progress bars
+        animateProgressBar('availableRentalProgress', availablePercentage, 1500);
+        animateProgressBar('bookedRoomProgress', bookedPercentage, 1500);
+        
+        // Animate numbers (optional - if you want numbers to count up too)
+        animateNumber('availableRental', availableRentals, 1500);
+        animateNumber('bookedRoom', bookedRentals, 1500);
+        
+        console.log('✅ Progress bar animations completed');
+        console.log(`Available: ${availableRentals} (${availablePercentage.toFixed(1)}%)`);
+        console.log(`Booked: ${bookedRentals} (${bookedPercentage.toFixed(1)}%)`);
+      }, 100);
+    };
+
+    // Fallback: Start animations if skeleton loading doesn't trigger them
+    document.addEventListener('DOMContentLoaded', function() {
+      // Wait longer and check if animations have been started
+      setTimeout(() => {
+        const availableProgress = document.getElementById('availableRentalProgress');
+        const bookedProgress = document.getElementById('bookedRoomProgress');
+        
+        // If progress bars still at 0%, start animations as fallback
+        if (availableProgress && availableProgress.style.width === '0%' && 
+            bookedProgress && bookedProgress.style.width === '0%') {
+          console.log('🔄 Fallback: Starting progress animations since skeleton loading didn\'t trigger them');
+          window.startProgressBarAnimations();
+        }
+      }, 3000); // 3 second fallback
+    });
+  </script>
 </body>
 </html>
