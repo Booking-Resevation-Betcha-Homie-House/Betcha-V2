@@ -76,8 +76,8 @@ function resolveBookingId(rootEl) {
         }
         return '';
     } catch(_) { return ''; }
+// ...existing code...
 }
-
 document.addEventListener('DOMContentLoaded', function() {
     // Log system access audit for property management page
     try {
@@ -1539,52 +1539,19 @@ function updateBookingElementToConfirmed(bookingElement) {
     }
 }
 
-// Fetch admins and populate dropdown in cancel modal
-async function loadAdminsIntoCancelModal() {
-    try {
-        const selectEl = document.getElementById('select-cancel-admin');
-        if (!selectEl) return;
-
-        // Show loading state only if options not yet loaded
-        if (!selectEl.dataset.loaded) {
-            selectEl.innerHTML = `<option value="" disabled selected>Loading admins...</option>`;
-            const resp = await fetch(`${API_BASE_URL}/admin/display`, { method: 'GET' });
-            if (!resp.ok) throw new Error(`Failed to fetch admins: ${resp.status}`);
-            const admins = await resp.json();
-
-            // Populate options
-            selectEl.innerHTML = `<option value="" disabled selected>Select an admin</option>`;
-            (admins || []).forEach(a => {
-                const id = a._id || a.id || '';
-                const name = [a.firstname, a.minitial, a.lastname].filter(Boolean).join(' ').replace(/\s+/g, ' ').trim() || 'Unnamed Admin';
-                const opt = document.createElement('option');
-                opt.value = id;
-                opt.textContent = name;
-                selectEl.appendChild(opt);
-            });
-
-            selectEl.dataset.loaded = 'true';
-        }
-    } catch (err) {
-        console.error('Error loading admins for cancel modal:', err);
-        const selectEl = document.getElementById('select-cancel-admin');
-        if (selectEl) {
-            selectEl.innerHTML = `<option value="" disabled selected>Failed to load admins</option>`;
-        }
-    }
-}
 
 // prepareCancelModalContext removed (redundant). Context is hydrated by the enrichment block and BookingContext.
+
+// Build request and POST to notify cancellation endpoint
 
 // Build request and POST to notify cancellation endpoint
 async function sendCancellationNoticeToAdmin() {
     try {
         // Simplified context-driven path (early return)
         const modal = document.getElementById('cancelBookingModal') || document.getElementById('checkinConfirmModal');
-        const selectEl = document.getElementById('select-cancel-admin');
         const reasonSelectEl = document.getElementById('select-cancel-reason');
         const messageTextarea = document.getElementById('input-cancel-admin');
-        if (!modal || !selectEl || !reasonSelectEl || !messageTextarea) { console.error('Missing fields.'); return; }
+        if (!modal || !reasonSelectEl || !messageTextarea) { console.error('Missing fields.'); return; }
 
         // Require a cancellation reason to be selected
         const reasonValue = reasonSelectEl.value;
@@ -1610,9 +1577,6 @@ async function sendCancellationNoticeToAdmin() {
         const fromId = localStorage.getItem('employeeId') || localStorage.getItem('userId') || 'unknown-employee';
         const fromName = `${localStorage.getItem('firstName') || 'Employee'} ${localStorage.getItem('lastName') || ''}`.trim();
         const fromRole = 'employee';
-        const toId = selectEl.value;
-        const toName = 'admin';
-        if (!toId) { console.error('Please select an admin to notify.'); return; }
 
         // Calculate refund amount based on who requested the cancellation
         let calculatedRefundAmount = undefined;
@@ -1627,7 +1591,6 @@ async function sendCancellationNoticeToAdmin() {
                     refundType: reasonValue
                 })
             });
-            
             if (refundResponse.ok) {
                 const refundData = await refundResponse.json();
                 calculatedRefundAmount = refundData.refundAmount;
@@ -1643,9 +1606,6 @@ async function sendCancellationNoticeToAdmin() {
             fromId,
             fromName,
             fromRole,
-            toId,
-            toName,
-            toRole: 'admin',
             message: messageValue,
             transNo: ctx.transNo,
             numberEwalletBank: ctx.ewallet || undefined,
@@ -2753,3 +2713,4 @@ function formatDate(dateInput) {
         return '';
     }
 }
+

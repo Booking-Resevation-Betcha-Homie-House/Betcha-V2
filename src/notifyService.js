@@ -80,15 +80,15 @@ async function sendMessage(notification) {
 
 // Send a cancellation notice (typically employee -> admin)
 async function sendCancellation(notice) {
-    requireFields(notice, ['fromId', 'fromName', 'fromRole', 'toId', 'toName', 'toRole', 'message'], 'notify.sendCancellation');
+    requireFields(notice, ['fromId', 'fromName', 'fromRole', , 'message'], 'notify.sendCancellation'); // deleted toId, toName, toRole for trial
 
     const payload = {
         fromId: notice.fromId,
         fromName: notice.fromName,
         fromRole: notice.fromRole,
-        toId: notice.toId,
-        toName: notice.toName,
-        toRole: notice.toRole,
+       // toId: notice.toId,
+       // toName: notice.toName,
+       // toRole: notice.toRole,
         message: String(notice.message || '').trim(),
         transNo: notice.transNo || undefined,
         numberEwalletBank: notice.numberEwalletBank || undefined,
