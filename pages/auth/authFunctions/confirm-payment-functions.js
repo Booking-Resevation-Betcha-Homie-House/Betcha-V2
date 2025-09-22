@@ -1858,32 +1858,118 @@ async function triggerOCRFromPreview(fileInfo, transactionInput) {
         const result = await window.uploadImageForOCR(file);
         
         if (result.success && result.transactionNumber) {
-            console.log('✅ OCR Success:', result.transactionNumber);
+            console.log('✅ OCR Success! Found transaction number:', result.transactionNumber);
             
-            // Auto-fill transaction input
-            if (transactionInput) {
-                transactionInput.value = result.transactionNumber;
-                transactionInput.classList.add('border-green-500', 'bg-green-50');
+            // Validate the extracted transaction number before using it
+            if (isValidTransactionNumber(result.transactionNumber)) {
+                // Auto-fill transaction input
+                if (transactionInput) {
+                    transactionInput.value = result.transactionNumber;
+                    transactionInput.classList.add('border-green-500', 'bg-green-50');
+                    
+                    // Show success animation
+                    setTimeout(() => {
+                        transactionInput.classList.remove('border-green-500', 'bg-green-50');
+                    }, 3000);
+                }
                 
-                // Show success animation
-                setTimeout(() => {
-                    transactionInput.classList.remove('border-green-500', 'bg-green-50');
-                }, 3000);
+                // Show success toast
+                showToastError('success', 'Success!', `Transaction number extracted: ${result.transactionNumber}`);
+            } else {
+                console.log('❌ Extracted text failed validation:', result.transactionNumber);
+                
+                // Create a more specific error message based on what was extracted
+                let errorMessage = `Extracted text "${result.transactionNumber}" does not appear to be a valid transaction number.`;
+                
+                if (result.transactionNumber.toLowerCase().includes('not found')) {
+                    errorMessage = 'No transaction number could be detected in the image. Please ensure the receipt shows the transaction number clearly and try again.';
+                } else if (result.transactionNumber.toLowerCase().includes('error')) {
+                    errorMessage = 'There was an error processing the image. Please try again with a clearer, well-lit photo of your receipt.';
+                }
+                
+                // Show modal since the extracted text is not a valid transaction number
+                showOCRRetryModal(errorMessage);
             }
-            
-            // Show success toast
-            showToastError('success', 'Success!', `Transaction number extracted: ${result.transactionNumber}`);
             
         } else {
             console.warn('⚠️ OCR failed or no transaction number found:', result);
-            showToastError('warning', 'No Transaction Found', 'Could not extract transaction number from the image. Please enter it manually.');
+            
+            // Show modal asking user to try again with clearer image
+            showOCRRetryModal(result.message || 'Could not extract transaction number from the image.');
         }
     } catch (error) {
         console.error('❌ OCR processing error:', error);
-        showToastError('error', 'OCR Error', 'Failed to process the image. Please try again or enter the transaction number manually.');
+        
+        // Show modal for processing errors too
+        showOCRRetryModal('Failed to process the image. This might be due to poor image quality or network issues.');
     } finally {
         hideFullscreenLoading();
     }
+}
+
+// Function to validate if extracted text is a valid transaction number
+function isValidTransactionNumber(text) {
+    if (!text || typeof text !== 'string') {
+        return false;
+    }
+    
+    const normalizedText = text.trim().toLowerCase();
+    
+    // Check for common error messages that indicate OCR failure
+    const errorIndicators = [
+        'reference number not found',
+        'no reference number',
+        'not found',
+        'error',
+        'failed',
+        'unable to',
+        'could not',
+        'no transaction',
+        'transaction not found',
+        'receipt not found',
+        'invalid',
+        'unclear image',
+        'poor quality',
+        'text not found',
+        'no text detected'
+    ];
+    
+    // If the text contains any error indicators, it's not a valid transaction number
+    for (const indicator of errorIndicators) {
+        if (normalizedText.includes(indicator)) {
+            console.log(`🚫 Text contains error indicator: "${indicator}"`);
+            return false;
+        }
+    }
+    
+    // Check if text is too short (transaction numbers are usually at least 4 characters)
+    if (text.trim().length < 4) {
+        console.log('🚫 Text too short to be a transaction number');
+        return false;
+    }
+    
+    // Check if text is too long (most transaction numbers are under 50 characters)
+    if (text.trim().length > 50) {
+        console.log('🚫 Text too long to be a transaction number');
+        return false;
+    }
+    
+    // Check if text contains mostly alphanumeric characters (allowing some special chars)
+    const validPattern = /^[A-Za-z0-9\-_#@$&*()+=[\]{}|\\:";'<>?,./~`!%^]+$/;
+    if (!validPattern.test(text.trim())) {
+        console.log('🚫 Text contains invalid characters');
+        return false;
+    }
+    
+    // Check if text has at least some alphanumeric content
+    const hasAlphanumeric = /[A-Za-z0-9]/.test(text);
+    if (!hasAlphanumeric) {
+        console.log('🚫 Text does not contain alphanumeric characters');
+        return false;
+    }
+    
+    console.log('✅ Text appears to be a valid transaction number');
+    return true;
 }
 
 // Make uploadImageForOCR available globally
@@ -1903,28 +1989,245 @@ async function uploadImageForOCR(file) {
         console.log('OCR API Response:', result);
         
         if (response.ok && result.result) {
-            return {
-                success: true,
-                transactionNumber: result.result,
-                fullText: result.fullText
-            };
+            // Validate if the extracted text is actually a transaction number
+            const extractedText = result.result.trim();
+            console.log('🔍 Validating extracted text:', extractedText);
+            
+            if (isValidTransactionNumber(extractedText)) {
+                return {
+                    success: true,
+                    transactionNumber: extractedText,
+                    fullText: result.fullText
+                };
+            } else {
+                console.log('❌ Extracted text is not a valid transaction number:', extractedText);
+                return {
+                    success: false,
+                    message: 'No valid transaction number found in the image. Please ensure the receipt is clear and try again.'
+                };
+            }
         } else {
+            // Provide more specific error messages
+            let errorMessage = 'Could not extract transaction number from the image.';
+            
+            if (response.status === 400) {
+                errorMessage = 'Invalid image format. Please upload a clear JPEG or PNG image.';
+            } else if (response.status === 413) {
+                errorMessage = 'Image file is too large. Please use a smaller image.';
+            } else if (response.status >= 500) {
+                errorMessage = 'Server error during image processing. Please try again.';
+            } else if (result.message) {
+                errorMessage = result.message;
+            }
+            
             return {
                 success: false,
-                message: result.message || 'OCR processing failed'
+                message: errorMessage
             };
         }
     } catch (error) {
         console.error('OCR API error:', error);
+        
+        let errorMessage = 'Network error during OCR processing.';
+        
+        if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+            errorMessage = 'Unable to connect to the OCR service. Please check your internet connection.';
+        } else if (error.name === 'AbortError') {
+            errorMessage = 'Request timed out. Please try again with a smaller image.';
+        }
+        
         return {
             success: false,
-            message: 'Network error during OCR processing'
+            message: errorMessage
         };
     }
 }
 
 // Export for global access
 window.uploadImageForOCR = uploadImageForOCR;
+window.isValidTransactionNumber = isValidTransactionNumber;
+
+// Function to show OCR retry modal
+function showOCRRetryModal(message) {
+    console.log('🔄 Showing OCR retry modal with message:', message);
+    
+    // Remove existing modal if present
+    const existingModal = document.getElementById('ocrRetryModal');
+    if (existingModal) {
+        existingModal.remove();
+    }
+    
+    // Create modal HTML
+    const modalHTML = `
+        <div id="ocrRetryModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 px-4">
+            <div class="modal-content bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
+                <div class="p-6">
+                    <!-- Header with close button -->
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-xl font-semibold text-gray-900">
+                            Transaction Number Not Found
+                        </h3>
+                        <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                            </svg>
+                        </button>
+                    </div>
+                    
+                    <!-- Icon and Message -->
+                    <div class="text-center mb-6">
+                        <div class="w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"/>
+                            </svg>
+                        </div>
+                        
+                        <p class="text-gray-600 mb-6">
+                            ${message}
+                        </p>
+                    </div>
+                    
+                    <!-- Suggestions -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                        <h4 class="text-sm font-medium text-green-900 mb-2">For better results, please ensure:</h4>
+                        <ul class="text-sm text-green-800 space-y-1">
+                            <li>• Image is clear and valid receipt</li>
+                            <li>• Transaction number is fully visible</li>
+                            <li>• No shadows or glare on the receipt</li>
+                            <li>• Image is not blurry or rotated</li>
+                        </ul>
+                    </div>
+                    
+                    <!-- Action Button -->
+                    <div class="flex justify-center">
+                        <button id="tryAgainBtn" class="group relative rounded-full w-full bg-primary hover:bg-primary/90 flex items-center justify-center overflow-hidden hover:cursor-pointer active:scale-95 transition-all duration-300 ease-in-out py-3">
+                            <span class="text-white text-sm font-medium group-hover:-translate-x-1 transition-transform duration-500 ease-in-out">
+                                Try Again
+                            </span>
+                            <span class="overflow-hidden max-w-[30px] lg:max-w-0 lg:group-hover:max-w-[30px] transition-all duration-500 ease-in-out">
+                                <svg class="w-5 h-5 ml-2 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                </svg>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Add modal to document
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Get modal element
+    const modal = document.getElementById('ocrRetryModal');
+    const modalContent = modal.querySelector('.bg-white');
+    
+    // Show modal with animation
+    setTimeout(() => {
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+    
+    // Setup event listeners
+    setupOCRRetryModalEventListeners(modal);
+    
+    // Focus management
+    const tryAgainBtn = modal.querySelector('#tryAgainBtn');
+    if (tryAgainBtn) {
+        tryAgainBtn.focus();
+    }
+}
+
+// Function to setup OCR retry modal event listeners
+function setupOCRRetryModalEventListeners(modal) {
+    const tryAgainBtn = modal.querySelector('#tryAgainBtn');
+    const closeModalBtn = modal.querySelector('#closeModalBtn');
+    
+    // Try Again - trigger file input
+    if (tryAgainBtn) {
+        tryAgainBtn.addEventListener('click', () => {
+            console.log('🔄 User chose to try again with new image');
+            hideOCRRetryModal();
+            
+            // Clear existing file input and preview
+            clearFileInputAndPreview();
+            
+            // Trigger file input
+            const fileInput = document.getElementById('fileInput');
+            if (fileInput) {
+                fileInput.click();
+            } else {
+                showToastError('error', 'Error', 'File input not found. Please refresh the page.');
+            }
+        });
+    }
+    
+    // Close modal button
+    if (closeModalBtn) {
+        closeModalBtn.addEventListener('click', () => {
+            console.log('❌ Close button clicked');
+            hideOCRRetryModal();
+        });
+    }
+    
+    // Close modal on backdrop click
+    modal.addEventListener('click', (e) => {
+        if (e.target === modal) {
+            hideOCRRetryModal();
+        }
+    });
+    
+    // ESC key to close modal
+    document.addEventListener('keydown', function handleEscapeKey(e) {
+        if (e.key === 'Escape') {
+            hideOCRRetryModal();
+            document.removeEventListener('keydown', handleEscapeKey);
+        }
+    });
+}
+
+// Function to hide OCR retry modal
+function hideOCRRetryModal() {
+    const modal = document.getElementById('ocrRetryModal');
+    if (modal) {
+        const modalContent = modal.querySelector('.bg-white');
+        
+        // Hide with animation
+        modalContent.classList.add('scale-95', 'opacity-0');
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        
+        // Remove from DOM after animation
+        setTimeout(() => {
+            modal.remove();
+        }, 300);
+    }
+}
+
+// Function to clear file input and preview
+function clearFileInputAndPreview() {
+    console.log('🧹 Clearing file input and preview...');
+    
+    // Clear file input
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    // Clear preview container
+    const previewContainer = document.getElementById('previewContainer');
+    if (previewContainer) {
+        previewContainer.innerHTML = '';
+    }
+    
+    // Reset dropzone appearance
+    const dropzone = document.getElementById('dropzone');
+    if (dropzone) {
+        dropzone.classList.remove('border-primary', 'bg-primary/5');
+    }
+    
+    console.log('✅ File input and preview cleared');
+}
 
 // Setup payment confirmation functionality
 function setupPaymentConfirmation(bookingId, paymentType) {

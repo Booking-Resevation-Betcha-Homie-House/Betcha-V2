@@ -28,28 +28,163 @@
           </svg>
         </a>
 
-        <!-- Right Hamburger + Profile -->
-        <div class=" relative">
-          <!-- Button to toggle dropdown -->
-          <div id="menuBtn" class="h-10 w-full aspect-square rounded-full bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
-          hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
-          transition-all duration-300 ease-in-out">
-            <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
-              <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-            </svg>
-          </div>
+        <!-- Notification + Hamburger-->
+        <div class="flex gap-2 items-center shrink-0">
+          <!-- Notification Bell Dropdown -->
+          <div class="relative inline-block text-left">
+            <!-- Bell Icon -->
+            <div class="relative">
+              <button id="notifBellBtnDesktop" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
+              hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
+              transition-all duration-300 ease-in-out
+              hidden md:block">
+                  <svg class="w-6 h-6 stroke-primary-text 
+                    group-hover:rotate-10 group-hover:stroke-primary
+                    transition-all duration-300 ease-in-out" 
+                    fill="none" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                  </svg>
+                  
+              </button>
+              <button data-modal-target="notifModalSmall" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200
+              hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95
+              transition-all duration-300 ease-in-out
+              block md:hidden">
+                <svg class="w-6 h-6 stroke-primary-text 
+                group-hover:rotate-10 group-hover:stroke-primary
+                transition-all duration-300 ease-in-out" 
+                fill="none" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0718 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                </svg>
+              </button>
+              <span id="notifBadge" class="notif-badge">
+                  2
+              </span>
+            </div>
+            
+            <!-- Dropdown Panel -->
+            <div id="notificationDropdown" class="hidden absolute right-0 mt-2 w-[400px] p-5 bg-white border border-gray-300 rounded-3xl shadow-lg z-50">
+              
+              <div class="mb-3">
+                <div class="flex items-center justify-between">
+                  <p class="font-semibold font-manrope text-lg text-primary-text">Notifications</p></div>
+              </div>
+              <div class="h-[1px] w-full border border-neutral-300"></div>
+              <div class="max-h-[400px] overflow-y-auto">
+                <div class="py-4 text-sm font-inter text-gray-500">Today</div>
 
-          <!-- Dropdown menu -->
-          <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-52 border border-neutral-300 bg-white rounded-3xl shadow-lg py-5 px-3 z-50 text-sm font-manrope text-primary-text">
-            <div class="space-y-1">
-              <a href="rooms.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">Rooms</a>
-              <a href="about-us.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">About us</a>
-              <a href="faqs.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">FAQs</a>
-              <div class="border-t border-neutral-200 my-2"></div>
-              <a href="login.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">Login</a>
-              <a href="register.html" class="block px-4 py-3 rounded-2xl hover:bg-primary/10 transition-colors duration-200">Register</a>
+                <!-- NOTIFICATION ITEM -->
+                <div id="notificationsContainer" class="flex flex-col pb-4">
+                  <div class="notification unread cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="notifModal">
+                    <div class="flex items-start gap-2">
+                      <div>
+                        <div class="flex justify-between">
+                          <div class="flex gap-2 items-center">
+                            <div class="dot-notif"></div>
+                            <p id="senderName" class="font-semibold text-gray-900">Sender Name</p>
+                          </div>
+                          <span id="dateTime" class="text-xs text-gray-400">xx:xx PM</span>
+                        </div>
+                        <p id="messagePreview" class="text-sm text-gray-700 line-clamp-2">
+                          Lorem ipsum dolor sit amet consectetur adipiscing elit. Dolor sit amet consectetur adipiscing elit quisque faucibus.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="notification read cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="notifModal">
+                    <div class="flex items-start gap-2">
+                      <div>
+                        <div class="flex justify-between">
+                          <p id="senderName" class="font-semibold text-gray-400">Sender Name</p>
+                          <span id="dateTime" class="text-xs text-gray-400">xx:xx PM</span>
+                        </div>
+                        <p id="messagePreview" class="text-sm text-gray-400 line-clamp-2">
+                          Lorem ipsum dolor sit amet consectetur adipiscing elit. Dolor sit amet consectetur adipiscing elit quisque faucibus.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="notification read cursor-pointer hover:bg-primary/10 rounded-xl p-3 transition-all duration-300 ease-in-out" data-modal-target="notifModal">
+                    <div class="flex items-start gap-2">
+                      <div>
+                        <div class="flex justify-between">
+                          <p id="senderName" class="font-semibold text-gray-400">Sender Name</p>
+                          <span id="dateTime" class="text-xs text-gray-400">xx:xx PM</span>
+                        </div>
+                        <p id="messagePreview" class="text-sm text-gray-400 line-clamp-2">
+                          Lorem ipsum dolor sit amet consectetur adipiscing elit. Dolor sit amet consectetur adipiscing elit quisque faucibus.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
             </div>
           </div>
+
+          <!-- Right Hamburger + Profile -->
+          <div class=" relative">
+            <!-- Button to toggle dropdown -->
+            <div id="menuBtn" class="h-10 w-full aspect-square rounded-full bg-primary flex items-center justify-center text-white cursor-pointer overflow-hidden
+            hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
+            transition-all duration-300 ease-in-out">
+              <!-- Profile Picture (hidden by default, shows over default icon when available) -->
+              <img id="unauthProfileImg" class="w-full h-full object-cover rounded-full hidden" alt="Unauth profile picture" />
+              <!-- Default SVG Icon -->
+              <svg class="h-6 w-6 fill-secondary-text" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 12C10.9 12 9.95833 11.6083 9.175 10.825C8.39167 10.0417 8 9.1 8 8C8 6.9 8.39167 5.95833 9.175 5.175C9.95833 4.39167 10.9 4 12 4C13.1 4 14.0417 4.39167 14.825 5.175C15.6083 5.95833 16 6.9 16 8C16 9.1 15.6083 10.0417 14.825 10.825C14.0417 11.6083 13.1 12 12 12ZM4 18V17.2C4 16.6333 4.146 16.1127 4.438 15.638C4.73 15.1633 5.11733 14.8007 5.6 14.55C6.63333 14.0333 7.68333 13.646 8.75 13.388C9.81667 13.13 10.9 13.0007 12 13C13.1 12.9993 14.1833 13.1287 15.25 13.388C16.3167 13.6473 17.3667 14.0347 18.4 14.55C18.8833 14.8 19.271 15.1627 19.563 15.638C19.855 16.1133 20.0007 16.634 20 17.2V18C20 18.55 19.8043 19.021 19.413 19.413C19.0217 19.805 18.5507 20.0007 18 20H6C5.45 20 4.97933 19.8043 4.588 19.413C4.19667 19.0217 4.00067 18.5507 4 18Z"/>
+              </svg>
+
+            </div>
+
+            <!-- Dropdown menu -->
+            <div id="dropdownMenu" class="hidden absolute right-0 mt-2 w-52 border border-neutral-300 bg-white rounded-3xl shadow-lg py-5 px-3 z-50 text-sm font-manrope text-primary-text">
+              <a href="../auth/profile.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">Profile</a>
+              <a href="../auth/my-bookings.html" class="block px-4 py-2 rounded-xl hover:bg-primary/10 hover:text-primary">My bookings</a>
+              <hr class="my-2 border-neutral-300">
+              <a href="../auth/support.html" class="block px-4 py-2 rounded-xl hover:bg-primary/10 hover:text-primary">Send a ticket</a>
+              <a href="faqs.html" class="block px-4 py-2 rounded-xl hover:bg-primary/10 hover:text-primary">FAQs</a>
+              <a href="about-us.html" class="block rounded-xl px-4 py-2 hover:bg-primary/10 hover:text-primary">About us</a>
+              <hr class="my-2 border-neutral-300">
+              <a href="#" class="logout-link block px-4 py-2 rounded-xl text-red-500 hover:bg-primary/10 font-semibold">Log Out</a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Login/Register -->
+        <div class="hidden flex items-center gap-2">
+          <button onclick="window.open('login.html', '_blank')" 
+            class="group pointer-events-auto rounded-full bg-neutral-100 shadow-sm hidden
+            hover:cursor-pointer hover:bg-neutral-200 hover:shadow-md 
+            active:scale-95  md:block 
+            transition-all duration-300 ease-in-out">
+            <span class="text-sm md:text-base text-primary-text">Log in</span>
+          </button>
+          <button onclick="window.open('/register.html', '_blank')"  
+            class="group relative rounded-full bg-primary z-50 flex items-center justify-center overflow-hidden shadow-sm
+          hover:border-secondary-text  active:scale-95 hover:shadow-md 
+            transition-all duration-500 ease-in-out hover:cursor-pointer ">
+            <span class="text-secondary-text font-manrope text-sm md:text-base transition-transform duration-500 ease-in-out group-hover:-translate-x-1">
+              Register
+            </span>
+
+            <span class="overflow-hidden max-w-0 group-hover:max-w-[30px] transition-all duration-500 ease-in-out">
+              <svg class="w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 25" xmlns="http://www.w3.org/2000/svg">
+                <g clip-path="url(#clip0_18_84)">
+                  <path d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1975 7.45773 13.1213 7.34739 13.0689 7.22538C13.0165 7.10338 12.9889 6.97216 12.9877 6.83938C12.9866 6.7066 13.0119 6.57492 13.0622 6.45202C13.1125 6.32913 13.1867 6.21747 13.2806 6.12358C13.3745 6.02969 13.4861 5.95544 13.609 5.90516C13.7319 5.85487 13.8636 5.82957 13.9964 5.83073C14.1292 5.83188 14.2604 5.85947 14.3824 5.91188C14.5044 5.96428 14.6148 6.04047 14.707 6.13598Z"/>
+                </g>
+                <defs>
+                  <clippath id="clip0_18_84">
+                    <rect width="24" height="24" fill="white" transform="translate(0 0.5)" />
+                  </clippath>
+                </defs>
+              </svg>
+            </span>
+          </button>
         </div>
       </div>
 

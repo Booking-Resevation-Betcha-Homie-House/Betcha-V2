@@ -157,7 +157,79 @@ function populateBookingData(booking) {
         populateElement('totalAddGuest', (booking.additionalPaxPrice * booking.additionalPax)?.toLocaleString() || '0');
 
         populateElement('reservationFee', booking.reservationFee?.toLocaleString() || '0');
-        populateElement('totalPrice', booking.totalFee?.toLocaleString() || '0');
+        
+        // Calculate base subtotal (package fee + additional guest fees)
+        const baseSubtotal = (booking.packageFee * booking.numOfDays) + (booking.additionalPaxPrice * booking.additionalPax);
+        
+        // Handle discount calculation
+        const discount = booking.discount || 0;
+        let discountAmount = 0;
+        let subtotalAfterDiscount = baseSubtotal;
+        
+        if (discount > 0) {
+            // Check if discount is a percentage or absolute amount
+            if (discount <= 100) {
+                // Percentage discount - apply to base subtotal
+                discountAmount = Math.round((baseSubtotal * discount) / 100);
+                populateElement('discountPercentage', `${discount}%`);
+            } else {
+                // Absolute discount amount
+                discountAmount = discount;
+                // Calculate percentage for display
+                const percentage = ((discount / baseSubtotal) * 100).toFixed(1);
+                populateElement('discountPercentage', `${percentage}%`);
+            }
+            
+            // Calculate subtotal after discount (before reservation fee)
+            subtotalAfterDiscount = baseSubtotal - discountAmount;
+            
+            // Populate discount amount
+            populateElement('discount', discountAmount.toLocaleString());
+            
+            // Show discount section
+            const discountSection = document.getElementById('discountSection');
+            if (discountSection) {
+                discountSection.style.display = 'flex';
+            }
+            
+            console.log('Discount calculation:', {
+                baseSubtotal: baseSubtotal,
+                discountPercent: discount,
+                discountAmount: discountAmount,
+                subtotalAfterDiscount: subtotalAfterDiscount,
+                reservationFee: booking.reservationFee,
+                calculatedTotal: subtotalAfterDiscount + (booking.reservationFee || 0)
+            });
+            
+        } else {
+            // No discount - hide discount section
+            const discountSection = document.getElementById('discountSection');
+            if (discountSection) {
+                discountSection.style.display = 'none';
+            }
+            populateElement('discount', '0');
+            populateElement('discountPercentage', '0%');
+        }
+        
+        // Populate the subtotal (base amount before discount)
+        populateElement('subtotal', baseSubtotal.toLocaleString());
+        
+        // Total is subtotal minus discount (reservation fee shown separately)
+        const calculatedTotal = subtotalAfterDiscount;
+        populateElement('totalPrice', calculatedTotal.toLocaleString());
+        
+        // Store the calculated total globally for payment calculations
+        window.calculatedBookingTotal = calculatedTotal;
+        
+        console.log('Final calculation verification:', {
+            baseSubtotal: baseSubtotal,
+            discountAmount: discountAmount,
+            subtotalAfterDiscount: subtotalAfterDiscount,
+            reservationFeeDisplayOnly: booking.reservationFee,
+            calculatedTotal: calculatedTotal,
+            calculation: `Subtotal: ${baseSubtotal}, Discount: -${discountAmount}, Total: ${calculatedTotal}`,
+            apiTotal: booking.totalFee
+        });
 
         // Payment status and amounts
         calculateAndDisplayPaymentStatus(booking);
@@ -236,7 +308,10 @@ function calculateAndDisplayPaymentStatus(booking) {
     try {
         let amountPaid = 0;
         let pendingPayments = [];
-        let remainingBalance = booking.totalFee || 0;
+        
+        // Use the calculated total instead of API total
+        const correctTotal = window.calculatedBookingTotal || booking.totalFee || 0;
+        let remainingBalance = correctTotal;
         let unpaidReservation = false;
         let unpaidPackage = false;
 
@@ -258,7 +333,8 @@ function calculateAndDisplayPaymentStatus(booking) {
 
         // Check package payment status
         if (booking.package) {
-            const packageAmount = (booking.totalFee || 0) - (booking.reservationFee || 0);
+            // Package amount is the full calculated total (reservation fee shown separately)
+            const packageAmount = correctTotal;
             if (booking.package.status === 'Completed') {
                 amountPaid += packageAmount;
             } else if (booking.package.status === 'Pending' &&
@@ -272,7 +348,7 @@ function calculateAndDisplayPaymentStatus(booking) {
             }
         }
 
-        remainingBalance = (booking.totalFee || 0) - amountPaid;
+        remainingBalance = correctTotal - amountPaid;
 
         // Format amount paid display (badge now indicates status)
         let amountPaidText = amountPaid.toLocaleString();
@@ -283,21 +359,175 @@ function calculateAndDisplayPaymentStatus(booking) {
             amountPaidElement.textContent = amountPaidText;
         }
 
-        populateElement('remainingBal', Math.max(0, remainingBalance).toLocaleString());
+        // Update totalPaid field with detailed payment logic and get actual paid amount
+        const actualPaidAmount = updateTotalPaidField(booking, correctTotal);
+
+        // Calculate remaining balance: total - actual paid amount
+        const newRemainingBalance = correctTotal - actualPaidAmount;
+        populateElement('remainingBal', Math.max(0, newRemainingBalance).toLocaleString());
 
         // Handle payment button visibility and functionality
         handlePaymentButton(booking, remainingBalance, unpaidReservation, unpaidPackage);
 
         // Update simple status badge beside Transaction summary
-        let status = 'Completed';
-        if (pendingPayments.length > 0) status = 'Pending';
-        else if (remainingBalance > 0 && (unpaidReservation || unpaidPackage)) status = 'Unpaid';
+        let status = 'Unpaid'; // Default status
+        
+        // Check if booking is cancelled first
+        const isCancelled = booking.status === 'Cancel' || booking.status === 'Cancelled' || booking.status === 'cancelled';
+        
+        if (isCancelled) {
+            status = 'Cancel';
+        } else {
+            // Check reservation and package payment status
+            const reservationApproved = booking.reservation?.status === 'Approved';
+            const packageApproved = booking.package?.status === 'Approved';
+            
+            // Check if payments have been attempted (not all fields are "Pending")
+            const reservationAttempted = booking.reservation?.modeOfPayment && 
+                                       booking.reservation.modeOfPayment !== 'Pending';
+            const packageAttempted = booking.package?.modeOfPayment && 
+                                   booking.package.modeOfPayment !== 'Pending';
+            
+            console.log('Payment status check:', {
+                reservationApproved,
+                packageApproved,
+                reservationAttempted,
+                packageAttempted,
+                reservationStatus: booking.reservation?.status,
+                packageStatus: booking.package?.status,
+                reservationModeOfPayment: booking.reservation?.modeOfPayment,
+                packageModeOfPayment: booking.package?.modeOfPayment
+            });
+            
+            if (reservationApproved && packageApproved) {
+                status = 'Fully-Paid';
+            } else if (reservationApproved && !packageApproved) {
+                status = 'Reserved';
+            } else if (reservationAttempted || packageAttempted) {
+                // Payment attempted but not approved yet
+                status = 'Pending';
+            } else {
+                // No payment attempted (all fields are "Pending")
+                status = 'Unpaid';
+            }
+        }
+        
         updateTransactionSummaryStatus(status);
 
     } catch (error) {
         console.error('Error calculating payment status:', error);
         populateElement('amountPaid', '0');
-        populateElement('remainingBal', booking.totalFee?.toLocaleString() || '0');
+        const correctTotal = window.calculatedBookingTotal || booking.totalFee || 0;
+        populateElement('remainingBal', correctTotal.toLocaleString());
+    }
+}
+
+// Function to update the totalPaid field with detailed payment logic
+function updateTotalPaidField(booking, correctTotal) {
+    try {
+        const totalPaidElement = document.getElementById('totalPaid');
+        if (!totalPaidElement) {
+            console.warn('totalPaid element not found');
+            return 0;
+        }
+
+        // Check payment statuses and attempts
+        const reservationApproved = booking.reservation?.status === 'Approved';
+        const packageApproved = booking.package?.status === 'Approved';
+        const reservationAttempted = booking.reservation?.modeOfPayment && 
+                                   booking.reservation.modeOfPayment !== 'Pending';
+        const packageAttempted = booking.package?.modeOfPayment && 
+                                booking.package.modeOfPayment !== 'Pending';
+
+        let displayText = '';
+        let isPending = false;
+        let tooltipText = '';
+        let actualPaidAmount = 0; // This will be returned for remaining balance calculation
+
+        // Case 1: Both reservation and package have payment attempts
+        if (reservationAttempted && packageAttempted) {
+            if (reservationApproved && packageApproved) {
+                // Both approved - show full amount without parentheses
+                displayText = `${correctTotal.toLocaleString()}`;
+                actualPaidAmount = correctTotal;
+                isPending = false;
+            } else {
+                // At least one is pending - show full amount with parentheses (yellow)
+                displayText = `(${correctTotal.toLocaleString()})`;
+                // For pending, we consider it as not fully paid yet
+                actualPaidAmount = reservationApproved ? (booking.reservationFee || 0) : 0;
+                if (packageApproved) actualPaidAmount += (correctTotal - (booking.reservationFee || 0));
+                isPending = true;
+                tooltipText = 'Payment is pending approval';
+            }
+        }
+        // Case 2: Only reservation has payment attempt
+        else if (reservationAttempted && !packageAttempted) {
+            const reservationFee = booking.reservationFee || 0;
+            if (reservationApproved) {
+                // Reservation approved - show reservation amount without parentheses
+                displayText = `${reservationFee.toLocaleString()}`;
+                actualPaidAmount = reservationFee;
+                isPending = false;
+            } else {
+                // Reservation pending - show reservation amount with parentheses (yellow)
+                displayText = `(${reservationFee.toLocaleString()})`;
+                actualPaidAmount = 0; // Pending means not yet paid
+                isPending = true;
+                tooltipText = 'Reservation payment is pending approval';
+            }
+        }
+        // Case 3: Only package has payment attempt
+        else if (!reservationAttempted && packageAttempted) {
+            const packageAmount = correctTotal - (booking.reservationFee || 0);
+            if (packageApproved) {
+                // Package approved - show package amount without parentheses
+                displayText = `${packageAmount.toLocaleString()}`;
+                actualPaidAmount = packageAmount;
+                isPending = false;
+            } else {
+                // Package pending - show package amount with parentheses (yellow)
+                displayText = `(${packageAmount.toLocaleString()})`;
+                actualPaidAmount = 0; // Pending means not yet paid
+                isPending = true;
+                tooltipText = 'Package payment is pending approval';
+            }
+        }
+        // Case 4: No payment attempts
+        else {
+            displayText = '0';
+            actualPaidAmount = 0;
+            isPending = false;
+        }
+
+        // Update the element
+        totalPaidElement.textContent = displayText;
+        
+        // Apply styling
+        if (isPending) {
+            totalPaidElement.style.color = '#d97706'; // Yellow-600
+            totalPaidElement.title = tooltipText;
+        } else {
+            totalPaidElement.style.color = ''; // Reset to default
+            totalPaidElement.title = '';
+        }
+
+        console.log('Total paid field updated:', {
+            displayText,
+            actualPaidAmount,
+            isPending,
+            tooltipText,
+            reservationApproved,
+            packageApproved,
+            reservationAttempted,
+            packageAttempted
+        });
+
+        return actualPaidAmount; // Return the actual paid amount for remaining balance calculation
+
+    } catch (error) {
+        console.error('Error updating totalPaid field:', error);
+        return 0;
     }
 }
 
@@ -323,14 +553,20 @@ function updateTransactionSummaryStatus(status) {
         // Reset styles
         badge.classList.remove('hidden', 'bg-yellow-50', 'text-yellow-700', 'border-yellow-300',
             'bg-green-50', 'text-green-700', 'border-green-300',
-            'bg-red-50', 'text-red-700', 'border-red-300');
+            'bg-red-50', 'text-red-700', 'border-red-300',
+            'bg-blue-50', 'text-blue-700', 'border-blue-300',
+            'bg-gray-50', 'text-gray-700', 'border-gray-300');
 
         if (status === 'Pending') {
             badge.classList.add('bg-yellow-50', 'text-yellow-700', 'border-yellow-300');
-        } else if (status === 'Completed') {
+        } else if (status === 'Fully-Paid') {
             badge.classList.add('bg-green-50', 'text-green-700', 'border-green-300');
-        } else {
+        } else if (status === 'Reserved') {
+            badge.classList.add('bg-blue-50', 'text-blue-700', 'border-blue-300');
+        } else if (status === 'Cancel') {
             badge.classList.add('bg-red-50', 'text-red-700', 'border-red-300');
+        } else { // Unpaid
+            badge.classList.add('bg-gray-50', 'text-gray-700', 'border-gray-300');
         }
 
         badge.textContent = status;
@@ -343,6 +579,16 @@ function updateTransactionSummaryStatus(status) {
 function handlePaymentButton(booking, remainingBalance, unpaidReservation, unpaidPackage) {
     const paymentButton = document.getElementById('paymentButton');
     if (!paymentButton) return;
+
+    // Check if booking is cancelled
+    const isCancelled = booking.status === 'Cancel' || booking.status === 'Cancelled' || booking.status === 'cancelled';
+
+    // Hide button if booking is cancelled
+    if (isCancelled) {
+        paymentButton.style.display = 'none';
+        console.log('Payment button hidden - booking is cancelled');
+        return;
+    }
 
     // Show button only if there's remaining balance AND unpaid items
     if (remainingBalance > 0 && (unpaidReservation || unpaidPackage)) {
@@ -1435,16 +1681,21 @@ function checkRescheduleEligibility(booking) {
         const daysSinceCreated = Math.floor((currentDate - createdDate) / (1000 * 60 * 60 * 24));
         const daysSinceCheckIn = Math.floor((currentDate - checkInDate) / (1000 * 60 * 60 * 24));
 
+        // Check if booking is cancelled
+        const isCancelled = booking.status === 'Cancel' || booking.status === 'Cancelled' || booking.status === 'cancelled';
+
         console.log('Reschedule eligibility check:', {
             createdDate: createdDate,
             checkInDate: checkInDate,
             currentDate: currentDate,
             daysSinceCreated: daysSinceCreated,
-            daysSinceCheckIn: daysSinceCheckIn
+            daysSinceCheckIn: daysSinceCheckIn,
+            bookingStatus: booking.status,
+            isCancelled: isCancelled
         });
 
-        // Check if either the booking was created more than 5 days ago OR the check-in date is more than 5 days old
-        const isEligible = daysSinceCreated <= 5 && daysSinceCheckIn <= 5;
+        // Check if either the booking was created more than 5 days ago OR the check-in date is more than 5 days old OR booking is cancelled
+        const isEligible = !isCancelled && daysSinceCreated <= 5 && daysSinceCheckIn <= 5;
 
         // Get reschedule button
         const rescheduleButton = document.querySelector('[data-modal-target="reschedModal"]');
@@ -1470,7 +1721,19 @@ function checkRescheduleEligibility(booking) {
             }
             enableCalendarInputs();
         } else {
-            console.log('Booking is NOT eligible for reschedule - too old');
+            let disabledReason = '';
+            let toastMessage = '';
+            
+            if (isCancelled) {
+                disabledReason = 'Booking Cancelled';
+                toastMessage = 'This booking has been cancelled and cannot be rescheduled.';
+                console.log('Booking is NOT eligible for reschedule - booking is cancelled');
+            } else {
+                disabledReason = 'Reschedule Unavailable';
+                toastMessage = 'This booking is more than 5 days old and cannot be rescheduled.';
+                console.log('Booking is NOT eligible for reschedule - too old');
+            }
+            
             if (rescheduleButton) {
                 // Don't set disabled=true as it prevents click events
                 // Instead, style it to look disabled but keep it clickable
@@ -1480,7 +1743,7 @@ function checkRescheduleEligibility(booking) {
                 // Update button text to indicate why it's disabled
                 const buttonText = rescheduleButton.querySelector('span');
                 if (buttonText) {
-                    buttonText.textContent = 'Reschedule Unavailable';
+                    buttonText.textContent = disabledReason;
                     buttonText.classList.add('text-neutral-500');
                     buttonText.classList.remove('group-hover:text-primary', 'group-active:text-primary');
                 }
@@ -1488,14 +1751,20 @@ function checkRescheduleEligibility(booking) {
                 // Remove modal target attribute to prevent modal from opening
                 rescheduleButton.removeAttribute('data-modal-target');
 
+                // Remove any existing click handlers to prevent multiple listeners
+                const newButton = rescheduleButton.cloneNode(true);
+                rescheduleButton.parentNode.replaceChild(newButton, rescheduleButton);
+
                 // Add click handler to show toast instead of opening modal
-                rescheduleButton.addEventListener('click', function (e) {
+                newButton.addEventListener('click', function (e) {
                     e.preventDefault();
                     e.stopPropagation();
                     console.log('Reschedule button clicked - showing toast');
 
                     // Show toast notification
-                    showToast('warning', 'Reschedule Unavailable', 'This booking is more than 5 days old and cannot be rescheduled.');
+                    const toastType = isCancelled ? 'error' : 'warning';
+                    const toastTitle = isCancelled ? 'Booking Cancelled' : 'Reschedule Unavailable';
+                    showToast(toastType, toastTitle, toastMessage);
                 });
             }
             disableCalendarInputs();

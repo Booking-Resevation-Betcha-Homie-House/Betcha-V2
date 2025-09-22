@@ -102,7 +102,7 @@
      * Modifies header based on authentication status
      */
     function modifyHeader() {
-        // Only modify header for unauth pages when user has no role
+        // For unauthenticated users on unauth pages
         if (!userRole && pageCategories.unauth.test(currentPath)) {
             // Special handling for rooms.html - only hide notification and profile, keep search
             if (currentPath.includes('rooms.html')) {
@@ -110,6 +110,18 @@
             } else {
                 // For all other unauth pages, replace with full hamburger navigation
                 replaceWithHamburgerNavigation();
+            }
+        }
+        
+        // For authenticated guests on about-us, privacy-policy, and terms-condition pages
+        // Show the authenticated navigation (same as rooms.html for authenticated users)
+        if (userRole === 'guest' && pageCategories.unauth.test(currentPath)) {
+            if (currentPath.includes('about-us.html') || 
+                currentPath.includes('privacy-policy.html') || 
+                currentPath.includes('terms-condition.html')) {
+                // These pages should show full authenticated navigation
+                // No modifications needed - let the default authenticated nav show
+                return;
             }
         }
     }
@@ -143,13 +155,13 @@
                 </div>
             `;
 
-            // Update the button styling to look like a hamburger menu
-            profileMenuBtn.className = "h-10 w-full group aspect-square rounded-full border border-neutral-200 bg-neutral-100 flex items-center justify-center text-white cursor-pointer overflow-hidden hover:bg-primary/10 hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 transition-all duration-300 ease-in-out";
+            // Update the button styling to match notification button style
+            profileMenuBtn.className = "group !p-2 rounded-full bg-neutral-100 border border-neutral-200 hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95 transition-all duration-300 ease-in-out";
             
             // Replace the profile icon with hamburger icon
             profileMenuBtn.innerHTML = `
-                <svg class="w-6 h-6 fill-primary-text group-hover:fill-primary transition-all duration-300 ease-in-out" viewBox="0 0 24 24">
-                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                <svg class="w-6 h-6 stroke-primary-text group-hover:rotate-10 group-hover:stroke-primary transition-all duration-300 ease-in-out" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
                 </svg>
             `;
         }
@@ -182,13 +194,9 @@
                         <!-- Right Hamburger -->
                         <div class="relative">
                             <!-- Button to toggle dropdown -->
-                            <div id="menuBtn" class="h-10 w-full group aspect-square rounded-full border border-neutral-200 bg-neutral-100 flex items-center justify-center text-white cursor-pointer overflow-hidden
-                            hover:bg-primary/10 hover:shadow-lg hover:rotate-10 hover:scale-105 active:scale-95 
-                            transition-all duration-300 ease-in-out">
-                                <svg class="w-6 h-6 fill-primary-text 
-                                     group-hover:fill-primary
-                                    transition-all duration-300 ease-in-out" viewBox="0 0 24 24">
-                                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                            <div id="menuBtn" class="group !p-2 rounded-full bg-neutral-100 border border-neutral-200 hover:bg-primary/10 hover:scale-105 hover:shadow-lg active:scale-95 transition-all duration-300 ease-in-out">
+                                <svg class="w-6 h-6 stroke-primary-text group-hover:rotate-10 group-hover:stroke-primary transition-all duration-300 ease-in-out" fill="none" viewBox="0 0 24 24" stroke-width="1.5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"/>
                                 </svg>
                             </div>
 

@@ -351,8 +351,8 @@ function getReservationDataFromURL(urlParams) {
     data.discountAmount = (data.subtotal * data.discount) / 100;
     data.totalAfterDiscount = data.subtotal - data.discountAmount;
     
-    // Final total is after discount, and reservation fee is subtracted (not added)
-    data.totalPrice = data.totalAfterDiscount - data.reservationFee;
+    // Final total is after discount (reservation fee is displayed separately, not subtracted)
+    data.totalPrice = data.totalAfterDiscount;
     
     return data;
 }
