@@ -11,6 +11,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show skeleton loading immediately
     showSkeletonLoading();
     
+    // Initialize timeout variable for transaction input debouncing
+    window.transactionInputTimeout = null;
+    
+    // Cleanup timeout on page unload
+    window.addEventListener('beforeunload', function() {
+        if (window.transactionInputTimeout) {
+            clearTimeout(window.transactionInputTimeout);
+        }
+    });
+    
     // Audit: payment initiation (page load implies intent to pay)
     try {
         const uid = localStorage.getItem('userId') || '';
@@ -380,8 +390,33 @@ function setupBankAccountValidation() {
     });
 
     // Add input validation for transaction number
-    transactionInput.addEventListener('input', function() {
+    transactionInput.addEventListener('input', async function() {
         updateConfirmButtonState();
+        
+        // Check amount in real-time if Prod Data mode is enabled
+        const transactionNumber = this.value.trim();
+        if (isProdDataMode() && transactionNumber.length > 0) {
+            console.log('🔍 Transaction input changed in Prod Data mode - checking amount...');
+            
+            // Add a small delay to avoid too many API calls while typing
+            clearTimeout(window.transactionInputTimeout);
+            window.transactionInputTimeout = setTimeout(async () => {
+                try {
+                    const verificationResult = await verifyTransactionAmount(transactionNumber, true);
+                    
+                    if (verificationResult.success) {
+                        console.log('✅ Real-time amount verification passed');
+                    } else if (verificationResult.showAmountModal) {
+                        console.log('💰 Real-time amount verification - showing amount mismatch modal');
+                        showAmountMismatchModal(verificationResult.apiAmount, verificationResult.expectedAmount);
+                    } else {
+                        console.log('⚠️ Real-time transaction verification failed:', verificationResult.error);
+                    }
+                } catch (error) {
+                    console.error('❌ Error during real-time amount verification:', error);
+                }
+            }, 1000); // 1 second delay after user stops typing
+        }
     });
 
     // Prevent pasting non-numeric content in bank account field
@@ -572,6 +607,8 @@ function hideFloatingValidation() {
 function disablePaymentInputs() {
     const bankAccountInput = document.getElementById('bankAccountNumber');
     const transactionInput = document.getElementById('transactionNumber');
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
     
     if (bankAccountInput) {
         bankAccountInput.disabled = true;
@@ -595,6 +632,33 @@ function disablePaymentInputs() {
         console.log('🔒 Transaction input disabled');
     }
     
+    // Disable dropzone and file input
+    if (dropzone) {
+        dropzone.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        dropzone.setAttribute('data-disabled', 'true');
+        
+        // Add overlay text to indicate dropzone is disabled
+        let disabledOverlay = dropzone.querySelector('.disabled-overlay');
+        if (!disabledOverlay) {
+            disabledOverlay = document.createElement('div');
+            disabledOverlay.className = 'disabled-overlay absolute inset-0 bg-gray-200 bg-opacity-75 flex items-center justify-center z-10 rounded-lg';
+            disabledOverlay.innerHTML = `
+                <div class="text-center">
+                    <p class="text-sm font-medium text-gray-600">Select a payment method first</p>
+                    <p class="text-xs text-gray-500">to upload receipt</p>
+                </div>
+            `;
+            dropzone.style.position = 'relative';
+            dropzone.appendChild(disabledOverlay);
+        }
+        console.log('🔒 Dropzone disabled');
+    }
+    
+    if (fileInput) {
+        fileInput.disabled = true;
+        console.log('🔒 File input disabled');
+    }
+    
     // Update confirm button state after clearing inputs
     updateConfirmButtonState();
 }
@@ -603,6 +667,8 @@ function disablePaymentInputs() {
 function enablePaymentInputs() {
     const bankAccountInput = document.getElementById('bankAccountNumber');
     const transactionInput = document.getElementById('transactionNumber');
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
     
     if (bankAccountInput) {
         bankAccountInput.disabled = false;
@@ -621,6 +687,24 @@ function enablePaymentInputs() {
         // Remove click handler
         transactionInput.removeEventListener('click', showPaymentMethodReminder);
         console.log('🔓 Transaction input enabled');
+    }
+    
+    // Enable dropzone and file input
+    if (dropzone) {
+        dropzone.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        dropzone.removeAttribute('data-disabled');
+        
+        // Remove disabled overlay
+        const disabledOverlay = dropzone.querySelector('.disabled-overlay');
+        if (disabledOverlay) {
+            disabledOverlay.remove();
+        }
+        console.log('🔓 Dropzone enabled');
+    }
+    
+    if (fileInput) {
+        fileInput.disabled = false;
+        console.log('🔓 File input enabled');
     }
     
     // Update confirm button state after enabling inputs
@@ -1751,6 +1835,14 @@ function setupDragAndDrop(dropzone, fileInput) {
     dropzone.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        // Check if dropzone is disabled
+        if (dropzone.getAttribute('data-disabled') === 'true') {
+            console.log('📥 Drag over dropzone - but dropzone is disabled');
+            showPaymentMethodReminder();
+            return;
+        }
+        
         console.log('📥 Drag over dropzone');
         dropzone.classList.add('border-primary', 'bg-primary/5');
     });
@@ -1758,6 +1850,13 @@ function setupDragAndDrop(dropzone, fileInput) {
     dropzone.addEventListener('dragenter', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        // Check if dropzone is disabled
+        if (dropzone.getAttribute('data-disabled') === 'true') {
+            console.log('📥 Drag enter dropzone - but dropzone is disabled');
+            return;
+        }
+        
         console.log('📥 Drag enter dropzone');
     });
     
@@ -1774,6 +1873,14 @@ function setupDragAndDrop(dropzone, fileInput) {
     dropzone.addEventListener('drop', (e) => {
         e.preventDefault();
         e.stopPropagation();
+        
+        // Check if dropzone is disabled
+        if (dropzone.getAttribute('data-disabled') === 'true') {
+            console.log('🎯 Files dropped but dropzone is disabled');
+            showPaymentMethodReminder();
+            return;
+        }
+        
         console.log('🎯 Files dropped! Event target:', e.target);
         console.log('🎯 DataTransfer files count:', e.dataTransfer.files.length);
         
@@ -1784,6 +1891,18 @@ function setupDragAndDrop(dropzone, fileInput) {
             handleDroppedFiles(files, fileInput);
         } else {
             console.error('❌ No files in dataTransfer');
+        }
+    });
+    
+    // Add click handler to check for disabled state
+    dropzone.addEventListener('click', (e) => {
+        // Check if dropzone is disabled
+        if (dropzone.getAttribute('data-disabled') === 'true') {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('👆 Dropzone clicked but is disabled');
+            showPaymentMethodReminder();
+            return;
         }
     });
     
@@ -1925,10 +2044,44 @@ async function triggerOCRFromPreview(fileInfo, transactionInput) {
             
             // Validate the extracted transaction number before using it
             if (isValidTransactionNumber(result.transactionNumber)) {
-                // Auto-fill transaction input
+                // Check for amount mismatch FIRST before filling input or showing success
+                console.log('🔍 Checking amount mismatch before proceeding...');
+                
+                // Check if we're in Production Data mode and need to verify amount
+                if (isProdDataMode()) {
+                    try {
+                        // Use the amount data directly from OCR response
+                        const apiAmount = result.amount;
+                        const expectedAmount = getExpectedTotalAmount();
+                        
+                        console.log('💰 Comparing amounts - Expected:', expectedAmount, 'API:', apiAmount);
+                        
+                        // Allow for small floating point differences (less than 1 cent)
+                        if (apiAmount && Math.abs(apiAmount - expectedAmount) >= 0.01) {
+                            console.log('💰 Amount mismatch detected during OCR - showing mismatch modal');
+                            showAmountMismatchModal(apiAmount, expectedAmount);
+                            return; // Exit early, don't fill input or show success
+                        }
+                        
+                        console.log('✅ Amount verification passed - proceeding with input fill');
+                    } catch (error) {
+                        console.error('❌ Error during amount verification:', error);
+                        showOCRRetryModal('Failed to verify transaction amount. Please try again.');
+                        return; // Exit early on verification error
+                    }
+                } else {
+                    console.log('📊 Test Data mode - skipping amount verification');
+                }
+                
+                // Only fill input and show success if amount verification passed (or in test mode)
                 if (transactionInput) {
                     transactionInput.value = result.transactionNumber;
                     transactionInput.classList.add('border-green-500', 'bg-green-50');
+                    
+                    // Manually trigger the input event to activate real-time amount checking
+                    const inputEvent = new Event('input', { bubbles: true });
+                    transactionInput.dispatchEvent(inputEvent);
+                    console.log('🔄 Triggered input event for real-time amount checking');
                     
                     // Show success animation
                     setTimeout(() => {
@@ -2060,6 +2213,7 @@ async function uploadImageForOCR(file) {
                 return {
                     success: true,
                     transactionNumber: extractedText,
+                    amount: result.amount, // Include amount from OCR response
                     fullText: result.fullText
                 };
             } else {
@@ -2125,16 +2279,11 @@ function showOCRRetryModal(message) {
         <div id="ocrRetryModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center z-50 px-4">
             <div class="modal-content bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
                 <div class="p-6">
-                    <!-- Header with close button -->
-                    <div class="flex items-center justify-between mb-4">
+                    <!-- Header centered -->
+                    <div class="text-center mb-4">
                         <h3 class="text-xl font-semibold text-gray-900">
                             Transaction Number Not Found
                         </h3>
-                        <button id="closeModalBtn" class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
-                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                            </svg>
-                        </button>
                     </div>
                     
                     <!-- Icon and Message -->
@@ -2237,6 +2386,14 @@ function setupOCRRetryModalEventListeners(modal) {
     // Close modal on backdrop click
     modal.addEventListener('click', (e) => {
         if (e.target === modal) {
+            console.log('🔄 Modal backdrop clicked - clearing inputs and files');
+            
+            // Clear file input and preview
+            clearFileInputAndPreview();
+            
+            // Clear form inputs and data
+            clearFormInputsAndData();
+            
             hideOCRRetryModal();
         }
     });
@@ -2292,6 +2449,32 @@ function clearFileInputAndPreview() {
     console.log('✅ File input and preview cleared');
 }
 
+// Function to clear form inputs and data
+function clearFormInputsAndData() {
+    console.log('🧹 Clearing form inputs and data...');
+    
+    // Clear transaction number input
+    const transactionInput = document.getElementById('transactionNumber');
+    if (transactionInput) {
+        transactionInput.value = '';
+        transactionInput.classList.remove('border-green-500', 'bg-green-50');
+    }
+    
+    // Clear bank account number input
+    const bankAccountInput = document.getElementById('bankAccountNumber');
+    if (bankAccountInput) {
+        bankAccountInput.value = '';
+    }
+    
+    // Clear payment method selection
+    const selectedPaymentMethod = document.querySelector('input[name="payment"]:checked');
+    if (selectedPaymentMethod) {
+        selectedPaymentMethod.checked = false;
+    }
+    
+    console.log('✅ Form inputs and data cleared');
+}
+
 // Setup payment confirmation functionality
 function setupPaymentConfirmation(bookingId, paymentType) {
     console.log('🔧 Setting up payment confirmation for:', { bookingId, paymentType });
@@ -2322,7 +2505,7 @@ async function processPaymentConfirmation(bookingId, paymentType) {
         console.log('📝 Form data:', formData);
         
         // Validate form data
-        if (!validatePaymentForm(formData)) {
+        if (!(await validatePaymentForm(formData))) {
             hideFullscreenLoading();
             return;
         }
@@ -2558,7 +2741,10 @@ function getPaymentFormData() {
     return formData;
 }
 
-function validatePaymentForm(formData) {
+async function validatePaymentForm(formData) {
+    console.log('🚀 validatePaymentForm called with:', formData);
+    console.log('🔍 Checking Prod Data mode status:', isProdDataMode());
+    
     const errors = [];
     
     if (!formData.modeOfPayment) {
@@ -2577,6 +2763,20 @@ function validatePaymentForm(formData) {
         if (!validationResult.isValid) {
             errors.push(validationResult.message);
         }
+    }
+
+    // Check for amount validation in Prod Data mode
+    if (isProdDataMode() && formData.paymentNo) {
+        console.log('🔍 Prod Data mode enabled - checking transaction verification...');
+        console.log('💳 Transaction number:', formData.paymentNo);
+        
+        // Skip verification for manually entered transaction numbers
+        // Amount verification only happens during OCR image upload process
+        // when we have the actual receipt image and amount data
+        console.log('📊 Skipping verification for manually entered transaction number');
+        console.log('💡 Amount verification only happens during OCR image upload process');
+    } else {
+        console.log('ℹ️ Prod Data mode disabled or no transaction number - skipping amount verification');
     }
     
     if (errors.length > 0) {
@@ -2598,25 +2798,277 @@ function validateBankAccountFormat(value) {
 
     const cleanValue = value.replace(/\D/g, '');
     const expectedLength = rules.expectedLength;
-    const isEWallet = rules.isEWallet;
-    const paymentName = rules.paymentName;
 
+    // Check correct length
     if (cleanValue.length !== expectedLength) {
         return {
             isValid: false,
-            message: `${isEWallet ? 'E-wallet' : 'Account'} number must be exactly ${expectedLength} digits for ${paymentName}`
+            message: `${rules.category} number must be ${expectedLength} digits`
         };
     }
 
-    // Additional validation for e-wallets - must start with "09"
-    if (isEWallet && !cleanValue.startsWith('09')) {
+    // Check "09" prefix for e-wallets
+    if (rules.isEWallet && !cleanValue.startsWith('09')) {
         return {
             isValid: false,
-            message: `${rules.category} numbers must start with "09"`
+            message: `${rules.category} number must start with "09"`
         };
     }
 
     return { isValid: true };
+}
+
+// Function to verify transaction amount with API (for Production Data mode)
+async function verifyTransactionAmount(transactionNumber, isRealTime = false) {
+    try {
+        const prefix = isRealTime ? '⚡ REAL-TIME' : '📝 CONFIRM';
+        console.log(`${prefix} - Verifying transaction amount for:`, transactionNumber);
+        
+        let apiData;
+        
+        // FOR TESTING: Simulate API response based on your example
+        // Comment this out when you have the real API working
+        if (transactionNumber === '357293852') {
+            console.log(`${prefix} - Using simulated API response for testing`);
+            apiData = {
+                result: "357293852",
+                amount: 1305.91,
+                fullText: "Successfully sent to\nA\nAlipay GN\nPHP 1,305.91\nAmount Due PHP 1348.04 ( SGD 32.00)\nExchange Rate SGD 1= PHP 4212612838\nPayment Method GCash\nAlipay+™ Discount - php 42.13\nSGD1 OFF(1.00 SGD) - php 4213\nRef. No. 357293852\n23 November 2022 01:24 PM\nShow the reference number to the cashier and expect an SMS\nfor your verification.\nGCash Payment\nPowered pyAlipay -L\nTRANSLATE FOR MERCHANT\n"
+            };
+        } else {
+            // Make actual API call to verify transaction
+            const response = await fetch(`https://betcha-api.onrender.com/transaction/verify`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    transactionNumber: transactionNumber
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error(`API responded with status: ${response.status}`);
+            }
+            
+            const result = await response.json();
+            console.log(`${prefix} - Transaction verification result:`, result);
+            apiData = {
+                result: result.result,
+                amount: result.amount,
+                fullText: result.fullText
+            };
+        }
+        
+        // Now perform amount comparison
+        const apiAmount = apiData.amount;
+        const expectedAmount = getExpectedTotalAmount();
+        
+        console.log(`${prefix} - Amount comparison:`, {
+            apiAmount,
+            expectedAmount,
+            difference: Math.abs(apiAmount - expectedAmount),
+            matches: Math.abs(apiAmount - expectedAmount) < 0.01
+        });
+        
+        // Allow for small floating point differences (less than 1 cent)
+        if (Math.abs(apiAmount - expectedAmount) >= 0.01) {
+            console.log(`${prefix} - Amount mismatch detected`);
+            return {
+                success: false,
+                showAmountModal: true,
+                apiAmount: apiAmount,
+                expectedAmount: expectedAmount,
+                data: apiData
+            };
+        }
+        
+        console.log(`${prefix} - Transaction amount verified successfully`);
+        return {
+            success: true,
+            data: apiData
+        };
+        
+    } catch (error) {
+        const prefix = isRealTime ? '⚡ REAL-TIME' : '📝 CONFIRM';
+        console.error(`${prefix} - Transaction verification failed:`, error);
+        return {
+            success: false,
+            error: error.message
+        };
+    }
+}
+
+// Function to check if Prod Data mode is enabled
+function isProdDataMode() {
+    const dataTypeToggle = document.getElementById('dataTypeToggle');
+    const isEnabled = dataTypeToggle ? dataTypeToggle.checked : false;
+    console.log('🔧 isProdDataMode check:', {
+        toggleFound: !!dataTypeToggle,
+        isChecked: dataTypeToggle?.checked,
+        result: isEnabled
+    });
+    return isEnabled;
+}
+
+// Function to get expected total amount from the page
+function getExpectedTotalAmount() {
+    const totalElement = document.getElementById('totalPrice');
+    if (totalElement) {
+        const totalText = totalElement.textContent.trim();
+        console.log('💰 Total element found, text:', totalText);
+        // Extract numeric value from "1,305.91" format
+        const numericValue = totalText.replace(/,/g, '');
+        const parsedAmount = parseFloat(numericValue);
+        console.log('💰 Parsed amount:', parsedAmount);
+        return parsedAmount;
+    }
+    console.warn('❌ totalPrice element not found');
+    return 0;
+}
+
+// Function to show amount mismatch modal
+function showAmountMismatchModal(apiAmount, expectedAmount) {
+    console.log('💰 Showing amount mismatch modal with amounts:', { apiAmount, expectedAmount });
+    
+    // Get the modal element
+    const modal = document.getElementById('amountMismatchModal');
+    if (!modal) {
+        console.error('Amount mismatch modal not found');
+        return;
+    }
+    
+    const modalContent = modal.querySelector('.modal-content');
+    if (!modalContent) {
+        console.error('Modal content not found');
+        return;
+    }
+    
+    // Update modal content with actual amounts
+    const apiAmountElement = modal.querySelector('#apiAmount');
+    const expectedAmountElement = modal.querySelector('#expectedAmount');
+    
+    if (apiAmountElement) {
+        apiAmountElement.textContent = `₱${apiAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    
+    if (expectedAmountElement) {
+        expectedAmountElement.textContent = `₱${expectedAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+    }
+    
+    // Function to clear inputs and close modal
+    function clearInputsAndCloseModal() {
+        console.log('🧹 Clearing inputs and closing modal...');
+        
+        // Hide modal with animation
+        modalContent.classList.add('scale-95', 'opacity-0');
+        modalContent.classList.remove('scale-100', 'opacity-100');
+        
+        setTimeout(() => {
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }, 300);
+        
+        // Clear current file input and preview
+        clearFileInputAndPreview();
+        
+        // Clear transaction number field
+        const transactionInput = document.getElementById('transactionNumber');
+        if (transactionInput) {
+            transactionInput.value = '';
+            transactionInput.classList.remove('border-green-500', 'bg-green-50');
+            console.log('🔄 Cleared transaction number field');
+        }
+        
+        // Clear bank account field
+        const bankAccountInput = document.getElementById('bankAccountNumber');
+        if (bankAccountInput) {
+            bankAccountInput.value = '';
+            console.log('🔄 Cleared bank account field');
+        }
+        
+        // Focus on the file input area
+        const dropzone = document.getElementById('dropzone');
+        if (dropzone) {
+            dropzone.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            dropzone.classList.add('border-primary', 'bg-primary/5');
+            setTimeout(() => {
+                dropzone.classList.remove('border-primary', 'bg-primary/5');
+            }, 2000);
+        }
+        
+        console.log('✅ Ready for new image upload');
+    }
+    
+    // Setup "Upload Another Picture" button event listener
+    const uploadAnotherBtn = modal.querySelector('#uploadAnotherPictureBtn');
+    if (uploadAnotherBtn) {
+        // Remove any existing event listeners
+        const newUploadBtn = uploadAnotherBtn.cloneNode(true);
+        uploadAnotherBtn.parentNode.replaceChild(newUploadBtn, uploadAnotherBtn);
+        
+        // Add new event listener
+        newUploadBtn.addEventListener('click', function() {
+            console.log('📸 Upload Another Picture button clicked');
+            clearInputsAndCloseModal();
+        });
+    }
+    
+    // Setup click outside modal to clear inputs and close
+    modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+            console.log('👆 Clicked outside modal - clearing inputs');
+            clearInputsAndCloseModal();
+        }
+    });
+    
+    // Prevent ESC key from closing (user must choose to upload another picture)
+    function preventEscapeClose(e) {
+        if (e.key === 'Escape') {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('⚠️ ESC key blocked - user must upload another picture');
+        }
+    }
+    
+    // Add ESC key prevention
+    document.addEventListener('keydown', preventEscapeClose, true);
+    
+    // Remove ESC prevention when modal closes
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                const isHidden = modal.classList.contains('hidden');
+                if (isHidden) {
+                    document.removeEventListener('keydown', preventEscapeClose, true);
+                    observer.disconnect();
+                }
+            }
+        });
+    });
+    observer.observe(modal, { attributes: true });
+    
+    // Show the modal with animation
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Set initial animation state
+    modalContent.classList.add('scale-95', 'opacity-0');
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    
+    // Trigger animation
+    setTimeout(() => {
+        modalContent.classList.remove('scale-95', 'opacity-0');
+        modalContent.classList.add('scale-100', 'opacity-100');
+    }, 10);
+    
+    // Focus management
+    const uploadBtn = modal.querySelector('#uploadAnotherPictureBtn');
+    if (uploadBtn) {
+        uploadBtn.focus();
+    }
+    
+    console.log('📋 Amount mismatch modal displayed (no escape options):', { apiAmount, expectedAmount });
 }
 
 function getPaymentApiEndpoint(paymentType, bookingId) {
