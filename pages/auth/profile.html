@@ -8,6 +8,28 @@
     <script> window.chtlConfig = { chatbotId: "5433159853" } </script>
     <script async data-id="5433159853" id="chtl-script" type="text/javascript" src="https://chatling.ai/js/embed.js"></script>
     <script src="/src/page-control.js"></script>
+    <style>
+        /* Profile picture hover effect */
+        #profilePictureContainer:hover {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Modal animation */
+        .modal-animate {
+            animation: modalSlideIn 0.3s ease-out;
+        }
+        
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.9) translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: scale(1) translateY(0);
+            }
+        }
+    </style>
 </head>
 <body class="bg-background">
   <!-- NavBar -->
@@ -197,9 +219,17 @@
           <!-- Header Section -->
           <div class="flex flex-col items-center text-center p-8">
               <!-- Profile Picture -->
-              <div class="w-32 h-32 bg-primary mt-5 text-white rounded-full flex items-center justify-center text-4xl font-semibold font-manrope mb-4 uppercase overflow-hidden">
+              <div id="profilePictureContainer" class="w-32 h-32 bg-primary mt-5 text-white rounded-full flex items-center justify-center text-4xl font-semibold font-manrope mb-4 uppercase overflow-hidden cursor-pointer hover:scale-105 transition-all duration-200 group relative">
               <img id="profileAvatarImg" class="w-full h-full object-cover hidden" alt="Profile picture" />
               <span id="firstLetterName">J</span>
+              
+              <!-- Hover overlay with eye icon -->
+              <div class="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                <svg class="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z"/>
+                  <path fill-rule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clip-rule="evenodd"/>
+                </svg>
+              </div>
               </div>
 
               <!-- User Info -->
@@ -299,6 +329,25 @@
               </div>
             </div>
           </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Picture Modal -->
+  <div id="profilePictureModal" class="modal fixed inset-0 bg-black/80 flex items-center justify-center hidden z-50 p-4">
+    <div class="relative bg-white rounded-3xl overflow-hidden shadow-2xl max-w-sm w-full mx-auto modal-animate">      
+      <!-- Profile Picture Container -->
+      <div class="aspect-square w-full bg-primary flex items-center justify-center text-white overflow-hidden">
+        <!-- Large Profile Picture -->
+        <img id="modalProfileImg" class="w-full h-full object-cover hidden" alt="Profile picture" />
+        <!-- Large Initial Letter -->
+        <span id="modalFirstLetter" class="text-8xl font-semibold font-manrope uppercase">J</span>
+      </div>
+      
+      <!-- User Info at Bottom -->
+      <div class="p-4 text-center bg-white">
+        <p id="modalUserName" class="text-lg font-semibold text-primary-text font-manrope">John Doe</p>
+        <p id="modalUserRole" class="text-sm text-neutral-500 font-inter">Guest</p>
       </div>
     </div>
   </div>

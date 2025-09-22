@@ -11,6 +11,9 @@
 
         // Initialize verification button functionality
         initVerificationButton();
+        
+        // Initialize profile picture modal functionality
+        initProfilePictureModal();
     });
 
     async function fetchAndRenderProfile() {
@@ -238,6 +241,64 @@
                         
                         console.log('Verification process completed');
                     }, 20000); // 20 seconds
+                }
+            });
+        }
+    }
+
+    // Initialize profile picture modal functionality
+    function initProfilePictureModal() {
+        const profilePictureContainer = document.getElementById('profilePictureContainer');
+        const profilePictureModal = document.getElementById('profilePictureModal');
+        const modalProfileImg = document.getElementById('modalProfileImg');
+        const modalFirstLetter = document.getElementById('modalFirstLetter');
+        const modalUserName = document.getElementById('modalUserName');
+        const modalUserRole = document.getElementById('modalUserRole');
+        
+        if (profilePictureContainer) {
+            profilePictureContainer.addEventListener('click', () => {
+                // Get current profile data
+                const profileImg = document.getElementById('profileAvatarImg');
+                const firstLetter = document.getElementById('firstLetterName');
+                const userName = document.getElementById('userName');
+                const userRole = document.getElementById('userRole');
+                
+                // Update modal content
+                if (modalUserName && userName) {
+                    modalUserName.textContent = userName.textContent;
+                }
+                if (modalUserRole && userRole) {
+                    modalUserRole.textContent = userRole.textContent;
+                }
+                if (modalFirstLetter && firstLetter) {
+                    modalFirstLetter.textContent = firstLetter.textContent;
+                }
+                
+                // Show profile image or initial in modal
+                if (profileImg && !profileImg.classList.contains('hidden') && profileImg.src) {
+                    // Show image in modal
+                    if (modalProfileImg) {
+                        modalProfileImg.src = profileImg.src;
+                        modalProfileImg.classList.remove('hidden');
+                    }
+                    if (modalFirstLetter) {
+                        modalFirstLetter.classList.add('hidden');
+                    }
+                } else {
+                    // Show initial in modal
+                    if (modalProfileImg) {
+                        modalProfileImg.classList.add('hidden');
+                        modalProfileImg.removeAttribute('src');
+                    }
+                    if (modalFirstLetter) {
+                        modalFirstLetter.classList.remove('hidden');
+                    }
+                }
+                
+                // Show modal
+                if (profilePictureModal) {
+                    profilePictureModal.classList.remove('hidden');
+                    document.body.classList.add('modal-open');
                 }
             });
         }
