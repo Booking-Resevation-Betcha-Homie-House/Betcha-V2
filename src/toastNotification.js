@@ -1,6 +1,8 @@
-class ToastNotification {
-    constructor() {
+export class ToastNotification {
+    constructor(position = 'top', align = 'right') {
         this.container = null;
+        this.position = position;
+        this.align = align;
         this.createContainer();
     }
 

@@ -117,8 +117,83 @@ async function fetchAndPopulateBookingData(bookingId) {
 }
 
 // Function to populate booking data in the UI
+// Function to handle booking status specific UI changes
+function handleBookingStatus(booking) {
+    const status = booking.status;
+    const paymentButton = document.getElementById('paymentButton');
+    const remainingBalanceWrapper = document.querySelector('.w-full.h-fit.p-5.bg-primary\\/10');
+    const rescheduleBtn = document.querySelector('[data-modal-target="reschedModal"]');
+
+    // Check for cancellation first
+    const isCancelled = status === 'Cancel' || status === 'Cancelled' || status === 'cancelled';
+    
+    if (isCancelled && booking.refund) {
+        // Remove payment button and remaining balance display
+        if (paymentButton) {
+            paymentButton.closest('.flex.justify-between.items-center')?.remove();
+        }
+        if (remainingBalanceWrapper) {
+            remainingBalanceWrapper.remove();
+        }
+
+        // Create refund amount display
+        const refundSection = document.createElement('div');
+        refundSection.className = 'w-full h-fit p-5 bg-rose-50 border border-rose-200 rounded-lg mb-5';
+        refundSection.innerHTML = `
+            <div class="flex flex-col justify-center items-center gap-3">
+                <p class="text-rose-600 font-manrope">Refund Amount</p>
+                <p class="text-rose-600 font-inter font-bold text-5xl">₱ ${booking.refund.refundAmount.toLocaleString()}</p>
+                <p class="text-rose-500 text-sm font-inter">${booking.refund.approved ? 'Refund Approved' : 'Refund Pending'}</p>
+            </div>
+        `;
+
+        // Insert refund section before the transaction summary ends
+        const transactionSummary = document.querySelector('.flex.flex-col.border.border-gray-300.bg-white.rounded-3xl.p-5.overflow-hidden.mb-5');
+        if (transactionSummary) {
+            transactionSummary.insertAdjacentElement('beforeend', refundSection);
+        }
+    } else if (status === 'Completed') {
+        // Remove only the payment button and remaining balance display
+        if (paymentButton) {
+            paymentButton.closest('.flex.justify-between.items-center')?.remove();
+        }
+        if (remainingBalanceWrapper) {
+            remainingBalanceWrapper.remove();
+        }
+    }
+
+    // Handle reschedule button for both Completed and Cancelled status
+    if (status === 'Completed' || isCancelled) {
+        if (rescheduleBtn) {
+            // Remove modal trigger
+            rescheduleBtn.removeAttribute('data-modal-target');
+            // Disable the button
+            rescheduleBtn.disabled = true;
+            // Remove any click handlers
+            rescheduleBtn.onclick = null;
+            rescheduleBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            });
+            
+            // Update text and styles based on status
+            rescheduleBtn.querySelector('span').textContent = isCancelled ? 'Cancelled' : 'Completed';
+            // Add disabled styles from the HTML
+            rescheduleBtn.classList.add('disabled:bg-neutral-200', 'disabled:border-neutral-300', 'disabled:cursor-not-allowed', 'disabled:active:scale-100');
+            const buttonText = rescheduleBtn.querySelector('span');
+            if (buttonText) {
+                buttonText.classList.add('group-disabled:text-neutral-500', 'group-disabled:group-hover:text-neutral-500');
+            }
+        }
+    }
+}
+
 function populateBookingData(booking) {
     try {
+        // Handle status-specific UI changes first
+        handleBookingStatus(booking);
+        
         // Basic booking information
         populateElement('roomName', booking.propertyName || 'Property Name');
         populateElement('refID', booking.transNo || booking._id);

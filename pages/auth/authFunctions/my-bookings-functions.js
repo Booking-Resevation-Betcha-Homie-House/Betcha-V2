@@ -1,6 +1,8 @@
 // My Bookings JavaScript Functions
 // This file handles fetching and rendering booking cards dynamically
 
+import { ToastNotification } from '/src/toastNotification.js';
+const toast = new ToastNotification('bottom', 'right');
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
 // Global variable to store categorized bookings
@@ -159,7 +161,7 @@ function getStatusStyle(status) {
 }
 
 // Function to create a booking card
-function createBookingCard(booking, propertyPhoto = null, isLoading = false) {
+function createBookingCard(booking, propertyPhoto = null, isToRateTab = false) {
     const statusStyle = getStatusStyle(booking.status);
     const checkInDate = formatDate(booking.checkIn);
     
@@ -171,9 +173,14 @@ function createBookingCard(booking, propertyPhoto = null, isLoading = false) {
     // Use property photo if available, otherwise white background
     const roomImage = propertyPhoto || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMSIgaGVpZ2h0PSIxIiB2aWV3Qm94PSIwIDAgMSAxIiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxyZWN0IHdpZHRoPSIxIiBoZWlnaHQ9IjEiIGZpbGw9IndoaXRlIi8+PC9zdmc+';
 
+    // Different click handler for "To Rate" tab
+    const clickHandler = isToRateTab 
+        ? `onclick="openToRateModal('${booking._id}', '${booking.propertyName}', '${booking.checkIn}', '${booking.checkOut}')"` 
+        : `onclick="navigateToBooking('${booking._id}')"`;
+
     return `
         <div class="relative rounded-2xl cursor-pointer p-5 w-full h-auto md:h-[200px] flex flex-col md:flex-row gap-5 shadow-sm bg-white border border-neutral-300 group hover:shadow-lg hover:border-primary-text transition-all duration-500 ease-in-out overflow-hidden"
-             onclick="navigateToBooking('${booking._id}')">
+             ${clickHandler}>
 
             <!-- 🖼️ Room Image -->
             <div class="w-full md:w-[30%] group-hover:md:w-[35%] h-[200px] md:h-full bg-cover bg-center rounded-xl z-10 transition-all duration-500 ease-in-out"
@@ -270,13 +277,14 @@ async function fetchPropertyPhoto(propertyId) {
 function updateCardImage(bookingId, propertyId, imageUrl) {
     if (!imageUrl) return;
     
-    // Find the image element for this booking
-    const imageElement = document.querySelector(`[data-booking-id="${bookingId}"][data-property-id="${propertyId}"]`);
-    if (imageElement) {
+    // Find ALL image elements for this booking across all tabs (since the same booking might appear in multiple tabs)
+    const imageElements = document.querySelectorAll(`[data-booking-id="${bookingId}"][data-property-id="${propertyId}"]`);
+    
+    imageElements.forEach((imageElement) => {
         // Update the background image with smooth transition
         imageElement.style.backgroundImage = `url('${imageUrl}')`;
-        console.log(`✅ Updated image for booking ${bookingId}`);
-    }
+        console.log(`✅ Updated image for booking ${bookingId} in container`);
+    });
 }
 
 // Function to load images progressively
@@ -341,6 +349,13 @@ function setActiveBookingTab(index) {
             if (i === index) {
                 console.log(`✅ Showing container: ${containerId}`);
                 content.classList.remove('hidden');
+                
+                // Trigger image loading for newly visible tab if data is available
+                const tabData = getBookingsForTab(index);
+                if (tabData && tabData.length > 0) {
+                    // Check if images need to be loaded for this tab
+                    loadImagesForVisibleTab(tabData, containerId);
+                }
             } else {
                 console.log(`🚫 Hiding container: ${containerId}`);
                 content.classList.add('hidden');
@@ -351,9 +366,323 @@ function setActiveBookingTab(index) {
     });
 }
 
-// Override the global setActiveTab function for my-bookings page
+// Helper function to get bookings data for a specific tab
+function getBookingsForTab(tabIndex) {
+    switch (tabIndex) {
+        case 0: return globalBookingsData.all;
+        case 1: return globalBookingsData.pending;
+        case 2: return globalBookingsData.toRate;
+        case 3: return globalBookingsData.completed;
+        default: return [];
+    }
+}
+
+// Function to load images for newly visible tab
+async function loadImagesForVisibleTab(bookings, containerId) {
+    console.log(`🖼️ Loading images for visible tab: ${containerId}`);
+    
+    // Check which images still need to be loaded
+    const bookingsNeedingImages = bookings.filter(booking => {
+        const imageElement = document.querySelector(`#${containerId} [data-booking-id="${booking._id}"]`);
+        if (!imageElement) return false;
+        
+        // Check if image is still using fallback (white background)
+        const currentBg = imageElement.style.backgroundImage;
+        return !currentBg || currentBg.includes('data:image/svg+xml') || currentBg === '';
+    });
+    
+    if (bookingsNeedingImages.length === 0) {
+        console.log(`🎉 All images already loaded for ${containerId}`);
+        return;
+    }
+    
+    console.log(`📸 Loading ${bookingsNeedingImages.length} missing images for ${containerId}`);
+    
+    // Load missing images with controlled concurrency
+    await processWithConcurrency(
+        bookingsNeedingImages,
+        async (booking) => {
+            try {
+                // Check if image is already cached
+                let photo = photoCache.get(booking.propertyId);
+                if (photo === undefined) {
+                    // Not in cache, fetch it
+                    photo = await fetchPropertyPhoto(booking.propertyId);
+                }
+                
+                if (photo) {
+                    updateCardImage(booking._id, booking.propertyId, photo);
+                }
+            } catch (error) {
+                console.warn(`Failed to load image for ${booking.propertyId}:`, error);
+            }
+        },
+        3 // Lower concurrency for tab switching
+    );
+}
+
+// Set up the required global functions
 window.setActiveTab = setActiveBookingTab;
 window.navigateToBooking = navigateToBooking;
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+    // Set initial active tab (All = index 0)
+    setActiveBookingTab(0);
+    // Start fetching immediately for better performance
+    fetchAndRenderBookings();
+});
+
+// Global variable to store current booking being rated
+let currentRatingBookingId = null;
+
+// Function to open the rating modal for "To Rate" bookings
+function openToRateModal(bookingId, propertyName, checkIn, checkOut) {
+    console.log('🌟 Opening rating modal for booking:', bookingId);
+    
+    // Store the booking ID for later use
+    currentRatingBookingId = bookingId;
+    
+    // Format dates for display
+    const checkInFormatted = formatDate(checkIn);
+    const checkOutDateObj = new Date(checkOut);
+    checkOutDateObj.setDate(checkOutDateObj.getDate() + 1);
+    const checkOutFormatted = formatDate(checkOutDateObj.toISOString());
+    
+    // Update modal content
+    const modal = document.getElementById('toRateModal');
+    const unitNameElement = modal.querySelector('h2');
+    const checkInDateElement = modal.querySelector('#checkInDate');
+    const checkOutDateElement = modal.querySelector('#checkOutDate');
+    
+    if (unitNameElement) unitNameElement.textContent = propertyName || 'Unit Name';
+    if (checkInDateElement) checkInDateElement.textContent = checkInFormatted;
+    if (checkOutDateElement) checkOutDateElement.textContent = checkOutFormatted;
+    
+    // Reset rating
+    resetRating();
+    
+    // Show modal
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+    
+    // Add event listener to confirm button if not already added
+    const confirmButton = modal.querySelector('#submitRatingBtn');
+    if (confirmButton) {
+        // Remove existing listeners
+        confirmButton.replaceWith(confirmButton.cloneNode(true));
+        const newConfirmButton = modal.querySelector('#submitRatingBtn');
+        
+        newConfirmButton.addEventListener('click', submitRating);
+    }
+}
+
+// Function to reset rating display
+function resetRating() {
+    const starContainer = document.querySelector('#starRating');
+    const ratingValue = document.querySelector('#ratingValue span');
+    
+    if (starContainer) {
+        starContainer.innerHTML = '';
+        // Create 5 stars
+        for (let i = 1; i <= 5; i++) {
+            const star = createStar(i);
+            starContainer.appendChild(star);
+        }
+        
+        // Add container-level mouse leave event to restore rating when leaving the entire star area
+        starContainer.addEventListener('mouseleave', () => restoreCurrentRating());
+        
+        // Set default rating to 1
+        setRating(1);
+    }
+    
+    if (ratingValue) {
+        ratingValue.textContent = '1';
+    }
+}
+
+// Function to create a star element
+function createStar(index) {
+    const star = document.createElement('div');
+    star.className = 'star cursor-pointer transition-colors duration-200';
+    star.dataset.rating = index;
+    
+    star.innerHTML = `
+        <svg class="w-10 h-10 fill-gray-300 hover:fill-yellow-400 transition-colors duration-200" viewBox="0 0 24 24">
+            <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
+        </svg>
+    `;
+    
+    // Add click and hover events
+    star.addEventListener('click', () => setRating(index));
+    star.addEventListener('mouseenter', () => previewRating(index));
+    star.addEventListener('mouseleave', restoreCurrentRating);
+    
+    return star;
+}
+
+// Function to set rating
+function setRating(rating) {
+    console.log('⭐ Setting rating:', rating);
+    
+    const stars = document.querySelectorAll('.star');
+    const ratingValue = document.querySelector('#ratingValue span');
+    const ratingText = document.querySelector('#ratingValue');
+    
+    // Update star colors
+    stars.forEach((star, index) => {
+        const svg = star.querySelector('svg');
+        if (index < rating) {
+            svg.classList.remove('fill-gray-300');
+            svg.classList.add('fill-yellow-400');
+        } else {
+            svg.classList.remove('fill-yellow-400');
+            svg.classList.add('fill-gray-300');
+        }
+    });
+    
+    // Update rating value display with proper singular/plural
+    if (ratingValue) {
+        ratingValue.textContent = rating;
+    }
+    
+    if (ratingText) {
+        const starText = rating === 1 ? 'star' : 'stars';
+        ratingText.innerHTML = `<span>${rating}</span> ${starText}`;
+    }
+    
+    // Store current rating
+    window.currentRating = rating;
+}
+
+// Function to preview rating on hover
+function previewRating(rating) {
+    const stars = document.querySelectorAll('.star');
+    const ratingValue = document.querySelector('#ratingValue span');
+    const ratingText = document.querySelector('#ratingValue');
+    
+    // Update star colors for preview
+    stars.forEach((star, index) => {
+        const svg = star.querySelector('svg');
+        if (index < rating) {
+            svg.classList.remove('fill-gray-300');
+            svg.classList.add('fill-yellow-400');
+        } else {
+            svg.classList.remove('fill-yellow-400');
+            svg.classList.add('fill-gray-300');
+        }
+    });
+    
+    // Update rating value display for preview
+    if (ratingValue) {
+        ratingValue.textContent = rating;
+    }
+    
+    if (ratingText) {
+        const starText = rating === 1 ? 'star' : 'stars';
+        ratingText.innerHTML = `<span>${rating}</span> ${starText}`;
+    }
+}
+
+// Function to restore current rating when mouse leaves
+function restoreCurrentRating() {
+    const currentRating = window.currentRating || 1;
+    const stars = document.querySelectorAll('.star');
+    const ratingValue = document.querySelector('#ratingValue span');
+    const ratingText = document.querySelector('#ratingValue');
+    
+    // Restore star colors to current rating
+    stars.forEach((star, index) => {
+        const svg = star.querySelector('svg');
+        if (index < currentRating) {
+            svg.classList.remove('fill-gray-300');
+            svg.classList.add('fill-yellow-400');
+        } else {
+            svg.classList.remove('fill-yellow-400');
+            svg.classList.add('fill-gray-300');
+        }
+    });
+    
+    // Restore rating value display
+    if (ratingValue) {
+        ratingValue.textContent = currentRating;
+    }
+    
+    if (ratingText) {
+        const starText = currentRating === 1 ? 'star' : 'stars';
+        ratingText.innerHTML = `<span>${currentRating}</span> ${starText}`;
+    }
+}
+
+// Function to submit rating to API
+async function submitRating() {
+    if (!currentRatingBookingId) {
+        console.error('❌ No booking ID available for rating');
+        return;
+    }
+    
+    const rating = window.currentRating || 1; // Default to 1 if no rating selected
+    if (rating < 1 || rating > 5) {
+        toast.show('error', 'Error', 'Please select a rating from 1 to 5 stars');
+        return;
+    }
+    
+    console.log('📤 Submitting rating:', rating, 'for booking:', currentRatingBookingId);
+    
+    const confirmButton = document.querySelector('#submitRatingBtn');
+    const originalText = confirmButton.querySelector('span').textContent;
+    
+    try {
+        // Show loading state
+        confirmButton.querySelector('span').textContent = 'Submitting...';
+        confirmButton.disabled = true;
+        
+        // Submit rating to API
+        const response = await fetch(`${API_BASE_URL}/booking/rate/${currentRatingBookingId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                rating: rating
+            })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Failed to submit rating: ${response.status} ${response.statusText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ Rating submitted successfully:', result);
+        
+        // Close modal
+        document.getElementById('toRateModal').classList.add('hidden');
+        document.getElementById('toRateModal').classList.remove('flex');
+        
+        // Show success message using toast
+        toast.show('success', 'Success', 'Rating submitted successfully!');
+        
+        // Refresh bookings and stay on To Rate tab (index 2)
+        await fetchAndRenderBookings();
+        setActiveBookingTab(2);
+        
+    } catch (error) {
+        console.error('❌ Error submitting rating:', error);
+        toast.show('error', 'Error', 'Failed to submit rating. Please try again.');
+        
+        // Restore button state
+        confirmButton.querySelector('span').textContent = originalText;
+        confirmButton.disabled = false;
+    }
+}
+
+// Make functions globally available
+window.openToRateModal = openToRateModal;
+window.setRating = setRating;
+window.previewRating = previewRating;
+window.restoreCurrentRating = restoreCurrentRating;
+window.submitRating = submitRating;
 
 // Function to render bookings for a specific tab
 // Optimized function to render bookings with sorting and complete loading
@@ -395,9 +724,12 @@ async function renderBookings(bookings, containerId) {
     
     console.log(`⚡ Rendering booking cards immediately with placeholder images...`);
     
+    // Check if this is the "To Rate" container to use different click behavior
+    const isToRateTab = containerId === 'rateContainer';
+    
     // Render all cards immediately with fallback images
     const immediateHTML = sortedBookings
-        .map(booking => createBookingCard(booking, null)) // No photo = fallback image
+        .map(booking => createBookingCard(booking, null, isToRateTab)) // Pass isToRateTab flag
         .join('');
     
     // Display cards immediately
@@ -553,4 +885,25 @@ document.addEventListener('DOMContentLoaded', function() {
     // Start fetching immediately for better performance
     console.log('📡 Starting immediate data fetch...');
     fetchAndRenderBookings();
+    
+    // Add close modal functionality
+    const toRateModal = document.getElementById('toRateModal');
+    const closeButtons = toRateModal.querySelectorAll('[data-close-modal]');
+    
+    closeButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            toRateModal.classList.add('hidden');
+            toRateModal.classList.remove('flex');
+            currentRatingBookingId = null;
+        });
+    });
+    
+    // Close modal when clicking outside
+    toRateModal.addEventListener('click', (e) => {
+        if (e.target === toRateModal) {
+            toRateModal.classList.add('hidden');
+            toRateModal.classList.remove('flex');
+            currentRatingBookingId = null;
+        }
+    });
 });

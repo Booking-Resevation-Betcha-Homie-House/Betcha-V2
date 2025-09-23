@@ -426,7 +426,7 @@
     </div>
 
     <!-- To Rate Modal -->
-    <div id="toRateModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-end sm:items-center justify-center  overflow-hidden z-50">
+    <div id="toRateModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 items-end sm:items-center justify-center hidden overflow-hidden z-50">
       <div class="w-full bg-background px-5 pt-3 rounded-t-3xl sm:rounded-3xl modal-animate overflow-hidden flex flex-col 
         md:px-6 md:max-w-lg lg:max-w-xl xl:max-w-3xl h-[400px]">
 
@@ -452,9 +452,9 @@
 
           <!-- Ratings -->
           <div class="text-start">
-            <p class="fonr-manrope text-primary-text mb-5">Ratings:</p>
+            <p class="font-manrope text-primary-text mb-5">Ratings:</p>
             <div id="starRating" class="flex justify-center gap-1 cursor-pointer"></div>
-            <p id="ratingValue" class="mt-2 text-sm text-center text-neutral-500"><span>0</span> stars</p>
+            <p id="ratingValue" class="mt-2 text-sm text-center text-neutral-500"><span>1</span> star</p>
           </div>
         </div>
 
@@ -462,8 +462,8 @@
         <div class="items-center py-5 mt-auto">
           <button type="button" 
             class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-sm
-            hover:cursor-pointer active:scale-95 hover:shaadow-lg
-            transition-all duration-300 ease-in-out" id="confirmGuestCount">
+            hover:cursor-pointer active:scale-95 hover:shadow-lg
+            transition-all duration-300 ease-in-out" id="submitRatingBtn">
               <span class="text-secondary-text text-base  
               group-hover:-translate-x-1 
               transition-transform duration-500 ease-in-out
@@ -479,14 +479,13 @@
     </div>
 
 
+    <script type="module" src="authFunctions/my-bookings-functions.js"></script>
     <script defer src="authFunctions/auth-profile.js"></script>
     <script defer src="../../src/navbar.js"></script>
     <script defer src="../../src/universal-logout.js"></script>
     <script defer src="../../src/modal.js"></script>
-    <script defer src="../../src/multipleTabs.js"></script>
     <script defer src="../../src/notification.js"></script>
     <script defer src="../../src/ratings.js"></script>
-    <script defer src="authFunctions/my-bookings-functions.js"></script>
 </body>
 </html>
 
