@@ -86,15 +86,15 @@ function restoreButtonState(button, originalContent) {
 // Function to show success message
 function showSuccessMessage() {
     // You can customize this to use your existing notification system
-    alert('Role created successfully!');
+   console.log('Role created successfully!');
 }
 
 // Function to show error message
 function showErrorMessage(errors) {
     if (Array.isArray(errors)) {
-        alert('Error creating role:\n' + errors.join('\n'));
+        console.log('Error creating role:\n' + errors.join('\n'));
     } else {
-        alert('Error creating role: ' + errors);
+        console.log('Error creating role: ' + errors);
     }
 }
 
