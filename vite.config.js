@@ -6,8 +6,6 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
-  // Remove assetsInclude to prevent JS processing issues
-  // assetsInclude: ['**/*.js'], // Include JS files as assets
   build: {
     outDir: 'dist',
     rollupOptions: {

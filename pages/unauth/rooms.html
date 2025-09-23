@@ -912,7 +912,7 @@
     <script type="module" src="../../src/notification.js"></script>
     <script type="module" src="./unauthFunctions/rooms-functions.js"></script>
     <script type="module">
-      import { showToastError } from '../../src/toastNotification.js';
+      import { showToast, showToastError, showToastWarning } from '../../src/toastNotification.js';
 
       document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('searchButtonId').addEventListener('click', function() {
@@ -939,11 +939,11 @@
 
           // Validate all required fields
           if (!city || city === 'Where') {
-            showToastError('warning', 'Location Required', 'Please select a city for your stay.');
+            showToastWarning('Please select a city for your stay.', 'Location Required');
             return;
           }
           if (!checkIn || !checkOut) {
-            showToastError('warning', 'Dates Required', 'Please select both check-in and check-out dates.');
+            showToastWarning('Please select both check-in and check-out dates.', 'Dates Required');
             return;
           }
           
@@ -952,11 +952,11 @@
             const checkInDate = new Date(checkIn);
             const checkOutDate = new Date(checkOut);
             if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
-              showToastError('error', 'Invalid Dates', 'Please select valid check-in and check-out dates.');
+              showToast('error', 'Invalid Dates', 'Please select valid check-in and check-out dates.');
               return;
             }
             if (checkOutDate <= checkInDate) {
-              showToastError('error', 'Invalid Date Range', 'Check-out date must be after check-in date.');
+              showToast('error', 'Invalid Date Range', 'Check-out date must be after check-in date.');
               return;
             }
           } catch (e) {
@@ -964,11 +964,11 @@
             return;
           }
           if (!priceStart || !priceEnd) {
-            showToastError('warning', 'Price Range Required', 'Please set your preferred price range.');
+            showToast('error', 'Price Range Required', 'Please set your preferred price range.');
             return;
           }
           if (!guestCount || guestCount < 1) {
-            showToastError('warning', 'Guests Required', 'Please select the number of guests.');
+            showToast('error', 'Guests Required', 'Please select the number of guests.');
             return;
           }
 

@@ -167,8 +167,20 @@ export function validateReservationData() {
     return true;
 }
 
-export function showToastError(type, title, message, duration = 5000) {
+export function showToast(type, title, message, duration = 5000) {
     return toast.show(type, title, message, duration);
+}
+
+export function showToastError(message, title = 'Error', duration = 5000) {
+    return toast.show('error', title, message, duration);
+}
+
+export function showToastSuccess(message, title = 'Success', duration = 5000) {
+    return toast.show('success', title, message, duration);
+}
+
+export function showToastWarning(message, title = 'Warning', duration = 5000) {
+    return toast.show('warning', title, message, duration);
 }
 
 export function removeToast(toastId) {
