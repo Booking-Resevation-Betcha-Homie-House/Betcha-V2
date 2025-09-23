@@ -526,16 +526,9 @@
 
 
         <!-- Bottom nav -->
-        <div class="flex flex-col md:flex-row items-center py-5 gap-3">
-          <button type="button" data-close-modal
-          class=" w-full btn rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden shadow-s order-2 md:order-1
-          hover:cursor-pointer active:scale-95 
-          transition-all duration-300 ease-in-out">
-              <span class="text-primary-text text-base  
-              md:text-lg">Close</span>
-          </button>
+        <div class="flex flex-col py-5">
           <button type="button" data-modal-target="cancelBookingModal"
-          class=" w-full btn rounded-full bg-rose-700 flex items-center justify-center overflow-hidden shadow-sm order-1 md:order-2
+          class=" w-full btn rounded-full bg-rose-700 flex items-center justify-center overflow-hidden shadow-sm
           hover:cursor-pointer active:scale-95
           transition-all duration-300 ease-in-out">
               <span class="text-white text-base  
@@ -561,7 +554,7 @@
         </div>
         <div class="flex flex-col space-y-5 px-5 mb-5 flex-1 overflow-y-auto">
           <div class="text-center mb-4">
-            <svg class="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg class="w-16 h-16 text-primary mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
             </svg>
             <h2 class="text-xl font-bold text-primary-text mb-2 font-manrope">Confirm Check-in</h2>
@@ -594,9 +587,9 @@
           
           <!-- Customer Report Section removed -->
           
-          <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
-            <p class="text-blue-800 text-sm">
-              <strong>Next Steps:</strong> After confirmation, please process payment and provide room access to the guest.
+          <div class="bg-primary/10 p-4 rounded-lg border border-primary">
+            <p class="text-primary text-sm font-inter">
+              <span class="font-bold font-manrope">Next step:</span> After confirmation, please process payment and provide room access to the guest.
             </p>
           </div>
         </div>
@@ -606,15 +599,15 @@
           
           <!-- Cancel Button (Optional) -->
           <button type="button" id="cancel-booking-btn"
-          class="w-full btn rounded-full bg-red-600 flex items-center justify-center overflow-hidden shadow-sm order-1 md:order-2
-          hover:cursor-pointer active:scale-95 hover:bg-red-700
+          class="w-full btn rounded-full bg-rose-700 flex items-center justify-center overflow-hidden shadow-sm order-1 md:order-2
+          hover:cursor-pointer active:scale-95
           transition-all duration-300 ease-in-out">
               <span class="text-white text-base md:text-lg">Cancel Booking</span>
           </button>
           
           <button type="button" id="confirm-checkin-btn"
-          class="w-full btn rounded-full bg-green-600 flex items-center justify-center overflow-hidden shadow-sm order-1 md:order-2
-          hover:cursor-pointer active:scale-95 hover:bg-green-700
+          class="w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-sm order-1 md:order-2
+          hover:cursor-pointer active:scale-95 
           transition-all duration-300 ease-in-out">
               <span class="text-white text-base md:text-lg">Confirm Check-in</span>
           </button>
@@ -648,7 +641,7 @@
                   <input 
                       type="checkbox" 
                       id="include-customer-report" 
-                      class="w-4 h-4 accent-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-600 focus:ring-2"
+                      class="w-4 h-4 accent-primary bg-neutral-100 border-neutral-300 rounded focus:ring-primary focus:ring-2"
                   >
                   <label for="include-customer-report" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300 cursor-pointer">
                       Include Customer Report (Optional)
@@ -677,7 +670,7 @@
                   <input 
                       type="checkbox" 
                       id="include-property-report" 
-                      class="w-4 h-4 accent-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-600 focus:ring-2"
+                      class="w-4 h-4 accent-green-600 bg-neutral-100 border-neutral-300 rounded focus:ring-green-600 focus:ring-2"
                   >
                   <label for="include-property-report" class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300 cursor-pointer">
                       Include Property Report (Optional)

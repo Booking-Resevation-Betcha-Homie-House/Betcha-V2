@@ -286,7 +286,7 @@ function showAccessDeniedMessage() {
                 </svg>
                 <h2 class="text-xl font-bold text-gray-800 mb-2">Access Denied</h2>
                 <p class="text-gray-600 mb-4">You don't have permission to access the Property Monitoring module.</p>
-                <button onclick="window.location.href='dashboard.html'" class="bg-primary text-white px-4 py-2 rounded hover:bg-primary/90">
+                <button onclick="window.location.href='dashboard.html'" class="bg-primary text-secondary-text px-4 py-2 rounded hover:bg-primary/90">
                     Return to Dashboard
                 </button>
             </div>
@@ -868,7 +868,7 @@ function createCheckinBookingElement(booking) {
         statusColor = 'bg-red-100 text-red-800';
         actionContent = `
             <div class="!px-4 !py-2 w-full bg-red-600 font-manrope rounded-lg flex items-center justify-center">
-                <div class="flex flex-col text-white">
+                <div class="flex flex-col text-secondary-text">
                     <span class="text-sm font-semibold">ERROR: Checked-Out</span>
                     <span class="text-xs">Should not appear here</span>
                 </div>
@@ -887,11 +887,11 @@ function createCheckinBookingElement(booking) {
                 data-booking-status="Checked-In"
                 data-guest-id="${guestId}"
                 data-trans-no="${transNo}"
-                class="!px-4 !py-2 w-full bg-green-600 font-manrope rounded-lg flex items-center justify-center cursor-pointer
+                class="!px-4 !py-2 w-full bg-primary font-manrope rounded-lg cursor-pointer
                 transition-all duration-300 ease-in-out active:scale-95">
-                <div class="flex flex-col text-white">
-                    <span class="text-sm font-semibold">Confirmed</span>
-                    <span class="text-xs">Already Checked-In</span>
+                <div class="flex flex-col text-secondary-text">
+                    <span class="text-sm text-center">Confirmed</span>
+                    <span class="text-xs text-center">(Already Checked-In)</span>
                 </div>
             </div>
         `;
@@ -911,9 +911,9 @@ function createCheckinBookingElement(booking) {
                 data-trans-no="${transNo}"
                 class="!px-4 !py-2 w-full bg-primary font-manrope rounded-lg cursor-pointer
                 transition-all duration-300 ease-in-out active:scale-95">
-                <div class="flex flex-col text-white">
-                    <span class="text-sm">Confirm</span>
-                    <span class="text-xs">(Check-in & Payment)</span>
+                <div class="flex flex-col text-secondary-text">
+                    <span class="text-sm text-center">Confirm</span>
+                    <span class="text-xs text-center">(Check-in & Payment)</span>
                 </div>
             </button>
         `;
@@ -977,7 +977,7 @@ function createCheckoutBookingElement(booking) {
                 onclick="openEndBookingModal('${bookingId}', '${propertyName}', '${guestName}', '${checkInFormatted}', '${checkOutFormatted}', '${guestId}', '${transNo}')"
                 title="Click to confirm checkout"
             >
-                <div class="flex flex-col text-white">
+                <div class="flex flex-col text-secondary-text">
                     <span class="text-sm font-semibold">Check Out Today</span>
                     <span class="text-xs">Guest Scheduled</span>
                 </div>
@@ -1530,7 +1530,7 @@ function updateBookingElementToConfirmed(bookingElement) {
                 data-booking-status="Checked-In"
                 class="!px-4 !py-2 w-full bg-green-600 font-manrope rounded-lg flex items-center justify-center cursor-pointer
                 transition-all duration-300 ease-in-out active:scale-95">
-                <div class="flex flex-col text-white">
+                <div class="flex flex-col text-secondary-text">
                     <span class="text-sm font-semibold">Confirmed</span>
                     <span class="text-xs">Already Checked-In</span>
                 </div>
