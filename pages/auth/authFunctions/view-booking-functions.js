@@ -191,13 +191,12 @@ function handleBookingStatus(booking) {
 
 function populateBookingData(booking) {
     try {
-        // Handle status-specific UI changes first
+
         handleBookingStatus(booking);
-        
-        // Basic booking information
+
         populateElement('roomName', booking.propertyName || 'Property Name');
         populateElement('refID', booking.transNo || booking._id);
-        // Ensure copy button exists and is wired up
+
         ensureCopyRefButton();
 
         // Dates
@@ -2034,6 +2033,9 @@ function loadMapPreview(address, latitude, longitude, mapLink) {
             return;
         }
 
+        // Format address for consistent use across map and directions
+        const formattedAddress = address ? encodeURIComponent(address) : '';
+
         // First, try to use the mapLink property if available (like view-property page)
         if (mapLink) {
             console.log('Using mapLink from property data:', mapLink);
@@ -2081,12 +2083,15 @@ function loadMapPreview(address, latitude, longitude, mapLink) {
 
         // Fallback: Generate map from coordinates/address if no mapLink
         function generateMapFromCoordinates() {
-            // Create map query - prefer coordinates if available, fallback to address
+            // Use the formatted address consistently
             let mapQuery;
-            if (latitude && longitude) {
+            if (latitude && longitude && address) {
+                // Use both coordinates and address for more accurate pin placement
+                mapQuery = `place?key=AIzaSyDzzi_VBcf2Oef6LTViLU767UPNHlnIze4&q=${formattedAddress}&center=${latitude},${longitude}&zoom=15`;
+            } else if (latitude && longitude) {
                 mapQuery = `${latitude},${longitude}`;
             } else if (address) {
-                mapQuery = encodeURIComponent(address);
+                mapQuery = formattedAddress;
             } else {
                 console.error('No location data available for map');
                 mapContainer.innerHTML = '<span class="text-neutral-500 font-inter">Location not available</span>';
