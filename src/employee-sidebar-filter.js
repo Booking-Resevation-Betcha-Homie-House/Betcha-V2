@@ -27,12 +27,20 @@
 			'sidebar-dashboard': ['PSR', 'PM', 'TS', 'TK'] // dashboard visible if user has any employee privilege
 		};
 
+		const sidebarNav = document.querySelector('aside#sidebar nav');
+		if (sidebarNav) {
+			sidebarNav.style.visibility = 'visible';
+			sidebarNav.style.opacity = '1';
+		}
+
 		Object.keys(sidebarPrivilegeMap).forEach((id) => {
 			const el = document.getElementById(id);
 			if (!el) return;
 			const required = sidebarPrivilegeMap[id];
 			const hasAccess = privileges.some(p => required.includes(p));
-			el.style.display = hasAccess ? (id === 'sidebar-dashboard' ? 'flex' : 'flex') : 'none';
+			if (!hasAccess) {
+				el.style.display = 'none';
+			}
 		});
 	}
 
@@ -48,12 +56,20 @@
 				console.warn('Sidebar filter - no privileges returned');
 				return;
 			}
-			filterSidebarByPrivileges(roleData.privileges);
+			// Make sure DOM is fully loaded and universalSkeleton hasn't hidden the nav
+			if (document.readyState !== 'complete') {
+				await new Promise(resolve => window.addEventListener('load', resolve));
+			}
+			// Let any initial hide/show animations complete
+			setTimeout(() => {
+				filterSidebarByPrivileges(roleData.privileges);
+			}, 100);
 		} catch (err) {
 			console.error('Sidebar filter - initialization error:', err);
 		}
 	}
 
+	// Always wait for DOMContentLoaded before starting
 	if (document.readyState === 'loading') {
 		document.addEventListener('DOMContentLoaded', initSidebarFilter);
 	} else {
