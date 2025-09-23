@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build && powershell Copy-Item -Path 'pages/admin/adminFunctions' -Destination 'dist/pages/admin/adminFunctions' -Recurse && powershell Copy-Item -Path 'src' -Destination 'dist/src' -Recurse",
+    "build": "vite build",
+    "build-with-copy": "vite build && powershell Copy-Item -Path 'pages/admin/adminFunctions' -Destination 'dist/pages/admin/adminFunctions' -Recurse && powershell Copy-Item -Path 'src' -Destination 'dist/src' -Recurse",
     "build-base": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"

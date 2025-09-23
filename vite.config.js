@@ -15,8 +15,9 @@ export default defineConfig({
         // Main entry point
         main: 'index.html',
         
-        // Test page
-        netlifyProxyTest: 'netlify-proxy-test.html',
+        // Debug and test pages
+        debugPm: 'debug-pm.html',
+        loginTestDoc: 'login-test-documentation.html',
         
         // Unauthenticated pages
         login: 'pages/unauth/login.html',
@@ -26,6 +27,8 @@ export default defineConfig({
         rooms: 'pages/unauth/rooms.html',
         searchResult: 'pages/unauth/search-result.html',
         viewProperty: 'pages/unauth/view-property.html',
+        privacyPolicy: 'pages/unauth/privacy-policy.html',
+        termsCondition: 'pages/unauth/terms-condition.html',
         
         // Authenticated user pages
         profile: 'pages/auth/profile.html',
@@ -61,6 +64,9 @@ export default defineConfig({
         rolesEdit: 'pages/admin/roles-edit.html',
         auditTrails: 'pages/admin/audit-trails.html',
         adminFaqs: 'pages/admin/faqs.html',
+        
+        // Admin function pages
+        adminTest1: 'pages/admin/adminFunctions/test1.html',
         
         // Employee pages
         employeeDashboard: 'pages/employee/dashboard.html',
