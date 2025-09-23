@@ -663,6 +663,8 @@ function createCheckinElement(checkin) {
   if (checkin.checkOut) {
     try {
       const date = new Date(checkin.checkOut);
+      // Add plus 1 day to checkout date
+      date.setDate(date.getDate() + 1);
       checkOutDate = date.toLocaleDateString('en-US', {
         month: 'short',
         day: 'numeric',

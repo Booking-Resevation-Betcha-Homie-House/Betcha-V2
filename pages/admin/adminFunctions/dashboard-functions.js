@@ -1371,7 +1371,64 @@ function validateBookingStatusResponse(response) {
 window.validateNotificationStatusResponse = validateNotificationStatusResponse;
 window.validateBookingStatusResponse = validateBookingStatusResponse;
 
+/**
+ * Populate cancellation request modal with booking and guest data
+ * @param {string} notifId - Notification ID
+ * @param {string} bookingId - Booking ID
+ * @param {string} transNo - Transaction number (optional fallback)
+ */
+async function populateCancellationReqModal(notifId, bookingId, transNo = null) {
+    try {
+        const modal = document.getElementById('cancelReqModal');
+        if (!modal) {
+            console.warn('Cancellation request modal not found');
+            return;
+        }
 
+        // Set modal data attributes
+        modal.dataset.notificationId = notifId || '';
+        modal.dataset.bookingId = bookingId || '';
+
+        // Try to fetch booking data if we have bookingId
+        let guestName = 'Guest';
+        let reason = '';
+
+        if (bookingId) {
+            try {
+                const response = await fetch(`${API_BASE}/booking/${bookingId}`);
+                if (response.ok) {
+                    const bookingData = await response.json();
+                    const booking = bookingData.booking || bookingData.data || bookingData;
+                    console.log('Fetched booking data:', booking);
+                    if (booking) {
+                        // Extract guest name
+                       
+                        guestName = bookingData.data?.guestName || booking.guestName || booking.guest?.name || 'Guest';
+                        console.log(guestName);
+                    }
+                }
+            } catch (error) {
+                console.warn('Could not fetch booking data:', error);
+            }
+        }
+
+        // Update modal content
+        const nameSpan = modal.querySelector('p span');
+        if (nameSpan) {
+            nameSpan.textContent = guestName;
+        }
+
+        const reasonTextarea = modal.querySelector('#input-lpc-subtitle');
+        if (reasonTextarea) {
+            reasonTextarea.value = reason;
+        }
+
+        console.log('Modal populated with:', { guestName, reason, notifId, bookingId });
+
+    } catch (error) {
+        console.error('Error populating cancellation request modal:', error);
+    }
+}
 
 // Production Notification & Booking Management Functions
 // ===================================================
@@ -1800,14 +1857,57 @@ function initializeStaticModalButtons() {
                 approveBtn.disabled = true;
                 approveBtn.textContent = 'Processing...';
                 
+                // Get refund amount from modal
+                const refundAmountSpan = document.getElementById('refundAmountSpan');
+                const refundAmount = parseFloat(refundAmountSpan.textContent.replace(/[₱,\s]/g, ''));
+                
+                if (!refundAmount) {
+                    throw new Error('No refund amount found in modal');
+                }
+                
+                // Set refund amount in database
+                try {
+                    const refundResponse = await fetch(`${API_BASE}/booking/refund/toggle-approval/${bookingId}`, {
+                        method: 'PATCH',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            refundAmount: refundAmount
+                        })
+                    });
+                    
+                    if (!refundResponse.ok) {
+                        throw new Error('Failed to set refund amount in database');
+                    }
+                    
+                    console.log('Refund amount set successfully:', refundAmount);
+                } catch (refundError) {
+                    console.error('Error setting refund amount:', refundError);
+                    throw refundError;
+                }
+                
                 // Handle the complete cancellation workflow
                 await handleCancellationRequest(notifId, bookingId, 'accept');
                 
-                // Close the modal
+                // Close the current modal
                 const closeBtn = modal.querySelector('[data-close-modal]');
                 if (closeBtn) {
                     closeBtn.click();
                 }
+                
+                // Open the guest notification modal after successful cancellation
+                setTimeout(() => {
+                    const cancelReqModal = document.getElementById('cancelReqModal');
+                    if (cancelReqModal) {
+                        // Populate the modal with booking data for guest notification
+                        populateCancellationReqModal(notifId, bookingId);
+                        
+                        // Open the modal
+                        cancelReqModal.classList.remove('hidden');
+                        cancelReqModal.classList.add('flex');
+                    }
+                }, 300);
                 
                 // Refresh notifications to update the UI
                 if (typeof fetchNotifications === 'function') {
@@ -1832,6 +1932,7 @@ window.cancelBooking = cancelBooking;
 window.handleCancellationRequest = handleCancellationRequest;
 window.createCancellationActionButtons = createCancellationActionButtons;
 window.initializeCancellationManagement = initializeCancellationManagement;
+window.populateCancellationReqModal = populateCancellationReqModal;
 
 // Note: Cancellation management is now centralized in src/admin-notifications.js
 // Do not initialize here to avoid duplicate event bindings and duplicate notifications.
