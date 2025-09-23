@@ -854,7 +854,9 @@ function createCheckinBookingElement(booking) {
     
     // Format dates for display
     const checkInFormatted = formatDate(checkInDate);
-    const checkOutFormatted = formatDate(checkOutDate);
+    let checkOutDatePlusOne = new Date(checkOutDate);
+    checkOutDatePlusOne.setDate(checkOutDatePlusOne.getDate() + 1);
+    const checkOutFormatted = formatDate(checkOutDatePlusOne);
     
     // Determine what to show in the action area based on status
     let actionContent = '';
@@ -962,7 +964,9 @@ function createCheckoutBookingElement(booking) {
     
     // Format dates for display
     const checkInFormatted = formatDate(checkInDate);
-    const checkOutFormatted = formatDate(checkOutDate);
+    let checkOutDatePlusOne = new Date(checkOutDate);
+    checkOutDatePlusOne.setDate(checkOutDatePlusOne.getDate() + 1);
+    const checkOutFormatted = formatDate(checkOutDatePlusOne);
     
     bookingDiv.innerHTML = `
         <div>
@@ -2381,7 +2385,9 @@ function createCalendarBookingElement(booking) {
     
     // Format dates for display
     const checkInFormatted = formatDate(checkInDate);
-    const checkOutFormatted = formatDate(checkOutDate);
+    let checkOutDatePlusOne = new Date(checkOutDate);
+    checkOutDatePlusOne.setDate(checkOutDatePlusOne.getDate() + 1);
+    const checkOutFormatted = formatDate(checkOutDatePlusOne);
     
     // Determine status color
     let statusColor = 'bg-green-100 text-green-800';
@@ -2530,7 +2536,9 @@ function populateViewBookingModal(bookingData) {
     const propertyAddress = bookingData.propertyAddress || bookingData.address || '123 Sunshine Street, Manila';
     const guestName = bookingData.guestName || bookingData.nameOfGuest || bookingData.customerName || 'Guest Name';
     const checkInFormatted = formatDate(bookingData.checkInDate || bookingData.checkIn);
-    const checkOutFormatted = formatDate(bookingData.checkOutDate || bookingData.checkOut);
+    let checkOutDatePlusOne = new Date(bookingData.checkOutDate || bookingData.checkOut);
+    checkOutDatePlusOne.setDate(checkOutDatePlusOne.getDate() + 1);
+    const checkOutFormatted = formatDate(checkOutDatePlusOne);
     const checkInTime = bookingData.checkInTime || bookingData.timeIn || '2:00 PM';
     const checkOutTime = bookingData.checkOutTime || bookingData.timeOut || '11:00 AM';
     const bookingId = bookingData.bookingId || bookingData._id || bookingData.id || '';

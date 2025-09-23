@@ -738,7 +738,7 @@
                   <div class="ml-3 space-y-0.5 ">
                     <div class="flex justify-between items-center">
                       <p class="font-medium">Refund amount:</p>
-                      <p>₱ <span>00.00</span></p>
+                      <p id="refundAmountSpan">₱ 00.00</p>
                     </div>
                     <div class="flex justify-between items-center">
                       <p class="font-medium">Mode of refund:</p>
@@ -758,11 +758,10 @@
                   class="flex gap-2 justify-center items-center w-full md:w-fit order-2 md:order-1
                   transition-all duration-300 ease-in-out bg-rose-100
                   hover:bg-rose-200 hover:scale-105 rounded-2xl active:scale-95">
-                  Reject
+                  
                   <span id="rejectLabel" class="text-sm !text-rose-700">Reject</span>
               </button>
               <button id="approveCancelBtn"
-                  data-modal-target="cancelReqModal"
                   class="flex gap-2 justify-center items-center bg-primary/10 w-full md:w-fit order-1 md:order-2
                   transition-all duration-300 ease-in-out
                   hover:bg-primary/20 hover:scale-105 rounded-2xl active:scale-95">
