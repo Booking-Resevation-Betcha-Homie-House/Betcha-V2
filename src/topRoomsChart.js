@@ -1,3 +1,6 @@
+import { Chart, registerables } from 'https://cdn.jsdelivr.net/npm/chart.js/auto/+esm';
+
+Chart.register(...registerables);
 Chart.defaults.font.family = "'Manrope', sans-serif";
 
 const ctx = document.getElementById('topRoomsChart')?.getContext('2d');
