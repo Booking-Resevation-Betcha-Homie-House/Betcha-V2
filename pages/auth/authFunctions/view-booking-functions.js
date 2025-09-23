@@ -797,10 +797,32 @@ async function fetchPropertyAddress(propertyId) {
         const result = await response.json();
 
         if (result && result.address) {
-            populateElement('roomAddress', result.address);
+            // Store the official address and formatted address separately
+            const officialAddress = result.address.officialAddress || '';
             
-            // Also load the map with this address and mapLink if available
-            loadMapPreview(result.address, result.latitude, result.longitude, result.mapLink);
+            // If there's no official address, build it from components
+            const addressComponents = officialAddress ? [officialAddress] : [
+                result.address.propertyName,
+                result.address.street,
+                result.address.barangay,
+                result.address.city,
+                result.address.province,
+                result.address.zipCode
+            ].filter(Boolean);
+
+            const fullAddress = addressComponents.join(', ');
+            
+            // Store the exact address in a data attribute for consistent reuse
+            const mapContainer = document.getElementById('mapContainer');
+            if (mapContainer) {
+                mapContainer.dataset.exactAddress = fullAddress;
+            }
+            
+            // Update the address display
+            populateElement('roomAddress', fullAddress);
+            
+            // Also load the map with this complete address and mapLink if available
+            loadMapPreview(fullAddress, result.address.latitude, result.address.longitude, result.mapLink);
         }
 
     } catch (error) {
@@ -2024,6 +2046,34 @@ function enableCalendarInputs() {
     }
 }
 
+// Function to extract coordinates from mapLink iframe
+function extractCoordinatesFromMapLink(mapLink) {
+    try {
+        // Look for the coordinates pattern in the URL
+        const coordsMatch = mapLink.match(/!3d(-?\d+\.\d+)!2d(-?\d+\.\d+)/);
+        if (coordsMatch) {
+            return {
+                latitude: parseFloat(coordsMatch[1]),
+                longitude: parseFloat(coordsMatch[2])
+            };
+        }
+
+        // Alternative pattern (2s14.1234567,121.1234567)
+        const altMatch = mapLink.match(/2s(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (altMatch) {
+            return {
+                latitude: parseFloat(altMatch[1]),
+                longitude: parseFloat(altMatch[2])
+            };
+        }
+
+        return null;
+    } catch (error) {
+        console.error('Error extracting coordinates from mapLink:', error);
+        return null;
+    }
+}
+
 // Function to load map preview
 function loadMapPreview(address, latitude, longitude, mapLink) {
     try {
@@ -2033,48 +2083,51 @@ function loadMapPreview(address, latitude, longitude, mapLink) {
             return;
         }
 
-        // Format address for consistent use across map and directions
-        const formattedAddress = address ? encodeURIComponent(address) : '';
+        // Store the exact address for reuse
+        mapContainer.dataset.exactAddress = address;
 
-        // First, try to use the mapLink property if available (like view-property page)
+        // If we have a mapLink, extract coordinates from it
+        let exactCoords = null;
         if (mapLink) {
-            console.log('Using mapLink from property data:', mapLink);
+            exactCoords = extractCoordinatesFromMapLink(mapLink);
+        }
+
+        // Use extracted coordinates or fallback to provided coordinates
+        const finalLat = (exactCoords?.latitude ?? latitude);
+        const finalLng = (exactCoords?.longitude ?? longitude);
+
+        // Store the coordinates for reuse
+        if (finalLat && finalLng) {
+            mapContainer.dataset.latitude = finalLat.toString();
+            mapContainer.dataset.longitude = finalLng.toString();
+        }
+
+        // Always use the mapLink if available, as it contains the most accurate coordinates
+        if (mapLink) {
+            console.log('Using mapLink from property data');
             
-            // Check if mapLink is an iframe embed code
+            // Extract the src URL if it's an iframe
+            let mapUrl = mapLink;
             if (mapLink.includes('<iframe')) {
-                // If it's already an iframe, just inject it (update styling for consistency)
-                const styledMapLink = mapLink.replace(/class="[^"]*"/g, 'class="w-full h-full rounded-2xl"');
-                mapContainer.innerHTML = styledMapLink;
-            } else if (mapLink.startsWith('https://www.google.com/maps/embed')) {
-                // If it's a direct embed URL, create iframe
-                mapContainer.innerHTML = `
-                    <iframe src="${mapLink}" 
-                        class="w-full h-full rounded-2xl"
-                        style="border:0;" 
-                        allowfullscreen="" 
-                        loading="lazy" 
-                        referrerpolicy="no-referrer-when-downgrade">
-                    </iframe>
-                `;
-            } else {
-                // Try to extract URL from iframe src if it's in a different format
                 const srcMatch = mapLink.match(/src="([^"]+)"/);
                 if (srcMatch && srcMatch[1]) {
-                    mapContainer.innerHTML = `
-                        <iframe src="${srcMatch[1]}" 
-                            class="w-full h-full rounded-2xl"
-                            style="border:0;" 
-                            allowfullscreen="" 
-                            loading="lazy" 
-                            referrerpolicy="no-referrer-when-downgrade">
-                        </iframe>
-                    `;
-                } else {
-                    // Fallback to coordinate/address method
-                    console.log('Could not parse mapLink, falling back to coordinate/address method');
-                    generateMapFromCoordinates();
+                    mapUrl = srcMatch[1];
                 }
             }
+            
+            // Create a new iframe with consistent styling
+            mapContainer.innerHTML = `
+                <iframe src="${mapUrl}" 
+                    class="w-full h-full rounded-2xl"
+                    style="border:0;" 
+                    allowfullscreen="" 
+                    loading="lazy" 
+                    referrerpolicy="no-referrer-when-downgrade">
+                </iframe>
+            `;
+            
+            // Store the iframe URL for reference
+            mapContainer.dataset.mapUrl = mapUrl;
             
             // Set up directions button
             setupDirectionsButton(address, latitude, longitude);
@@ -2083,31 +2136,29 @@ function loadMapPreview(address, latitude, longitude, mapLink) {
 
         // Fallback: Generate map from coordinates/address if no mapLink
         function generateMapFromCoordinates() {
-            // Use the formatted address consistently
-            let mapQuery;
-            if (latitude && longitude && address) {
-                // Use both coordinates and address for more accurate pin placement
-                mapQuery = `place?key=AIzaSyDzzi_VBcf2Oef6LTViLU767UPNHlnIze4&q=${formattedAddress}&center=${latitude},${longitude}&zoom=15`;
-            } else if (latitude && longitude) {
-                mapQuery = `${latitude},${longitude}`;
-            } else if (address) {
-                mapQuery = formattedAddress;
-            } else {
-                console.error('No location data available for map');
+            // Always start with coordinates for pinpoint accuracy
+            if (!latitude || !longitude) {
+                console.error('Coordinates are required for precise location');
                 mapContainer.innerHTML = '<span class="text-neutral-500 font-inter">Location not available</span>';
                 return;
             }
 
+            // Create a static map with exact pin placement
+            const mapQuery = `place?key=AIzaSyDzzi_VBcf2Oef6LTViLU767UPNHlnIze4`
+                + `&center=${latitude},${longitude}`
+                + `&zoom=19`  // Highest zoom level for maximum precision
+                + `&q=${latitude},${longitude}`  // Search for exact coordinates
+                + `&markers=color:red|${latitude},${longitude}`;
+
             // Create the map iframe with the property location and pin marker
             let mapEmbedUrl;
             
-            if (latitude && longitude) {
-                // For coordinates, use the coordinate-based pin method
-                mapEmbedUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d${longitude}!3d${latitude}!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s${latitude},${longitude}!5e1!3m2!1sen!2sph!4v${Date.now()}!5m2!1sen!2sph`;
-            } else {
-                // For address, use the simpler method with markers parameter
-                mapEmbedUrl = `https://maps.google.com/maps?q=${mapQuery}&output=embed&maptype=satellite&markers=${mapQuery}`;
-            }
+            // Create a custom embed URL that forces exact coordinate positioning
+            mapEmbedUrl = `https://www.google.com/maps/embed/v1/${mapQuery}`;
+            
+            // Store the exact coordinates in data attributes for reuse
+            mapContainer.dataset.latitude = latitude;
+            mapContainer.dataset.longitude = longitude;
             
             console.log('Loading map with URL (with pin marker):', mapEmbedUrl);
             
@@ -2137,7 +2188,7 @@ function loadMapPreview(address, latitude, longitude, mapLink) {
 }
 
 // Function to setup directions button
-function setupDirectionsButton(address, latitude, longitude) {
+function setupDirectionsButton(address, unusedLat, unusedLng) {
     try {
         const directionsButtonContainer = document.getElementById('directionsButtonContainer');
         const directionsBtn = document.getElementById('directionsBtn');
@@ -2150,17 +2201,21 @@ function setupDirectionsButton(address, latitude, longitude) {
 
         // Show the directions button
         directionsButtonContainer.classList.remove('hidden');
-
-        // Create directions query - prefer coordinates if available, fallback to address
-        let directionsQuery;
-        if (latitude && longitude) {
-            directionsQuery = `${latitude},${longitude}`;
-        } else if (address) {
-            directionsQuery = encodeURIComponent(address);
-        } else {
-            console.error('No location data available for directions');
+        
+        // Get stored coordinates and map URL
+        const mapUrl = mapContainer.dataset.mapUrl;
+        const storedLat = parseFloat(mapContainer.dataset.latitude);
+        const storedLng = parseFloat(mapContainer.dataset.longitude);
+        
+        // Ensure we have valid coordinates
+        if (!storedLat || !storedLng || isNaN(storedLat) || isNaN(storedLng)) {
+            console.error('Valid coordinates not found');
             return;
         }
+
+        // Use exact coordinates for destination
+        const destinationCoords = `${storedLat},${storedLng}`;
+        console.log('Using pinpoint coordinates for directions:', destinationCoords);
 
         // Set up click handler for directions button
         let isShowingDirections = false;
@@ -2201,8 +2256,11 @@ function setupDirectionsButton(address, latitude, longitude) {
                             const userLat = position.coords.latitude;
                             const userLng = position.coords.longitude;
                             
-                            // Create directions URL with user location and our precise destination (driving mode)
-                            const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
+                            // Create directions URL using the same format as the original mapLink
+                            const directionsEmbedUrl = `https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d1000!2d${storedLng}!3d${storedLat}`
+                                + `!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e0`
+                                + `!4m5!1s0x0%3A0x0!2s${userLat},${userLng}!3m2!1d${userLat}!2d${userLng}`
+                                + `!4m5!1s0x0%3A0x0!2s${storedLat},${storedLng}!3m2!1d${storedLat}!2d${storedLng}!5e0`;
                             
                             console.log('Generated directions URL:', directionsEmbedUrl);
                             
@@ -2234,8 +2292,10 @@ function setupDirectionsButton(address, latitude, longitude) {
                             
                             // Add a brief delay to show loading, then show fallback
                             setTimeout(() => {
-                                // Use simple maps.google.com URL for fallback (no API key needed)
-                                const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
+                                // Use the same embed format as the original mapLink
+                                const fallbackEmbedUrl = `https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1000!2d${storedLng}!3d${storedLat}`
+                                    + `!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2s${storedLat},${storedLng}`
+                                    + `!5e0!3m2!1sen!2sph!4v${Date.now()}!5m2!1sen!2sph`;
                                 
                                 console.log('Generated fallback directions URL:', fallbackEmbedUrl);
                                 
@@ -2270,7 +2330,11 @@ function setupDirectionsButton(address, latitude, longitude) {
                     // Show loading briefly before showing fallback
                     setTimeout(() => {
                         // Use simple maps.google.com URL (no API key needed)
-                        const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
+                        const fallbackEmbedUrl = `https://www.google.com/maps/embed/v1/place`
+                            + `?key=AIzaSyDzzi_VBcf2Oef6LTViLU767UPNHlnIze4`
+                            + `&q=${destinationCoords}`
+                            + `&center=${destinationCoords}`
+                            + `&zoom=18`;
                         
                         console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
                         

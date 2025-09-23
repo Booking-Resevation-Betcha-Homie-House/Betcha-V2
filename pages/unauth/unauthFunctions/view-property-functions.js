@@ -1,6 +1,11 @@
 import { showFullscreenLoading, hideFullscreenLoading } from '/src/fullscreenLoading.js';
 import { validateReservationData, showToastError } from '/src/toastNotification.js';
 
+// Use centralized toast function (alias for consistency with existing code)
+function showToast(type, title, message, duration = 5000) {
+    return showToastError(type, title, message, duration);
+}
+
 const amenityMapping = { 
     'wifi': { name: 'WiFi', iconType: '/svg/wifi.svg' }, 
     'ref': { name: 'Refrigerator', iconType: '/svg/refrigerator.svg' }, 
@@ -544,6 +549,9 @@ async function fetchAndDisplayProperty() {
         }
 
         // Store property data globally for reservation
+        // Extract coordinates from mapLink
+        const coordinates = extractCoordinatesFromMapLink(data.mapLink);
+        
         currentPropertyData = {
             id: propertyId,
             name: data.name,
@@ -563,7 +571,10 @@ async function fetchAndDisplayProperty() {
             category: data.category,
             description: data.description,
             rating: data.rating,
-            photoLinks: data.photoLinks || []
+            photoLinks: data.photoLinks || [],
+            // Store extracted coordinates
+            latitude: coordinates?.lat,
+            longitude: coordinates?.lng
         };
 
         // Update guest counter limits based on API maxCapacity and packageCapacity
@@ -582,9 +593,17 @@ async function fetchAndDisplayProperty() {
             // Update the reserve button state or do any additional setup
         });
 
-        // Initialize directions button after property data is loaded
+        // Initialize directions button with coordinates
         setTimeout(() => {
-            initializeDirectionsButton();
+            if (currentPropertyData.latitude && currentPropertyData.longitude) {
+                setupDirectionsButton(
+                    currentPropertyData.address,
+                    currentPropertyData.latitude,
+                    currentPropertyData.longitude
+                );
+            } else {
+                console.warn('No coordinates found in mapLink:', currentPropertyData.mapLink);
+            }
         }, 500);
 
         // Dispatch custom event to notify that property data is loaded
@@ -1034,6 +1053,79 @@ document.addEventListener('click', function(e) {
     }
 });
 
+// Function to extract coordinates from mapLink iframe
+function extractCoordinatesFromMapLink(mapLink) {
+    try {
+        if (!mapLink) {
+            console.warn('No mapLink provided');
+            return null;
+        }
+
+        console.log('Extracting coordinates from mapLink:', mapLink);
+
+        // Extract the src URL from the iframe HTML string
+        const srcMatch = mapLink.match(/src="([^"]+)"/);
+        if (!srcMatch) {
+            console.warn('No src found in mapLink');
+            return null;
+        }
+
+        const src = srcMatch[1];
+        console.log('Extracted src:', src);
+
+        // Try to find coordinates in the format: 2s14.6579489,121.0193219
+        const directCoords = src.match(/2s(-?\d+\.\d+),(-?\d+\.\d+)/);
+        if (directCoords) {
+            console.log('Found coordinates in 2s format:', directCoords[1], directCoords[2]);
+            return {
+                lat: parseFloat(directCoords[1]),
+                lng: parseFloat(directCoords[2])
+            };
+        }
+
+        // Try to find coordinates in !3d!4d format
+        const coordsMatch = src.match(/!3d(-?\d+\.\d+)!4d(-?\d+\.\d+)/);
+        if (coordsMatch) {
+            console.log('Found coordinates in !3d!4d format:', coordsMatch[1], coordsMatch[2]);
+            return {
+                lat: parseFloat(coordsMatch[1]),
+                lng: parseFloat(coordsMatch[2])
+            };
+        }
+
+        // Try pb parameter format
+        const pbMatch = src.match(/!1d(-?\d+\.\d+)!2d(-?\d+\.\d+)/);
+        if (pbMatch) {
+            console.log('Found coordinates in pb format:', pbMatch[2], pbMatch[1]);
+            return {
+                lat: parseFloat(pbMatch[2]),
+                lng: parseFloat(pbMatch[1])
+            };
+        }
+
+        // If no coordinates found in any format, try to extract from the URL query params
+        try {
+            const url = new URL(src);
+            const coords = url.searchParams.get('q');
+            if (coords) {
+                const [lat, lng] = coords.split(',').map(parseFloat);
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    console.log('Found coordinates in URL params:', lat, lng);
+                    return { lat, lng };
+                }
+            }
+        } catch (e) {
+            console.warn('Error parsing URL:', e);
+        }
+
+        console.warn('Could not extract coordinates from mapLink');
+        return null;
+    } catch (error) {
+        console.error('Error extracting coordinates:', error);
+        return null;
+    }
+}
+
 // Function to initialize directions button functionality
 function initializeDirectionsButton() {
     const directionsButtonContainer = document.getElementById('directionsButtonContainer');
@@ -1056,54 +1148,7 @@ function initializeDirectionsButton() {
     }
 }
 
-// Function to extract coordinates from mapLink
-function extractCoordinatesFromMapLink(mapLink) {
-    if (!mapLink) return null;
-    
-    console.log('Attempting to extract coordinates from mapLink:', mapLink);
-    
-    // Try to extract coordinates from the mapLink
-    // Look for patterns like !3d14.716000285784096!2d121.05891147478252 (lat/lng)
-    const coordMatch = mapLink.match(/!3d([0-9.-]+)!2d([0-9.-]+)/);
-    if (coordMatch) {
-        const lat = coordMatch[1];
-        const lng = coordMatch[2];
-        console.log('Found coordinates using !3d!2d pattern:', { lat, lng });
-        return { lat, lng };
-    }
-    
-    // Also try patterns like @14.716000285784096,121.05891147478252
-    const atCoordMatch = mapLink.match(/@([0-9.-]+),([0-9.-]+)/);
-    if (atCoordMatch) {
-        const lat = atCoordMatch[1];
-        const lng = atCoordMatch[2];
-        console.log('Found coordinates using @ pattern:', { lat, lng });
-        return { lat, lng };
-    }
-    
-    // Try to extract from pb parameter (another Google Maps format)
-    const pbMatch = mapLink.match(/!1d([0-9.-]+)!2d([0-9.-]+)!3d([0-9.-]+)/);
-    if (pbMatch) {
-        const lat = pbMatch[3]; // 3d is usually latitude
-        const lng = pbMatch[2]; // 2d is usually longitude
-        console.log('Found coordinates using pb pattern:', { lat, lng });
-        return { lat, lng };
-    }
-    
-    // Try to extract from query parameters
-    const urlParams = new URL(mapLink.startsWith('http') ? mapLink : 'https://maps.google.com/' + mapLink);
-    const ll = urlParams.searchParams.get('ll');
-    if (ll) {
-        const [lat, lng] = ll.split(',');
-        if (lat && lng) {
-            console.log('Found coordinates using ll parameter:', { lat, lng });
-            return { lat, lng };
-        }
-    }
-    
-    console.log('No coordinates found in mapLink');
-    return null;
-}
+
 
 // Function to setup directions button functionality
 function setupDirectionsButton(address, latitude, longitude) {
@@ -1120,15 +1165,10 @@ function setupDirectionsButton(address, latitude, longitude) {
         // Show the directions button
         directionsButtonContainer.classList.remove('hidden');
 
-        // Create directions query - prefer coordinates if available, fallback to address
-        let directionsQuery;
+        // Store coordinates in map container's dataset for use in directions
         if (latitude && longitude) {
-            directionsQuery = `${latitude},${longitude}`;
-        } else if (address) {
-            directionsQuery = encodeURIComponent(address);
-        } else {
-            console.error('No location data available for directions');
-            return;
+            mapContainer.dataset.lat = latitude;
+            mapContainer.dataset.lng = longitude;
         }
 
         // Set up click handler for directions button
@@ -1136,9 +1176,6 @@ function setupDirectionsButton(address, latitude, longitude) {
         let originalMapContent = '';
         
         directionsBtn.onclick = () => {
-            console.log('Directions button clicked');
-            
-            // Get the text element
             const directionsText = document.getElementById('directionsText');
             
             if (!isShowingDirections) {
@@ -1151,7 +1188,6 @@ function setupDirectionsButton(address, latitude, longitude) {
                 }
                 
                 // Show loading animation immediately
-                console.log('Loading directions...');
                 mapContainer.innerHTML = `
                     <div class="w-full h-full bg-neutral-100 flex items-center justify-center rounded-2xl">
                         <div class="text-center">
@@ -1161,7 +1197,66 @@ function setupDirectionsButton(address, latitude, longitude) {
                     </div>
                 `;
                 
-                // Check if geolocation is available
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        (position) => {
+                            const userLat = position.coords.latitude;
+                            const userLng = position.coords.longitude;
+                            
+                            // Get stored coordinates from the map container
+                            const storedLat = mapContainer.dataset.lat;
+                            const storedLng = mapContainer.dataset.lng;
+
+                            // Use the same embed format as the original mapLink
+                            const directionsUrl = `https://www.google.com/maps/embed?pb=!1m28!1m12!1m3!1d1000!2d${storedLng}!3d${storedLat}`
+                                + `!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m13!3e0!4m5!1s0x0%3A0x0!2s${userLat},${userLng}`
+                                + `!3m2!1d${userLat}!2d${userLng}!4m5!1s0x0%3A0x0!2s${storedLat},${storedLng}`
+                                + `!3m2!1d${storedLat}!2d${storedLng}!5e0!3m2!1sen!2sph!4v${Date.now()}!5m2!1sen!2sph`;
+
+                            // Update map with directions
+                            mapContainer.innerHTML = `
+                                <iframe 
+                                    class="w-full h-full rounded-2xl"
+                                    src="${directionsUrl}"
+                                    allowfullscreen=""
+                                    loading="lazy"
+                                    referrerpolicy="no-referrer-when-downgrade">
+                                </iframe>`;
+                            
+                            if (directionsText) {
+                                directionsText.textContent = "Back to Map";
+                            }
+                            isShowingDirections = true;
+                        },
+                        (error) => {
+                            console.error('Error getting user location:', error);
+                            mapContainer.innerHTML = originalMapContent;
+                            showToast('error', 'Location Error', 'Could not get your current location. Please enable location services and try again.');
+                        },
+                        {
+                            enableHighAccuracy: true,
+                            timeout: 5000,
+                            maximumAge: 0
+                        }
+                    );
+                } else {
+                    console.error('Geolocation not supported');
+                    mapContainer.innerHTML = originalMapContent;
+                    showToast('error', 'Location Error', 'Your browser does not support location services.');
+                }
+            } else {
+                // Return to original map view
+                mapContainer.innerHTML = originalMapContent;
+                if (directionsText) {
+                    directionsText.textContent = "Get Directions";
+                }
+                isShowingDirections = false;
+            }
+        };
+    } catch (error) {
+        console.error('Error setting up directions button:', error);
+    }
+}
                 if (navigator.geolocation) {
                     console.log('Geolocation available, requesting user location...');
                     
@@ -1261,39 +1356,6 @@ function setupDirectionsButton(address, latitude, longitude) {
                         isShowingDirections = true;
                     }, 800); // 800ms delay to show loading
                 }
-            } else {
-                // Go back to original location view
-                console.log('Returning to original location view...');
-                
-                // Change text back to "Get Directions"
-                if (directionsText) {
-                    directionsText.textContent = "Get Directions";
-                }
-                
-                // Show loading while switching back to original view
-                mapContainer.innerHTML = `
-                    <div class="w-full h-full bg-neutral-100 flex items-center justify-center rounded-2xl">
-                        <div class="text-center">
-                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                            <p class="text-neutral-600 font-inter">Loading map...</p>
-                        </div>
-                    </div>
-                `;
-                
-                // Add a brief delay to show loading, then restore original content
-                setTimeout(() => {
-                    // Restore original map content
-                    mapContainer.innerHTML = originalMapContent;
-                    isShowingDirections = false;
-                }, 600); // 600ms delay to show loading
-            }
-        };
-        
-    } catch (error) {
-        console.error('Error setting up directions button:', error);
-    }
-}
-
 // Call this function after property data is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Add a small delay to ensure all elements are loaded

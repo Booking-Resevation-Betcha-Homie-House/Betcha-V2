@@ -11,10 +11,37 @@ function extractCoordinatesFromMapLink(mapLink) {
     if (!mapLink) return null;
     
     console.log('Attempting to extract coordinates from mapLink:', mapLink);
+
+    // First, find the URL within the iframe tag
+    const urlMatch = mapLink.match(/src="([^"]+)"/);
+    if (!urlMatch) {
+        console.log('No URL found in iframe');
+        return null;
+    }
+
+    const url = urlMatch[1];
+    console.log('Extracted URL:', url);
+
+    // Try to extract coordinates from the embed URL format (2d and 3d parameters)
+    const embedMatch = url.match(/!2d([0-9.-]+)!3d([0-9.-]+)/);
+    if (embedMatch) {
+        const lng = embedMatch[1]; // 2d is longitude
+        const lat = embedMatch[2]; // 3d is latitude
+        console.log('Found coordinates from embed format:', { lat, lng });
+        return { lat, lng };
+    }
+
+    // Also check if the coordinates are in the address part of the URL
+    const addressMatch = url.match(/!2s([0-9.-]+),([0-9.-]+)!/);
+    if (addressMatch) {
+        const lat = addressMatch[1];
+        const lng = addressMatch[2];
+        console.log('Found coordinates from address format:', { lat, lng });
+        return { lat, lng };
+    }
     
-    // Try to extract coordinates from the mapLink
-    // Look for patterns like !3d14.716000285784096!2d121.05891147478252 (lat/lng)
-    const coordMatch = mapLink.match(/!3d([0-9.-]+)!2d([0-9.-]+)/);
+    // Try to extract coordinates from !3d format as a last resort
+    const coordMatch = url.match(/!3d([0-9.-]+)!2d([0-9.-]+)/);
     if (coordMatch) {
         const lat = coordMatch[1];
         const lng = coordMatch[2];
@@ -339,11 +366,30 @@ function populateBasicInfo(data) {
                 
                 // Extract address and coordinates for directions
                 const address = data.address || data.city || '';
-                const coordinates = data.mapLink ? extractCoordinatesFromMapLink(data.mapLink) : null;
-                const latitude = coordinates?.lat;
-                const longitude = coordinates?.lng;
+                if (!data.mapLink) {
+                    console.log('No mapLink found, falling back to address only');
+                    setupDirectionsButton(address, null, null);
+                    return;
+                }
+
+                console.log('Processing mapLink for coordinates:', data.mapLink);
+                const coordinates = extractCoordinatesFromMapLink(data.mapLink);
                 
-                setupDirectionsButton(address, latitude, longitude);
+                if (coordinates && coordinates.lat && coordinates.lng) {
+                    console.log('Coordinates extracted successfully:', coordinates);
+                    // First log the exact data we're passing
+                    console.log('Setting up directions button with:', {
+                        address: address,
+                        latitude: coordinates.lat,
+                        longitude: coordinates.lng
+                    });
+                    setupDirectionsButton(address, coordinates.lat, coordinates.lng);
+                } else {
+                    console.warn('Failed to extract coordinates from mapLink');
+                    console.log('MapLink that failed:', data.mapLink);
+                    console.log('Falling back to address:', address);
+                    setupDirectionsButton(address, null, null);
+                }
             }
         } else {
             propertyMapLinkElement.textContent = 'Location not available';
@@ -406,17 +452,14 @@ function setupDirectionsButton(address, latitude, longitude) {
         // Show the directions button
         directionsButtonContainer.classList.remove('hidden');
 
-        // Create directions query - prefer coordinates if available, fallback to address
-        let directionsQuery;
+        // Store coordinates in map container's dataset for use in directions
         if (latitude && longitude) {
-            directionsQuery = `${latitude},${longitude}`;
-        } else if (address) {
-            directionsQuery = encodeURIComponent(address);
-        } else {
-            console.error('No location data available for directions');
-            return;
+            mapContainer.dataset.lat = latitude;
+            mapContainer.dataset.lng = longitude;
+            console.log('Stored coordinates in dataset:', { lat: mapContainer.dataset.lat, lng: mapContainer.dataset.lng });
         }
-
+        console.log('Setting up directions with:', { latitude, longitude, address });
+        
         // Set up click handler for directions button
         let isShowingDirections = false;
         let originalMapContent = '';
@@ -426,6 +469,14 @@ function setupDirectionsButton(address, latitude, longitude) {
             
             // Get the text element
             const directionsText = document.getElementById('directionsText');
+            
+            console.log('Direction button state:', {
+                isShowingDirections,
+                hasCoordinates: !!(latitude && longitude),
+                latitude,
+                longitude,
+                address
+            });
             
             if (!isShowingDirections) {
                 // Store original map content before changing it
@@ -457,12 +508,24 @@ function setupDirectionsButton(address, latitude, longitude) {
                             const userLat = position.coords.latitude;
                             const userLng = position.coords.longitude;
                             
-                            // Create directions URL with user location and our precise destination (driving mode)
-                            const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
+                            // Get coordinates from dataset if available
+                            const storedLat = mapContainer.dataset.lat;
+                            const storedLng = mapContainer.dataset.lng;
+                            
+                            // Combine coordinates for the destination
+                            const directionsQuery = `${storedLat},${storedLng}`;
+                            
+                            // Create directions URL using Google Maps embed format
+                            const directionsEmbedUrl = `https://www.google.com/maps/embed?origin=mfe&pb=!1m10!4m9!3e0!4m3!3m2!1d${userLat}!2d${userLng}!4m3!3m2!1d${storedLat}!2d${storedLng}`;
+                            
+                            console.log('Final directions using coordinates:', {
+                                from: { lat: userLat, lng: userLng },
+                                to: { lat: storedLat, lng: storedLng }
+                            });
                             
                             console.log('Generated directions URL:', directionsEmbedUrl);
                             
-                            // Update the iframe with directions from user's actual location
+                            // Update the iframe with directions
                             mapContainer.innerHTML = `
                                 <iframe src="${directionsEmbedUrl}" 
                                     class="w-full h-full rounded-2xl"
@@ -490,10 +553,15 @@ function setupDirectionsButton(address, latitude, longitude) {
                             
                             // Add a brief delay to show loading, then show fallback
                             setTimeout(() => {
-                                // Use simple maps.google.com URL for fallback (no API key needed)
-                                const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
+                                // Get coordinates from dataset
+                                const storedLat = mapContainer.dataset.lat;
+                                const storedLng = mapContainer.dataset.lng;
+                                
+                                // Use Google Maps embed format for single location
+                                const fallbackEmbedUrl = `https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1d${storedLat}!2d${storedLng}!5e0`;
                                 
                                 console.log('Generated fallback directions URL:', fallbackEmbedUrl);
+
                                 
                                 mapContainer.innerHTML = `
                                     <div class="w-full h-full bg-neutral-100 flex flex-col rounded-2xl overflow-hidden">
@@ -525,10 +593,15 @@ function setupDirectionsButton(address, latitude, longitude) {
                     
                     // Show loading briefly before showing fallback
                     setTimeout(() => {
-                        // Use simple maps.google.com URL (no API key needed)
-                        const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
+                        // Get coordinates from dataset
+                        const storedLat = mapContainer.dataset.lat;
+                        const storedLng = mapContainer.dataset.lng;
+                        
+                        // Use Google Maps embed format for single location
+                        const fallbackEmbedUrl = `https://www.google.com/maps/embed?origin=mfe&pb=!1m3!2m1!1d${storedLat}!2d${storedLng}!5e0`;
                         
                         console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
+
                         
                         mapContainer.innerHTML = `
                             <div class="w-full h-full bg-neutral-100 flex flex-col rounded-2xl overflow-hidden">
