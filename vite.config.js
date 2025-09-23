@@ -6,9 +6,29 @@ import tailwindcss from '@tailwindcss/vite'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: [
+      { find: '/src', replacement: '/src' },
+      { find: '@', replacement: '/src' }
+    ]
+  },
   build: {
+    // Configure module processing
+    commonjsOptions: {
+      transformMixedEsModules: true,
+    },
     outDir: 'dist',
     rollupOptions: {
+      output: {
+        entryFileNames: 'assets/[name]-[hash].js',
+        chunkFileNames: 'assets/[name]-[hash].js',
+        assetFileNames: (assetInfo) => {
+          if (/\.(js)$/.test(assetInfo.name)) {
+            return `js/[name]-[hash][extname]`;
+          }
+          return `assets/[name]-[hash][extname]`;
+        },
+      },
       input: {
         // Main entry point
         main: 'index.html',
@@ -73,6 +93,56 @@ export default defineConfig({
         psr: 'pages/employee/psr.html',
         tk: 'pages/employee/tk.html',
         ts: 'pages/employee/ts.html',
+
+        // Source JS files
+        addAmenity: 'src/addAmenity.js',
+        adminNotifications: 'src/admin-notifications.js',
+        adminSidebar: 'src/admin-sidebar.js',
+        app: 'src/App.jsx',
+        calendar: 'src/calendar.js',
+        calendar2: 'src/calendar2.js',
+        categoryStatusDropdown: 'src/categoryStatusDropdown.js',
+        checkInOut: 'src/checkInOut.js',
+        date: 'src/date.js',
+        employeeSidebarFilter: 'src/employee-sidebar-filter.js',
+        faqsJs: 'src/faqs.js',
+        fullscreenLoading: 'src/fullscreenLoading.js',
+        genTicketInput: 'src/genTicketInput.js',
+        guestCount: 'src/guestCount.js',
+        IDverifier: 'src/IDverifier.js',
+        imageCarousel: 'src/imageCarousel.js',
+        imageInput: 'src/imageInput.js',
+        locationSearch: 'src/locationSearch.js',
+        logoutFunctions: 'src/logout-functions.js',
+        mainJsx: 'src/main.jsx',
+        messageBox: 'src/messageBox.js',
+        modal: 'src/modal.js',
+        multipleTabs: 'src/multipleTabs.js',
+        navbar: 'src/navbar.js',
+        notification: 'src/notification.js',
+        notifyService: 'src/notifyService.js',
+        pageControl: 'src/page-control.js',
+        passwordToggle: 'src/passwordToggle.js',
+        paymentFileInput: 'src/paymentFileInput.js',
+        paymentMethodOption: 'src/paymentMethodOption.js',
+        priceSlider: 'src/priceSlider.js',
+        qrSelection: 'src/qrSelection.js',
+        ratings: 'src/ratings.js',
+        readTextToggle: 'src/readTextToggle.js',
+        reservationValidationModal: 'src/reservationValidationModal.js',
+        roomsNavigationTabs: 'src/roomsNavigationTabs.js',
+        searchBarModal: 'src/searchBarModal.js',
+        sideScrollCarousel: 'src/sideScrollCarousel.js',
+        simpleLoader: 'src/simple-loader.js',
+        skeleton: 'src/skeleton.js',
+        supportTicketLayout: 'src/supportTicketLayout.js',
+        supportTickets: 'src/supportTickets.js',
+        termsConditionJs: 'src/termsCondition.js',
+        tkSkeleton: 'src/tkSkeleton.js',
+        toastNotification: 'src/toastNotification.js',
+        topRoomsChart: 'src/topRoomsChart.js',
+        universalLogout: 'src/universal-logout.js',
+        userInputs: 'src/userInputs.js'
       }
     }
   },

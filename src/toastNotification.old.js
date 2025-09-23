@@ -1,13 +1,9 @@
-export class ToastNotification {
+class ToastNotification {
     constructor(position = 'top', align = 'right') {
-        if (ToastNotification.instance) {
-            return ToastNotification.instance;
-        }
         this.container = null;
         this.position = position;
         this.align = align;
         this.createContainer();
-        ToastNotification.instance = this;
     }
 
     createContainer() {
@@ -64,6 +60,26 @@ export class ToastNotification {
                     </svg>
                 `;
                 break;
+            case 'info':
+                bgColor = 'bg-blue-50';
+                borderColor = 'border-blue-200';
+                titleColor = 'text-blue-800';
+                iconHTML = `
+                    <svg class="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                `;
+                break;
+            case 'auth':
+                bgColor = 'bg-purple-50';
+                borderColor = 'border-purple-200';
+                titleColor = 'text-purple-800';
+                iconHTML = `
+                    <svg class="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                    </svg>
+                `;
+                break;
             default:
                 bgColor = 'bg-gray-50';
                 borderColor = 'border-gray-200';
@@ -100,10 +116,6 @@ export class ToastNotification {
             </div>
         `;
 
-        if (!this.container) {
-            this.createContainer();
-        }
-
         this.container.insertAdjacentHTML('beforeend', toastHTML);
 
         if (duration > 0) {
@@ -132,11 +144,9 @@ export class ToastNotification {
     }
 }
 
-// Create singleton instance
 const toast = new ToastNotification();
 
-// Export validation function
-export const validateReservationData = () => {
+export function validateReservationData() {
     const userId = localStorage.getItem('userId');
     if (!userId) {
         const noAccountModal = document.getElementById('noAccountModal');
@@ -155,34 +165,32 @@ export const validateReservationData = () => {
     }
 
     return true;
-};
+}
 
-// Export utility functions
-export const showToast = (type, title, message, duration = 5000) => {
+export function showToast(type, title, message, duration = 5000) {
     return toast.show(type, title, message, duration);
-};
+}
 
-export const showToastError = (message, title = "Error", duration = 5000) => {
-    return toast.show("error", title, message, duration);
-};
+export function showToastError(message, title = 'Error', duration = 5000) {
+    return toast.show('error', title, message, duration);
+}
 
-export const showToastSuccess = (message, title = "Success", duration = 5000) => {
-    return toast.show("success", title, message, duration);
-};
+export function showToastSuccess(message, title = 'Success', duration = 5000) {
+    return toast.show('success', title, message, duration);
+}
 
-export const showToastWarning = (message, title = "Warning", duration = 5000) => {
-    return toast.show("warning", title, message, duration);
-};
+export function showToastWarning(message, title = 'Warning', duration = 5000) {
+    return toast.show('warning', title, message, duration);
+}
 
-export const removeToast = (toastId) => {
+export function removeToast(toastId) {
     toast.remove(toastId);
-};
+}
 
-export const clearAllToasts = () => {
+export function clearAllToasts() {
     toast.removeAll();
-};
+}
 
-// Add required styles
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slide-in-right {
