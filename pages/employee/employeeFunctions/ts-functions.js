@@ -67,7 +67,7 @@ async function loadTransactionData() {
         console.log('Loading transaction data...');
         
         // Get property IDs from localStorage
-        const propertyIds = getPropertyIdsFromStorage();
+        let propertyIds = getPropertyIdsFromStorage();
         
         if (!propertyIds || propertyIds.length === 0) {
             console.warn('No property IDs found in localStorage. Creating test property for demo.');
