@@ -61,6 +61,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Setup navigation warnings
     setupNavigationWarnings();
+    
+    // Setup data mode toggle
+    setupDataModeToggle();
 });
 
 // Function to fetch payment methods from API
@@ -601,6 +604,48 @@ function hideFloatingValidation() {
     if (window.validationTimeout) {
         clearTimeout(window.validationTimeout);
     }
+}
+
+// Function to clear all payment inputs and files
+function clearPaymentInputs() {
+    const bankAccountInput = document.getElementById('bankAccountNumber');
+    const transactionInput = document.getElementById('transactionNumber');
+    const fileInput = document.getElementById('fileInput');
+    const dropzone = document.getElementById('dropzone');
+    const qrDisplayArea = document.getElementById('qrCodeDisplayArea');
+    
+    // Clear input values
+    if (bankAccountInput) bankAccountInput.value = '';
+    if (transactionInput) transactionInput.value = '';
+    
+    // Clear file input
+    if (fileInput) fileInput.value = '';
+    
+    // Reset dropzone
+    if (dropzone) {
+        // Remove any preview images
+        const previews = dropzone.querySelectorAll('.preview-image');
+        previews.forEach(preview => preview.remove());
+        
+        // Reset dropzone text
+        const dropzoneText = dropzone.querySelector('.dropzone-text');
+        if (dropzoneText) {
+            dropzoneText.textContent = 'Drag and drop or click to upload payment receipt';
+        }
+    }
+    
+    // Hide QR code display
+    if (qrDisplayArea) {
+        qrDisplayArea.classList.add('hidden');
+    }
+    
+    // Uncheck all payment method radios
+    const paymentRadios = document.querySelectorAll('input[name="payment"]');
+    paymentRadios.forEach(radio => radio.checked = false);
+    
+    // Update UI states
+    updateInputStatesBasedOnSelection();
+    updateConfirmButtonState();
 }
 
 // Function to disable payment inputs when no payment method is selected
@@ -2909,6 +2954,78 @@ function isProdDataMode() {
         result: isEnabled
     });
     return isEnabled;
+}
+
+// Function to handle data mode change
+function handleDataModeChange() {
+    // Clear all payment inputs when switching modes
+    clearPaymentInputs();
+    
+    // Clear file preview specifically
+    clearFilePreview();
+    
+    console.log('🔄 Data mode changed - all inputs and previews cleared');
+}
+
+// Function to clear file preview
+function clearFilePreview() {
+    // Clear all preview elements
+    const previewContainer = document.getElementById('previewContainer');
+    if (previewContainer) {
+        // Clear the container's contents
+        previewContainer.innerHTML = '';
+        
+        // Reset the container to its initial state
+        previewContainer.innerHTML = `
+            <div class="dropzone-text text-center text-neutral-600 text-sm">
+                Drag and drop or click to upload payment receipt
+            </div>
+        `;
+    }
+    
+    // Clear any preview thumbnails and images
+    const previews = document.querySelectorAll('.preview-image, .preview-thumbnail');
+    previews.forEach(preview => preview.remove());
+    
+    // Reset dropzone to initial state
+    const dropzone = document.getElementById('dropzone');
+    if (dropzone) {
+        // Clear any preview elements in the dropzone
+        const dropzonePreview = dropzone.querySelector('.preview-container');
+        if (dropzonePreview) {
+            dropzonePreview.innerHTML = `
+                <div class="dropzone-text text-center text-neutral-600 text-sm">
+                    Drag and drop or click to upload payment receipt
+                </div>
+            `;
+        }
+        
+        // Remove any highlighting styles
+        dropzone.classList.remove('border-primary', 'bg-primary/5');
+    }
+    
+    // Clear OCR preview if it exists
+    const ocrPreview = document.getElementById('ocrPreview');
+    if (ocrPreview) {
+        ocrPreview.innerHTML = '';
+    }
+    
+    // Clear the file input
+    const fileInput = document.getElementById('fileInput');
+    if (fileInput) {
+        fileInput.value = '';
+    }
+    
+    console.log('🧹 File preview cleared and dropzone reset');
+}
+
+// Function to setup data mode toggle
+function setupDataModeToggle() {
+    const dataTypeToggle = document.getElementById('dataTypeToggle');
+    if (dataTypeToggle) {
+        dataTypeToggle.addEventListener('change', handleDataModeChange);
+        console.log('✅ Data mode toggle event listener setup complete');
+    }
 }
 
 // Function to get expected total amount from the page
