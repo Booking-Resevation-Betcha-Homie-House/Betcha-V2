@@ -361,30 +361,35 @@
       <!-- Rooms -->
 
       <!-- Tab Scroll Wrapper -->
-      <div class="w-full h-fit overflow-x-auto custom-scroll mb-10  ">
-        <!-- Inner flex row -->
-        <div class="flex md:w-full w-max gap-1 bg-neutral-100 rounded-full shadow-sm p-1 items-center md:justify-between">
+      <div class="w-full h-fit mb-10">
+        <!-- Inner grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-1 bg-neutral-100 rounded-4xl md:rounded-full shadow-sm p-1 items-center">
           <!-- Button 1 -->
-          <button onclick="setActiveTab(0)" class="tab-btn px-4 py-2 rounded-full bg-white text-primary font-semibold shadow hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1" id="familyButton">
+          <button onclick="setActiveTab(0)"
+            class="tab-btn px-4 py-2 rounded-full bg-white text-primary font-semibold shadow hover:bg-primary/10 group active:scale-95 transition-all duration-200">
             <span class="text-sm md:text-base group-hover:text-primary">Family</span>
           </button>
 
           <!-- Button 2 -->
-          <button onclick="setActiveTab(1)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1" id="coupleButton">
+          <button onclick="setActiveTab(1)"
+            class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200">
             <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Couple</span>
           </button>
 
           <!-- Button 3 -->
-          <button onclick="setActiveTab(2)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1" id="barkadaButton">
+          <button onclick="setActiveTab(2)"
+            class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200">
             <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Barkada</span>
           </button>
 
           <!-- Button 4 -->
-          <button onclick="setActiveTab(3)" class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200 whitespace-nowrap md:flex-1" id="otherButton">
+          <button onclick="setActiveTab(3)"
+            class="tab-btn px-4 py-2 rounded-full hover:bg-primary/10 group active:scale-95 transition-all duration-200">
             <span class="text-neutral-500 text-sm md:text-base group-hover:text-primary">Others</span>
           </button>
         </div>
       </div>
+
 
       <div id="tab-contents-room" class="w-full">
         <!-- Family Tab Content -->
