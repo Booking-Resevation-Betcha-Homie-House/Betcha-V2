@@ -13,6 +13,25 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('🔍 Checking global amenity functions availability:');
     console.log('  - window.getAmenityDisplayInfo:', typeof window.getAmenityDisplayInfo);
     console.log('  - window.getAmenityIcon:', typeof window.getAmenityIcon);
+
+    // Add validation for reservation fee
+    const packagePriceInput = document.getElementById('input-prop-packPrice');
+    const reservationFeeInput = document.getElementById('input-prop-rsrvFee');
+    const rsrvFeeValidation = document.getElementById('rsrvFee-validation');
+
+    const validateReservationFee = () => {
+        const packagePrice = parseFloat(packagePriceInput.value) || 0;
+        const reservationFee = parseFloat(reservationFeeInput.value) || 0;
+        
+        if (reservationFee >= packagePrice && packagePrice !== 0) {
+            rsrvFeeValidation.classList.remove('hidden');
+        } else {
+            rsrvFeeValidation.classList.add('hidden');
+        }
+    };
+
+    packagePriceInput?.addEventListener('input', validateReservationFee);
+    reservationFeeInput?.addEventListener('input', validateReservationFee);
     
     const propertyId = getPropertyIdFromUrl();
     console.log('🔍 Property ID from URL:', propertyId);

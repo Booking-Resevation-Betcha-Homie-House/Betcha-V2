@@ -2,7 +2,7 @@
 // This file handles data population and functionality for the confirm-reservation page
 
 // Import toast notifications
-import { showToastError } from '/src/toastNotification.js';
+import { showToastSuccess, showToastError, showToastWarning } from '/src/toastNotification.js';
 
 document.addEventListener('DOMContentLoaded', async function() {
     // Get data from URL parameters
@@ -40,7 +40,7 @@ function setupConfirmButton() {
         // Get selected payment type
         const paymentTypeRadio = document.querySelector('input[name="paymentType"]:checked');
         if (!paymentTypeRadio) {
-            showToastError('warning', 'Payment Type Required', 'Please select a payment type before confirming.');
+            showToastWarning('Payment Type Required', 'Please select a payment type before confirming.');
             return;
         }
 
@@ -49,7 +49,7 @@ function setupConfirmButton() {
         // Get booking data from the current page
         const bookingData = getBookingDataFromPage();
         if (!bookingData) {
-            showToastError('error', 'Booking Data Missing', 'Required booking information is missing. Please try again.');
+                            showToastSuccess('Booking Updated!', 'Your booking has been updated successfully. Redirecting to my bookings...');
             return;
         }
 
@@ -61,14 +61,14 @@ function setupConfirmButton() {
         confirmText.textContent = 'Creating Booking...'; // 👈 only update span text
         
         // Show loading toast
-        showToastError('info', 'Processing...', 'Creating your booking, please wait...');
+        showToastWarning('Processing...', 'Creating your booking, please wait...');
         
         try {
             // Call booking API
             const bookingResult = await createBooking(bookingData);
             
             if (bookingResult.success) {
-                showToastError('success', 'Booking Confirmed!', 'Your booking has been created successfully. Redirecting to payment...');
+                showToastSuccess('Booking Confirmed!', 'Your booking has been created successfully. Redirecting to payment...');
                 
                 // Audit logging
                 try {

@@ -629,15 +629,12 @@ function updateReservationFeeDisplay(reservationFee) {
         }
 
         const amount = reservationFee || 0;
-        // Display in parentheses to indicate it's not included in total
-        reservationFeeElement.textContent = `(${amount.toLocaleString()})`;
+        // Display the reservation fee
+        reservationFeeElement.textContent = amount.toLocaleString();
         
-        // Add tooltip to explain it's not included in total
-        reservationFeeElement.title = 'Reservation fee is non-discountable but it is included in the package fee.';
-        
-        // Add subtle styling to indicate it's informational (removed italic)
+        // Add subtle styling
         reservationFeeElement.style.color = '#6b7280'; // Gray-500
-        reservationFeeElement.style.fontStyle = 'normal'; // Remove italic
+        reservationFeeElement.style.fontStyle = 'normal';
         
         // Try to move the reservation fee element above subtotal if possible
         moveReservationFeeAboveSubtotal();

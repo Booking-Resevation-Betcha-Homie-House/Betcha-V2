@@ -917,7 +917,7 @@
     <script type="module" src="../../src/notification.js"></script>
     <script type="module" src="./unauthFunctions/rooms-functions.js"></script>
     <script type="module">
-      import { showToast, showToastError, showToastWarning } from '/src/toastNotification.js';
+      import { showToastError, showToastWarning, showToastSuccess } from '/src/toastNotification.js';
 
       document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('searchButtonId').addEventListener('click', function() {
@@ -957,23 +957,23 @@
             const checkInDate = new Date(checkIn);
             const checkOutDate = new Date(checkOut);
             if (isNaN(checkInDate.getTime()) || isNaN(checkOutDate.getTime())) {
-              showToast('error', 'Invalid Dates', 'Please select valid check-in and check-out dates.');
+              showToastError('Invalid Dates', 'Please select valid check-in and check-out dates.');
               return;
             }
             if (checkOutDate <= checkInDate) {
-              showToast('error', 'Invalid Date Range', 'Check-out date must be after check-in date.');
+              showToastError('Invalid Date Range', 'Check-out date must be after check-in date.');
               return;
             }
           } catch (e) {
-            showToastError('error', 'Invalid Dates', 'Please select valid check-in and check-out dates.');
+            showToastError('Invalid Dates', 'Please select valid check-in and check-out dates.');
             return;
           }
           if (!priceStart || !priceEnd) {
-            showToast('error', 'Price Range Required', 'Please set your preferred price range.');
+            showToastError('Price Range Required', 'Please set your preferred price range.');
             return;
           }
           if (!guestCount || guestCount < 1) {
-            showToast('error', 'Guests Required', 'Please select the number of guests.');
+            showToastError('Guests Required', 'Please select the number of guests.');
             return;
           }
 

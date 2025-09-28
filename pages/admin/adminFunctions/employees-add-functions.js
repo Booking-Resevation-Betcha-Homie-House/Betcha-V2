@@ -96,12 +96,36 @@ async function addEmployee() {
         const confirmBtn = document.getElementById('confirmEmployeeBtn');
         originalText = confirmBtn.innerHTML; // Assign to the outer scope variable
         confirmBtn.innerHTML = `
-            <span class="text-secondary-text text-lg">Adding...</span>
-            <svg class="animate-spin w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 24">
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/>
-            </svg>
+            <span class="text-secondary-text text-lg">
+                Adding<span class="dot1">.</span><span class="dot2">.</span><span class="dot3">.</span>
+            </span>
         `;
         confirmBtn.disabled = true;
+        
+        // Add the CSS animation for sequential dots
+        const style = document.createElement('style');
+        style.textContent = `
+            .dot1, .dot2, .dot3 {
+                opacity: 0;
+                display: inline-block;
+            }
+            .dot1 {
+                animation: dotAnimation 1.5s infinite;
+            }
+            .dot2 {
+                animation: dotAnimation 1.5s infinite;
+                animation-delay: 0.5s;
+            }
+            .dot3 {
+                animation: dotAnimation 1.5s infinite;
+                animation-delay: 1s;
+            }
+            @keyframes dotAnimation {
+                0%, 100% { opacity: 0; }
+                50% { opacity: 1; }
+            }
+        `;
+        document.head.appendChild(style);
 
         // Make API call
         const response = await fetch(`${API_BASE}/employee/create`, {
@@ -532,7 +556,9 @@ async function populateProperties() {
                     </svg>
                     <div class="flex flex-col">
                         <span class="font-medium font-manrope">${property.name}</span>
-                        <span class="text-xs font-inter text-neutral-500">${property.address}, ${property.city}</span>
+                        <span class="text-xs font-inter text-neutral-500" title="${property.address}, ${property.city}">
+                            ${property.address.length > 15 ? property.address.substring(0, 15) + '...' : property.address}, ${property.city}
+                        </span>
                     </div>
                 `;
                 

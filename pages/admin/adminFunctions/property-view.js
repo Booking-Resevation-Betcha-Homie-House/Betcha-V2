@@ -1687,6 +1687,9 @@ window.setReportsActiveTab = setReportsActiveTab;
 window.showReportDetails = showReportDetails;
 window.changeReportStatus = changeReportStatus;
 
+// Make edit page function globally available
+window.goToEditPage = goToEditPage;
+
 // Function to populate gallery modal with property images
 function populateGalleryModal(propertyImages) {
     const galleryGrid = document.getElementById('galleryPhotoGrid');

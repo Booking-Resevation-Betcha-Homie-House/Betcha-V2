@@ -88,38 +88,33 @@ async function populateAssignedProperties(properties) {
 	const container = document.getElementById('assigned-properties-container');
 	if (!container) return;
 	
-	// Normalize the properties array to handle different formats
-	let normalizedProperties = [];
+	// Use a Set to ensure unique property IDs
+	const normalizedProperties = new Set();
 	
 	if (!properties || properties.length === 0) {
 		// No properties assigned
 	} else {
-		properties.forEach((prop, index) => {
+		// First, extract all possible property IDs
+		properties.forEach((prop) => {
 			if (typeof prop === 'string') {
-				// Check if it's a JSON stringified array
 				if (prop.startsWith('[') && prop.endsWith(']')) {
 					try {
 						const parsed = JSON.parse(prop);
-						normalizedProperties.push(...parsed);
+						parsed.forEach(p => normalizedProperties.add(p.toString().trim()));
 					} catch (e) {
-						normalizedProperties.push(prop);
+						normalizedProperties.add(prop.toString().trim());
 					}
-				}
-				// Check if it's a comma-separated list of IDs
-				else if (prop.includes(',') && prop.length > 20) { // Assuming IDs are long
-					const splitProps = prop.split(',').map(p => p.trim());
-					normalizedProperties.push(...splitProps);
-				}
-				// Regular string (property name or single ID)
-				else {
-					normalizedProperties.push(prop);
+				} else if (prop.includes(',')) {
+					prop.split(',')
+						.map(p => p.trim())
+						.forEach(p => normalizedProperties.add(p));
+				} else {
+					normalizedProperties.add(prop.toString().trim());
 				}
 			} else if (typeof prop === 'object' && prop._id) {
-				// Handle property objects by extracting their ID
-				normalizedProperties.push(prop._id);
-			} else {
-				// Fallback for other cases
-				normalizedProperties.push(prop);
+				normalizedProperties.add(prop._id.toString().trim());
+			} else if (prop) {
+				normalizedProperties.add(prop.toString().trim());
 			}
 		});
 	}
@@ -153,24 +148,12 @@ async function populateAssignedProperties(properties) {
 		
 		const allProperties = await response.json();
 		
-		// Filter properties that are assigned to this employee with more robust matching
+		console.log('All properties response:', allProperties); // Debug log to see full response
+		
+		// Filter properties that are assigned to this employee
 		const assignedPropertiesData = allProperties.filter(property => {
-			// Get all possible identifier fields from the property
-			const propertyIdentifiers = [
-				property._id,                    // MongoDB ID
-				property.propertyName,           // Property name
-				property.name,                   // Alternative name field
-				property.title,                  // Title field
-				property.propertyTitle          // Alternative title field
-			].filter(identifier => identifier); // Remove undefined/null values
-			
-			// Check if any normalized assigned property matches any property identifier
-			return normalizedProperties.some(assignedProp => {
-				const normalizedAssigned = assignedProp.toString().trim().toLowerCase();
-				return propertyIdentifiers.some(identifier => 
-					identifier.toString().trim().toLowerCase() === normalizedAssigned
-				);
-			});
+			// Only include properties whose IDs are in our Set of normalized properties
+			return normalizedProperties.has(property._id.toString().trim());
 		});
 		
 		// Clear container and populate with property cards
@@ -196,45 +179,87 @@ async function populateAssignedProperties(properties) {
 		assignedPropertiesData.forEach(property => {
 			const propertyCard = document.createElement('div');
 			propertyCard.className = `
-				relative rounded-2xl cursor-pointer p-8 w-full h-auto lg:h-[140px] 
-				flex flex-col lg:flex-row gap-8 bg-white border border-neutral-300 group 
+				relative rounded-2xl cursor-pointer p-6 w-full h-auto lg:h-[140px]
+				flex flex-col lg:flex-row gap-6 border border-neutral-300 group 
 				hover:shadow-md hover:border-primary 
 				transition-all duration-500 ease-in-out overflow-hidden
 			`;
 			
 			// Get property image or use placeholder
-			const propertyImage = (property.photoLinks && property.photoLinks.length > 0) 
-				? property.photoLinks[0] 
-				: (property.images && property.images.length > 0)
-					? property.images[0]
-					: '/images/unit01.jpg'; // fallback image
+			console.log('Property data:', property); // Debug log
 			
-			// Get property name
-			const propertyName = property.propertyName || property.name || 'Unknown Property';
+			// First try to get the image from the property's photos
+			let propertyImage;
 			
-			// Get property address
-			const propertyAddress = property.address || property.location || 'Address not specified';
+			if (property.photos && Array.isArray(property.photos) && property.photos.length > 0) {
+				// Get the first photo's Google Drive URL
+				const firstPhoto = property.photos[0];
+				if (firstPhoto && firstPhoto.url) {
+					propertyImage = firstPhoto.url;
+				}
+			}
+			
+			// If no photo found, try other possible image sources
+			if (!propertyImage) {
+				if (property.mainPhotoLink) {
+					propertyImage = property.mainPhotoLink;
+				} else if (property.photoLinks && Array.isArray(property.photoLinks) && property.photoLinks.length > 0) {
+					propertyImage = property.photoLinks[0];
+				} else if (property.images && Array.isArray(property.images) && property.images.length > 0) {
+					propertyImage = property.images[0];
+				} else if (property.photoLink) {
+					propertyImage = property.photoLink;
+				} else if (property.image) {
+					propertyImage = property.image;
+				}
+			}
+			
+			// If still no image found, use default
+			if (!propertyImage) {
+				propertyImage = '/public/images/unit01.jpg';
+			}
+			
+			console.log('Selected image for ' + property.name + ':', propertyImage); // Debug log
+			
+			// Use the image URL as is since it's already an absolute URL (Google Drive thumbnail)
+			const finalImagePath = propertyImage;
 			
 			propertyCard.innerHTML = `
-				<!-- 🖼️ Property Image -->
-				<div class="w-full lg:w-[20%] group-hover:lg:w-[25%] h-[150px] lg:h-full 
-					bg-cover bg-center rounded-xl z-10 relative overflow-hidden
-					transition-all duration-500 ease-in-out"
-					style="background-image: url('${propertyImage}')">
-					<!-- Image overlay for better contrast -->
-					<div class="absolute inset-0 bg-black/20 rounded-xl"></div>
+				<!-- Container for image and content -->
+				<div class="flex flex-col lg:flex-row w-full h-full gap-6 relative z-10">
+					<!-- 🖼️ Property Image -->
+					<div class="w-full lg:w-[140px] h-[140px] lg:h-full
+						relative overflow-hidden rounded-xl shrink-0
+						transition-all duration-500 ease-in-out 
+						group-hover:lg:w-[160px]">
+						<img src="${finalImagePath}" 
+							class="w-full h-full object-cover" 
+							alt="${property.name}"
+							onerror="this.src='/public/images/unit01.jpg'"/>
+						<div class="absolute inset-0 bg-black/20 rounded-xl"></div>
+					</div>
+
+					<!-- 📋 Property Details -->
+					<div class="flex flex-col justify-center flex-1 min-w-0">
+						<h3 class="font-manrope font-semibold text-lg md:text-xl text-gray-900 mb-2 truncate">
+							${property.name || 'Unknown Property'}
+						</h3>
+						<div class="flex items-center gap-2 min-w-0">
+							<svg class="h-4 w-4 flex-shrink-0 text-gray-700" fill="currentColor" viewBox="0 0 12 16">
+								<path d="M6 0C2.68628 0 0 2.86538 0 6.4C0 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 0 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z"/>
+							</svg>
+							<p class="text-gray-700 text-sm truncate">${property.address || 'Address not specified'}</p>
+						</div>
+					</div>
 				</div>
 
-				<!-- 📋 Property Details -->
-				<div class="w-full lg:flex-1 text-start flex flex-col justify-center z-10 px-2">
-					<p class="font-manrope font-semibold text-lg truncate mb-2 max-w-full md:max-w-[280px] md:text-xl text-gray-900 drop-shadow-sm">${propertyName}</p>
-					<div class="flex gap-2 items-center">
-						<svg class="h-4 w-4 fill-gray-700 flex-shrink-0 drop-shadow-sm" viewBox="0 0 12 16" xmlns="http://www.w3.org/2000/svg">
-							<path d="M6 0C2.68628 0 0 2.86538 0 6.4C0 9.93458 3 12.8 6 16C9 12.8 12 9.93458 12 6.4C12 2.86538 9.31371 0 6 0ZM6 3.55555C7.4202 3.55555 8.57143 4.74946 8.57143 6.22221C8.57143 7.69501 7.4202 8.88888 6 8.88888C4.5798 8.88888 3.42857 7.69501 3.42857 6.22221C3.42857 4.74946 4.5798 3.55555 6 3.55555Z"/>
-						</svg>
-						<p class="font-roboto text-gray-700 text-sm truncate drop-shadow-sm">${propertyAddress}</p>
-					</div>
-					
+				<!-- ➡️ Hover Arrow -->
+				<div class="absolute right-8 top-1/2 -translate-y-1/2 opacity-0 -translate-x-4 
+					group-hover:opacity-100 group-hover:translate-x-0 
+					transition-all duration-300 z-20">
+					<svg class="w-5 h-5 text-gray-700" fill="none" stroke="currentColor" viewBox="0 0 10 17">
+						<path d="M1 0.5L9 8.5L1 16.5" stroke-linecap="round" stroke-linejoin="round"/>
+					</svg>
 				</div>
 
 				<!-- ➡️ Slide-in Right Arrow -->
@@ -246,17 +271,15 @@ async function populateAssignedProperties(properties) {
 				</div>
 			`;
 			
-			// Add click handler to view property details
+				// Add click handler to view property details
 			propertyCard.onclick = () => {
 				// Navigate to property view page with property ID
 				if (property._id) {
 					window.location.href = `property-view.html?id=${property._id}`;
 				} else {
-					window.location.href = `property-view.html?name=${encodeURIComponent(propertyName)}`;
+					window.location.href = `property-view.html?name=${encodeURIComponent(property.name || '')}`;
 				}
-			};
-			
-			container.appendChild(propertyCard);
+			};			container.appendChild(propertyCard);
 		});
 		
 	} catch (error) {

@@ -2,7 +2,7 @@
 // This file handles fetching booking data and populating the confirm-payment page
 
 // Import toast notifications
-import { showToastError } from '/src/toastNotification.js';
+import { showToastSuccess, showToastError, showToastWarning } from '/src/toastNotification.js';
 import { showFullscreenLoading, hideFullscreenLoading } from '/src/fullscreenLoading.js';
 
 document.addEventListener('DOMContentLoaded', function() {
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
     if (!bookingId) {
         console.error('No booking ID found in URL');
         hideSkeletonLoading();
-        showToastError('error', 'Missing Booking ID', 'No booking ID found. Please go back and try again.');
+        showToastError('Missing Booking ID', 'No booking ID found. Please go back and try again.');
         return;
     }
     
@@ -758,7 +758,7 @@ function enablePaymentInputs() {
 
 // Function to show reminder when clicking disabled inputs
 function showPaymentMethodReminder() {
-    showToastError('info', 'Payment Method Required', 'Please select a payment method first before entering payment details.');
+    showToastWarning('Payment Method Required', 'Please select a payment method first before entering payment details.');
 }
 
 // Function to setup confirm button validation
@@ -1048,7 +1048,7 @@ async function fetchAndPopulateBookingData(bookingId, paymentType) {
                 console.log(`🚫 ${paymentType} payment already made, redirecting to view-booking`);
                 console.log('📍 Redirect URL:', `view-booking.html?bookingId=${bookingId}`);
                 
-                showToastError('success', 'Already Paid!', `${paymentType} has already been paid for this booking. Redirecting to booking details...`);
+                showToastSuccess('Already Paid!', `${paymentType} has already been paid for this booking. Redirecting to booking details...`);
                 
                 // Redirect back to view-booking after a short delay to show the toast
                 console.log('🔄 Initiating redirect...');
@@ -1068,12 +1068,12 @@ async function fetchAndPopulateBookingData(bookingId, paymentType) {
         } else {
             console.error('❌ Failed to load booking data:', result.message);
             hideSkeletonLoading();
-            showToastError('error', 'Booking Error', result.message || 'Failed to load booking details.');
+            showToastError('Booking Error', result.message || 'Failed to load booking details.');
         }
     } catch (error) {
         console.error('Error in fetchAndPopulateBookingData:', error);
         hideSkeletonLoading();
-        showToastError('error', 'Error', 'An unexpected error occurred while loading booking data.');
+        showToastError('Error', 'An unexpected error occurred while loading booking data.');
     }
 }
 
@@ -1234,7 +1234,7 @@ function populatePaymentData(booking, paymentType) {
         
     } catch (error) {
         console.error('Error populating payment data:', error);
-        showToastError('error', 'Data Error', 'Error displaying payment information.');
+        showToastError('Data Error', 'Error displaying payment information.');
     }
 }
 
@@ -1853,7 +1853,7 @@ function setupPreviewDivWatcher(previewContainer, transactionInput, getLastFile)
                                         triggerOCRFromPreview(fileInfo, transactionInput);
                                     } else {
                                         console.log('⚠️ Could not get file for OCR processing');
-                                        showToastError('warning', 'File Not Found', 'Could not access the uploaded file for OCR processing. Please try uploading again.');
+                                        showToastWarning('File Not Found', 'Could not access the uploaded file for OCR processing. Please try uploading again.');
                                     }
                                 }
                             }
@@ -1967,7 +1967,7 @@ function handleDroppedFiles(files, fileInput) {
         const imageFiles = files.filter(file => {
             if (!file.type.startsWith('image/')) {
                 console.log('❌ Invalid file type:', file.type, 'for file:', file.name);
-                showToastError('error', 'Invalid File', `${file.name} is not an image file. Please select only image files.`);
+                showToastError('Invalid File', `${file.name} is not an image file. Please select only image files.`);
                 return false;
             }
             return true;
@@ -1996,7 +1996,7 @@ function handleDroppedFiles(files, fileInput) {
         
     } catch (error) {
         console.error('Error processing dropped files:', error);
-        showToastError('error', 'Processing Error', 'Failed to process the dropped images.');
+        showToastError('Processing Error', 'Failed to process the dropped images.');
     }
 }
 
@@ -2135,7 +2135,7 @@ async function triggerOCRFromPreview(fileInfo, transactionInput) {
                 }
                 
                 // Show success toast
-                showToastError('success', 'Success!', `Transaction number extracted: ${result.transactionNumber}`);
+                showToastSuccess('Success!', `Transaction number extracted: ${result.transactionNumber}`);
             } else {
                 console.log('❌ Extracted text failed validation:', result.transactionNumber);
                 
@@ -2415,7 +2415,7 @@ function setupOCRRetryModalEventListeners(modal) {
             if (fileInput) {
                 fileInput.click();
             } else {
-                showToastError('error', 'Error', 'File input not found. Please refresh the page.');
+                showToastError('Error', 'File input not found. Please refresh the page.');
             }
         });
     }
@@ -2564,7 +2564,7 @@ async function processPaymentConfirmation(bookingId, paymentType) {
         
         if (!bookingId) {
             console.error('❌ No booking ID provided');
-            showToastError('error', 'Missing Information', 'Booking ID not found. Please try again from the booking page.');
+            showToastError('Missing Information', 'Booking ID not found. Please try again from the booking page.');
             hideFullscreenLoading();
             return;
         }
@@ -2644,7 +2644,7 @@ async function processPaymentConfirmation(bookingId, paymentType) {
                 }
             }
             
-            showToastError('success', 'Payment Confirmed!', 'Your payment has been successfully processed.');
+            showToastSuccess('Payment Confirmed!', 'Your payment has been successfully processed.');
             
             // Audit: payment completed
             try {
@@ -2728,7 +2728,7 @@ async function processPaymentConfirmation(bookingId, paymentType) {
             }
             
             // Only show toast notification for errors, no modal
-            showToastError('error', 'Payment Failed', errorMessage);
+            showToastError('Payment Failed', errorMessage);
 
             // Audit: payment failure
             try {
@@ -2745,9 +2745,7 @@ async function processPaymentConfirmation(bookingId, paymentType) {
         console.error('💥 Payment confirmation error:', error);
         
         // Only show toast notification for errors, no modal
-        showToastError('error', 'Payment Error', 'An error occurred while processing your payment. Please try again.');
-
-        // Audit: payment failure
+            showToastError('Payment Error', 'An error occurred while processing your payment. Please try again.');        // Audit: payment failure
         try {
             const uid = localStorage.getItem('userId') || '';
             const role = (localStorage.getItem('role') || 'Guest');
@@ -2826,7 +2824,7 @@ async function validatePaymentForm(formData) {
     
     if (errors.length > 0) {
         console.log('❌ Validation errors:', errors);
-        showToastError('error', 'Invalid Information', errors.join('. '));
+        showToastError('Invalid Information', errors.join('. '));
         return false;
     }
     
