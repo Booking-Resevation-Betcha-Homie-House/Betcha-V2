@@ -85,7 +85,7 @@ async function fetchAndDisplayProperties() {
 
 // Function to create featured property card HTML
 function createFeaturedPropertyCard(property) {
-    const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/public/images/unit01.jpg';
+    const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/images/unit01.jpg';
     return `
         <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden cursor-pointer" onclick="window.location.href='view-property.html?id=${property._id}'">
             <div class="absolute inset-0 bg-cover bg-center z-0 transform transition-transform duration-500 ease-in-out group-hover:scale-110" id="imageProperty1" style="background-image: url('${imageUrl}')"></div>
@@ -230,7 +230,7 @@ async function fetchTopProperties() {
 
 // Function to create popular property card HTML
 function createPopularPropertyCard(property) {
-    const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/public/images/unit01.jpg';
+    const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/images/unit01.jpg';
     return `
         <div class="card group relative shrink-0 w-full sm:w-[calc(100%/2-10px)] lg:w-[calc(100%/3-14px)] h-72 sm:h-80 lg:h-96 rounded-2xl shadow-md overflow-hidden cursor-pointer" onclick="window.location.href='view-property.html?id=${property._id}'">
             <div class="absolute inset-0 bg-cover bg-center z-0 transform transition-transform duration-500 ease-in-out group-hover:scale-110" id="imageProperty" style="background-image: url('${imageUrl}')"></div>

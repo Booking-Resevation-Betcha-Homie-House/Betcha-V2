@@ -1,3 +1,5 @@
+import { ToastNotification } from './toastNotification.js';
+
 // Format a date as MM/DD/YYYY
 function formatDate(dateStr) {
   const date = new Date(dateStr);
@@ -409,6 +411,11 @@ document.addEventListener("DOMContentLoaded", () => {
         selectedDates.add(date);
         isRangeSelection = true; // Enable hover preview
         delete calendarEl.dataset.hoverDate; // Clear any existing hover
+
+        // Show toast notification about selecting checkout date
+        const toast = new ToastNotification();
+        toast.show('info', 'Select Checkout Date', 'Please select a different date for checkout.');
+
       } else if (date === selectionStart) {
         // Clicking same date - cancel selection
         selectionStart = null;
@@ -576,18 +583,64 @@ document.addEventListener("DOMContentLoaded", () => {
       });
       document.dispatchEvent(bookingDatesUpdateEvent);
 
-      // Get check-in/check-out elements
-      const checkInEl = document.getElementById('searchCheckIn');
-      const checkOutEl = document.getElementById('searchCheckOut');
+      // Get all related date elements
+      const searchCheckInEl = document.getElementById('searchCheckIn');
+      const searchCheckOutEl = document.getElementById('searchCheckOut');
+      const displayCheckInEl = document.getElementById('displayCheckInDate');
+      const displayCheckOutEl = document.getElementById('displayCheckOutDate');
+      const checkInEl = document.getElementById('checkInDate');
+      const checkOutEl = document.getElementById('checkOutDate');
       
-      if (checkInEl && checkOutEl) {
-        if (selectedDates.length >= 1) {
-          checkInEl.value = selectedDates[0];
-          checkInEl.dispatchEvent(new Event('input'));
+      // Function to format date for display
+      const formatDisplayDate = (dateStr) => {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString('en-US', { 
+          weekday: 'short',
+          month: 'short', 
+          day: 'numeric',
+          year: 'numeric'
+        });
+      };
+
+      // Update all check-in elements
+      if (selectedDates.length >= 1) {
+        const checkInDate = selectedDates[0];
+        if (searchCheckInEl) {
+          searchCheckInEl.value = checkInDate;
+          searchCheckInEl.dispatchEvent(new Event('input'));
         }
-        if (selectedDates.length >= 2) {
-          checkOutEl.value = selectedDates[selectedDates.length - 1];
-          checkOutEl.dispatchEvent(new Event('input'));
+        if (displayCheckInEl) {
+          displayCheckInEl.textContent = formatDisplayDate(checkInDate);
+        }
+        if (checkInEl) {
+          checkInEl.textContent = formatDisplayDate(checkInDate);
+        }
+      }
+
+      // Update all check-out elements
+      if (selectedDates.length >= 2) {
+        const checkOutDate = selectedDates[selectedDates.length - 1];
+        if (searchCheckOutEl) {
+          searchCheckOutEl.value = checkOutDate;
+          searchCheckOutEl.dispatchEvent(new Event('input'));
+        }
+        if (displayCheckOutEl) {
+          displayCheckOutEl.textContent = formatDisplayDate(checkOutDate);
+        }
+        if (checkOutEl) {
+          checkOutEl.textContent = formatDisplayDate(checkOutDate);
+        }
+      } else {
+        // Keep default values for checkout if only check-in is selected
+        if (searchCheckOutEl) {
+          searchCheckOutEl.value = '';
+          searchCheckOutEl.dispatchEvent(new Event('input'));
+        }
+        if (displayCheckOutEl) {
+          displayCheckOutEl.textContent = 'Select date';
+        }
+        if (checkOutEl) {
+          checkOutEl.textContent = 'Checkout'; // Keep original default text
         }
       }
     });
@@ -598,6 +651,13 @@ document.addEventListener("DOMContentLoaded", () => {
   if (confirmBtn) {
     confirmBtn.addEventListener('click', () => {
       const selectedDates = window.selectedBookingDates;
+      
+      // Check if both check-in and check-out dates are selected
+      if (!selectedDates || selectedDates.length < 2) {
+        const toast = new ToastNotification();
+        toast.show('warning', 'Select Checkout Date', 'Please select a checkout date to proceed.');
+        return; // Prevent modal from closing
+      }
       if (selectedDates && selectedDates.length > 0) {
         // Get check-in/check-out elements
         const checkInEl = document.getElementById('checkInDate');

@@ -1,3 +1,5 @@
+import { ToastNotification } from './toastNotification.js';
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log('Modal.js loaded successfully');
 
@@ -273,6 +275,17 @@ document.addEventListener('DOMContentLoaded', () => {
   document.querySelectorAll('.modal').forEach(modal => {
     modal.addEventListener('click', (e) => {
       if (e.target === modal) {
+        // Special handling for date booking modal
+        if (modal.id === 'dateBookingModal') {
+          const selectedDates = window.selectedBookingDates;
+          if (!selectedDates || selectedDates.length < 2) {
+            // Show warning toast if only one date is selected
+            const toast = new ToastNotification();
+            toast.show('warning', 'Select Checkout Date', 'Please select a checkout date to proceed.');
+            return; // Prevent modal from closing
+          }
+        }
+        
         modal.classList.add('hidden');
         document.body.classList.remove('modal-open'); // 👈 unlock scroll
         
@@ -290,6 +303,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape') {
       const openModal = document.querySelector('.modal:not(.hidden)');
       if (openModal) {
+        // Special handling for date booking modal
+        if (openModal.id === 'dateBookingModal') {
+          const selectedDates = window.selectedBookingDates;
+          if (!selectedDates || selectedDates.length < 2) {
+            // Show warning toast if only one date is selected
+            const toast = new ToastNotification();
+            toast.show('warning', 'Select Checkout Date', 'Please select a checkout date to proceed.');
+            return; // Prevent modal from closing
+          }
+        }
+        
         openModal.classList.add('hidden');
         document.body.classList.remove('modal-open'); // 👈 unlock scroll
         
