@@ -263,18 +263,7 @@ async function populateRoles(employee) {
 
 async function populateAssignedProperties(employee) {
     try {
-        // Get property data from employee
-        const employeeProperties = parseEmployeeFieldData(employee, ['properties', 'assignedProperties', 'userProperties']);
-        if (!employeeProperties) return;
-        
-        // Fetch all properties
-        const response = await fetch(`${API_BASE}/property/display`);
-        const allProperties = await response.json();
-        
-        // Wait for Alpine.js initialization
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
-        // Find Alpine component for properties
+        // Find Alpine component for properties and set loading state
         const propertyComponent = document.querySelector('div[x-data*="properties"]');
         if (!propertyComponent || !window.Alpine) {
             console.error('Property component or Alpine.js not found');
@@ -282,6 +271,21 @@ async function populateAssignedProperties(employee) {
         }
 
         const alpineData = Alpine.$data(propertyComponent);
+        alpineData.isLoading = true;
+
+        // Get property data from employee
+        const employeeProperties = parseEmployeeFieldData(employee, ['properties', 'assignedProperties', 'userProperties']);
+        if (!employeeProperties) {
+            alpineData.isLoading = false;
+            return;
+        }
+        
+        // Fetch all properties
+        const response = await fetch(`${API_BASE}/property/display`);
+        const allProperties = await response.json();
+        
+        // Wait a bit to ensure smooth loading animation
+        await new Promise(resolve => setTimeout(resolve, 500));
         
         // Update properties list
         alpineData.properties = allProperties.map(property => ({
@@ -292,30 +296,39 @@ async function populateAssignedProperties(employee) {
         
         // Parse and set selected properties
         const employeePropertyData = parseDataArray(employeeProperties);
-        const selectedPropertyNames = [];
+        const selectedPropertyIds = [];
         
         employeePropertyData.forEach(propertyItem => {
-            let matchingProperty = null;
+            let propertyId = null;
             
             if (typeof propertyItem === 'object' && propertyItem._id) {
-                // Handle case where property is a full object with _id
-                matchingProperty = allProperties.find(p => String(p._id) === String(propertyItem._id));
+                propertyId = propertyItem._id;
             } else {
-                // Handle case where property is just an ID or name
-                matchingProperty = allProperties.find(p => String(p._id) === String(propertyItem)) ||
-                                 allProperties.find(p => (p.propertyName || p.name) === String(propertyItem));
+                // Handle case where property is just an ID or find by name
+                const matchingProperty = allProperties.find(p => String(p._id) === String(propertyItem)) ||
+                                      allProperties.find(p => (p.propertyName || p.name) === String(propertyItem));
+                if (matchingProperty) {
+                    propertyId = matchingProperty._id;
+                }
             }
             
-            if (matchingProperty) {
-                selectedPropertyNames.push(matchingProperty.propertyName || matchingProperty.name || 'Unnamed Property');
+            if (propertyId) {
+                selectedPropertyIds.push(propertyId);
             }
         });
         
         // Set selected properties in Alpine with proper reactivity
-        alpineData.selected = [...selectedPropertyNames];
+        alpineData.selected = [...selectedPropertyIds];
+        
+        // Turn off loading state
+        alpineData.isLoading = false;
         
     } catch (error) {
         console.error('Error populating properties:', error);
+        // Make sure to turn off loading state even if there's an error
+        if (alpineData) {
+            alpineData.isLoading = false;
+        }
     }
 }
 
