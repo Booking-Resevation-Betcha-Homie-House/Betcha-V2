@@ -936,7 +936,8 @@ function getAmenityDisplayInfo(amenity) {
 function getAmenityIcon(iconType) {
     const v = (iconType || '').toString();
     const filename = v.endsWith('.svg') ? v : `${v}.svg`;
-    return `/public/svg/${filename}`;
+    // Remove /public/ prefix since the files will be served from root /svg in production
+    return `/svg/${filename}`;
 }
 
 // Helper function to categorize amenities
