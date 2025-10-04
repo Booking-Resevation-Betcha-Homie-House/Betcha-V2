@@ -1,3 +1,6 @@
+// Import toast notifications
+import { showToastError, showToastSuccess } from '/src/toastNotification.js';
+
 document.addEventListener('DOMContentLoaded', () => {
     const form = document.getElementById('resetPassForm');
     const passwordInput = document.getElementById('password');
@@ -13,17 +16,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const confirmPassword = (confirmInput.value || '').trim();
 
         if (!email) {
-            alert('No email found in session. Please log in again.');
+            showToastError('Session Error', 'No email found in session. Please log in again.');
             return;
         }
 
         if (!password || !confirmPassword) {
-            alert('Please enter and confirm your new password.');
+            showToastError('Missing Fields', 'Please enter and confirm your new password.');
+            return;
+        }
+
+        // Password validation regex: at least 8 chars, 1 uppercase, 1 lowercase, 1 special character
+        const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])(.{8,})$/;
+        
+        if (!passwordRegex.test(password)) {
+            showToastError('Invalid Password', 'Password must be at least 8 characters with 1 uppercase, 1 lowercase, and 1 special character.');
             return;
         }
 
         if (password !== confirmPassword) {
-            alert('Passwords do not match.');
+            showToastError('Password Mismatch', 'Passwords do not match.');
             return;
         }
 
@@ -42,7 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 throw new Error(text || `Request failed with status ${resp.status}`);
             }
 
-            alert('Password updated successfully.');
+            showToastSuccess('Success', 'Password updated successfully.');
             
             // Audit: Log password reset
             try {
@@ -56,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.replace('/pages/unauth/login.html');
         } catch (err) {
             console.error('Failed to update password:', err);
-            alert(`Failed to update password. ${err?.message || ''}`.trim());
+            showToastError('Update Failed', `Failed to update password. ${err?.message || ''}`.trim());
         } finally {
             const button = form.querySelector('button[type="submit"]');
             if (button) button.disabled = false;

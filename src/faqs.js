@@ -38,7 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const resp = await fetch('https://betcha-api.onrender.com/faq/getAll');
       if (!resp.ok) throw new Error(`Failed to fetch FAQs (${resp.status})`);
       const data = await resp.json();
-      const list = Array.isArray(data?.allFAQ) ? data.allFAQ : [];
+      const allFAQs = Array.isArray(data?.allFAQ) ? data.allFAQ : [];
+      
+      // Filter to only show ACTIVE FAQs
+      const list = allFAQs.filter(faq => faq.active === true);
 
       // Clear existing static items
       container.innerHTML = '';

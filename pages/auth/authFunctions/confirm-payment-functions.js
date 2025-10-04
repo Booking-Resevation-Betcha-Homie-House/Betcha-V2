@@ -124,10 +124,10 @@ function groupPaymentMethodsByCategory(paymentMethods) {
         grouped[category] = [];
     });
     
-    // Group payment methods
+    // Group payment methods - only include ACTIVE ones
     paymentMethods.forEach(method => {
         const category = method.category;
-        if (allowedCategories.includes(category)) {
+        if (allowedCategories.includes(category) && method.active === true) {
             grouped[category].push(method);
         }
     });

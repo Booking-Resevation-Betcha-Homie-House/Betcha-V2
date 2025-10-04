@@ -78,6 +78,11 @@ function createRoleCard(role) {
         `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-neutral-300/50 text-neutral-700 transition-all duration-200 ">${privilege}</span>`
     ).join('');
 
+    // Status badge for active/inactive
+    const statusBadge = role.active 
+        ? '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>'
+        : '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Inactive</span>';
+
     return `
         <div class="bg-white rounded-3xl shadow-md flex flex-col font-inter p-5 group
           hover:shadow-lg 
@@ -85,11 +90,14 @@ function createRoleCard(role) {
           <!-- Content -->
           <div class="flex flex-col flex-grow justify-between">
             <div class="flex flex-col gap-3 text-neutral-500">
-              <p class="text-base font-bold font-manrope text-primary-text 
-                transition-all duration-300 ease-in-out
-              group-hover:text-primary">
-                ${role.name}
-              </p>
+              <div class="flex justify-between items-start">
+                <p class="text-base font-bold font-manrope text-primary-text 
+                  transition-all duration-300 ease-in-out
+                group-hover:text-primary">
+                  ${role.name}
+                </p>
+                ${statusBadge}
+              </div>
               <p class="text-xs font-medium text-neutral-600">Privileges:</p>
               <div class="flex flex-wrap gap-2 mb-4">
                   ${privilegesPills}
@@ -113,11 +121,9 @@ function createRoleCard(role) {
                   <button 
                       onclick="deleteRole('${role._id}')"
                       class="flex gap-2 justify-center items-center w-full cursor-pointer
-                      transition-all duration-300 ease-in-out bg-rose-100 py-3
-                      hover:bg-rose-200 hover:scale-105 rounded-2xl active:scale-95">
-                      <svg class="w-5 fill-rose-700" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                          <path d="M4.66666 14C4.3 14 3.98622 13.8696 3.72533 13.6087C3.46444 13.3478 3.33378 13.0338 3.33333 12.6667V4H2.66666V2.66667H6V2H10V2.66667H13.3333V4H12.6667V12.6667C12.6667 13.0333 12.5362 13.3473 12.2753 13.6087C12.0144 13.87 11.7004 14.0004 11.3333 14H4.66666ZM11.3333 4H4.66666V12.6667H11.3333V4ZM6 11.3333H7.33333V5.33333H6V11.3333ZM8.66666 11.3333H10V5.33333H8.66666V11.3333Z"/>
-                      </svg>
+                      transition-all duration-300 ease-in-out ${role.active ? 'bg-red-100 hover:bg-red-200' : 'bg-green-100 hover:bg-green-200'} py-3
+                      hover:scale-105 rounded-2xl active:scale-95">
+                      <span class="text-sm font-medium ${role.active ? 'text-red-700' : 'text-green-700'}">${role.active ? 'Deactivate' : 'Activate'}</span>
                   </button>
               </div>
           </div>
@@ -245,31 +251,40 @@ function editRole(roleId) {
     window.location.href = 'roles-edit.html';
 }
 
-// Delete role function
+// Archive/Unarchive role function
 async function deleteRole(roleId) {
-    if (!confirm('Are you sure you want to delete this role?')) {
+    console.log('Delete button clicked for role ID:', roleId);
+    
+    if (!confirm('Are you sure you want to archive/unarchive this role?')) {
+        console.log('User cancelled the action');
         return;
     }
 
+    console.log('User confirmed, making API call...');
+
     try {
-        const response = await fetch(`${API_BASE}/roles/delete/${roleId}`, {
-            method: 'DELETE',
+        const response = await fetch(`${API_BASE}/roles/toggle-active/${roleId}`, {
+            method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json'
             }
         });
 
+        console.log('API response status:', response.status);
+
         if (!response.ok) {
             throw new Error(`HTTP error! status: ${response.status}`);
         }
 
+        console.log('API call successful, refreshing roles...');
+        
         // Refresh the roles list
         await populateRoles();
-        alert('Role deleted successfully!');
+        alert('Role status updated successfully!');
 
     } catch (error) {
-        console.error('Error deleting role:', error);
-        alert('Error deleting role. Please try again.');
+        console.error('Error updating role status:', error);
+        alert('Error updating role status. Please try again.');
     }
 }
 
@@ -278,3 +293,10 @@ document.addEventListener('DOMContentLoaded', function() {
     populateRoles();
     initializeSearch();
 });
+
+
+window.deleteRole = deleteRole;
+
+
+window.editRole = editRole;
+

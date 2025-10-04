@@ -94,10 +94,15 @@ function renderFAQs(faqs) {
 
         faqItem.innerHTML = `
             <div class="flex flex-col justify-center gap-2 text-neutral-500">
-                <p class="text-lg font-bold font-manrope text-primary-text 
-                    transition-all duration-300 ease-in-out group-hover:text-primary">
-                    ${faq.question}
-                </p>
+                <div class="flex justify-between items-start">
+                    <p class="text-lg font-bold font-manrope text-primary-text 
+                        transition-all duration-300 ease-in-out group-hover:text-primary">
+                        ${faq.question}
+                    </p>
+                    ${faq.active 
+                        ? '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Active</span>'
+                        : '<span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Inactive</span>'}
+                </div>
                 <div class="flex flex-col w-full">
                     <div class="overflow-hidden transition-[max-height] duration-500 ease-in-out max-h-[6rem]">
                         <p class="font-inter text-primary-text text-sm md:text-base">
@@ -124,12 +129,10 @@ function renderFAQs(faqs) {
                 </button>
                 <button 
                     class="delete-faq-btn flex gap-2 justify-center items-center w-full cursor-pointer
-                    transition-all duration-300 ease-in-out bg-rose-100
-                    hover:bg-rose-200 hover:scale-105 rounded-2xl active:scale-95"
+                    transition-all duration-300 ease-in-out ${faq.active ? 'bg-red-100 hover:bg-red-200' : 'bg-green-100 hover:bg-green-200'}
+                    hover:scale-105 rounded-2xl active:scale-95 py-2"
                     data-id="${faq._id}">
-                    <svg class="w-5 fill-rose-700" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M4.66666 14C4.3 14 3.98622 13.8696 3.72533 13.6087C3.46444 13.3478 3.33378 13.0338 3.33333 12.6667V4H2.66666V2.66667H6V2H10V2.66667H13.3333V4H12.6667V12.6667C12.6667 13.0333 12.5362 13.3473 12.2753 13.6087C12.0144 13.87 11.7004 14.0004 11.3333 14H4.66666ZM11.3333 4H4.66666V12.6667H11.3333V4ZM6 11.3333H7.33333V5.33333H6V11.3333ZM8.66666 11.3333H10V5.33333H8.66666V11.3333Z"/>
-                    </svg>
+                    <span class="text-sm font-medium ${faq.active ? 'text-red-700' : 'text-green-700'}">${faq.active ? 'Deactivate' : 'Activate'}</span>
                 </button>
             </div>
         `;
@@ -145,9 +148,9 @@ function renderFAQs(faqs) {
             document.getElementById('editFAQs').classList.remove('hidden');
         });
 
-        // Delete button event
+        // Toggle active status button event
         faqItem.querySelector('.delete-faq-btn').addEventListener('click', async () => {
-            await deleteFAQ(faq._id);
+            await toggleFAQStatus(faq._id);
             getAllFAQS();
         });
     });
@@ -204,15 +207,26 @@ async function createFAQ(question, answer) {
     }
 }
 
-// API: Delete FAQ
-async function deleteFAQ(id) {
+// API: Toggle FAQ Active Status
+async function toggleFAQStatus(id) {
+    if (!confirm('Are you sure you want to toggle the status of this FAQ?')) {
+        return;
+    }
+    
     try {
-        await fetch(`${API_BASE}/faq/delete/${id}`, {
-            method: 'DELETE'
+        const response = await fetch(`${API_BASE}/faq/toggle-active/${id}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' }
         });
+        
+        if (!response.ok) {
+            throw new Error('Failed to update FAQ status');
+        }
+        
+        alert('FAQ status updated successfully!');
     } catch (error) {
-        console.error('Failed to delete FAQ:', error);
-        alert('Failed to delete FAQ.');
+        console.error('Failed to update FAQ status:', error);
+        alert('Failed to update FAQ status.');
     }
 }
 
@@ -231,3 +245,5 @@ async function updateFAQ(id, question, answer) {
 }
 
 window.addEventListener("DOMContentLoaded", getAllFAQS);
+
+window.toggleFAQStatus = toggleFAQStatus;

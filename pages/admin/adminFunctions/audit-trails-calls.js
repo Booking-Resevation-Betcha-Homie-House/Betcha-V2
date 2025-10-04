@@ -243,6 +243,7 @@ async function logPaymentFailure(userId, userType) {
 }
 
 // ===== ADMIN/EMPLOYEE MANAGEMENT AUDIT TRAILS =====
+//add an audit trail for admin Deleting/archiving a role
 
 /**
  * Log employee creation (Admin only)

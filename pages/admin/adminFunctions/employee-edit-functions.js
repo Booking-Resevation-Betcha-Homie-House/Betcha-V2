@@ -222,6 +222,9 @@ async function populateRoles(employee) {
         const rolesData = await response.json();
         const allRoles = rolesData.value || rolesData;
         
+        // Filter to only show ACTIVE roles
+        const activeRoles = allRoles.filter(role => role.active === true);
+        
         // Wait for Alpine.js initialization
         await new Promise(resolve => setTimeout(resolve, 200));
         
@@ -235,8 +238,8 @@ async function populateRoles(employee) {
 
         const alpineData = Alpine.$data(roleComponent);
         
-        // Update roles list
-        alpineData.roles = allRoles.map(role => role.name);
+        // Update roles list with ONLY active roles
+        alpineData.roles = activeRoles.map(role => role.name);
         
         // Parse and set selected roles
         const employeeRolesList = parseDataArray(employeeRoles);
@@ -248,13 +251,15 @@ async function populateRoles(employee) {
                 return roleByName?.name || roleById?.name || roleData;
             }
             return roleData?.name || roleData;
-        }).filter(name => alpineData.roles.includes(name));
+        }).filter(name => name); // Keep all existing selections, even if role is now inactive
         
         // Set selected roles in Alpine with proper reactivity
         alpineData.selected = [...selectedRoleNames];
         
-        // Store all roles for later use in form submission
+        // Store all roles (including inactive) for form submission - needed for existing selections
         alpineData.allRoles = allRoles;
+        // Store active roles for new selections
+        alpineData.activeRoles = activeRoles;
         
     } catch (error) {
         console.error('Error populating roles:', error);

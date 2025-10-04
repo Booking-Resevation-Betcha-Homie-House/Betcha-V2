@@ -32,9 +32,9 @@ async function addEmployee() {
             try {
                 const alpineData = Alpine.$data(roleSelector);
                 if (alpineData && alpineData.selected && alpineData.selected.length > 0) {
-                    // Map role names to role IDs by looking up in fetched roles
+                    // Map role names to role IDs by looking up in active roles only
                     selectedRoles = alpineData.selected.map(roleName => {
-                        const role = window.allRoles?.find(r => r.name === roleName);
+                        const role = window.activeRoles?.find(r => r.name === roleName);
                         return role ? role._id : roleName; // fallback to name if ID not found
                     });
                 }
@@ -357,9 +357,12 @@ async function populateRoles() {
         const rolesData = await response.json();
         const roles = rolesData.value || rolesData; // Handle both formats
 
+        // Filter to only show ACTIVE roles
+        const activeRoles = roles.filter(role => role.active === true);
         
-        // Store roles globally for later reference
+        // Store all roles globally for later reference (including active status)
         window.allRoles = roles;
+        window.activeRoles = activeRoles;
         
         // Update Alpine.js component with real role data
         const roleSelector = document.getElementById('roleSelector');
@@ -371,14 +374,14 @@ async function populateRoles() {
                 if (window.Alpine && Alpine.$data) {
                     const alpineData = Alpine.$data(roleSelector);
                     if (alpineData) {
-                        alpineData.roles = roles.map(role => role.name);
+                        alpineData.roles = activeRoles.map(role => role.name);
                     }
                 }
             } catch (error) {
                 console.warn('Could not update Alpine.js roles:', error);
                 
                 // Fallback: populate manually if Alpine.js fails
-                populateRolesManually(roles);
+                populateRolesManually(activeRoles);
             }
         }
         
