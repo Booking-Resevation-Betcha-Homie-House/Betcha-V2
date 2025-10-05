@@ -78,6 +78,15 @@
                 initialEl.classList.remove('hidden');
             }
         }
+
+        // Log profile view audit trail
+        try {
+            if (window.AuditTrailFunctions && userId) {
+                window.AuditTrailFunctions.logProfileView(userId, 'Guest');
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for profile view failed:', auditError);
+        }
     }
 
     function setText(elementId, value) {

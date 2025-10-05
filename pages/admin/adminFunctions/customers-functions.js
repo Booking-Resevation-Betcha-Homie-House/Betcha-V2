@@ -750,6 +750,22 @@ async function handleCustomerDeactivation() {
             const successAction = !isArchived ? 'deactivated' : 'reactivated';
             alert(`Customer has been successfully ${successAction}!`);
 
+            // Log customer activation/deactivation audit trail
+            try {
+                const adminId = localStorage.getItem('userId');
+                if (window.AuditTrailFunctions && adminId) {
+                    if (!isArchived) {
+                        // Customer was deactivated
+                        window.AuditTrailFunctions.logCustomerDeactivation(adminId, 'Admin');
+                    } else {
+                        // Customer was activated
+                        window.AuditTrailFunctions.logCustomerActivation(adminId, 'Admin');
+                    }
+                }
+            } catch (auditError) {
+                console.warn('Audit trail for customer status change failed:', auditError);
+            }
+
             // Close the modal first
             const modal = document.getElementById('violationModal');
             if (modal) {

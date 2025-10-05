@@ -103,7 +103,7 @@ class PropertyAPI {
                     const userData = JSON.parse(localStorage.getItem('userData') || '{}');
                     const userId = userData.userId || userData.user_id || 'unknown';
                     const userType = userData.role || 'admin';
-                    await window.AuditTrailFunctions.logPropertyUpdate(userId, userType, propertyId);
+                    await window.AuditTrailFunctions.logPropertyUpdate(userId, userType);
                 }
             } catch (auditError) {
                 console.error('Audit trail error:', auditError);
@@ -842,18 +842,16 @@ async function updatePropertyStatus(newStatus) {
         
         // Log property status change audit
         try {
-            if (window.AuditTrailFunctions) {
-                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                const userId = userData.userId || userData.user_id || 'unknown';
-                const userType = userData.role || 'admin';
+            const adminId = localStorage.getItem('userId');
+            if (window.AuditTrailFunctions && adminId) {
                 if (newStatus === 'Archived') {
-                    await window.AuditTrailFunctions.logPropertyArchive(userId, userType, currentPropertyId);
+                    window.AuditTrailFunctions.logPropertyArchiving(adminId, 'Admin');
                 } else {
-                    await window.AuditTrailFunctions.logPropertyActivation(userId, userType, currentPropertyId);
+                    window.AuditTrailFunctions.logPropertyActivation(adminId, 'Admin');
                 }
             }
         } catch (auditError) {
-            console.error('Audit trail error:', auditError);
+            console.warn('Audit trail for property status change failed:', auditError);
         }
         
         const selectedStatus = document.getElementById('selectedStatus');

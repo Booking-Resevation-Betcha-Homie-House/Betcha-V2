@@ -138,6 +138,16 @@ async function handleCreateRole() {
         // Create the role
         await createRole(formData);
         
+        // Log role creation audit trail
+        try {
+            const adminId = localStorage.getItem('userId');
+            if (window.AuditTrailFunctions && adminId) {
+                window.AuditTrailFunctions.logRoleCreation(adminId, 'Admin');
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for role creation failed:', auditError);
+        }
+        
         // Show success message
         showSuccessMessage();
         

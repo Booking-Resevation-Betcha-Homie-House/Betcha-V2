@@ -1420,6 +1420,16 @@ async function processCheckinCancellation(bookingId) {
             document.body.classList.remove('modal-open');
         }
 
+        // Log booking cancellation audit trail
+        try {
+            const userId = localStorage.getItem('userId');
+            if (window.AuditTrailFunctions && userId) {
+                window.AuditTrailFunctions.logBookingCancellation(userId, 'Employee');
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for booking cancellation failed:', auditError);
+        }
+
         // Open the employee cancellation request modal
         const cancelModal = document.getElementById('cancelBookingModal');
         if (cancelModal) {
@@ -2721,4 +2731,3 @@ function formatDate(dateInput) {
         return '';
     }
 }
-

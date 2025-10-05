@@ -1616,18 +1616,16 @@ async function initializeDeleteButton() {
                         
                         // Log property status change audit
                         try {
-                            if (window.AuditTrailFunctions) {
-                                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                                const userId = userData.userId || userData.user_id || 'unknown';
-                                const userType = userData.role || 'admin';
+                            const adminId = localStorage.getItem('userId');
+                            if (window.AuditTrailFunctions && adminId) {
                                 if (nextStatus === 'Archived') {
-                                    await window.AuditTrailFunctions.logPropertyArchive(userId, userType, propertyId);
+                                    window.AuditTrailFunctions.logPropertyArchiving(adminId, 'Admin');
                                 } else {
-                                    await window.AuditTrailFunctions.logPropertyActivation(userId, userType, propertyId);
+                                    window.AuditTrailFunctions.logPropertyActivation(adminId, 'Admin');
                                 }
                             }
                         } catch (auditError) {
-                            console.error('Audit trail error:', auditError);
+                            console.warn('Audit trail for property status change failed:', auditError);
                         }
                         
                         showSuccessMessage(`Property status set to ${nextStatus}!`);

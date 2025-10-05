@@ -505,11 +505,11 @@ async function submitEmployeeUpdate() {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
                 const userId = userData.userId || userData.user_id || 'unknown';
                 const userType = userData.role || 'admin';
-                await window.AuditTrailFunctions.logEmployeeUpdate(userId, userType, employeeId);
+                await window.AuditTrailFunctions.logEmployeeUpdate(userId, userType);
                 
                 // If roles were updated, log role assignment
                 if (updateData.role && updateData.role.length > 0) {
-                    await window.AuditTrailFunctions.logRoleAssignment(userId);
+                    await window.AuditTrailFunctions.logRoleAssignment(userId, userType);
                 }
             }
         } catch (auditError) {

@@ -1806,6 +1806,16 @@ async function handleReschedule() {
             // Success
             showToast('success', 'Reschedule Successful', 'Your booking has been rescheduled successfully.');
 
+            // Log booking reschedule audit trail
+            try {
+                const userId = localStorage.getItem('userId');
+                if (window.AuditTrailFunctions && userId) {
+                    window.AuditTrailFunctions.logBookingReschedule(userId, 'Guest');
+                }
+            } catch (auditError) {
+                console.warn('Audit trail for booking reschedule failed:', auditError);
+            }
+
             // Close modal
             const closeBtn = document.querySelector('#reschedModal [data-close-modal]');
             if (closeBtn) closeBtn.click();

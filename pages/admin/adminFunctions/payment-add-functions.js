@@ -236,6 +236,16 @@ async function validateAndSubmitForm() {
             modal.classList.add('hidden');
         }
         
+        // Log payment mode creation audit trail
+        try {
+            const adminId = localStorage.getItem('userId');
+            if (window.AuditTrailFunctions && adminId) {
+                window.AuditTrailFunctions.logPaymentModeCreation(adminId, 'Admin');
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for payment mode creation failed:', auditError);
+        }
+        
         // Show success and redirect
         hideLoadingState();
         showSuccess('Payment method created successfully!');

@@ -46,7 +46,7 @@ async function createAuditTrail(userId, userType, activity) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logUserLogin(userId, userType) {
+async function logUserLogin(userId, userType) { // working
     return await createAuditTrail(userId, userType, 'User logged in');
 }
 
@@ -55,10 +55,8 @@ async function logUserLogin(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logUserLogout(userId, userType) {
-    return await createAuditTrail(userId, userType, 'User logged out', {
-        timestamp: new Date().toISOString()
-    });
+async function logUserLogout(userId, userType) { // not working
+    return await createAuditTrail(userId, userType, 'User logged out');
 }
 
 /**
@@ -66,7 +64,7 @@ async function logUserLogout(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logUserRegistration(userId, userType) {
+async function logUserRegistration(userId, userType) { // not working customer side
     return await createAuditTrail(userId, userType, 'User registered');
 }
 
@@ -75,10 +73,8 @@ async function logUserRegistration(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logPasswordReset(userId, userType) {
-    return await createAuditTrail(userId, userType, 'Password reset requested', {
-        timestamp: new Date().toISOString()
-    });
+async function logPasswordReset(userId, userType) { // still dont know if will be used
+    return await createAuditTrail(userId, userType, 'Password reset requested');
 }
 
 // ===== PROFILE MANAGEMENT AUDIT TRAILS =====
@@ -88,7 +84,7 @@ async function logPasswordReset(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logProfileUpdate(userId, userType) {
+async function logProfileUpdate(userId, userType) { // not working for both sides
     return await createAuditTrail(userId, userType, 'Profile updated');
 }
 
@@ -97,7 +93,7 @@ async function logProfileUpdate(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logProfileView(userId, userType) {
+async function logProfileView(userId, userType) { // not implemented for both sides
     return await createAuditTrail(userId, userType, 'Profile viewed');
 }
 
@@ -108,7 +104,7 @@ async function logProfileView(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logPropertyView(userId, userType) {
+async function logPropertyView(userId, userType) { // not working admin side
     return await createAuditTrail(userId, userType, 'Property viewed');
 }
 
@@ -117,16 +113,16 @@ async function logPropertyView(userId, userType) {
  * @param {string} userId - User type
  * @param {string} userType - User type
  */
-async function logPropertySearch(userId, userType) {
+async function logPropertySearch(userId, userType) { //redundant?
     return await createAuditTrail(userId, userType, 'Property search performed');
 }
 
 /**
- * Log property booking activity
+ * Log property booking activity (alias for logBookingCreation)
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logPropertyBooking(userId, userType) {
+async function logPropertyBooking(userId, userType) { // redundant - same as logBookingCreation
     return await createAuditTrail(userId, userType, 'Property booked');
 }
 
@@ -135,7 +131,7 @@ async function logPropertyBooking(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logPropertyCreation(userId, userType) {
+async function logPropertyCreation(userId, userType) { //being called but not working? admin side
     return await createAuditTrail(userId, userType, 'Property created');
 }
 
@@ -144,7 +140,7 @@ async function logPropertyCreation(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logPropertyUpdate(userId, userType) {
+async function logPropertyUpdate(userId, userType) { // not working admin side 
     return await createAuditTrail(userId, userType, 'Property updated');
 }
 
@@ -153,7 +149,7 @@ async function logPropertyUpdate(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logPropertyArchiving(userId, userType) {
+async function logPropertyArchiving(userId, userType) { // not implemented admin side
     return await createAuditTrail(userId, userType, 'Property archived');
 }
 
@@ -162,7 +158,7 @@ async function logPropertyArchiving(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logPropertyActivation(userId, userType) {
+async function logPropertyActivation(userId, userType) {// being called but not working? admin side
     return await createAuditTrail(userId, userType, 'Property activated');
 }
 
@@ -182,7 +178,7 @@ async function logBookingCreation(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logBookingUpdate(userId, userType) {
+async function logBookingUpdate(userId, userType) { // not implemented
     return await createAuditTrail(userId, userType, 'Booking updated');
 }
 
@@ -191,7 +187,7 @@ async function logBookingUpdate(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logBookingCancellation(userId, userType) {
+async function logBookingCancellation(userId, userType) {//working
     return await createAuditTrail(userId, userType, 'Booking cancelled');
 }
 
@@ -200,7 +196,7 @@ async function logBookingCancellation(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logCheckIn(userId, userType) {
+async function logCheckIn(userId, userType) { // working 
     return await createAuditTrail(userId, userType, 'Check-in performed');
 }
 
@@ -209,7 +205,7 @@ async function logCheckIn(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logCheckOut(userId, userType) {
+async function logCheckOut(userId, userType) { // not working
     return await createAuditTrail(userId, userType, 'Check-out performed');
 }
 
@@ -220,7 +216,7 @@ async function logCheckOut(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logPaymentInitiation(userId, userType) {
+async function logPaymentInitiation(userId, userType) { //working
     return await createAuditTrail(userId, userType, 'Payment initiated');
 }
 
@@ -229,7 +225,7 @@ async function logPaymentInitiation(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logPaymentCompletion(userId, userType) {
+async function logPaymentCompletion(userId, userType) {//working
     return await createAuditTrail(userId, userType, 'Payment completed');
 }
 
@@ -238,8 +234,35 @@ async function logPaymentCompletion(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logPaymentFailure(userId, userType) {
+async function logPaymentFailure(userId, userType) { // working
     return await createAuditTrail(userId, userType, 'Payment failed');
+}
+
+/**
+ * Log payment mode creation (Admin only)
+ * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
+ */
+async function logPaymentModeCreation(adminId, userType = 'Admin') {
+    return await createAuditTrail(adminId, userType, 'Payment mode created');
+}
+
+/**
+ * Log payment mode deactivation (Admin only)
+ * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
+ */
+async function logPaymentModeDeactivation(adminId, userType = 'Admin') {
+    return await createAuditTrail(adminId, userType, 'Payment mode deactivated');
+}
+
+/**
+ * Log payment mode activation (Admin only)
+ * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
+ */
+async function logPaymentModeActivation(adminId, userType = 'Admin') {
+    return await createAuditTrail(adminId, userType, 'Payment mode activated');
 }
 
 // ===== ADMIN/EMPLOYEE MANAGEMENT AUDIT TRAILS =====
@@ -249,24 +272,116 @@ async function logPaymentFailure(userId, userType) {
  * Log employee creation (Admin only)
  * @param {string} adminId - Admin user ID
  */
-async function logEmployeeCreation(adminId) {
+async function logEmployeeCreation(adminId) { // working
     return await createAuditTrail(adminId, 'Admin', 'Employee created');
 }
 
 /**
  * Log employee update (Admin only)
  * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
  */
-async function logEmployeeUpdate(adminId) {
-    return await createAuditTrail(adminId, 'Admin', 'Employee updated');
+async function logEmployeeUpdate(adminId, userType = 'Admin') { // not working
+    return await createAuditTrail(adminId, userType, 'Employee updated');
+}
+
+/**
+ * Log employee deactivation (Admin only)
+ * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
+ */
+async function logEmployeeDeactivation(adminId, userType = 'Admin') {
+    return await createAuditTrail(adminId, userType, 'Employee deactivated');
+}
+
+/**
+ * Log employee activation (Admin only)
+ * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
+ */
+async function logEmployeeActivation(adminId, userType = 'Admin') {
+    return await createAuditTrail(adminId, userType, 'Employee activated');
 }
 
 /**
  * Log role assignment (Admin only)
  * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
  */
-async function logRoleAssignment(adminId) {
-    return await createAuditTrail(adminId, 'Admin', 'Role assigned');
+async function logRoleAssignment(adminId, userType = 'Admin') {// not working 
+    return await createAuditTrail(adminId, userType, 'Role assigned');
+}
+
+/**
+ * Log role creation (Admin only)
+ * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
+ */
+async function logRoleCreation(adminId, userType = 'Admin') {
+    return await createAuditTrail(adminId, userType, 'Role created');
+}
+
+/**
+ * Log role deactivation (Admin only)
+ * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
+ */
+async function logRoleDeactivation(adminId, userType = 'Admin') {
+    return await createAuditTrail(adminId, userType, 'Role deactivated');
+}
+
+/**
+ * Log role activation (Admin only)
+ * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
+ */
+async function logRoleActivation(adminId, userType = 'Admin') {
+    return await createAuditTrail(adminId, userType, 'Role activated');
+}
+
+/**
+ * Log customer deactivation (Admin only)
+ * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
+ */
+async function logCustomerDeactivation(adminId, userType = 'Admin') {
+    return await createAuditTrail(adminId, userType, 'Customer deactivated');
+}
+
+/**
+ * Log customer activation (Admin only)
+ * @param {string} adminId - Admin user ID
+ * @param {string} userType - User type (default: 'Admin')
+ */
+async function logCustomerActivation(adminId, userType = 'Admin') {
+    return await createAuditTrail(adminId, userType, 'Customer activated');
+}
+
+/**
+ * Log booking reschedule activity
+ * @param {string} userId - User ID
+ * @param {string} userType - User type
+ */
+async function logBookingReschedule(userId, userType) {
+    return await createAuditTrail(userId, userType, 'Booking rescheduled');
+}
+
+/**
+ * Log password update activity
+ * @param {string} userId - User ID
+ * @param {string} userType - User type
+ */
+async function logPasswordUpdate(userId, userType) {
+    return await createAuditTrail(userId, userType, 'Password updated');
+}
+
+/**
+ * Log payment method status change
+ * @param {string} userId - User ID
+ * @param {string} userType - User type
+ */
+async function logPaymentMethodUpdate(userId, userType) {
+    return await createAuditTrail(userId, userType, 'Payment method status updated');
 }
 
 // ===== SUPPORT TICKET AUDIT TRAILS =====
@@ -276,7 +391,7 @@ async function logRoleAssignment(adminId) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logTicketCreation(userId, userType) {
+async function logTicketCreation(userId, userType) { // not working
     return await createAuditTrail(userId, userType, 'Support ticket created');
 }
 
@@ -285,7 +400,7 @@ async function logTicketCreation(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logTicketUpdate(userId, userType) {
+async function logTicketUpdate(userId, userType) {// not working
     return await createAuditTrail(userId, userType, 'Support ticket updated');
 }
 
@@ -294,7 +409,7 @@ async function logTicketUpdate(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logTicketResolution(userId, userType) {
+async function logTicketResolution(userId, userType) {// not working
     return await createAuditTrail(userId, userType, 'Support ticket resolved');
 }
 
@@ -305,7 +420,7 @@ async function logTicketResolution(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logSystemAccess(userId, userType) {
+async function logSystemAccess(userId, userType) { // working
     return await createAuditTrail(userId, userType, 'System module accessed');
 }
 
@@ -314,7 +429,7 @@ async function logSystemAccess(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logDataExport(userId, userType) {
+async function logDataExport(userId, userType) { // not being called? // got commented out
     return await createAuditTrail(userId, userType, 'Data exported');
 }
 
@@ -323,7 +438,7 @@ async function logDataExport(userId, userType) {
  * @param {string} userId - User ID
  * @param {string} userType - User type
  */
-async function logBulkOperation(userId, userType) {
+async function logBulkOperation(userId, userType) { //redundant?
     return await createAuditTrail(userId, userType, 'Bulk operation performed');
 }
 
@@ -426,11 +541,24 @@ window.AuditTrailFunctions = {
     logPaymentInitiation,
     logPaymentCompletion,
     logPaymentFailure,
+    logPaymentModeCreation,
+    logPaymentModeDeactivation,
+    logPaymentModeActivation,
     
     // Admin/Employee management
     logEmployeeCreation,
     logEmployeeUpdate,
+    logEmployeeDeactivation,
+    logEmployeeActivation,
     logRoleAssignment,
+    logRoleCreation,
+    logRoleDeactivation,
+    logRoleActivation,
+    logCustomerDeactivation,
+    logCustomerActivation,
+    logBookingReschedule,
+    logPasswordUpdate,
+    logPaymentMethodUpdate,
     
     // Support tickets
     logTicketCreation,

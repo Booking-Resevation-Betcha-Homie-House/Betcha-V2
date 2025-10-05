@@ -1517,7 +1517,7 @@ async function cancelBooking(bookingId) {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
                 const userId = userData.userId || userData.user_id || localStorage.getItem('userId') || localStorage.getItem('userID') || localStorage.getItem('currentUser') || 'unknown';
                 const userType = 'Admin'; // Always use Admin for dashboard functions
-                await window.AuditTrailFunctions.logBookingCancellation(userId, userType, bookingId);
+                await window.AuditTrailFunctions.logBookingCancellation(userId, userType);
             }
         } catch (auditError) {
             console.error('Audit trail error:', auditError);

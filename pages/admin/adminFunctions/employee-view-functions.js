@@ -334,6 +334,16 @@ async function deactivateEmployee() {
 
 		const result = await response.json();
 		
+		// Log employee deactivation audit trail
+		try {
+			const adminId = localStorage.getItem('userId');
+			if (window.AuditTrailFunctions && adminId) {
+				window.AuditTrailFunctions.logEmployeeDeactivation(adminId, 'Admin');
+			}
+		} catch (auditError) {
+			console.warn('Audit trail for employee deactivation failed:', auditError);
+		}
+		
 		// Close modal
 		document.getElementById('deactivateModal').classList.add('hidden');
 		
@@ -366,6 +376,16 @@ async function reactivateEmployee() {
 		}
 
 		const result = await response.json();
+		
+		// Log employee activation audit trail
+		try {
+			const adminId = localStorage.getItem('userId');
+			if (window.AuditTrailFunctions && adminId) {
+				window.AuditTrailFunctions.logEmployeeActivation(adminId, 'Admin');
+			}
+		} catch (auditError) {
+			console.warn('Audit trail for employee activation failed:', auditError);
+		}
 		
 		// Close modal
 		document.getElementById('reactivateModal').classList.add('hidden');
@@ -634,6 +654,16 @@ async function changeEmployeePassword(newPassword) {
 		
 		// Show success message
 		showToastSuccess('Success', 'Employee password updated successfully!');
+		
+		// Log password update audit trail
+		try {
+			const adminId = localStorage.getItem('userId');
+			if (window.AuditTrailFunctions && adminId) {
+				window.AuditTrailFunctions.logPasswordUpdate(adminId, 'Admin');
+			}
+		} catch (auditError) {
+			console.warn('Audit trail for password update failed:', auditError);
+		}
 		
 		// Clear form fields
 		document.getElementById('newPassword').value = '';

@@ -1,6 +1,9 @@
 // Payment functions for admin panel
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
+// Global variable to store all payments for status checking
+let allPayments = [];
+
 // Constants for reusable styles and configurations
 const UI_STYLES = {
     button: {
@@ -168,6 +171,9 @@ async function loadPaymentMethods() {
         
         const payments = await response.json();
         
+        // Store payments globally for status checking
+        allPayments = payments || [];
+        
         if (payments && payments.length > 0) {
             // Clear existing content and add payment cards
             const paymentGrid = getPaymentGrid();
@@ -253,6 +259,10 @@ async function deletePayment(paymentId, paymentName) {
     }
     
     try {
+        // Get the current payment to determine if it's being activated or deactivated
+        const currentPayment = allPayments.find(payment => payment._id === paymentId);
+        const isDeactivating = currentPayment?.active;
+
         const response = await fetch(`${API_BASE_URL}/payments/toggle-active/${paymentId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' }
@@ -263,6 +273,21 @@ async function deletePayment(paymentId, paymentName) {
         }
         
         alert('Payment method status updated successfully!');
+        
+        // Log payment mode activation/deactivation audit trail
+        try {
+            const adminId = localStorage.getItem('userId');
+            if (window.AuditTrailFunctions && adminId) {
+                if (isDeactivating) {
+                    window.AuditTrailFunctions.logPaymentModeDeactivation(adminId, 'Admin');
+                } else {
+                    window.AuditTrailFunctions.logPaymentModeActivation(adminId, 'Admin');
+                }
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for payment mode status change failed:', auditError);
+        }
+        
         loadPaymentMethods();
         
     } catch (error) {

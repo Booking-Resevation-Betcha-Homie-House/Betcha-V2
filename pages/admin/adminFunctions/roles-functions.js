@@ -263,6 +263,10 @@ async function deleteRole(roleId) {
     console.log('User confirmed, making API call...');
 
     try {
+        // Get the current role to determine if it's being activated or deactivated
+        const currentRole = allRoles.find(role => role._id === roleId);
+        const isDeactivating = currentRole?.active;
+
         const response = await fetch(`${API_BASE}/roles/toggle-active/${roleId}`, {
             method: 'PATCH',
             headers: {
@@ -277,6 +281,20 @@ async function deleteRole(roleId) {
         }
 
         console.log('API call successful, refreshing roles...');
+        
+        // Log role activation/deactivation audit trail
+        try {
+            const adminId = localStorage.getItem('userId');
+            if (window.AuditTrailFunctions && adminId) {
+                if (isDeactivating) {
+                    window.AuditTrailFunctions.logRoleDeactivation(adminId, 'Admin');
+                } else {
+                    window.AuditTrailFunctions.logRoleActivation(adminId, 'Admin');
+                }
+            }
+        } catch (auditError) {
+            console.warn('Audit trail for role status change failed:', auditError);
+        }
         
         // Refresh the roles list
         await populateRoles();

@@ -36,4 +36,14 @@ function initializeAdminProfile() {
 // Initialize profile when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeAdminProfile();
+    
+    // Log profile view audit trail
+    try {
+        const userId = localStorage.getItem('userId');
+        if (window.AuditTrailFunctions && userId) {
+            window.AuditTrailFunctions.logProfileView(userId, 'Admin');
+        }
+    } catch (auditError) {
+        console.warn('Audit trail for profile view failed:', auditError);
+    }
 });
