@@ -442,6 +442,15 @@ async function logBulkOperation(userId, userType) { //redundant?
     return await createAuditTrail(userId, userType, 'Bulk operation performed');
 }
 
+/**
+ * Log PSR summary report generation (Employee)
+ * @param {string} userId - User ID
+ * @param {string} userType - User type
+ */
+async function logPSRReportGeneration(userId, userType) {
+    return await createAuditTrail(userId, userType, 'PSR summary report generated');
+}
+
 // ===== ERROR AND SECURITY AUDIT TRAILS =====
 
 /**
@@ -569,6 +578,7 @@ window.AuditTrailFunctions = {
     logSystemAccess,
     logDataExport,
     logBulkOperation,
+    logPSRReportGeneration,
     
     // Security
     logFailedLogin,

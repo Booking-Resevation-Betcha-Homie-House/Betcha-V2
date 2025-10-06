@@ -1651,6 +1651,13 @@ async function sendCancellationNoticeToAdmin() {
 // Make PM tab switching globally accessible for debugging
 window.setActivePMTab = setActivePMTab;
 
+// Make PM functions globally accessible
+window.processCheckinConfirmation = processCheckinConfirmation;
+window.processCheckinCancellation = processCheckinCancellation;
+window.handleEndBookingConfirm = handleEndBookingConfirm;
+window.openEndBookingModal = openEndBookingModal;
+window.sendCancellationNoticeToAdmin = sendCancellationNoticeToAdmin;
+
 // Main function to load today's check-ins (make globally accessible)
 window.loadTodaysCheckins = async function() {
     console.log('📋 Loading today\'s check-ins...');

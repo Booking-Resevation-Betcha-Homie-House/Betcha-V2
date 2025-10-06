@@ -444,7 +444,24 @@ function populateTransactionsData(transactionsData) {
 }
 
 // Download Functionality
+let isDownloading = false; // Prevent multiple concurrent downloads
+
 async function handleDownload() {
+    // Prevent multiple clicks
+    if (isDownloading) {
+        console.log('Download already in progress, ignoring click');
+        return;
+    }
+    
+    // Get button reference more reliably
+    const downloadButton = document.querySelector('#generatePSRModal .bg-primary span') || 
+                          document.querySelector('#generatePSRModal button:last-child span');
+    
+    console.log('Download button found:', !!downloadButton);
+    
+    // Set loading state
+    isDownloading = true;
+    
     try {
         console.log('=== DOWNLOAD FUNCTION CALLED ===');
         console.log('Starting download process...');
@@ -476,9 +493,10 @@ async function handleDownload() {
         }
         
         // Show loading state
-        const downloadButton = document.querySelector('#generatePSRModal button:last-child span');
-        const originalText = downloadButton.textContent;
-        downloadButton.textContent = 'Downloading...';
+        if (downloadButton) {
+            downloadButton.textContent = 'Downloading...';
+            console.log('Set button text to: Downloading...');
+        }
         
         // Make API call based on report type
         const reportData = await fetchReportData(reportType, formData);
@@ -487,23 +505,42 @@ async function handleDownload() {
             // Download file using the provided links
             await downloadFileFromResponse(reportData, fileType);
             
+            // Log PSR report generation audit trail
+            try {
+                if (window.AuditTrailFunctions) {
+                    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                    const userId = userData._id || userData.userId || userData.user_id || 
+                                  localStorage.getItem('employeeID') || localStorage.getItem('employeeId') || 
+                                  localStorage.getItem('userId');
+                    
+                    if (userId && userId !== 'unknown') {
+                        const userType = userData.role || 'Employee';
+                        window.AuditTrailFunctions.logPSRReportGeneration(userId, userType).catch(auditError => {
+                            console.error('Audit trail error:', auditError);
+                        });
+                    } else {
+                        console.warn('No valid userId found for audit trail');
+                    }
+                }
+            } catch (auditError) {
+                console.error('Audit trail error:', auditError);
+            }
+            
             // Close modal on successful download
             document.getElementById('generatePSRModal').classList.add('hidden');
             document.body.classList.remove('modal-open');
         }
         
-        // Restore button text
-        downloadButton.textContent = originalText;
-        
     } catch (error) {
         console.error('Download error:', error);
         alert('An error occurred while downloading the report. Please try again.');
-        
-        // Restore button text
-        const downloadButton = document.querySelector('#generatePSRModal button:last-child span');
+    } finally {
+        // Always restore button text and reset flag
         if (downloadButton) {
             downloadButton.textContent = 'Download';
+            console.log('Restored button text to: Download');
         }
+        isDownloading = false;
     }
 }
 
@@ -765,11 +802,18 @@ function generateExcelFile(data, fileName, reportType) {
     try {
         if (window.AuditTrailFunctions) {
             const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-            const userId = userData.userId || userData.user_id || 'unknown';
-            const userType = userData.role || 'employee';
-            window.AuditTrailFunctions.logDataExport(userId, userType).catch(auditError => {
-                console.error('Audit trail error:', auditError);
-            });
+            const userId = userData._id || userData.userId || userData.user_id || 
+                          localStorage.getItem('employeeID') || localStorage.getItem('employeeId') || 
+                          localStorage.getItem('userId');
+            
+            if (userId && userId !== 'unknown') {
+                const userType = userData.role || 'employee';
+                window.AuditTrailFunctions.logDataExport(userId, userType).catch(auditError => {
+                    console.error('Audit trail error:', auditError);
+                });
+            } else {
+                console.warn('No valid userId found for audit trail');
+            }
         }
     } catch (auditError) {
         console.error('Audit trail error:', auditError);

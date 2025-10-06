@@ -29,17 +29,22 @@ function toggleFaq(button) {
 
 async function fetchAndDisplayTotalBookedDays() {
     try {
-        const response = await fetch('https://betcha-api.onrender.com/landing/totalOfDaysBooked');
+        const response = await fetch('https://betcha-api.onrender.com/dashboard/admin/booking/activeCount');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         const bookedDaysElement = document.getElementById('bookedDays');
-        if (bookedDaysElement) {
-            bookedDaysElement.textContent = `${data.totalDaysBooked} days`;
+        if (bookedDaysElement && data.activeBookings !== undefined) {
+            bookedDaysElement.textContent = `${data.activeBookings} nights`;
         } else {
-            console.error('Booked days element not found');
+            console.error('Booked days element not found or invalid data structure');
         }
     } catch (error) {
         console.error('Error fetching total booked days:', error);
+        // Fallback to show placeholder if API fails
+        const bookedDaysElement = document.getElementById('bookedDays');
+        if (bookedDaysElement) {
+            bookedDaysElement.textContent = '0 nights';
+        }
     }
 }
 
