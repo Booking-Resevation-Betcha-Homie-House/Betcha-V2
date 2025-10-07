@@ -2951,7 +2951,7 @@ function isProdDataMode() {
         isChecked: dataTypeToggle?.checked,
         result: isEnabled
     });
-    return isEnabled;
+    return !isEnabled;
 }
 
 // Function to handle data mode change
