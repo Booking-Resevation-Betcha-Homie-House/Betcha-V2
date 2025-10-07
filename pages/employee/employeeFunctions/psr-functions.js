@@ -1,26 +1,19 @@
-// PSR Functions - Property Summary Report Modal Functionality
-// PSR 90% done, clean out the code 
 console.log('PSR Functions loaded');
 
-// API Base URL
+import { showToastError, showToastSuccess, showToastWarning } from '/src/toastNotification.js';
+
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('PSR Functions - DOM Content Loaded');
-    
-    // Note: checkRolePrivileges() will be called by universal skeleton after sidebar restoration
-    
-    // Initialize the modal functionality
+
     initializePSRModal();
-    
-    // Initialize basic modal functionality
+
     initializeBasicModal();
-    
-    // Load API data when page loads
+
     loadDashboardData();
 });
 
-// Role Privilege Checking Functions
 async function checkRolePrivileges() {
     try {
         const roleID = localStorage.getItem('roleID');
@@ -46,6 +39,9 @@ async function checkRolePrivileges() {
         console.error('Error checking role privileges:', error);
     }
 }
+
+// Expose checkRolePrivileges to window for external access
+window.checkRolePrivileges = checkRolePrivileges;
 
 async function fetchRolePrivileges(roleID) {
     try {
@@ -469,22 +465,13 @@ async function handleDownload() {
         // Get selected report type
         const selectedReportType = document.querySelector('input[name="reportType"]:checked');
         if (!selectedReportType) {
-            alert('Please select a report type');
-            return;
-        }
-        
-        // Get selected file type
-        const selectedFileType = document.querySelector('input[name="fileType"]:checked');
-        if (!selectedFileType) {
-            alert('Please select a file type');
+            showToastWarning('Missing Selection', 'Please select a report type');
             return;
         }
         
         const reportType = selectedReportType.value;
-        const fileType = selectedFileType.value;
         
         console.log('Report Type:', reportType);
-        console.log('File Type:', fileType);
         
         // Validate and get form data based on report type
         const formData = getFormDataByReportType(reportType);
@@ -503,7 +490,7 @@ async function handleDownload() {
         
         if (reportData) {
             // Download file using the provided links
-            await downloadFileFromResponse(reportData, fileType);
+            await downloadFileFromResponse(reportData);
             
             // Log PSR report generation audit trail
             try {
@@ -533,7 +520,7 @@ async function handleDownload() {
         
     } catch (error) {
         console.error('Download error:', error);
-        alert('An error occurred while downloading the report. Please try again.');
+        showToastError('Download Error', 'An error occurred while downloading the report. Please try again.');
     } finally {
         // Always restore button text and reset flag
         if (downloadButton) {
@@ -544,111 +531,132 @@ async function handleDownload() {
     }
 }
 
+// Helper function to get employee name from localStorage
+function getEmployeeName() {
+    try {
+        const firstName = localStorage.getItem('firstName') || '';
+        const lastName = localStorage.getItem('lastName') || '';
+        const fullName = `${firstName} ${lastName}`.trim();
+        return fullName || 'Unknown Employee';
+    } catch (error) {
+        console.error('Error getting employee name:', error);
+        return 'Unknown Employee';
+    }
+}
+
 function getFormDataByReportType(reportType) {
-    const currentYear = new Date().getFullYear();
+    const processedBy = getEmployeeName();
     
     switch (reportType) {
-        case 'weekly':
+        case 'weekly': {
             const week = document.getElementById('selectWeek').value;
             const weekMonth = document.getElementById('selectWeekMonth').value;
             const weekYear = document.getElementById('selectWeekYear').value;
             
             if (!week || !weekMonth || !weekYear) {
-                alert('Please select week, month, and year for weekly report');
+                showToastWarning('Missing Selection', 'Please select week, month, and year for weekly report');
                 return null;
             }
             
             return {
                 week: parseInt(week),
                 month: parseInt(weekMonth),
-                year: parseInt(weekYear)
+                year: parseInt(weekYear),
+                processedBy: processedBy
             };
+        }
             
-        case 'monthly':
+        case 'monthly': {
             const month = document.getElementById('selectMonth').value;
             const monthYear = document.getElementById('selectYear').value;
             
             if (!month || !monthYear) {
-                alert('Please select month and year for monthly report');
+                showToastWarning('Missing Selection', 'Please select month and year for monthly report');
                 return null;
             }
             
             return {
                 month: parseInt(month),
-                year: parseInt(monthYear)
+                year: parseInt(monthYear),
+                processedBy: processedBy
             };
+        }
             
-        case 'quarterly':
+        case 'quarterly': {
             const quarter = document.getElementById('selectQuarter').value;
             const quarterYear = document.getElementById('selectQuarterYear').value;
             
             if (!quarter || !quarterYear) {
-                alert('Please select quarter and year for quarterly report');
+                showToastWarning('Missing Selection', 'Please select quarter and year for quarterly report');
                 return null;
             }
             
-            // Extract quarter number from Q1, Q2, etc.
             const quarterNumber = parseInt(quarter.replace('Q', ''));
             
             return {
                 quarter: quarterNumber,
-                year: parseInt(quarterYear)
+                year: parseInt(quarterYear),
+                processedBy: processedBy
             };
+        }
             
-        case 'semi-annual':
+        case 'semi-annual': {
             const half = document.getElementById('selectHalf').value;
             const semiYear = document.getElementById('selectSemiYear').value;
             
             if (!half || !semiYear) {
-                alert('Please select half and year for semi-annual report');
+                showToastWarning('Missing Selection', 'Please select half and year for semi-annual report');
                 return null;
             }
             
-            // Extract half number from H1, H2
             const halfNumber = parseInt(half.replace('H', ''));
             
             return {
                 annual: halfNumber,
-                year: parseInt(semiYear)
+                year: parseInt(semiYear),
+                processedBy: processedBy
             };
+        }
             
-        case 'annual':
+        case 'annual': {
             const annualYear = document.getElementById('selectAnnualYear').value;
             
             if (!annualYear) {
-                alert('Please select year for annual report');
+                showToastWarning('Missing Selection', 'Please select year for annual report');
                 return null;
             }
             
             return {
-                year: parseInt(annualYear)
+                year: parseInt(annualYear),
+                processedBy: processedBy
             };
+        }
             
         default:
-            alert('Invalid report type selected');
+            showToastError('Invalid Selection', 'Invalid report type selected');
             return null;
     }
 }
 
 async function fetchReportData(reportType, formData) {
-    const baseUrl = 'https://betcha-api.onrender.com/psr';
+    const baseUrl = 'https://betcha-api.onrender.com/new-psr';
     let endpoint;
     
     switch (reportType) {
         case 'weekly':
-            endpoint = `${baseUrl}/weekSummary`;
+            endpoint = `${baseUrl}/week-summary`;
             break;
         case 'monthly':
-            endpoint = `${baseUrl}/monthSummary`;
+            endpoint = `${baseUrl}/month-summary`;
             break;
         case 'quarterly':
-            endpoint = `${baseUrl}/quarterSummary`;
+            endpoint = `${baseUrl}/quarter-summary`;
             break;
         case 'semi-annual':
-            endpoint = `${baseUrl}/semiAnnualSummary`;
+            endpoint = `${baseUrl}/semi-annual-summary`;
             break;
         case 'annual':
-            endpoint = `${baseUrl}/AnnualSummary`;
+            endpoint = `${baseUrl}/annual-summary`;
             break;
         default:
             throw new Error('Invalid report type');
@@ -676,28 +684,22 @@ async function fetchReportData(reportType, formData) {
         
     } catch (error) {
         console.error('Error fetching report data:', error);
-        alert('Failed to fetch report data. Please check your connection and try again.');
+        showToastError('Network Error', 'Failed to fetch report data. Please check your connection and try again.');
         return null;
     }
 }
 
-async function downloadFileFromResponse(responseData, fileType) {
+async function downloadFileFromResponse(responseData) {
     try {
         console.log('Response data:', responseData);
         
-        let downloadUrl;
-        let fileName;
-        
-        // Determine which link to use based on selected file type
-        if (fileType === 'Excel' && responseData.excelLink) {
-            downloadUrl = responseData.excelLink;
-            fileName = responseData.excelLink.split('/').pop(); // Extract filename from path
-        } else if (fileType === 'Pdf' && responseData.pdfLink) {
-            downloadUrl = responseData.pdfLink;
-            fileName = responseData.pdfLink.split('/').pop(); // Extract filename from path
-        } else {
-            throw new Error(`No ${fileType} link found in response`);
+        // Check if excelLink exists in response
+        if (!responseData.excelLink) {
+            throw new Error('No Excel link found in response');
         }
+        
+        const downloadUrl = responseData.excelLink;
+        const fileName = responseData.excelLink.split('/').pop(); // Extract filename from path
         
         // Construct full URL (assuming the API base URL)
         const baseUrl = 'https://betcha-api.onrender.com';
@@ -717,11 +719,11 @@ async function downloadFileFromResponse(responseData, fileType) {
         link.click();
         document.body.removeChild(link);
         
-        console.log(`${fileType} file download initiated:`, fileName);
+        console.log('Excel file download initiated:', fileName);
         
         // Show success message
         if (responseData.message) {
-            alert(`Report generated successfully: ${responseData.message}`);
+            showToastSuccess('Report Generated', responseData.message);
         }
         
     } catch (error) {
@@ -1017,8 +1019,8 @@ function populateYearDropdowns() {
     const currentYear = new Date().getFullYear();
     const yearOptions = [];
     
-    // Generate years from 2020 to current year + 2
-    for (let year = 2020; year <= currentYear + 2; year++) {
+    // Generate years from 2025 to current year
+    for (let year = 2025; year <= currentYear; year++) {
         yearOptions.push(`<option value="${year}">${year}</option>`);
     }
     

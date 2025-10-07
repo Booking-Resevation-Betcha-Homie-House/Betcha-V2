@@ -557,31 +557,15 @@
               </div>
             </div>
             <div class="my-4">
-              <p class="text-sm font-medium text-neutral-700 mb-2">File Type</p>
-              <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <label class="flex items-center justify-center cursor-pointer">
-                  <input type="radio" name="fileType" value="Excel" class="hidden peer" checked>
-                  <span class="flex items-center justify-center w-full px-4 py-2 rounded-full border border-neutral-300
-                              text-sm text-neutral-800 text-center
-                              hover:bg-primary hover:text-secondary-text hover:scale-105 active:scale-95
-                              transition-all duration-300 ease-in-out
-                              peer-checked:bg-primary peer-checked:text-secondary-text peer-checked:font-semibold">
-                    <img src="/public/images/excel.png" class="h-3 mr-2">
-                    .xlsx
-                  </span>
-                </label>
-
-                <label class="flex items-center justify-center cursor-pointer">
-                  <input type="radio" name="fileType" value="Pdf" class="hidden peer">
-                  <span class="flex items-center justify-center w-full px-4 py-2 rounded-full border border-neutral-300
-                              text-sm text-neutral-800 text-center
-                              hover:bg-primary hover:text-secondary-text hover:scale-105 active:scale-95
-                              transition-all duration-300 ease-in-out
-                              peer-checked:bg-primary peer-checked:text-secondary-text peer-checked:font-semibold">
-                    <img src="/public/images/pdf.png" class="h-3 mr-2">
-                    .pdf
-                  </span>
-                </label>
+              <div class="flex items-center gap-2 p-4 bg-primary/10 border border-primary/20 rounded-lg">
+                <svg class="w-5 h-5 text-primary flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                <div>
+                  <p class="text-sm font-medium text-primary-text">Export Format</p>
+                  <p class="text-xs text-neutral-600 mt-1">Report will be downloaded as an Excel (.xlsx) file</p>
+                </div>
+                <img src="/public/images/excel.png" class="h-8 ml-auto">
               </div>
             </div>
           </div>
