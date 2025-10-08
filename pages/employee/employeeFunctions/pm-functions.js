@@ -644,6 +644,46 @@ async function fetchTodaysCheckins() {
     }
 }
 
+// Function to fetch today's checkouts
+async function fetchTodaysCheckouts() {
+    try {
+        const propertyIds = await getPropertyIds();
+        console.log('📍 Property IDs for checkout:', propertyIds);
+        
+        if (propertyIds.length === 0) {
+            console.warn('⚠️ No property IDs found for checkout - user may need to assign properties');
+            return null;
+        }
+        
+        const requestBody = { propertyIds: propertyIds };
+        console.log('📤 Checkout request body:', requestBody);
+        
+        const response = await fetch(`${API_BASE_URL}/pm/bookings/checkoutToday`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(requestBody)
+        });
+        
+        console.log('📡 Checkout API Response status:', response.status);
+        
+        if (response.ok) {
+            const data = await response.json();
+            console.log('📊 Raw checkout API data:', data);
+            const enhancedData = await enhanceBookingDataWithStatus(data);
+            console.log('✨ Enhanced checkout data:', enhancedData);
+            window.lastCheckOutData = enhancedData;
+            return enhancedData;
+        } else {
+            const errorText = await response.text();
+            console.error('❌ Failed to fetch checkout data:', response.status, errorText);
+            return null;
+        }
+    } catch (error) {
+        console.error('Error fetching checkout data:', error);
+        return null;
+    }
+}
+
 // Function to populate the check-in tab with data
 function populateCheckinTab(checkinData) {
     try {
@@ -743,46 +783,57 @@ function populateCheckoutTab(checkoutData) {
         let checkoutBookings = [];
         
         if (Array.isArray(checkoutData)) {
+            // Filter out the message object and get only booking data
             checkoutBookings = checkoutData.filter(item => {
-                const hasBookingFields = item.bookingId || item._id || item.transNo || 
-                                       (item.nameOfGuest && item.nameOfProperty) || 
-                                       (item.guestName && item.propertyName) ||
-                                       (item.propertyName && item.guestName);
+                // Skip message objects
+                if (item.message) return false;
                 
-                if (shouldExcludeBooking(item)) return false;
+                // Check if it has the required booking fields
+                const hasBookingFields = item.bookingId && 
+                                       (item.nameOfGuest || item.guestName) && 
+                                       (item.nameOfProperty || item.propertyName);
                 
-                const isCheckoutToday = isCheckoutDateToday(item.checkOut);
+                if (!hasBookingFields) return false;
+                
+                // Since the API already returns the correct checkout bookings for today,
+                // we just need to filter out cancelled or already checked-out bookings
                 const statusStr = (item.status || '').toString().toLowerCase();
                 const isNotCancelled = statusStr !== 'cancel' && statusStr !== 'cancelled';
                 const isNotCheckedOut = !statusStr.includes('checked-out') && !statusStr.includes('checked out') && !statusStr.includes('completed');
                 
-                return hasBookingFields && isCheckoutToday && isNotCancelled && isNotCheckedOut;
+                return isNotCancelled && isNotCheckedOut;
             });
         } else if (checkoutData && checkoutData.bookings && Array.isArray(checkoutData.bookings)) {
             checkoutBookings = checkoutData.bookings.filter(item => {
-                const hasBookingFields = item.bookingId || item._id || item.transNo ||
-                                       (item.propertyName && item.guestName);
-                const isCheckoutToday = isCheckoutDateToday(item.checkOut);
+                if (item.message) return false;
+                
+                const hasBookingFields = item.bookingId && 
+                                       (item.nameOfGuest || item.guestName) && 
+                                       (item.nameOfProperty || item.propertyName);
+                
+                if (!hasBookingFields) return false;
+                
                 const statusStr = (item.status || '').toString().toLowerCase();
                 const isNotCancelled = statusStr !== 'cancel' && statusStr !== 'cancelled';
                 const isNotCheckedOut = !statusStr.includes('checked-out') && !statusStr.includes('checked out') && !statusStr.includes('completed');
                 
-                if (shouldExcludeBooking(item)) return false;
-                
-                return hasBookingFields && isCheckoutToday && isNotCancelled && isNotCheckedOut;
+                return isNotCancelled && isNotCheckedOut;
             });
         } else if (checkoutData && checkoutData.data && Array.isArray(checkoutData.data)) {
             checkoutBookings = checkoutData.data.filter(item => {
-                const hasBookingFields = item.bookingId || item._id || item.transNo ||
-                                       (item.propertyName && item.guestName);
-                const isCheckoutToday = isCheckoutDateToday(item.checkOut);
+                if (item.message) return false;
+                
+                const hasBookingFields = item.bookingId && 
+                                       (item.nameOfGuest || item.guestName) && 
+                                       (item.nameOfProperty || item.propertyName);
+                
+                if (!hasBookingFields) return false;
+                
                 const statusStr = (item.status || '').toString().toLowerCase();
                 const isNotCancelled = statusStr !== 'cancel' && statusStr !== 'cancelled';
                 const isNotCheckedOut = !statusStr.includes('checked-out') && !statusStr.includes('checked out') && !statusStr.includes('completed');
                 
-                if (shouldExcludeBooking(item)) return false;
-                
-                return hasBookingFields && isCheckoutToday && isNotCancelled && isNotCheckedOut;
+                return isNotCancelled && isNotCheckedOut;
             });
         }
         
@@ -1657,25 +1708,44 @@ window.processCheckinCancellation = processCheckinCancellation;
 window.handleEndBookingConfirm = handleEndBookingConfirm;
 window.openEndBookingModal = openEndBookingModal;
 window.sendCancellationNoticeToAdmin = sendCancellationNoticeToAdmin;
+window.populateCheckinConfirmModal = populateCheckinConfirmModal;
+window.populateViewBookingModal = populateViewBookingModal;
+window.populateCheckinTab = populateCheckinTab;
+window.populateCheckoutTab = populateCheckoutTab;
+window.populateCalendarBookings = populateCalendarBookings;
+window.fetchTodaysCheckouts = fetchTodaysCheckouts;
 
-// Main function to load today's check-ins (make globally accessible)
+// Make critical helper functions globally accessible
+window.isCheckoutDateToday = isCheckoutDateToday;
+window.shouldExcludeBooking = shouldExcludeBooking;
+window.showLoadingState = showLoadingState;
+window.showErrorState = showErrorState;
+window.showCheckoutLoadingState = showCheckoutLoadingState;
+window.showCheckoutErrorState = showCheckoutErrorState;
+
+// Main function to load today's check-ins and checkouts (make globally accessible)
 window.loadTodaysCheckins = async function() {
-    console.log('📋 Loading today\'s check-ins...');
+    console.log('📋 Loading today\'s check-ins and checkouts...');
     try {       
         // Show loading state
         showLoadingState();
         showCheckoutLoadingState();
         
-        // Fetch data from API
-        const checkinData = await fetchTodaysCheckins();
-        console.log('✅ Check-in data received:', checkinData);
+        // Fetch BOTH check-in AND checkout data separately
+        const [checkinData, checkoutData] = await Promise.all([
+            fetchTodaysCheckins(),     // For check-in tab
+            fetchTodaysCheckouts()     // For checkout tab
+        ]);
         
-        // Populate both check-in and check-out tabs
+        console.log('✅ Check-in data received:', checkinData);
+        console.log('✅ Check-out data received:', checkoutData);
+        
+        // Populate tabs with their respective data
         populateCheckinTab(checkinData);
-        populateCheckoutTab(checkinData);
+        populateCheckoutTab(checkoutData);  // Now uses correct checkout data!
         
     } catch (error) {
-        console.error('❌ Error loading today\'s check-ins:', error);
+        console.error('❌ Error loading PM data:', error);
         showErrorState();
         showCheckoutErrorState();
     }

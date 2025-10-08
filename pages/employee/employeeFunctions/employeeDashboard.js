@@ -53,6 +53,33 @@ function updateGridLayout() {
       visibleCards[0].classList.add('md:col-span-2');
     }
   });
+  
+  // Match heights of tickets and transactions sections
+  matchSectionHeights();
+}
+
+// Function to match heights of tickets and transactions sections
+function matchSectionHeights() {
+  const ticketsSection = document.getElementById('tickets');
+  const transactionsSection = document.getElementById('transactions');
+  
+  if (ticketsSection && transactionsSection && 
+      !ticketsSection.classList.contains('hidden') && 
+      !transactionsSection.classList.contains('hidden')) {
+    
+    // Reset heights first
+    ticketsSection.style.height = 'auto';
+    transactionsSection.style.height = 'auto';
+    
+    // Get the heights after reset
+    const ticketsHeight = ticketsSection.offsetHeight;
+    const transactionsHeight = transactionsSection.offsetHeight;
+    
+    // Set both to the taller height
+    const maxHeight = Math.max(ticketsHeight, transactionsHeight);
+    ticketsSection.style.height = maxHeight + 'px';
+    transactionsSection.style.height = maxHeight + 'px';
+  }
 }
 
 document.addEventListener('DOMContentLoaded', () => {
