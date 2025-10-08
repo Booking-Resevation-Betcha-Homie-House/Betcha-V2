@@ -3,6 +3,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const dropdownMenu = document.getElementById('dropdownMenu');
 
     menuBtn.addEventListener('click', () => {
+      // Close notification dropdown if it's open
+      const notificationDropdown = document.getElementById('notificationDropdown');
+      if (notificationDropdown && !notificationDropdown.classList.contains('hidden')) {
+        notificationDropdown.classList.add('hidden');
+      }
+      
       dropdownMenu.classList.toggle('hidden');
     });
 

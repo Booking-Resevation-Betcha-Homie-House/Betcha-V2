@@ -4,15 +4,7 @@ import { showToastError, showToastSuccess, showToastWarning } from '/src/toastNo
 
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('PSR Functions - DOM Content Loaded');
-
-    initializePSRModal();
-
-    initializeBasicModal();
-
-    loadDashboardData();
-});
+// Initialization will be handled at the bottom of the file
 
 async function checkRolePrivileges() {
     try {
@@ -876,7 +868,15 @@ function generatePdfFile(data, fileName, reportType) {
 }
 */
 
+let isModalInitialized = false;
+
 function initializeBasicModal() {
+    // Prevent multiple initializations
+    if (isModalInitialized) {
+        console.log('Modal already initialized, skipping...');
+        return;
+    }
+    
     // Handle modal opening
     const modalButton = document.querySelector('[data-modal-target="generatePSRModal"]');
     const modal = document.getElementById('generatePSRModal');
@@ -919,6 +919,9 @@ function initializeBasicModal() {
         } else {
             console.error('Download button not found in modal');
         }
+        
+        isModalInitialized = true;
+        console.log('Modal initialized successfully');
     }
 }
 
@@ -1071,22 +1074,17 @@ function testModal() {
 // Make test function available globally for debugging
 window.testPSRModal = testModal;
 
-// Initialize the PSR modal when the page loads
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('DOM loaded, initializing PSR modal...');
+// Single initialization point
+function initializePage() {
+    console.log('Initializing PSR page...');
+    initializePSRModal();
     initializeBasicModal();
     loadDashboardData();
-});
+}
 
-// Also initialize if DOM is already loaded
+// Initialize when DOM is ready
 if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-        console.log('DOM loaded (deferred), initializing PSR modal...');
-        initializeBasicModal();
-        loadDashboardData();
-    });
+    document.addEventListener('DOMContentLoaded', initializePage);
 } else {
-    console.log('DOM already loaded, initializing PSR modal immediately...');
-    initializeBasicModal();
-    loadDashboardData();
+    initializePage();
 }

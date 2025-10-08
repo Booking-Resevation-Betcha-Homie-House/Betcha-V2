@@ -323,6 +323,7 @@ function initializePropertyMonitoringFeatures() {
         const openCancelBtn = e.target.closest('[data-modal-target="cancelBookingModal"]');
         if (openCancelBtn) {
             try { loadAdminsIntoCancelModal(); } catch (_) {}
+            try { resetCancellationForm(); } catch (_) {}
             try {
                 const modal = document.getElementById('cancelBookingModal');
                 if (modal) {
@@ -407,7 +408,26 @@ function initializePropertyMonitoringFeatures() {
     document.addEventListener('click', function(e) {
         const sendBtn = e.target.closest('#send-cancel-notice-btn');
         if (sendBtn) {
-            try { sendCancellationNoticeToAdmin(); } catch (_) {}
+            // Prevent multiple clicks - check if already processing
+            if (sendBtn.disabled || sendBtn.dataset.processing === 'true') {
+                return;
+            }
+            
+            // Mark as processing immediately to prevent race conditions
+            sendBtn.dataset.processing = 'true';
+            setButtonLoading(sendBtn);
+            
+            sendCancellationNoticeToAdmin()
+                .then(() => {
+                    setButtonSuccess(sendBtn);
+                })
+                .catch(() => {
+                    setButtonDefault(sendBtn);
+                })
+                .finally(() => {
+                    // Always clear processing flag
+                    sendBtn.dataset.processing = 'false';
+                });
         }
     });
 }
@@ -1616,14 +1636,14 @@ async function sendCancellationNoticeToAdmin() {
         const modal = document.getElementById('cancelBookingModal') || document.getElementById('checkinConfirmModal');
         const reasonSelectEl = document.getElementById('select-cancel-reason');
         const messageTextarea = document.getElementById('input-cancel-admin');
-        if (!modal || !reasonSelectEl || !messageTextarea) { console.error('Missing fields.'); return; }
+        if (!modal || !reasonSelectEl || !messageTextarea) { console.error('Missing fields.'); return Promise.reject(new Error('Missing required form fields')); }
 
         // Require a cancellation reason to be selected
         const reasonValue = reasonSelectEl.value;
         if (!reasonValue) {
             try { if (window.showToastError) window.showToastError('warning', 'Cancellation reason required', 'Please select a cancellation reason.'); } catch(_) {}
             reasonSelectEl.focus();
-            return;
+            return Promise.reject(new Error('Cancellation reason required'));
         }
 
         // Require a non-empty message before proceeding
@@ -1631,13 +1651,13 @@ async function sendCancellationNoticeToAdmin() {
         if (!messageValue) {
             try { if (window.showToastError) window.showToastError('warning', 'Cancellation note required', 'Please add a message before sending the cancellation.'); } catch(_) {}
             messageTextarea.focus();
-            return;
+            return Promise.reject(new Error('Cancellation note required'));
         }
 
         const bookingId = BookingContext.get().bookingId || resolveBookingId(modal);
-        if (!bookingId) { console.error('Missing booking id. Open the booking card first.'); return; }
+        if (!bookingId) { console.error('Missing booking id. Open the booking card first.'); return Promise.reject(new Error('Missing booking ID')); }
         const ctx = await BookingContext.hydrateFromBooking(bookingId);
-        if (!ctx.transNo) { console.error('Missing transaction number. Open the booking card first.'); return; }
+        if (!ctx.transNo) { console.error('Missing transaction number. Open the booking card first.'); return Promise.reject(new Error('Missing transaction number')); }
 
         const fromId = localStorage.getItem('employeeId') || localStorage.getItem('userId') || 'unknown-employee';
         const fromName = `${localStorage.getItem('firstName') || 'Employee'} ${localStorage.getItem('lastName') || ''}`.trim();
@@ -1685,17 +1705,22 @@ async function sendCancellationNoticeToAdmin() {
         if (!window.notify || !window.notify.sendCancellation) {
             console.error('Notification service not available. Please refresh the page.');
             try { if (window.showToastError) window.showToastError('error', 'Service Error', 'Notification service not available. Please refresh the page.'); } catch(_) {}
-            return;
+            return Promise.reject(new Error('Notification service not available'));
         }
 
         await window.notify.sendCancellation(payload);
         console.log('✅ Cancellation notice sent to admin.');
+        
+        // Reset form fields for next use
+        resetCancellationForm();
+        
         const cancelModal = document.getElementById('cancelBookingModal');
         if (cancelModal) { cancelModal.classList.add('hidden'); document.body.classList.remove('modal-open'); }
-        return;
+        return Promise.resolve();
     } catch (err) {
         console.error('Error sending cancellation notice:', err);
-        console.error(`Failed to send cancellation notice: ${err.message}`);
+        try { if (window.showToastError) window.showToastError('error', 'Error', `Failed to send cancellation notice: ${err.message}`); } catch(_) {}
+        return Promise.reject(err);
     }
 }
 
@@ -1750,6 +1775,52 @@ window.loadTodaysCheckins = async function() {
         showCheckoutErrorState();
     }
 }
+
+// Button state management functions for cancellation notice
+function setButtonLoading(button) {
+    button.disabled = true;
+    button.innerHTML = `
+        <div class="flex items-center justify-center">
+            <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+            <span class="text-white text-base md:text-lg">Sending...</span>
+        </div>
+    `;
+}
+
+function setButtonDefault(button) {
+    button.disabled = false;
+    button.dataset.processing = 'false';
+    button.innerHTML = `<span class="text-white text-base md:text-lg">Send</span>`;
+}
+
+function setButtonSuccess(button) {
+    button.innerHTML = `<span class="text-white text-base md:text-lg">Sent!</span>`;
+    // Modal will close automatically, so no need to reset
+}
+
+// Function to reset cancellation form fields
+function resetCancellationForm() {
+    // Reset the cancellation reason dropdown
+    const reasonSelect = document.getElementById('select-cancel-reason');
+    if (reasonSelect) {
+        reasonSelect.value = '';
+    }
+    
+    // Clear the cancellation message textarea
+    const messageTextarea = document.getElementById('input-cancel-admin');
+    if (messageTextarea) {
+        messageTextarea.value = '';
+    }
+    
+    // Reset the send button state
+    const sendButton = document.getElementById('send-cancel-notice-btn');
+    if (sendButton) {
+        setButtonDefault(sendButton);
+    }
+    
+    console.log('🔄 Cancellation form and button state reset');
+}
+
 // Function to show loading state
 function showLoadingState() {
     const checkinTabContent = document.getElementById('checkin-tab-content');

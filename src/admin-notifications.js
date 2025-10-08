@@ -110,7 +110,8 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         // Fill detailed modal on click (before modal.js opens it)
-        wrapper.addEventListener('click', () => {
+        wrapper.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent event bubbling to document click handler
             suppressDropdownCloseOnce = true;
             const category = (wrapper.dataset.category || '').toLowerCase();
             if (category === 'cancellation request') {
@@ -310,6 +311,13 @@ document.addEventListener("DOMContentLoaded", () => {
     // Toggle dropdown
     bellBtn.addEventListener('click', (e) => {
         e.stopPropagation();
+        
+        // Close menu dropdown if it's open
+        const menuDropdown = document.getElementById('dropdownMenu');
+        if (menuDropdown && !menuDropdown.classList.contains('hidden')) {
+            menuDropdown.classList.add('hidden');
+        }
+        
         dropdown.classList.toggle('hidden');
         // Refresh when opened
         if (!dropdown.classList.contains('hidden')) {

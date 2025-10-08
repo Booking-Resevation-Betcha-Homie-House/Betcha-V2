@@ -424,7 +424,7 @@ function getDaysAgoString(date) {
         if (ticketMain) ticketMain.classList.replace('translate-x-full', 'translate-x-0');
     });
 
-    // ✅ Auto-select first ticket in pending
+    // ✅ Auto-select first ticket in pending tab on initial load, completed tab only when manually switched
     if (isFirst && !isCompleted) {
         setTimeout(() => {
             card.classList.add('bg-primaryy', 'border-primary', 'selected-ticket');
@@ -478,13 +478,30 @@ function loadTicketDetails(ticket) {
         messagesArea.scrollTop = messagesArea.scrollHeight;
     }
 
-    // Hide close ticket button for completed/resolved tickets
+    // Hide close ticket button and disable chat for completed/resolved tickets
     const closeTicketBtn = document.querySelector('[data-modal-target="closeTicketModal"]');
+    const messageBox = document.getElementById('messageBox');
+    const sendBtn = document.querySelector('#ticketMain form button[type="submit"]');
+    const isTicketClosed = ticket.status === 'completed' || ticket.status === 'resolved';
+    
     if (closeTicketBtn) {
-        if (ticket.status === 'completed' || ticket.status === 'resolved') {
-            closeTicketBtn.style.display = 'none';
+        closeTicketBtn.style.display = isTicketClosed ? 'none' : 'block';
+    }
+    
+    // Disable chat functionality for closed tickets
+    if (messageBox && sendBtn) {
+        if (isTicketClosed) {
+            messageBox.disabled = true;
+            messageBox.placeholder = 'This ticket is closed. Chat is disabled.';
+            messageBox.classList.add('bg-neutral-100', 'text-neutral-400');
+            sendBtn.disabled = true;
+            sendBtn.classList.add('opacity-50', 'cursor-not-allowed');
         } else {
-            closeTicketBtn.style.display = 'block';
+            messageBox.disabled = false;
+            messageBox.placeholder = 'Type a message...';
+            messageBox.classList.remove('bg-neutral-100', 'text-neutral-400');
+            sendBtn.disabled = false;
+            sendBtn.classList.remove('opacity-50', 'cursor-not-allowed');
         }
     }
 }
@@ -542,7 +559,16 @@ function setupTabSwitching() {
         tabButtons.forEach((button, index) => {
             button.addEventListener('click', () => {
                 setActiveTab(groupEl, index);
-                clearChatArea(); // 👈 now runs only when switching tabs
+                // Auto-select first ticket in the newly active tab
+                setTimeout(() => {
+                    const activeTabContent = groupEl.querySelectorAll('.tab-content')[index];
+                    const firstTicket = activeTabContent?.querySelector('.ticket-item');
+                    if (firstTicket) {
+                        firstTicket.click();
+                    } else {
+                        clearChatArea();
+                    }
+                }, 50);
             });
         });
     });
@@ -697,6 +723,13 @@ async function confirmResolve(ticketId) {
 
         clearChatArea();
 
+        // Close the modal
+        const modal = document.getElementById('closeTicketModal');
+        if (modal) {
+            modal.classList.add('hidden');
+            document.body.classList.remove('modal-open');
+        }
+
     } catch (err) {
         console.error("Error resolving ticket:", err);
         alert("Failed to resolve ticket ❌");
@@ -808,11 +841,17 @@ document.querySelector('#ticketMain form').addEventListener('submit', (e) => {
     e.preventDefault();
     const textarea = document.getElementById('messageBox');
     const message = textarea.value.trim();
-    const ticketId = document.querySelector('.ticket-item.selected-ticket')?.dataset.ticketId;
-    // currently opened ticket
+    const selectedTicket = document.querySelector('.ticket-item.selected-ticket');
+    const ticketId = selectedTicket?.dataset.ticketId;
 
     if (!ticketId) {
         alert("No ticket selected!");
+        return;
+    }
+
+    // Check if ticket is closed (completed/resolved)
+    if (textarea.disabled) {
+        alert("Cannot send messages to closed tickets.");
         return;
     }
 
