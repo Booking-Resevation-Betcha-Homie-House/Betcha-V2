@@ -111,7 +111,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
         // Fill detailed modal on click (before modal.js opens it)
         wrapper.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent event bubbling to document click handler
             suppressDropdownCloseOnce = true;
             const category = (wrapper.dataset.category || '').toLowerCase();
             if (category === 'cancellation request') {
