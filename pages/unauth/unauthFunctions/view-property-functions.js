@@ -517,7 +517,13 @@ async function fetchAndDisplayProperty() {
         };
         Object.entries(infoMap).forEach(([id, value]) => {
             const el = document.getElementById(id);
-            if(el) el.textContent = value || '';
+            if(el) {
+                // Preserve line breaks for description
+                if (id === 'roomDescription') {
+                    el.style.whiteSpace = 'pre-line';
+                }
+                el.textContent = value || '';
+            }
         });
 
         // Handle timeIn and timeOut data

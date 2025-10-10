@@ -61,7 +61,8 @@ function initializeEmployeeProfile() {
 async function loadAssignedProperties() {
     try {
         // Try to get employee ID from multiple sources
-        let employeeID = localStorage.getItem('employeeID') || 
+        let employeeID = localStorage.getItem('userId') || 
+                        localStorage.getItem('employeeID') || 
                         localStorage.getItem('_id') || 
                         localStorage.getItem('id');
         
@@ -73,16 +74,11 @@ async function loadAssignedProperties() {
             if (userData) {
                 try {
                     const parsed = JSON.parse(userData);
-                    employeeID = parsed._id || parsed.id || parsed.employeeID;
+                    employeeID = parsed._id || parsed.id || parsed.employeeID || parsed.userId;
                 } catch (e) {
                     console.warn('Could not parse userData:', e);
                 }
             }
-        }
-        
-        // Fallback: Use the known employee ID for testing
-        if (!employeeID) {
-            employeeID = '68a85740a3af5eecc10e7cae'; // PM Luke's ID from your example
         }
         
         if (!employeeID) {
@@ -171,7 +167,7 @@ function displayAssignedProperties(properties) {
     // Create property items
     properties.forEach((property) => {
         const propertyElement = document.createElement('div');
-        propertyElement.className = 'flex flex-col p-3 bg-neutral-100 rounded-xl border border-neutral-200 w-full min-w-0 sm:flex-row items-center sm:justify-between sm:gap-5';
+        propertyElement.className = 'flex flex-row items-center justify-between p-4 bg-neutral-100 rounded-xl border border-neutral-200 w-full gap-4';
         
         // Extract location from address or use city
         const location = property.city || property.address || 'Location not specified';
@@ -183,15 +179,11 @@ function displayAssignedProperties(properties) {
         const statusText = isActive ? 'Active' : 'Inactive';
         
         propertyElement.innerHTML = `
-            <div class="flex flex-col sm:flex-row sm:items-center gap-3 flex-1 min-w-0">
-                <div class="flex items-center gap-3 flex-1 min-w-0">
-                    <div class="flex-1 min-w-0 sm:text-start">
-                        <p class="text-base font-semibold text-primary-text font-manrope truncate">${property.name || 'Property Name'}</p>
-                        <p class="text-sm text-neutral-500 font-inter truncate">${shortLocation}</p>
-                    </div>
-                </div>
+            <div class="flex-1 min-w-0">
+                <p class="text-base font-semibold text-primary-text font-manrope truncate">${property.name || 'Property Name'}</p>
+                <p class="text-sm text-neutral-500 font-inter truncate">${shortLocation}</p>
             </div>
-            <div class="flex items-center gap-2 mt-3 sm:mt-0 flex-shrink-0">
+            <div class="flex-shrink-0">
                 <span class="text-xs px-3 py-1 rounded-full ${statusClass} font-medium">
                     ${statusText}
                 </span>
@@ -224,8 +216,50 @@ function displayNoProperties() {
     `;
 }
 
+/**
+ * Fetch and display employee privileges from roleId
+ */
+async function loadEmployeePrivileges() {
+    try {
+        const roleId = localStorage.getItem('roleID') || localStorage.getItem('roleId');
+        
+        if (!roleId) {
+            console.warn('Role ID not found in localStorage');
+            return;
+        }
+
+        const response = await fetch(`https://betcha-api.onrender.com/roles/display/${roleId}`);
+        
+        if (!response.ok) {
+            console.warn('Failed to fetch role privileges:', response.status);
+            return;
+        }
+
+        const roleData = await response.json();
+        
+        if (roleData && roleData.privileges && Array.isArray(roleData.privileges)) {
+            // Update the privileges display
+            const privilegeElements = document.querySelectorAll('.text-base.font-medium.text-primary-text.font-manrope');
+            
+            // Find the privileges element (it's the third one after email and role)
+            if (privilegeElements[2]) {
+                const privilegesText = roleData.privileges.join(', ');
+                privilegeElements[2].textContent = privilegesText;
+                console.log('Privileges loaded from API:', privilegesText);
+                
+                // Also store in localStorage for future use
+                localStorage.setItem('privileges', JSON.stringify(roleData.privileges));
+            }
+        }
+        
+    } catch (error) {
+        console.error('Error loading employee privileges:', error);
+    }
+}
+
 // Initialize profile when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeEmployeeProfile();
     loadAssignedProperties();
+    loadEmployeePrivileges();
 });

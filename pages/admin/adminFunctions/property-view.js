@@ -246,6 +246,7 @@ function populateBasicInfo(data) {
     // Property description
     const roomDescriptionElement = document.getElementById('roomDescription');
     if (roomDescriptionElement) {
+        roomDescriptionElement.style.whiteSpace = 'pre-line';
         roomDescriptionElement.textContent = data.description || 'No description available';
     }
     
