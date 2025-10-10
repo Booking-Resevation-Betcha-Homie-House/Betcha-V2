@@ -1,7 +1,7 @@
 // Payment Add Functions
 
 // Import centralized toast notification system
-import { showToastError } from '/src/toastNotification.js';
+import { showToastError, showToastSuccess } from '/src/toastNotification.js';
 
 const API_BASE_URL = 'https://betcha-api.onrender.com';
 
@@ -228,7 +228,7 @@ async function validateAndSubmitForm() {
         }
 
         const result = await response.json();
-        const created = result?.newPayment || result?.data || result?.payment || result?.paymentPlatform || result;
+        console.log('Payment created successfully:', result);
         
         // Close the confirmation modal
         const modal = document.getElementById('confirmDetailsModal');
@@ -293,12 +293,12 @@ function hideLoadingState() {
 
 // Show success message
 function showSuccess(message) {
-    return showToastError('success', 'Success', message);
+    return showToastSuccess(message, 'Success');
 }
 
 // Show error message
 function showError(message) {
-    return showToastError('error', 'Error', message);
+    return showToastError(message, 'Error');
 }
 
 // Clear form

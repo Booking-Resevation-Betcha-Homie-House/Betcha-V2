@@ -1169,11 +1169,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 formData.append('sex', sexElement.textContent);
 
-                // Get profile picture if it exists
-                const pfpInput = document.querySelector('input[type="file"]');
-                if (pfpInput && pfpInput.files[0]) {
-                    formData.append('pfp', pfpInput.files[0]);
-                }
+                // Do not send ID verification image as profile picture
+                // Profile picture should be empty/null during registration
+                // Users can upload their profile picture later in their profile settings
 
                 // Try to register user
                 const response = await registerUser(formData).catch(error => {

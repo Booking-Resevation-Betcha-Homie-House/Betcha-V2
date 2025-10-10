@@ -27,14 +27,17 @@ function toggleFaq(button) {
     }
 }
 
+// Expose toggleFaq to global scope for inline onclick handlers
+window.toggleFaq = toggleFaq;
+
 async function fetchAndDisplayTotalBookedDays() {
     try {
-        const response = await fetch('https://betcha-api.onrender.com/dashboard/admin/booking/activeCount');
+        const response = await fetch('https://betcha-api.onrender.com/landing/totalOfDaysBooked');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
         const bookedDaysElement = document.getElementById('bookedDays');
-        if (bookedDaysElement && data.activeBookings !== undefined) {
-            bookedDaysElement.textContent = `${data.activeBookings} nights`;
+        if (bookedDaysElement && data.totalDaysBooked !== undefined) {
+            bookedDaysElement.textContent = `${data.totalDaysBooked} nights`;
         } else {
             console.error('Booked days element not found or invalid data structure');
         }

@@ -1,6 +1,15 @@
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Support page loaded");
 
+  // Import toast notification functions
+  import('/src/toastNotification.js').then(module => {
+    window.showToastError = module.showToastError;
+    window.showToastSuccess = module.showToastSuccess;
+    window.showToastWarning = module.showToastWarning;
+  }).catch(error => {
+    console.warn('Could not load toast notifications:', error);
+  });
+
   // Function to get user ID from localStorage (same as genTicketInput.js)
   function getUserId() {
     const userId = localStorage.getItem('userId') ||
@@ -812,20 +821,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const message = newMessageBox.value.trim();
       if (!message) {
         console.log('No message to send');
-        showToast('Please enter a message', 'warning');
+        showToast('Please enter a message before sending.', 'warning', 'Message Required');
         return;
       }
       
       if (!currentSelectedTicketId) {
         console.error('No ticket selected');
-        showToast('Please select a ticket first', 'error');
+        showToast('Please select a ticket first before sending a message.', 'error', 'No Ticket Selected');
         return;
       }
       
       const userId = getUserId();
       if (!userId) {
         console.error('User not logged in');
-        showToast('Please log in to send messages', 'error');
+        showToast('Please log in to send messages.', 'error', 'Login Required');
         return;
       }
       
@@ -942,12 +951,12 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } else {
         console.error('Failed to send message:', result);
-        showToast('Failed to send message. Please try again.', 'error');
+        showToast(result.message || 'Failed to send message. Please try again.', 'error', 'Send Failed');
       }
       
     } catch (error) {
       console.error('Error sending message:', error);
-      showToast('Network error. Please check your connection.', 'error');
+      showToast('Network error. Please check your connection and try again.', 'error', 'Network Error');
     } finally {
       // Re-enable send button
       if (sendButton && originalHTML) {
@@ -986,14 +995,32 @@ document.addEventListener('DOMContentLoaded', () => {
     messageContainer.scrollTop = messageContainer.scrollHeight;
   }
 
-  // Function to show toast notifications (if toast system exists)
-  function showToast(message, type = 'info') {
-    // Check if toast notification system exists
-    if (typeof window.showToast === 'function') {
-      window.showToast(message, type);
-    } else {
-      // Fallback to console log
-      console.log(`Toast (${type}):`, message);
+  // Helper function to show toast notifications
+  function showToast(message, type = 'info', title = '') {
+    switch(type) {
+      case 'error':
+        if (typeof window.showToastError === 'function') {
+          window.showToastError(message, title || 'Error');
+        } else {
+          console.error(`Toast Error: ${message}`);
+        }
+        break;
+      case 'success':
+        if (typeof window.showToastSuccess === 'function') {
+          window.showToastSuccess(message, title || 'Success');
+        } else {
+          console.log(`Toast Success: ${message}`);
+        }
+        break;
+      case 'warning':
+        if (typeof window.showToastWarning === 'function') {
+          window.showToastWarning(message, title || 'Warning');
+        } else {
+          console.warn(`Toast Warning: ${message}`);
+        }
+        break;
+      default:
+        console.log(`Toast (${type}): ${message}`);
     }
   }
 

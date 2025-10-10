@@ -1,13 +1,21 @@
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Ticket dropdowns JS loaded");
 
-  // Import toast notification function
+  // Import toast notification functions
   import('/src/toastNotification.js').then(module => {
     window.showToastError = module.showToastError;
+    window.showToastSuccess = module.showToastSuccess;
+    window.showToastWarning = module.showToastWarning;
   }).catch(error => {
     console.warn('Could not load toast notifications:', error);
     // Fallback to alert if toast fails to load
-    window.showToastError = function(type, title, message) {
+    window.showToastError = function(message, title = 'Error') {
+      alert(`${title}: ${message}`);
+    };
+    window.showToastSuccess = function(message, title = 'Success') {
+      alert(`${title}: ${message}`);
+    };
+    window.showToastWarning = function(message, title = 'Warning') {
       alert(`${title}: ${message}`);
     };
   });
@@ -54,23 +62,23 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Validation
     if (!selectedEmployeeId) {
-      window.showToastError('warning', 'Agent Required', 'Please select a Customer Service Agent before creating a ticket.');
+      window.showToastWarning('Please select a Customer Service Agent before creating a ticket.', 'Agent Required');
       return;
     }
     
     if (!selectedCategory) {
-      window.showToastError('warning', 'Category Required', 'Please select a concern category before creating a ticket.');
+      window.showToastWarning('Please select a concern category before creating a ticket.', 'Category Required');
       return;
     }
     
     if (!description || description.length < 10) {
-      window.showToastError('warning', 'Description Required', 'Please provide a description with at least 10 characters.');
+      window.showToastWarning('Please provide a description with at least 10 characters.', 'Description Required');
       return;
     }
     
     const userId = getUserId();
     if (!userId) {
-      window.showToastError('auth', 'Login Required', 'User not logged in. Please log in to create a ticket.');
+      window.showToastError('User not logged in. Please log in to create a ticket.', 'Login Required');
       return;
     }
     
@@ -129,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('Ticket created successfully:', result);
         
         // Show success message
-        window.showToastError('success', 'Ticket Created!', 'Your support ticket has been created successfully. You will be redirected shortly.');
+        window.showToastSuccess('Your support ticket has been created successfully. You will be redirected shortly.', 'Ticket Created!');
         
         // Audit: Log ticket creation
         try {
@@ -161,12 +169,12 @@ document.addEventListener('DOMContentLoaded', () => {
       } else {
         // API error
         console.error('API Error:', result);
-        window.showToastError('error', 'Creation Failed', result.message || 'Failed to create ticket. Please try again.');
+        window.showToastError(result.message || 'Failed to create ticket. Please try again.', 'Creation Failed');
       }
       
     } catch (error) {
       console.error('Network Error:', error);
-      window.showToastError('error', 'Network Error', 'Unable to connect to the server. Please check your connection and try again.');
+      window.showToastError('Unable to connect to the server. Please check your connection and try again.', 'Network Error');
     } finally {
       // Restore button
       submitBtn.disabled = false;
