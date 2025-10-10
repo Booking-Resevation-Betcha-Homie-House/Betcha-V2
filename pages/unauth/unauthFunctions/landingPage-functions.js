@@ -60,7 +60,7 @@ async function fetchAndDisplayAdsBanner() {
             return;
         }
 
-        const response = await fetch('https://betcha-api.onrender.com/landing/display/68a735c07753114c9e87c793');
+        const response = await fetch('https://betcha-api.onrender.com/landing/display/68e888c28705c6444cfd5fcf');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
 
@@ -129,7 +129,7 @@ async function fetchAndDisplayFAQs() {
 
 async function fetchAndDisplayFeaturedUnits() {
     try {
-        const response = await fetch('https://betcha-api.onrender.com/landing/display/68a735c07753114c9e87c793');
+        const response = await fetch('https://betcha-api.onrender.com/landing/display/68e888c28705c6444cfd5fcf');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
 
