@@ -170,7 +170,7 @@ async function updateAdsBanner() {
             thisMonthContainer.innerHTML = createSkeletonCards(3);
         }
 
-        const response = await fetch('https://betcha-api.onrender.com/landing/display/68a735c07753114c9e87c793');
+        const response = await fetch('https://betcha-api.onrender.com/landing/display/68e888c28705c6444cfd5fcf');
         const data = await response.json();
 
         // Add delay for smooth loading animation
