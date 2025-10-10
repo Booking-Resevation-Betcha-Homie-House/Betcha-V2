@@ -3,6 +3,21 @@
 (function initGuestProfileEdit() {
     const API_BASE_URL = 'https://betcha-api.onrender.com';
 
+    // Toast notification function
+    function showToast(type, title, message) {
+        // Check if toast notification system is available
+        if (typeof window.showToastSuccess === 'function' && type === 'success') {
+            window.showToastSuccess(message, title);
+        } else if (typeof window.showToastError === 'function' && type === 'error') {
+            window.showToastError(message, title);
+        } else if (typeof window.showToastWarning === 'function' && type === 'warning') {
+            window.showToastWarning(message, title);
+        } else {
+            // Fallback to console if toast system is not available
+            console.log(`[${type.toUpperCase()}] ${title}: ${message}`);
+        }
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         populateFields().catch((e) => console.error('Failed to populate edit fields:', e));
         const form = document.getElementById('editProfileForm');
@@ -102,13 +117,13 @@
 
         // Validate file type
         if (!file.type.startsWith('image/')) {
-            alert('Please select a valid image file.');
+            showToast('error', 'Invalid File Type', 'Please select a valid image file.');
             return;
         }
 
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
-            alert('Image size should be less than 5MB.');
+            showToast('error', 'File Too Large', 'Image size should be less than 5MB.');
             return;
         }
 
@@ -154,10 +169,10 @@
                 localStorage.setItem('pfplink', result.pfplink);
             }
 
-            alert('Profile picture updated successfully!');
+            showToast('success', 'Profile Picture Updated', 'Your profile picture has been updated successfully!');
         } catch (error) {
             console.error('Error uploading profile picture:', error);
-            alert('Failed to upload profile picture. Please try again.');
+            showToast('error', 'Upload Failed', 'Failed to upload profile picture. Please try again.');
             
             // Revert the preview if upload failed
             const avatarImg = document.getElementById('profileAvatarImg');
@@ -187,7 +202,7 @@
         const lastname = getValue('lastNameInput').trim();
         const phoneNumber = getValue('phoneInput').trim();
         if (phoneNumber && !isValidPhMobile(phoneNumber)) {
-            alert('Please enter a valid PH mobile number (09XXXXXXXXX or +639XXXXXXXXX).');
+            showToast('error', 'Invalid Phone Number', 'Please enter a valid PH mobile number (09XXXXXXXXX or +639XXXXXXXXX).');
             return;
         }
         const sex = getText('selectedSex');
@@ -208,7 +223,8 @@
 
             if (!resp.ok) {
                 const errText = await safeText(resp);
-                throw new Error(`Update failed (${resp.status}): ${errText}`);
+                showToast('error', 'Update Failed', `Failed to update profile: ${errText || 'Unknown error'}`);
+                return;
             }
 
             // Update localStorage with edited fields
@@ -224,13 +240,18 @@
                 if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logProfileUpdate === 'function' && uid) {
                     window.AuditTrailFunctions.logProfileUpdate(uid, 'Guest');
                 }
-            } catch (_) {}
+            } catch {
+                // Ignore audit errors
+            }
 
-            // Redirect back to profile or show success
-            window.location.href = 'profile.html';
+            // Show success toast and redirect after 2 seconds
+            showToast('success', 'Profile Updated', 'Your profile has been updated successfully!');
+            setTimeout(() => {
+                window.location.href = 'profile.html';
+            }, 2000);
         } catch (error) {
             console.error('Error updating guest profile:', error);
-            alert('Failed to update profile. Please try again.');
+            showToast('error', 'Update Failed', 'Failed to update profile. Please try again.');
         }
     }
 
