@@ -139,7 +139,36 @@
       }
 
       if (inputPfp) inputPfp.addEventListener('change', (e) => { 
-        selectedFile = e.target.files && e.target.files[0];
+        const file = e.target.files && e.target.files[0];
+        
+        if (!file) return;
+        
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type.toLowerCase())) {
+          import('/src/toastNotification.js').then(module => {
+            module.showToastError(
+              'Please select a valid image file (JPG, PNG, GIF, JPEG, or WEBP).',
+              'Invalid File Type'
+            );
+          });
+          e.target.value = ''; // Clear the input
+          return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          import('/src/toastNotification.js').then(module => {
+            module.showToastError(
+              'Image size should be less than 5MB.',
+              'File Too Large'
+            );
+          });
+          e.target.value = ''; // Clear the input
+          return;
+        }
+        
+        selectedFile = file;
         if (selectedFile && avatarEl) {
           const previewUrl = URL.createObjectURL(selectedFile);
           avatarEl.style.backgroundImage = `url("${previewUrl}")`;
@@ -150,7 +179,36 @@
         }
       });
       if (inputPfpMobile) inputPfpMobile.addEventListener('change', (e) => { 
-        selectedFile = e.target.files && e.target.files[0];
+        const file = e.target.files && e.target.files[0];
+        
+        if (!file) return;
+        
+        // Validate file type
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type.toLowerCase())) {
+          import('/src/toastNotification.js').then(module => {
+            module.showToastError(
+              'Please select a valid image file (JPG, PNG, GIF, JPEG, or WEBP).',
+              'Invalid File Type'
+            );
+          });
+          e.target.value = ''; // Clear the input
+          return;
+        }
+        
+        // Validate file size (max 5MB)
+        if (file.size > 5 * 1024 * 1024) {
+          import('/src/toastNotification.js').then(module => {
+            module.showToastError(
+              'Image size should be less than 5MB.',
+              'File Too Large'
+            );
+          });
+          e.target.value = ''; // Clear the input
+          return;
+        }
+        
+        selectedFile = file;
         if (selectedFile && avatarEl) {
           const previewUrl = URL.createObjectURL(selectedFile);
           avatarEl.style.backgroundImage = `url("${previewUrl}")`;

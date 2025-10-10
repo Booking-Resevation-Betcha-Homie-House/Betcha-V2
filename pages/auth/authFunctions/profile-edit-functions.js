@@ -115,15 +115,18 @@
         const file = event.target.files[0];
         if (!file) return;
 
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            showToast('error', 'Invalid File Type', 'Please select a valid image file.');
+        // Validate file type - only allow specific image formats
+        const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+        if (!validTypes.includes(file.type.toLowerCase())) {
+            showToast('error', 'Invalid File Type', 'Please select a valid image file (JPG, PNG, GIF, JPEG, or WEBP).');
+            event.target.value = ''; // Clear the input
             return;
         }
 
         // Validate file size (max 5MB)
         if (file.size > 5 * 1024 * 1024) {
             showToast('error', 'File Too Large', 'Image size should be less than 5MB.');
+            event.target.value = ''; // Clear the input
             return;
         }
 
