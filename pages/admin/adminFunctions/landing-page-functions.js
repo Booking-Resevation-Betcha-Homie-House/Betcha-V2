@@ -2,8 +2,8 @@
 
 // API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
-const LANDING_GET_URL = `${API_BASE}/landing/display/68a735c07753114c9e87c793`;
-const LANDING_PUT_URL = `${API_BASE}/landing/update/68a735c07753114c9e87c793`;
+const LANDING_GET_URL = `${API_BASE}/landing/display/68e888c28705c6444cfd5fcf`;
+const LANDING_PUT_URL = `${API_BASE}/landing/update/68e888c28705c6444cfd5fcf`;
 const PROPERTY_LIST_URL = `${API_BASE}/property/display`;
 
 // Global variables to store landing page data
