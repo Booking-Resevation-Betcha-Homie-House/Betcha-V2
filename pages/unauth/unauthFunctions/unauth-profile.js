@@ -13,31 +13,45 @@ function initializeUnauthProfile() {
             return;
         }
         
-        // If profile picture exists, show it
+        // If profile picture exists, show it as background
         if (profilePicture && profilePicture.trim() !== '') {
-            unauthProfileImgElement.src = profilePicture;
-            unauthProfileImgElement.classList.remove('hidden');
-            // Remove green background when showing profile picture
+            // Set profile picture as background image on the button
+            menuBtnElement.style.backgroundImage = `url('${profilePicture}')`;
+            menuBtnElement.style.backgroundSize = 'cover';
+            menuBtnElement.style.backgroundPosition = 'center';
+            menuBtnElement.style.backgroundRepeat = 'no-repeat';
+            
+            // Remove green background
             menuBtnElement.classList.remove('bg-primary');
-            menuBtnElement.classList.add('bg-transparent');
+            
+            // Hide the img element (not needed with background image)
+            if (unauthProfileImgElement) {
+                unauthProfileImgElement.style.display = 'none';
+            }
             
             // Hide the SVG icon when profile picture is shown
             const svgIcon = menuBtnElement.querySelector('svg');
             if (svgIcon) {
                 svgIcon.classList.add('hidden');
+                svgIcon.style.display = 'none';
             }
             
             console.log('Unauth profile picture loaded:', profilePicture);
         } else {
             // Keep default SVG icon visible with green background
-            unauthProfileImgElement.classList.add('hidden');
-            menuBtnElement.classList.remove('bg-transparent');
+            menuBtnElement.style.backgroundImage = '';
             menuBtnElement.classList.add('bg-primary');
+            
+            // Hide img element
+            if (unauthProfileImgElement) {
+                unauthProfileImgElement.style.display = 'none';
+            }
             
             // Show the SVG icon when no profile picture
             const svgIcon = menuBtnElement.querySelector('svg');
             if (svgIcon) {
                 svgIcon.classList.remove('hidden');
+                svgIcon.style.display = '';
             }
             
             console.log('No unauth profile picture found, using default icon');

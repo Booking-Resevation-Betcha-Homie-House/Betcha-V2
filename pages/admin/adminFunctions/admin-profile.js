@@ -1,45 +1,53 @@
 /**
  * Initialize admin profile picture in navigation
+ * Sets the profile picture as background image on the menuBtn div
  */
 function initializeAdminProfile() {
     try {
         const profilePicture = localStorage.getItem('pfplink') || '';
-        const adminProfileImgElement = document.getElementById('adminProfileImg');
         const menuBtnElement = document.getElementById('menuBtn');
         
-        if (!adminProfileImgElement || !menuBtnElement) {
-            console.warn('Admin profile elements not found in DOM');
+        if (!menuBtnElement) {
+            console.warn('Menu button element not found in DOM');
             return;
         }
         
-        // If profile picture exists, show it
+        // Always hide the img element since we're using background-image
+        const imgElement = document.getElementById('adminProfileImg');
+        if (imgElement) {
+            imgElement.style.display = 'none';
+        }
+        
+        // If profile picture exists, show it as background on menuBtn
         if (profilePicture && profilePicture.trim() !== '') {
-            adminProfileImgElement.src = profilePicture;
-            adminProfileImgElement.classList.remove('hidden');
-            // Remove green background when showing profile picture
+            // Set profile picture as background image on the menuBtn
+            menuBtnElement.style.backgroundImage = `url('${profilePicture}')`;
+            menuBtnElement.style.backgroundSize = 'cover';
+            menuBtnElement.style.backgroundPosition = 'center';
+            menuBtnElement.style.backgroundRepeat = 'no-repeat';
+            
+            // Remove green background
             menuBtnElement.classList.remove('bg-primary');
-            menuBtnElement.classList.add('bg-transparent');
             
             // Hide the SVG icon when profile picture is shown
             const svgIcon = menuBtnElement.querySelector('svg');
             if (svgIcon) {
-                svgIcon.classList.add('hidden');
+                svgIcon.style.display = 'none';
             }
             
-            console.log('Admin profile picture loaded:', profilePicture);
+            console.log('Admin profile picture loaded as background:', profilePicture);
         } else {
-            // Keep default SVG icon visible with green background
-            adminProfileImgElement.classList.add('hidden');
-            menuBtnElement.classList.remove('bg-transparent');
+            // No profile picture - keep default SVG icon with green background
+            menuBtnElement.style.backgroundImage = '';
             menuBtnElement.classList.add('bg-primary');
             
-            // Show the SVG icon when no profile picture
+            // Show the SVG icon
             const svgIcon = menuBtnElement.querySelector('svg');
             if (svgIcon) {
-                svgIcon.classList.remove('hidden');
+                svgIcon.style.display = '';
             }
             
-            console.log('No admin profile picture found, using default icon');
+            console.log('No admin profile picture, using default icon');
         }
         
     } catch (error) {

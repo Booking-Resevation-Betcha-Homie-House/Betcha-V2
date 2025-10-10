@@ -4,27 +4,43 @@
 function initializeEmployeeProfile() {
     try {
         const profilePicture = localStorage.getItem('pfplink') || '';
-        const employeeProfileImgElement = document.getElementById('employeeProfileImg');
         const menuBtnElement = document.getElementById('menuBtn');
         
-        if (!employeeProfileImgElement || !menuBtnElement) {
-            console.warn('Employee profile elements not found in DOM');
+        if (!menuBtnElement) {
+            console.warn('Menu button element not found in DOM');
             return;
         }
+
+        // Always hide the img element since we're using background-image
+        const imgElement = document.getElementById('employeeProfileImg');
+        if (imgElement) {
+            imgElement.style.display = 'none';
+        }
         
-        // If profile picture exists, show it
+        // If profile picture exists, show it as background
         if (profilePicture && profilePicture.trim() !== '') {
-            employeeProfileImgElement.src = profilePicture;
-            employeeProfileImgElement.classList.remove('hidden');
-            // Remove green background when showing profile picture
+            menuBtnElement.style.backgroundImage = `url('${profilePicture}')`;
+            menuBtnElement.style.backgroundSize = 'cover';
+            menuBtnElement.style.backgroundPosition = 'center';
+            menuBtnElement.style.backgroundRepeat = 'no-repeat';
             menuBtnElement.classList.remove('bg-primary');
-            menuBtnElement.classList.add('bg-transparent');
+            
+            // Hide the SVG icon when showing profile picture
+            const svgIcon = menuBtnElement.querySelector('svg');
+            if (svgIcon) {
+                svgIcon.classList.add('hidden');
+            }
             console.log('Employee profile picture loaded:', profilePicture);
         } else {
             // Keep default SVG icon visible with green background
-            employeeProfileImgElement.classList.add('hidden');
-            menuBtnElement.classList.remove('bg-transparent');
+            menuBtnElement.style.backgroundImage = '';
             menuBtnElement.classList.add('bg-primary');
+            
+            // Show the SVG icon
+            const svgIcon = menuBtnElement.querySelector('svg');
+            if (svgIcon) {
+                svgIcon.classList.remove('hidden');
+            }
             console.log('No employee profile picture found, using default icon');
         }
         
@@ -106,22 +122,16 @@ function initializeDashboardFeatures() {
   const ticketsContainer = document.querySelector('#tickets .space-y-4');
   if (ticketsContainer) {
     loadAndPopulateTickets();
-  } else {
-    
   }
 
   const transactionsContainer = document.querySelector('#transactions .space-y-4');
   if (transactionsContainer) {
     loadAndPopulateTransactions();
-  } else {
-    
   }
 
   const pmContainer = document.querySelector('#PM .space-y-4');
   if (pmContainer) {
     loadAndPopulateTodayCheckins();
-  } else {
-    
   }
 }
 
@@ -134,21 +144,27 @@ async function loadDashboardMetrics() {
     ]);
     populateEarningsData(summaryData);
     populatePeakBookingData(peakBookingData);
-  } catch (_) {}
+  } catch {
+    // Silently fail if metrics cannot be loaded
+  }
 }
 
 async function fetchAdminSummary() {
   try {
     const response = await fetch('https://betcha-api.onrender.com/dashboard/admin/summary');
     return await response.json();
-  } catch (_) { return null; }
+  } catch {
+    return null;
+  }
 }
 
 async function fetchPeakBookingDay() {
   try {
     const response = await fetch('https://betcha-api.onrender.com/psr/peakBookingDay');
     return await response.json();
-  } catch (_) { return null; }
+  } catch {
+    return null;
+  }
 }
 
 function populateEarningsData(summaryData) {
@@ -212,7 +228,7 @@ async function loadAndPopulateTickets() {
       showNoTicketsMessage();
     }
     
-  } catch (error) {
+  } catch {
     showTicketsError();
   }
 }
@@ -438,7 +454,7 @@ function createTransactionElement(transaction) {
         day: 'numeric',
         year: 'numeric'
       });
-    } catch (e) {
+    } catch {
       console.warn('Invalid checkIn date format:', transaction.checkIn);
     }
   }
@@ -546,9 +562,6 @@ async function loadAndPopulateTodayCheckins() {
     }
     
     const data = await response.json();
-    
-    // Debug: Log the raw data structure
-    if (Array.isArray(data)) {}
     
     // Handle the actual API response structure - it's an array with message and booking objects
     if (Array.isArray(data)) {
@@ -679,7 +692,7 @@ function createCheckinElement(checkin) {
         minute: '2-digit',
         hour12: true
       });
-    } catch (e) {
+    } catch {
       console.warn('Invalid checkIn date format:', checkin.checkIn);
     }
   }
@@ -702,7 +715,7 @@ function createCheckinElement(checkin) {
         minute: '2-digit',
         hour12: true
       });
-    } catch (e) {
+    } catch {
       console.warn('Invalid checkOut date format:', checkin.checkOut);
     }
   }
@@ -770,7 +783,8 @@ function showCheckinsError() {
 }
 
 // Role Privilege Checking Functions for Dashboard
-async function checkRolePrivileges() {
+// Make this function globally accessible for universal skeleton
+window.checkRolePrivileges = async function checkRolePrivileges() {
     try {
         const roleID = localStorage.getItem('roleID');
         if (!roleID) {
