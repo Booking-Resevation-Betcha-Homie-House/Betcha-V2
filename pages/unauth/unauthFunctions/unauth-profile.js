@@ -20,12 +20,26 @@ function initializeUnauthProfile() {
             // Remove green background when showing profile picture
             menuBtnElement.classList.remove('bg-primary');
             menuBtnElement.classList.add('bg-transparent');
+            
+            // Hide the SVG icon when profile picture is shown
+            const svgIcon = menuBtnElement.querySelector('svg');
+            if (svgIcon) {
+                svgIcon.classList.add('hidden');
+            }
+            
             console.log('Unauth profile picture loaded:', profilePicture);
         } else {
             // Keep default SVG icon visible with green background
             unauthProfileImgElement.classList.add('hidden');
             menuBtnElement.classList.remove('bg-transparent');
             menuBtnElement.classList.add('bg-primary');
+            
+            // Show the SVG icon when no profile picture
+            const svgIcon = menuBtnElement.querySelector('svg');
+            if (svgIcon) {
+                svgIcon.classList.remove('hidden');
+            }
+            
             console.log('No unauth profile picture found, using default icon');
         }
         

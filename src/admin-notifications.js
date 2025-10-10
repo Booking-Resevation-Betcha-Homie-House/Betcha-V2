@@ -18,17 +18,19 @@ document.addEventListener("DOMContentLoaded", () => {
             const raw = localStorage.getItem(READ_CACHE_KEY);
             const arr = raw ? JSON.parse(raw) : [];
             return new Set(Array.isArray(arr) ? arr : []);
-        } catch (_) {
+        } catch {
             return new Set();
         }
     };
-    const addToReadCache = (id) => {
+    window.addToReadCache = (id) => {
         if (!id) return;
         try {
             const set = getReadCache();
             set.add(id);
             localStorage.setItem(READ_CACHE_KEY, JSON.stringify(Array.from(set)));
-        } catch (_) {}
+        } catch {
+            // Failed to save to cache
+        }
     };
 
     // Resolve current user id (admin) from localStorage
@@ -49,7 +51,9 @@ document.addEventListener("DOMContentLoaded", () => {
             if (!isNaN(d.getTime())) {
                 return d.toLocaleString('en-PH', { hour12: false });
             }
-        } catch (_) {}
+        } catch {
+            // Invalid date format
+        }
         return '';
     };
 
@@ -88,7 +92,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     }
                 }
                 wrapper.dataset.bookingId = bid || '';
-            } catch (e) {
+            } catch {
                 wrapper.dataset.bookingId = '';
             }
         })();
@@ -110,7 +114,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
 
         // Fill detailed modal on click (before modal.js opens it)
-        wrapper.addEventListener('click', (e) => {
+        wrapper.addEventListener('click', () => {
             suppressDropdownCloseOnce = true;
             const category = (wrapper.dataset.category || '').toLowerCase();
             if (category === 'cancellation request') {
@@ -178,17 +182,19 @@ document.addEventListener("DOMContentLoaded", () => {
                     try {
                         const approveBtn = document.getElementById('approveCancelBtn');
                         const approveLbl = document.getElementById('approveLabel');
-                        if (approveBtn) {
+                        if (approveBtn && approveLbl) {
                             approveBtn.disabled = false;
-                            approveLabel.textContent = 'Approve';
+                            approveLbl.textContent = 'Approve';
                         }
                         const rejectBtn = document.getElementById('cancelRejectBtn');
                         const rejectLbl = document.getElementById('rejectLabel');
-                        if (rejectBtn) {
+                        if (rejectBtn && rejectLbl) {
                             rejectBtn.disabled = false;
                             rejectLbl.textContent = 'Reject';
                         }
-                    } catch (_) {}
+                    } catch {
+                        // Failed to reset buttons
+                    }
                 }
             } else {
                 const modal = document.getElementById('notifModal');
@@ -436,8 +442,10 @@ function markAsReadInUI(notificationId) {
         }
 
         // Persist read so future refresh/fetch keeps it read
-        addToReadCache(notificationId);
-    } catch (_) {}
+        window.addToReadCache(notificationId);
+    } catch {
+        // Failed to mark as read in UI
+    }
 }
 
 // Admin-specific notification functions
@@ -446,8 +454,8 @@ function markAsReadInUI(notificationId) {
 function showNotificationSuccess(message) {
     // You can implement a toast notification system here
     console.log('✅ Success:', message);
-    if (typeof showToastSuccess === 'function') {
-        showToastSuccess(message);
+    if (typeof window.showToastSuccess === 'function') {
+        window.showToastSuccess(message);
     }
 }
 
@@ -455,8 +463,8 @@ function showNotificationSuccess(message) {
 function showNotificationError(message) {
     // You can implement a toast notification system here
     console.error('❌ Error:', message);
-    if (typeof showToastError === 'function') {
-        showToastError(message);
+    if (typeof window.showToastError === 'function') {
+        window.showToastError(message);
     }
 }
 
@@ -621,11 +629,13 @@ async function handleCancellationRequest(notifId, bookingId, action) {
 function initializeStaticModalButtons() {
     const rejectBtn = document.getElementById('cancelRejectBtn');
     const rejectLbl = document.getElementById('rejectLabel');
-    if (rejectBtn) {
+    if (rejectBtn && rejectLbl) {
         
         rejectBtn.addEventListener('click', async function(e) {
             e.preventDefault();
 
+            // Declare originalText outside try block to avoid scope issues
+            const originalText = rejectLbl.textContent;
             
             try {
                 // Get notification data from the modal
@@ -662,11 +672,9 @@ function initializeStaticModalButtons() {
                                 bookingId = b._id || b.id || b.bookingId || '';
 
                                 if (bookingId) modal.dataset.bookingId = bookingId;
-                            } else {
-
                             }
-                        } catch (searchError) {
-
+                        } catch {
+                            // Failed to search by transaction number
                         }
                     }
                 }
@@ -674,7 +682,6 @@ function initializeStaticModalButtons() {
 
                 
                 // Disable button during processing
-                const originalText = rejectLbl.textContent;
                 rejectBtn.disabled = true;
                 rejectLbl.textContent = 'Processing...';
                 
@@ -702,7 +709,7 @@ function initializeStaticModalButtons() {
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
-                    const msgResult = await msgResp.json().catch(() => ({}));
+                    await msgResp.json().catch(() => ({}));
 
                 } catch (msgErr) {
                     console.warn('⚠️ Failed to send rejection message:', msgErr);
@@ -715,8 +722,8 @@ function initializeStaticModalButtons() {
                 }
                 
                 // Refresh notifications to update the UI
-                if (typeof fetchNotifications === 'function') {
-                    fetchNotifications();
+                if (typeof window.fetchNotifications === 'function') {
+                    window.fetchNotifications();
                 }
                 
 
@@ -735,7 +742,7 @@ function initializeStaticModalButtons() {
     
     const approveBtn = document.getElementById('approveCancelBtn');
     const approvelbl = document.getElementById('approveLabel');
-    if (approveBtn) {
+    if (approveBtn && approvelbl) {
         
         approveBtn.addEventListener('click', async function(e) {
             e.preventDefault();
@@ -773,8 +780,8 @@ function initializeStaticModalButtons() {
                                 if (bookingId) modal.dataset.bookingId = bookingId;
 
                             }
-                        } catch (e2) {
-
+                        } catch {
+                            // Failed to search by transaction number
                         }
                     }
                 }
@@ -799,8 +806,8 @@ function initializeStaticModalButtons() {
                 }
                 
                 // Refresh notifications to update the UI
-                if (typeof fetchNotifications === 'function') {
-                    fetchNotifications();
+                if (typeof window.fetchNotifications === 'function') {
+                    window.fetchNotifications();
                 }
                 
 
