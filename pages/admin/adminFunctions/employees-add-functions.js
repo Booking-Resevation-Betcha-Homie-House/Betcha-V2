@@ -88,9 +88,35 @@ async function addEmployee() {
         formData.append('role', selectedRoles.join(','));
         formData.append('properties', JSON.stringify(selectedProperties));
         
-        //if (profilePicture) {
-        //    formData.append('pfp', profilePicture);
-       // }
+        if (profilePicture) {
+            formData.append('pfp', profilePicture);
+        }
+
+        // Debug: Log the payload details
+        console.log('=== EMPLOYEE CREATION PAYLOAD DEBUG ===');
+        console.log('Profile Picture File:', profilePicture);
+        console.log('Profile Picture Details:', {
+            name: profilePicture?.name,
+            size: profilePicture?.size,
+            type: profilePicture?.type,
+            lastModified: profilePicture?.lastModified
+        });
+        
+        // Log all form data entries
+        console.log('FormData entries:');
+        for (let [key, value] of formData.entries()) {
+            if (value instanceof File) {
+                console.log(`${key}:`, {
+                    fileName: value.name,
+                    fileSize: value.size,
+                    fileType: value.type,
+                    isFile: true
+                });
+            } else {
+                console.log(`${key}:`, value);
+            }
+        }
+        console.log('=== END PAYLOAD DEBUG ===');
 
         // Show loading state
         const confirmBtn = document.getElementById('confirmEmployeeBtn');
@@ -237,11 +263,14 @@ function resetForm() {
     document.getElementById('password').value = '';
     document.getElementById('confirmPassword').value = '';
     
-    // Reset file input
+    // Reset file input and hide preview
     const profilePictureInput = document.querySelector('input[type="file"]');
     if (profilePictureInput) {
         profilePictureInput.value = '';
     }
+    
+    // Reset profile picture to default
+    resetProfilePicture();
     
     // Reset role checkboxes - handle both Alpine.js and DOM
     const roleSelector = document.getElementById('roleSelector');
@@ -343,6 +372,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Populate properties from API when page loads
     populateProperties();
+    
+    // Add profile picture preview functionality
+    setupProfilePicturePreview();
 });
 
 // Function to fetch and populate roles from the API
@@ -684,5 +716,137 @@ function filterProperties(searchTerm) {
         propertyListContainer.appendChild(propertyItem);
     });
 }
+
+// Function to setup profile picture preview
+function setupProfilePicturePreview() {
+    // Get all file inputs (there are multiple in the HTML)
+    const fileInputs = document.querySelectorAll('input[type="file"]');
+    if (fileInputs.length === 0) return;
+    
+    // Add event listeners to all file inputs
+    fileInputs.forEach(fileInput => {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            
+            // Find the profile picture container (try multiple selectors in case classes change)
+            let profileContainer = document.querySelector('.w-full.h-full.bg-primary') || 
+                                 document.querySelector('.w-full.h-full');
+            
+            // If still not found, look for the container within the relative parent
+            if (!profileContainer) {
+                const parentContainer = document.querySelector('.relative.w-32.h-32');
+                if (parentContainer) {
+                    profileContainer = parentContainer.querySelector('.w-full.h-full');
+                }
+            }
+            
+            if (file) {
+                // Validate file type
+                const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                if (!validTypes.includes(file.type)) {
+                    showError('Please select a valid image file (JPEG, PNG, or GIF)');
+                    fileInput.value = '';
+                    resetProfilePicture();
+                    return;
+                }
+                
+                // Validate file size (5MB max)
+                if (file.size > 5 * 1024 * 1024) {
+                    showError('Image file size must be less than 5MB');
+                    fileInput.value = '';
+                    resetProfilePicture();
+                    return;
+                }
+                
+                // Show preview in the profile container
+                if (profileContainer) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        // Create or update preview image
+                        let previewImg = document.getElementById('profilePreviewImg');
+                        if (!previewImg) {
+                            previewImg = document.createElement('img');
+                            previewImg.id = 'profilePreviewImg';
+                            previewImg.className = 'w-full h-full object-cover rounded-full';
+                        }
+                        
+                        previewImg.src = e.target.result;
+                        
+                        // Remove the background color and padding when showing image
+                        profileContainer.classList.remove('bg-primary', 'p-5', 'text-white');
+                        
+                        // Replace the content of profile container with the image
+                        profileContainer.innerHTML = '';
+                        profileContainer.appendChild(previewImg);
+                    };
+                    reader.readAsDataURL(file);
+                }
+            } else {
+                resetProfilePicture();
+            }
+        });
+    });
+}
+
+// Function to reset profile picture to default
+function resetProfilePicture() {
+    // Find container by multiple possible selectors since classes might have been removed
+    let profileContainer = document.querySelector('.w-full.h-full.bg-primary') || 
+                          document.querySelector('.w-full.h-full');
+    
+    // If still not found, look for the container within the relative parent
+    if (!profileContainer) {
+        const parentContainer = document.querySelector('.relative.w-32.h-32');
+        if (parentContainer) {
+            profileContainer = parentContainer.querySelector('.w-full.h-full');
+        }
+    }
+    
+    if (profileContainer) {
+        // Restore original classes and styling
+        profileContainer.className = 'w-full h-full bg-primary p-5 text-white rounded-full flex items-center justify-center text-4xl font-semibold font-manrope uppercase overflow-hidden';
+        
+        // Reset to default SVG icon
+        profileContainer.innerHTML = `
+            <svg class="h-full aspect-square fill-secondary-text" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 12C10.9 12 9.95833 11.6083 9.175 10.825C8.39167 10.0417 8 9.1 8 8C8 6.9 8.39167 5.95833 9.175 5.175C9.95833 4.39167 10.9 4 12 4C13.1 4 14.0417 4.39167 14.825 5.175C15.6083 5.95833 16 6.9 16 8C16 9.1 15.6083 10.0417 14.825 10.825C14.0417 11.6083 13.1 12 12 12ZM4 18V17.2C4 16.6333 4.146 16.1127 4.438 15.638C4.73 15.1633 5.11733 14.8007 5.6 14.55C6.63333 14.0333 7.68333 13.646 8.75 13.388C9.81667 13.13 10.9 13.0007 12 13C13.1 12.9993 14.1833 13.1287 15.25 13.388C16.3167 13.6473 17.3667 14.0347 18.4 14.55C18.8833 14.8 19.271 15.1627 19.563 15.638C19.855 16.1133 20.0007 16.634 20 17.2V18C20 18.55 19.8043 19.021 19.413 19.413C19.0217 19.805 18.5507 20.0007 18 20H6C5.45 20 4.97933 19.8043 4.588 19.413C4.19667 19.0217 4.00067 18.5507 4 18Z"/>
+            </svg>
+        `;
+    }
+}
+
+// Export all functions to the global window object to make them globally available
+window.EmployeeAddFunctions = {
+    addEmployee,
+    showError,
+    showSuccess,
+    resetForm,
+    validateForm,
+    populateRoles,
+    populateRolesManually,
+    updateSelectedRolesDisplay,
+    removeRole,
+    populateProperties,
+    updateSelectedPropertiesDisplay,
+    removeProperty,
+    filterProperties,
+    setupProfilePicturePreview,
+    resetProfilePicture
+};
+
+// Also export individual functions directly on window for backwards compatibility
+window.addEmployee = addEmployee;
+window.showError = showError;
+window.showSuccess = showSuccess;
+window.resetForm = resetForm;
+window.validateForm = validateForm;
+window.populateRoles = populateRoles;
+window.populateRolesManually = populateRolesManually;
+window.updateSelectedRolesDisplay = updateSelectedRolesDisplay;
+window.populateProperties = populateProperties;
+window.updateSelectedPropertiesDisplay = updateSelectedPropertiesDisplay;
+window.filterProperties = filterProperties;
+window.setupProfilePicturePreview = setupProfilePicturePreview;
+window.resetProfilePicture = resetProfilePicture;
 
 

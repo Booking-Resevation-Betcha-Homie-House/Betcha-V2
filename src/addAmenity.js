@@ -33,7 +33,10 @@ function amenitiesHandler() {
       this.newAmenity = '';
       console.log('✅ Custom amenity added:', trimmedAmenity);
       
-      // You could trigger a success toast notification here
+      // Update the main amenities display
+      if (window.updateAmenitiesDisplay) {
+        setTimeout(window.updateAmenitiesDisplay, 50);
+      }
     },
     
     removeAmenity(index) {
@@ -41,6 +44,11 @@ function amenitiesHandler() {
         const removedAmenity = this.amenities[index];
         this.amenities.splice(index, 1);
         console.log('🗑️ Custom amenity removed:', removedAmenity.name);
+        
+        // Update the main amenities display
+        if (window.updateAmenitiesDisplay) {
+          setTimeout(window.updateAmenitiesDisplay, 50);
+        }
       }
     },
     
@@ -74,6 +82,18 @@ function amenitiesHandler() {
       return trimmed.length > 0 && 
              trimmed.length <= 50 && 
              !this.amenities.some(amenity => amenity.name.toLowerCase() === trimmed.toLowerCase());
+    },
+
+    // Method to handle checkbox changes
+    toggleAmenity(amenity) {
+      amenity.checked = !amenity.checked;
+      // Update the main amenities display
+      if (window.updateAmenitiesDisplay) {
+        setTimeout(window.updateAmenitiesDisplay, 50);
+      }
     }
   }
 }
+
+// Make the function globally available for Alpine.js
+window.amenitiesHandler = amenitiesHandler;

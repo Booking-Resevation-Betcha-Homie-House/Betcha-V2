@@ -65,13 +65,10 @@ document.addEventListener('DOMContentLoaded', function() {
     const confirmUpdateBtn = document.getElementById('confirmUpdateBtn');
     if (confirmUpdateBtn) {
         confirmUpdateBtn.addEventListener('click', function() {
-            // Close the modal first
-            const modal = document.getElementById('confirmDetailsModal');
-            if (modal) {
-                modal.classList.add('hidden');
-            }
+            // Show loading state immediately
+            showLoadingState(true);
             
-            // Then submit the update
+            // Submit the update (modal will close automatically on success)
             submitEmployeeUpdate();
         });
     }
@@ -276,12 +273,19 @@ async function populateAssignedProperties(employee) {
         }
 
         const alpineData = Alpine.$data(propertyComponent);
+        
+        // Keep the component in a safe loading state
         alpineData.isLoading = true;
+        alpineData.properties = [];
+        alpineData.selected = [];
 
         // Get property data from employee
         const employeeProperties = parseEmployeeFieldData(employee, ['properties', 'assignedProperties', 'userProperties']);
         if (!employeeProperties) {
-            alpineData.isLoading = false;
+            // Use a delay to ensure Alpine rendering is complete before turning off loading
+            setTimeout(() => {
+                alpineData.isLoading = false;
+            }, 100);
             return;
         }
         
@@ -292,17 +296,22 @@ async function populateAssignedProperties(employee) {
         // Wait a bit to ensure smooth loading animation
         await new Promise(resolve => setTimeout(resolve, 500));
         
-        // Update properties list
-        alpineData.properties = allProperties.map(property => ({
-            name: property.propertyName || property.name || 'Unnamed Property',
-            address: property.address || 'No address provided',
-            id: property._id
-        }));
-        
-        // Parse and set selected properties
+        // Prepare ALL data completely before any Alpine updates
+        const propertiesData = [];
         const employeePropertyData = parseDataArray(employeeProperties);
         const selectedPropertyIds = [];
         
+        // Build properties data
+        for (let i = 0; i < allProperties.length; i++) {
+            const property = allProperties[i];
+            propertiesData.push({
+                name: property.propertyName || property.name || 'Unnamed Property',
+                address: property.address || 'No address provided',
+                id: property._id
+            });
+        }
+        
+        // Build selected properties data
         employeePropertyData.forEach(propertyItem => {
             let propertyId = null;
             
@@ -322,17 +331,31 @@ async function populateAssignedProperties(employee) {
             }
         });
         
-        // Set selected properties in Alpine with proper reactivity
-        alpineData.selected = [...selectedPropertyIds];
+        // IMPORTANT: Keep loading state TRUE until we're completely done
+        // This prevents the invalid Alpine template from rendering
         
-        // Turn off loading state
+        // Update properties first with empty arrays to ensure clean state
+        alpineData.properties = [];
+        alpineData.selected = [];
+        
+        // Wait for Alpine to process the empty state
+        await new Promise(resolve => setTimeout(resolve, 50));
+        
+        // Now safely update with real data
+        alpineData.properties = propertiesData;
+        alpineData.selected = selectedPropertyIds;
+        
+        // Finally, turn off loading state after ensuring data is stable
+        await new Promise(resolve => setTimeout(resolve, 100));
         alpineData.isLoading = false;
         
     } catch (error) {
         console.error('Error populating properties:', error);
         // Make sure to turn off loading state even if there's an error
         if (alpineData) {
-            alpineData.isLoading = false;
+            setTimeout(() => {
+                alpineData.isLoading = false;
+            }, 100);
         }
     }
 }
@@ -379,15 +402,23 @@ function getFormData() {
     if (propertyComponent) {
         try {
             const alpineData = Alpine.$data(propertyComponent);
-            // Convert property names back to IDs
+            // The selected array should already contain property IDs
             const propertyIds = [];
-            if (alpineData.selected && alpineData.properties) {
-                alpineData.selected.forEach(propertyName => {
-                    const property = alpineData.properties.find(p => p.name === propertyName);
-                    if (property) {
-                        propertyIds.push(property.id);
-                    }
-                });
+            if (alpineData.selected && Array.isArray(alpineData.selected)) {
+                // If selected contains property IDs directly, use them
+                if (alpineData.selected.every(item => typeof item === 'string' && item.length === 24)) {
+                    propertyIds.push(...alpineData.selected);
+                } else if (alpineData.properties) {
+                    // Otherwise, convert property names to IDs
+                    alpineData.selected.forEach(propertyIdentifier => {
+                        const property = alpineData.properties.find(p => 
+                            p.name === propertyIdentifier || p.id === propertyIdentifier
+                        );
+                        if (property && property.id) {
+                            propertyIds.push(property.id);
+                        }
+                    });
+                }
             }
             formData.properties = propertyIds;
         } catch (error) {
@@ -397,6 +428,7 @@ function getFormData() {
     } else {
         formData.properties = [];
     }
+    
     return formData;
 }
 
@@ -483,6 +515,7 @@ async function submitEmployeeUpdate() {
         }
         
         // Make API call to update employee
+        
         const response = await fetch(`${API_BASE}/employee/update/${employeeId}`, {
             method: 'PUT',
             headers: {
@@ -503,8 +536,8 @@ async function submitEmployeeUpdate() {
         try {
             if (window.AuditTrailFunctions) {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                const userId = userData.userId || userData.user_id || 'unknown';
-                const userType = userData.role || 'admin';
+                const userId = localStorage.userId;
+                const userType = userData.role || userData.userType || 'Admin';
                 await window.AuditTrailFunctions.logEmployeeUpdate(userId, userType);
                 
                 // If roles were updated, log role assignment
@@ -518,6 +551,12 @@ async function submitEmployeeUpdate() {
         
         // Handle profile picture update if a new one was selected
         await handleProfilePictureUpdate(employeeId);
+        
+        // Close the modal after successful update
+        const modal = document.getElementById('confirmDetailsModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
         
         // Show success message
         showSuccess('Employee updated successfully!');
@@ -573,6 +612,7 @@ async function handleProfilePictureUpdate(employeeId) {
 // Function to show loading state
 function showLoadingState(isLoading) {
     const submitBtn = document.getElementById('confirmUpdateBtn');
+    const cancelBtn = document.querySelector('#confirmDetailsModal .flex.gap-5 [data-close-modal]');
     
     if (submitBtn) {
         if (isLoading) {
@@ -593,6 +633,19 @@ function showLoadingState(isLoading) {
                     </svg>
                 </span>
             `;
+        }
+    }
+    
+    // Handle cancel button state
+    if (cancelBtn) {
+        if (isLoading) {
+            cancelBtn.disabled = true;
+            cancelBtn.style.opacity = '0.5';
+            cancelBtn.style.cursor = 'not-allowed';
+        } else {
+            cancelBtn.disabled = false;
+            cancelBtn.style.opacity = '1';
+            cancelBtn.style.cursor = 'pointer';
         }
     }
 }

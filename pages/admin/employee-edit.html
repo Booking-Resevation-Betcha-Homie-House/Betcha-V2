@@ -568,27 +568,29 @@
                               </template>
 
                               <!-- Property List -->
-                              <template x-if="!isLoading"
-                                x-for="property in properties.filter(p => 
-                                  p.name.toLowerCase().includes(search.toLowerCase()) || 
-                                  p.address.toLowerCase().includes(search.toLowerCase())
-                                )" 
-                                :key="property.id"
-                              >
-                                <label class="relative flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer">
-                                  <input 
-                                      type="checkbox" 
-                                      class="w-4 h-4 rounded border-2 mr-2 border-neutral-300 checked:bg-primary checked:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 accent-primary"
-                                      :value="property.id"
-                                      :checked="selected.includes(property.id)"
-                                      @change="toggleProperty(property)"
-                                    >
+                              <template x-if="!isLoading">
+                                <div>
+                                  <template x-for="property in properties.filter(p => 
+                                    p.name.toLowerCase().includes(search.toLowerCase()) || 
+                                    p.address.toLowerCase().includes(search.toLowerCase())
+                                  )" 
+                                  :key="property.id">
+                                    <label class="relative flex items-center gap-2 p-2 hover:bg-gray-50 cursor-pointer">
+                                      <input 
+                                          type="checkbox" 
+                                          class="w-4 h-4 rounded border-2 mr-2 border-neutral-300 checked:bg-primary checked:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 accent-primary"
+                                          :value="property.id"
+                                          :checked="selected.includes(property.id)"
+                                          @change="toggleProperty(property)"
+                                        >
 
-                                  <div class="flex flex-col">
-                                    <span x-text="property.name" class="font-medium font-manrope"></span>
-                                    <span x-text="property.address" class="text-xs font-inter text-neutral-500"></span>
-                                  </div>
-                                </label>
+                                      <div class="flex flex-col">
+                                        <span x-text="property.name" class="font-medium font-manrope"></span>
+                                        <span x-text="property.address" class="text-xs font-inter text-neutral-500"></span>
+                                      </div>
+                                    </label>
+                                  </template>
+                                </div>
                               </template>
                             </div>
 

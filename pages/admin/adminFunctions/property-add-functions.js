@@ -250,7 +250,358 @@ function updatePhotosSection(images) {
 // Expose the function globally immediately
 window.updatePhotosSection = updatePhotosSection;
 
+// Function to update amenities display based on modal selections
+function updateAmenitiesDisplay() {
+  const displayList = document.getElementById('amenitiesDisplayList');
+  if (!displayList) return;
 
+  // Get all checked amenities from the modal
+  const checkedAmenities = [];
+  
+  // Get standard amenities (checkboxes NOT in amenitiesList)
+  document.querySelectorAll('#editAmmenitiesModal input[type="checkbox"]:checked').forEach(checkbox => {
+    if (!checkbox.closest('#amenitiesList')) {
+      // Get the label text to determine the actual amenity
+      const label = checkbox.closest('label');
+      const labelText = label ? label.querySelector('span:last-child')?.textContent?.trim() : '';
+      
+      // Map based on actual label text to handle duplicate values
+      let amenityKey = checkbox.value;
+      let amenityName = labelText;
+      let iconType = 'default';
+      
+      // Handle specific cases where HTML values are incorrect
+      if (checkbox.value === 'diningTable') {
+        if (labelText === 'Outdoor dining area') {
+          amenityKey = 'outdoorDining';
+          amenityName = 'Outdoor Dining Area';
+          iconType = 'diningtable';
+        } else if (labelText === 'Fire pit') {
+          amenityKey = 'firePit';
+          amenityName = 'Fire Pit';
+          iconType = 'firePit';
+        } else if (labelText === 'Pool') {
+          amenityKey = 'pool';
+          amenityName = 'Swimming Pool';
+          iconType = 'pool';
+        } else {
+          // Default case: actual "Dining Table" checkbox
+          amenityKey = 'diningTable';
+          amenityName = 'Dining Table';
+          iconType = 'diningtable';
+
+        }
+      } else if (checkbox.value === 'shower' && labelText === 'Shampoo & Conditioner') {
+        amenityKey = 'shampoo';
+        amenityName = 'Shampoo & Conditioner';
+        iconType = 'shampoo';
+      } else if (checkbox.value === 'notAllowed') {
+        amenityName = 'Pets Not Allowed';
+        iconType = 'petPaw';
+      } else if (checkbox.value === 'foodBowl') {
+        amenityName = 'Pet Bowls';
+        iconType = 'bowl';
+      } else if (checkbox.value === 'bed' && labelText === 'Pet bed') {
+        amenityName = 'Pet Bed';
+        iconType = 'petPaw';
+      } else {
+        // Use mapping for other amenities
+        const mapping = getAmenityMapping();
+        const amenityInfo = mapping[checkbox.value];
+        
+        if (amenityInfo) {
+          amenityName = amenityInfo.name;
+          iconType = amenityInfo.iconType;
+        } else {
+          // Fallback: use the actual label text from the checkbox
+          amenityName = labelText || checkbox.value;
+          // Special case: if this is actually a dining table but not caught above
+          if (labelText === 'Dining Table' || checkbox.value === 'diningTable') {
+            iconType = 'diningtable';
+          } else {
+            iconType = 'default';
+          }
+        }
+      }
+      
+      checkedAmenities.push({
+        value: amenityKey,
+        name: amenityName,
+        icon: getAmenitySVGIcon(iconType, amenityName),
+        iconType: iconType
+      });
+    }
+  });
+  
+  // Get custom amenities (from Alpine.js amenitiesHandler)
+  const amenitiesContainer = document.querySelector('[x-data*="amenitiesHandler"]');
+  if (amenitiesContainer && window.Alpine) {
+    try {
+      const alpineData = window.Alpine.$data(amenitiesContainer);
+      if (alpineData && alpineData.amenities) {
+        alpineData.amenities.forEach(amenity => {
+          if (amenity.checked) {
+            checkedAmenities.push({
+              value: amenity.name,
+              name: amenity.name,
+              icon: '•' // Simple bullet for custom amenities
+            });
+          }
+        });
+      }
+    } catch (error) {
+      console.log('Could not access Alpine.js data:', error);
+    }
+  }
+
+  // Clear and populate display
+  displayList.innerHTML = '';
+  
+  if (checkedAmenities.length === 0) {
+    displayList.innerHTML = `
+      <li class="w-full p-2">
+        <div class="flex gap-3 items-center">
+          <span class="font-inter text-neutral-400 italic">No amenities selected</span>
+        </div>
+      </li>
+    `;
+    return;
+  }
+
+  // Show up to 5 amenities
+  const displayAmenities = checkedAmenities.slice(0, 5);
+  
+  displayAmenities.forEach(amenity => {
+    const li = document.createElement('li');
+    li.className = 'w-full p-2';
+    
+    if (amenity.icon === '•') {
+      // Custom amenity with bullet point
+      li.innerHTML = `
+        <div class="flex gap-3 items-center">
+          <span class="w-5 h-5 flex items-center justify-center">
+            <span class="w-2 h-2 bg-primary-text rounded-full"></span>
+          </span>
+          <span class="font-inter text-primary-text">${amenity.name}</span>
+        </div>
+      `;
+    } else {
+      // Standard amenity with proper icon
+      li.innerHTML = `
+        <div class="flex gap-3 items-center">
+          ${amenity.icon}
+          <span class="font-inter text-primary-text">${amenity.name}</span>
+        </div>
+      `;
+    }
+    
+    displayList.appendChild(li);
+  });
+  
+  // Add "and X more" if there are more than 5
+  if (checkedAmenities.length > 5) {
+    const moreCount = checkedAmenities.length - 5;
+    const moreLi = document.createElement('li');
+    moreLi.className = 'w-full p-2';
+    moreLi.innerHTML = `
+      <div class="flex gap-3 items-center">
+        <span class="font-inter text-neutral-500 italic">and ${moreCount} more...</span>
+      </div>
+    `;
+    displayList.appendChild(moreLi);
+  }
+}
+
+// Comprehensive amenity mapping with names and icon types - matches property-edit-functions-clean.js
+function getAmenityMapping() {
+  return {
+    'wifi': { name: 'WiFi', iconType: 'wifi' },
+    'ref': { name: 'Refrigerator', iconType: 'refrigerator' },
+    'bathtub': { name: 'Bathtub', iconType: 'bath' },
+    'washer': { name: 'Washer', iconType: 'washer' },
+    'streaming': { name: 'Streaming Services', iconType: 'tv' },
+    'smokeAlarm': { name: 'Smoke Alarm', iconType: 'smokeAlarm' },
+    'freeParking': { name: 'Free Parking', iconType: 'parking' },
+    'balcony': { name: 'Balcony', iconType: 'balcony' },
+    'allowed': { name: 'Pets Allowed', iconType: 'pets' },
+    'crib': { name: 'Crib', iconType: 'crib' },
+    'aircon': { name: 'Air Conditioning', iconType: 'aircon' },
+    'bedset': { name: 'Complete Bed', iconType: 'bed' },
+    'hanger': { name: 'Hangers', iconType: 'hanger' },
+    'hairDryer': { name: 'Hair Dryer', iconType: 'hairDryer' },
+    'iron': { name: 'Iron', iconType: 'iron' },
+    'extraPillowBlanket': { name: 'Extra Pillows & Blankets', iconType: 'extraPillowsBlanket' },
+    'towel': { name: 'Towel', iconType: 'towel' },
+    'microwave': { name: 'Microwave', iconType: 'microwave' },
+    'stove': { name: 'Stove', iconType: 'stove' },
+    'oven': { name: 'Oven', iconType: 'oven' },
+    'coffeeMaker': { name: 'Coffee Maker', iconType: 'coffeeMaker' },
+    'toaster': { name: 'Toaster', iconType: 'toaster' },
+    'PotsPans': { name: 'Pots & Pans', iconType: 'pan' },
+    'spices': { name: 'Spices', iconType: 'salt' },
+
+    
+    // Fix for incorrect HTML values - multiple checkboxes use 'diningTable'
+    'diningTable': { name: 'Dining Table', iconType: 'diningtable' },
+    
+    // Bathroom amenities - 'shower' value is used incorrectly for "Shampoo & Conditioner"
+    'shower': { name: 'Shampoo & Conditioner', iconType: 'shampoo' },
+    'shampoo': { name: 'Shampoo & Conditioner', iconType: 'shampoo' },
+    'soap': { name: 'Body Soap', iconType: 'soap' },
+    'toilet': { name: 'Toilet', iconType: 'toilet' },
+    'toiletPaper': { name: 'Toilet Paper', iconType: 'toiletPaper' },
+    'dryer': { name: 'Dryer', iconType: 'dryer' },
+    'dryingRack': { name: 'Drying Rack', iconType: 'ironBoard' },
+    'ironBoard': { name: 'Iron Board', iconType: 'ironBoard' },
+    'cleaningProduct': { name: 'Cleaning Products', iconType: 'detergent' },
+    'tv': { name: 'TV', iconType: 'tv' },
+    'soundSystem': { name: 'Sound System', iconType: 'speaker' },
+    'consoleGames': { name: 'Gaming Console', iconType: 'console' },
+    'boardGames': { name: 'Board Games', iconType: 'chess' },
+    'cardGames': { name: 'Card Games', iconType: 'card' },
+    'billiard': { name: 'Pool', iconType: '8ball' },
+    'fireExtinguisher': { name: 'Fire Extinguisher', iconType: 'fireExtinguisher' },
+    'firstAidKit': { name: 'First Aid Kit', iconType: 'firstAidKit' },
+    'cctv': { name: 'CCTV', iconType: 'cctv' },
+    'smartLock': { name: 'Smart Lock', iconType: 'smartLock' },
+    'guard': { name: 'Security Guard', iconType: 'guard' },
+    'stairGate': { name: 'Stair Gate', iconType: 'gate' },
+    'paidParking': { name: 'Paid Parking', iconType: 'parkring' },
+    'bike': { name: 'Bicycle storage/rack', iconType: 'bike' },
+    'garden': { name: 'Garden/Backyard', iconType: 'garden' },
+    'grill': { name: 'BBQ Grill', iconType: 'grill' },
+    'firePit': { name: 'Fire Pit', iconType: 'firePit' },
+    'pool': { name: 'Swimming Pool', iconType: 'pool' },
+    'outdoorDining': { name: 'Outdoor Dining Area', iconType: 'diningtable' },
+    'petsAllowed': { name: 'Pets Allowed', iconType: 'petPaw' },
+    
+    // Fix for incorrect HTML values in pets section  
+    'notAllowed': { name: 'Pets Not Allowed', iconType: 'petPaw' },
+    'petsNotAllowed': { name: 'Pets Not Allowed', iconType: 'petPaw' },
+    'foodBowl': { name: 'Pet Bowls', iconType: 'bowl' },
+    'petBowls': { name: 'Pet Bowls', iconType: 'bowl' },
+    'bed': { name: 'Pet Bed', iconType: 'petPaw' },
+    'petBed': { name: 'Pet Bed', iconType: 'petPaw' },
+    
+    'babyBath': { name: 'Baby Bath', iconType: 'bath' }
+  };
+}
+
+// Helper function to get display name for amenities
+function getAmenityDisplayName(value) {
+  const mapping = getAmenityMapping();
+  return mapping[value]?.name || value;
+}
+
+// Helper function to get amenity icons based on icon type
+function getAmenityIcon(value) {
+  const mapping = getAmenityMapping();
+  const iconType = mapping[value]?.iconType || 'default';
+  
+  // Check if a global icon function exists (from other parts of your app)
+  if (window.getAmenityIcon && typeof window.getAmenityIcon === 'function') {
+    try {
+      const iconPath = window.getAmenityIcon(iconType);
+      return `<img src="${iconPath}" alt="${getAmenityDisplayName(value)}" class="h-5 w-5">`;
+    } catch (error) {
+      console.log('Global icon function failed, using fallback');
+    }
+  }
+  
+  // Fallback to SVG icons for common amenities or simple colored indicators
+  return getAmenitySVGIcon(iconType, getAmenityDisplayName(value));
+}
+
+// Function to generate SVG icons for amenities
+function getAmenitySVGIcon(iconType, name) {
+  // Fallback icon mapping - matches property-edit-functions-clean.js and available SVG files
+  const iconMap = {
+    'wifi': '/svg/wifi.svg',
+    'refrigerator': '/svg/refrigerator.svg',
+    'bath': '/svg/bath.svg',
+    'washer': '/svg/washer.svg',
+    'tv': '/svg/tv.svg',
+    'smokeAlarm': '/svg/smokeAlarm.svg',
+    'parking': '/svg/parkring.svg',
+    'parkring': '/svg/parkring.svg',
+    'balcony': '/svg/balcony.svg',
+    'pets': '/svg/petPaw.svg',
+    'petPaw': '/svg/petPaw.svg',
+    'crib': '/svg/crib.svg',
+    'aircon': '/svg/aircon.svg',
+    'bed': '/svg/bed.svg',
+    'hanger': '/svg/hanger.svg',
+    'hairDryer': '/svg/hairDryer.svg',
+    'iron': '/svg/iron.svg',
+    'extraPillowsBlanket': '/svg/extraPillowsBlanket.svg',
+    'towel': '/svg/towel.svg',
+    'microwave': '/svg/microwave.svg',
+    'stove': '/svg/stove.svg',
+    'oven': '/svg/oven.svg',
+    'coffeeMaker': '/svg/coffeeMaker.svg',
+    'toaster': '/svg/toaster.svg',
+    'pan': '/svg/pan.svg',
+    'salt': '/svg/salt.svg',
+    'dishes': '/svg/dishes.svg',
+    'diningtable': '/svg/diningtable.svg',
+    'shower': '/svg/shower.svg',
+    'shampoo': '/svg/shampoo.svg',
+    'soap': '/svg/soap.svg',
+    'toilet': '/svg/toilet.svg',
+    'toiletPaper': '/svg/toiletPaper.svg',
+    'dryer': '/svg/dryer.svg',
+    'ironBoard': '/svg/ironBoard.svg',
+    'detergent': '/svg/detergent.svg',
+    'speaker': '/svg/speaker.svg',
+    'console': '/svg/console.svg',
+    'chess': '/svg/chess.svg',
+    '8ball': '/svg/8ball.svg',
+    'fireExtinguisher': '/svg/fireExtinguisher.svg',
+    'firstAidKit': '/svg/firstAidKit.svg',
+    'cctv': '/svg/cctv.svg',
+    'smartLock': '/svg/smartLock.svg',
+    'guard': '/svg/guard.svg',
+    'gate': '/svg/gate.svg',
+    'bike': '/svg/bike.svg',
+    'garden': '/svg/garden.svg',
+    'grill': '/svg/grill.svg',
+    'firePit': '/svg/firePit.svg',
+    'pool': '/svg/pool.svg',
+    'bowl': '/svg/bowl.svg',
+    'card': '/svg/card.svg',
+    'default': '/svg/add.svg'
+  };
+
+  const iconPath = iconMap[iconType] || iconMap['default'];
+  
+
+  
+  return `<img src="${iconPath}" alt="${name || iconType}" class="h-5 w-5">`;
+}
+
+// Function to setup amenities event listeners
+function setupAmenitiesListeners() {
+  const modal = document.getElementById('editAmmenitiesModal');
+  if (!modal) {
+    console.log('⚠️  Amenities modal not found, retrying...');
+    setTimeout(setupAmenitiesListeners, 500);
+    return;
+  }
+
+  // Remove any existing listeners to prevent duplicates
+  document.querySelectorAll('#editAmmenitiesModal input[type="checkbox"]').forEach(checkbox => {
+    checkbox.removeEventListener('change', updateAmenitiesDisplay);
+    checkbox.addEventListener('change', updateAmenitiesDisplay);
+  });
+
+  // Initial display update
+  updateAmenitiesDisplay();
+  console.log('🎯 Amenities display system initialized with', document.querySelectorAll('#editAmmenitiesModal input[type="checkbox"]').length, 'checkboxes');
+}
+
+// Expose functions globally
+window.updateAmenitiesDisplay = updateAmenitiesDisplay;
+window.setupAmenitiesListeners = setupAmenitiesListeners;
 
 document.addEventListener('DOMContentLoaded', function () {
   console.log('DOMContentLoaded: Event fired!');
@@ -376,8 +727,25 @@ document.addEventListener('DOMContentLoaded', function () {
     // Store original button content
     const originalContent = confirmBtn.innerHTML;
     
+    // Find and disable ALL close buttons (X and Cancel)
+    const closeButtons = confirmModal.querySelectorAll('[data-close-modal]');
+    const originalCloseModalAttrs = [];
+    
     // Set loading state
     confirmBtn.disabled = true;
+    
+    // Disable all close buttons
+    closeButtons.forEach((btn, index) => {
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'cursor-not-allowed');
+      // Store original attribute for restoration
+      originalCloseModalAttrs[index] = btn.getAttribute('data-close-modal');
+      // Remove data-close-modal attribute to prevent modal closing
+      btn.removeAttribute('data-close-modal');
+      // Completely disable pointer events
+      btn.style.pointerEvents = 'none';
+    });
+    
     confirmBtn.innerHTML = `
       <div class="flex items-center justify-center gap-2">
         <svg class="animate-spin h-4 w-4 text-current" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -392,6 +760,17 @@ document.addEventListener('DOMContentLoaded', function () {
     const restoreButton = () => {
       confirmBtn.disabled = false;
       confirmBtn.innerHTML = originalContent;
+      
+      // Restore all close buttons
+      closeButtons.forEach((btn, index) => {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'cursor-not-allowed');
+        // Restore data-close-modal attribute
+        if (originalCloseModalAttrs[index] !== null) {
+          btn.setAttribute('data-close-modal', originalCloseModalAttrs[index]);
+        }
+        btn.style.pointerEvents = '';
+      });
     };
 
     try {
@@ -519,8 +898,6 @@ document.addEventListener('DOMContentLoaded', function () {
           }
         }
         
-        alert('Property added successfully!');
-        
         // Audit: Log property creation
         try {
             const userId = localStorage.getItem('userId') || '';
@@ -556,4 +933,60 @@ document.addEventListener('DOMContentLoaded', function () {
   // Initialize employee loading
   console.log('DOMContentLoaded: Initializing employee loading...');
   setTimeout(loadEmployees, 500);
+
+  // Initialize amenities display update
+  setTimeout(setupAmenitiesListeners, 1000);
+
+  // Listen for modal events to update display when modal is closed/opened
+  document.addEventListener('click', function(e) {
+    // When modal is closed
+    if (e.target.matches('[data-close-modal]') && 
+        e.target.closest('#editAmmenitiesModal')) {
+      setTimeout(updateAmenitiesDisplay, 100);
+    }
+    
+    // When modal is opened
+    if (e.target.matches('[data-modal-target="editAmmenitiesModal"]')) {
+      setTimeout(() => {
+        // Re-setup listeners when modal opens
+        setupAmenitiesListeners();
+      }, 200);
+    }
+  });
+  
+  // Event delegation for checkbox changes in amenities modal
+  document.addEventListener('change', function(e) {
+    if (e.target.type === 'checkbox' && 
+        e.target.closest('#editAmmenitiesModal')) {
+      updateAmenitiesDisplay();
+    }
+  });
+
+  // Listen for clicks on custom amenity checkboxes (Alpine.js managed)
+  document.addEventListener('click', function(e) {
+    if (e.target.matches('#amenitiesList input[type="checkbox"]')) {
+      setTimeout(updateAmenitiesDisplay, 50);
+    }
+  });
+
+  // Listen for custom amenity additions/removals
+  const amenitiesObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.target.id === 'amenitiesList' && 
+          (mutation.type === 'childList' || mutation.type === 'subtree')) {
+        setTimeout(updateAmenitiesDisplay, 50);
+      }
+    });
+  });
+
+  // Start observing the amenities list for changes
+  setTimeout(() => {
+    const amenitiesList = document.getElementById('amenitiesList');
+    if (amenitiesList) {
+      amenitiesObserver.observe(amenitiesList, {
+        childList: true,
+        subtree: true
+      });
+    }
+  }, 1500);
 });
