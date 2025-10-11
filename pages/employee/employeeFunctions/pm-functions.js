@@ -1048,7 +1048,7 @@ function createCheckoutBookingElement(booking) {
         </div>
         <div class="mt-3 md:mt-0">
             <button 
-                class="!px-4 !py-2 w-full bg-green-600 font-manrope rounded-lg flex items-center justify-center cursor-pointer hover:bg-green-700 transition-colors duration-200"
+                class="!px-4 !py-2 w-full bg-[#147b42] font-manrope rounded-lg flex items-center justify-center cursor-pointer hover:bg-[#116332] transition-colors duration-200"
                 onclick="openEndBookingModal('${bookingId}', '${propertyName}', '${guestName}', '${checkInFormatted}', '${checkOutFormatted}', '${guestId}', '${transNo}')"
                 title="Click to confirm checkout"
             >

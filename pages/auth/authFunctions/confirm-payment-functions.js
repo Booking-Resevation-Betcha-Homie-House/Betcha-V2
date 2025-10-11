@@ -247,14 +247,14 @@ function populatePaymentMethods(paymentMethods) {
 // Function to get payment logo based on category
 function getPaymentLogo(category) {
     const logoMap = {
-        'GCash': '/public/images/gcash.png',
-        'Maya': '/public/images/maya.png',
-        'GoTyme': '/public/images/gotyme.png',
-        'Union Bank': '/public/images/unionbank.jpeg',
-        'Other': '/public/images/payment-default.png'
+        'GCash': '/images/gcash.png',
+        'Maya': '/images/maya.png',
+        'GoTyme': '/images/gotyme.png',
+        'Union Bank': '/images/unionbank.jpeg',
+        'Other': '/images/payment-default.png'
     };
     
-    return logoMap[category] || '/public/images/payment-default.png';
+    return logoMap[category] || '/images/payment-default.png';
 }
 
 // Function to add QR code display area
@@ -877,7 +877,7 @@ function showQRCode(selectedRadio) {
         qrCodeImage.src = qrData;
         qrCodeImage.onerror = function() {
             console.error('Failed to load QR code image');
-            this.src = '/public/images/qr-placeholder.png'; // Fallback image
+            this.src = '/images/qr-placeholder.png'; // Fallback image
         };
         
         // Update payment method name
