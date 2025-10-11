@@ -413,8 +413,11 @@ function markAsReadInUI(notificationId) {
             ? document.querySelectorAll(`.notification[data-id="${CSS.escape(notificationId)}"]`)
             : [];
 
+        let wasActuallyUnread = false;
+
         items.forEach((item) => {
             if (item.classList.contains('unread')) {
+                wasActuallyUnread = true;
                 item.classList.remove('unread');
                 item.classList.add('read');
                 // Remove the unread dot if present
@@ -428,9 +431,9 @@ function markAsReadInUI(notificationId) {
             }
         });
 
-        // Decrement badge once
+        // Only decrement badge if notification was actually unread
         const badge = document.getElementById('notifBadge');
-        if (badge && !badge.dataset._lockDecrement) {
+        if (badge && wasActuallyUnread && !badge.dataset._lockDecrement) {
             // Use a lock per notification to avoid multiple decrements in duplicate elements
             badge.dataset._lockDecrement = 'true';
             const current = parseInt(badge.textContent || '0', 10);
@@ -442,7 +445,9 @@ function markAsReadInUI(notificationId) {
         }
 
         // Persist read so future refresh/fetch keeps it read
-        window.addToReadCache(notificationId);
+        if (wasActuallyUnread) {
+            window.addToReadCache(notificationId);
+        }
     } catch {
         // Failed to mark as read in UI
     }

@@ -220,8 +220,11 @@ function markAsReadInUI(notificationId) {
       ? document.querySelectorAll(`.notification[data-id="${CSS.escape(notificationId)}"]`)
       : [];
 
+    let wasActuallyUnread = false;
+
     items.forEach((item) => {
       if (item.classList.contains('unread')) {
+        wasActuallyUnread = true;
         item.classList.remove('unread');
         item.classList.add('read');
         // Remove the unread dot if present
@@ -235,9 +238,9 @@ function markAsReadInUI(notificationId) {
       }
     });
 
-    // Decrement badge
+    // Only decrement badge if notification was actually unread
     const badge = document.getElementById('notifBadge');
-    if (badge && !badge.dataset._lockDecrement) {
+    if (badge && wasActuallyUnread && !badge.dataset._lockDecrement) {
       badge.dataset._lockDecrement = 'true';
       const current = parseInt(badge.textContent || '0', 10);
       const next = isFinite(current) ? Math.max(0, current - 1) : 0;
@@ -246,19 +249,21 @@ function markAsReadInUI(notificationId) {
       setTimeout(() => { delete badge.dataset._lockDecrement; }, 100);
     }
 
-    // Persist read status
-    const READ_CACHE_KEY = 'customerNotifReadIds';
-    const addToReadCache = (id) => {
-      if (!id) return;
-      try {
-        const raw = localStorage.getItem(READ_CACHE_KEY);
-        const arr = raw ? JSON.parse(raw) : [];
-        const set = new Set(Array.isArray(arr) ? arr : []);
-        set.add(id);
-        localStorage.setItem(READ_CACHE_KEY, JSON.stringify(Array.from(set)));
-      } catch (_) {}
-    };
-    
-    addToReadCache(notificationId);
+    // Persist read status only if it was actually unread
+    if (wasActuallyUnread) {
+      const READ_CACHE_KEY = 'customerNotifReadIds';
+      const addToReadCache = (id) => {
+        if (!id) return;
+        try {
+          const raw = localStorage.getItem(READ_CACHE_KEY);
+          const arr = raw ? JSON.parse(raw) : [];
+          const set = new Set(Array.isArray(arr) ? arr : []);
+          set.add(id);
+          localStorage.setItem(READ_CACHE_KEY, JSON.stringify(Array.from(set)));
+        } catch (_) {}
+      };
+      
+      addToReadCache(notificationId);
+    }
   } catch (_) {}
 }
