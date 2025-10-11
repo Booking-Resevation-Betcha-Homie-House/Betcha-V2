@@ -921,8 +921,13 @@ function initializeImageEditing() {
     const fileInput = document.querySelector('#editGalleryModal input[type="file"]');
     if (fileInput) {
         fileInput.addEventListener('change', async (e) => {
+            const initialFileCount = selectedImageFiles.length;
             handleImageSelection(e);
-            await uploadAllImages(); // Automatically upload after selection
+            
+            // Only upload if new valid files were added
+            if (selectedImageFiles.length > initialFileCount) {
+                await uploadAllImages();
+            }
         });
         imageUploadInitialized = true;
         console.log('Image upload functionality initialized');
@@ -1025,17 +1030,63 @@ async function deleteExistingImage(imageUrl, buttonElement) {
 // Make function globally accessible for onclick handlers
 window.deleteExistingImage = deleteExistingImage;
 
+// Function to validate image file types
+function isValidImageType(file) {
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    return validTypes.includes(file.type.toLowerCase());
+}
+
+// Function to filter and validate selected files
+function filterValidImages(files) {
+    const validFiles = [];
+    const invalidFiles = [];
+    
+    Array.from(files).forEach(file => {
+        if (isValidImageType(file)) {
+            validFiles.push(file);
+        } else {
+            invalidFiles.push(file.name);
+        }
+    });
+    
+    // Return both valid and invalid files info
+    return { validFiles, invalidFiles };
+}
+
 function handleImageSelection(e) {
-    const files = Array.from(e.target.files);
-    console.log('Files selected:', files.length);
-    console.log('File details:', files.map(f => ({ name: f.name, size: f.size, type: f.type })));
+    const allFiles = Array.from(e.target.files);
+    const { validFiles, invalidFiles } = filterValidImages(allFiles);
+    
+    // Show appropriate toast notification
+    import('/src/toastNotification.js').then(module => {
+        if (validFiles.length === 0) {
+            // All files were invalid
+            module.showToastError(
+                'Please select valid image files (JPG, PNG, GIF, JPEG, or WEBP).',
+                'Invalid File Type'
+            );
+        } else if (invalidFiles.length > 0) {
+            // Some files were invalid but some are valid
+            module.showToastWarning(
+                `${invalidFiles.length} file(s) skipped. Only JPG, PNG, GIF, JPEG, and WEBP are allowed.`,
+                'Some Files Skipped'
+            );
+        }
+    });
+    
+    if (validFiles.length === 0) {
+        return;
+    }
+    
+    console.log('Valid files selected:', validFiles.length);
+    console.log('File details:', validFiles.map(f => ({ name: f.name, size: f.size, type: f.type })));
     
     // Store files for later upload
-    selectedImageFiles = [...selectedImageFiles, ...files];
+    selectedImageFiles = [...selectedImageFiles, ...validFiles];
     console.log('Total files in queue:', selectedImageFiles.length);
     
     // Show preview
-    displayImagePreviews(files);
+    displayImagePreviews(validFiles);
 }
 
 function displayImagePreviews(files) {
@@ -1086,7 +1137,13 @@ window.removeImagePreview = removeImagePreview;
 
 async function uploadAllImages() {
     if (selectedImageFiles.length === 0) {
-        showErrorMessage('Please select images to upload first');
+        // Import and use toast notification
+        import('/src/toastNotification.js').then(module => {
+            module.showToastError(
+                'Please select valid image files to upload.',
+                'No Files Selected'
+            );
+        });
         return;
     }
 

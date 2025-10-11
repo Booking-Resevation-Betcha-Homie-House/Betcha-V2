@@ -1167,9 +1167,10 @@
                   
                   processFiles(files) {
                       files.forEach(file => {
-                          // Validate file type
-                          if (!file.type.startsWith('image/')) {
-                              this.showError('Please select only image files.');
+                          // Validate file type - only allow specific image formats
+                          const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+                          if (!validTypes.includes(file.type.toLowerCase())) {
+                              this.showError(`${file.name} is not a valid image file. Only JPG, PNG, GIF, JPEG, and WEBP are allowed.`);
                               return;
                           }
                           
@@ -1288,8 +1289,10 @@
                   },
                   
                   showError(message) {
-                      // Simple error display - you can enhance this with a toast notification
-                      alert(message);
+                      // Use toast notification instead of alert
+                      import('/src/toastNotification.js').then(module => {
+                          module.showToastError(message, 'File Error');
+                      });
                   }
                 }"
                 @drop="handleDrop"

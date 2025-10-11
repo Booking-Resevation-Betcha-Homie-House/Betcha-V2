@@ -599,6 +599,29 @@ function setupAmenitiesListeners() {
   console.log('🎯 Amenities display system initialized with', document.querySelectorAll('#editAmmenitiesModal input[type="checkbox"]').length, 'checkboxes');
 }
 
+// Function to validate image file types
+function isValidImageType(file) {
+  const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+  return validTypes.includes(file.type.toLowerCase());
+}
+
+// Function to filter and validate selected files
+function filterValidImages(files) {
+  const validFiles = [];
+  const invalidFiles = [];
+  
+  Array.from(files).forEach(file => {
+    if (isValidImageType(file)) {
+      validFiles.push(file);
+    } else {
+      invalidFiles.push(file.name);
+    }
+  });
+  
+  // Return both valid and invalid files info
+  return { validFiles, invalidFiles };
+}
+
 // Expose functions globally
 window.updateAmenitiesDisplay = updateAmenitiesDisplay;
 window.setupAmenitiesListeners = setupAmenitiesListeners;
@@ -929,6 +952,53 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   }); // End of confirmBtn event listener
   } // End of confirmBtn conditional
+
+  // Add file type validation for image uploads
+  const observeFileInput = () => {
+    const fileInput = document.getElementById('images');
+    if (fileInput) {
+      fileInput.addEventListener('change', function(e) {
+        const { validFiles, invalidFiles } = filterValidImages(e.target.files);
+        
+        // Show appropriate toast notification
+        import('/src/toastNotification.js').then(module => {
+          if (validFiles.length === 0) {
+            // All files were invalid
+            module.showToastError(
+              'Please select valid image files (JPG, PNG, GIF, JPEG, or WEBP).',
+              'Invalid File Type'
+            );
+          } else if (invalidFiles.length > 0) {
+            // Some files were invalid but some are valid
+            module.showToastWarning(
+              `${invalidFiles.length} file(s) skipped. Only JPG, PNG, GIF, JPEG, and WEBP are allowed.`,
+              'Some Files Skipped'
+            );
+          }
+        });
+        
+        // Create a new DataTransfer object with only valid files
+        const dt = new DataTransfer();
+        validFiles.forEach(file => dt.items.add(file));
+        
+        // Replace the files in the input
+        e.target.files = dt.files;
+        
+        // Update Alpine.js data if available
+        const imageContainer = document.querySelector('[x-data*="images"]');
+        if (imageContainer && window.Alpine) {
+          const alpineData = window.Alpine.$data(imageContainer);
+          if (alpineData && alpineData.selectedFiles !== undefined) {
+            alpineData.selectedFiles = validFiles;
+          }
+        }
+      });
+    } else {
+      setTimeout(observeFileInput, 500);
+    }
+  };
+  
+  observeFileInput();
 
   // Initialize employee loading
   console.log('DOMContentLoaded: Initializing employee loading...');
