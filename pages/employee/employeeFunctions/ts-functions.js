@@ -575,14 +575,14 @@ function restoreModalContent(modal) {
                         </div>
                         <div class="flex justify-between items-center mb-3">
                             <div class="text-primary-text font-inter">
-                                <p>₱ <span id="addGuestPrice">00</span><span> x </span> <span id="daysOfStay">00</span> <span>guest/s</span></p>
+                                <p>₱ <span id="addGuestPrice">00</span><span> x </span> <span id="addGuestCount">00</span> <span>guest/s</span></p>
                             </div>
                             <p class="text-primary-text font-inter">₱ <span id="totalAddGuest">00</span></p>
                         </div>
                         
                         <div class="flex justify-between items-center">
                             <p class="text-primary-text font-inter">Reservation fee</p>
-                            <p class="text-primary-text font-inter">₱ <span id="reservationFee">00</span></p>
+                            <p class="text-primary-text font-inter">₱ (<span id="reservationFee">00</span>)</p>
                         </div>
                         <div class="flex justify-between items-center mb-5">
                             <p class="text-primary-text font-inter">Discount</p>
@@ -682,12 +682,24 @@ function populateModalWithBookingData(modal, booking, transactionData) {
         updateElement('[data-booking-id]', booking._id);
         
         // Update price details with actual booking data
-        const packageFeePerDay = Math.round(booking.packageFee / booking.numOfDays);
+        const packageFeePerDay = Math.round(booking.packageFee);
         const totalAdditionalPaxFee = booking.additionalPaxPrice * booking.additionalPax;
+        
+        console.log('Price components populated:', {
+            packageFeePerDay,
+            daysOfStay: booking.numOfDays,
+            totalPriceDay: booking.packageFee,
+            addGuestPrice: booking.additionalPaxPrice,
+            addGuestCount: booking.additionalPax,
+            totalAddGuest: totalAdditionalPaxFee,
+            reservationFee: booking.reservationFee,
+            discount: booking.discount,
+            totalPrice: booking.totalFee
+        });
         
         updateElement('#pricePerDay', packageFeePerDay.toLocaleString());
         updateElement('#daysOfStay', booking.numOfDays);
-        updateElement('#totalPriceDay', booking.packageFee.toLocaleString());
+        updateElement('#totalPriceDay', (booking.packageFee * booking.numOfDays).toLocaleString());
         updateElement('#addGuestPrice', booking.additionalPaxPrice.toLocaleString());
         updateElement('#addGuestCount', booking.additionalPax);
         updateElement('#totalAddGuest', totalAdditionalPaxFee.toLocaleString());
@@ -768,7 +780,7 @@ function updatePaymentDetails(modal, booking) {
         updateElement('[data-package-payment-mode]', booking.package?.modeOfPayment || 'Pending');
         updateElement('[data-package-bank-ewallet-no]', booking.package?.numberBankEwallets || 'Pending');
         updateElement('[data-package-payment-status]', booking.package?.status || 'Pending');
-        updateElement('[data-package-fee-amount]', booking.packageFee?.toLocaleString() || '0');
+        updateElement('[data-package-fee-amount]', booking.totalFee.toLocaleString() || '0');
         
     } catch (error) {
         console.error('Error updating payment details:', error);
@@ -802,37 +814,65 @@ function updatePaymentSectionVisibility(modal, booking) {
             packagePaymentNo === null || 
             packagePaymentNo === undefined;
         
+        // Check if it's a full payment with same payment number
+        const isFullPaymentSameNumber = 
+            booking.paymentCategory === 'Full-Payment' && 
+            reservationPaymentNo === packagePaymentNo &&
+            reservationPaymentNo !== 'Pending' &&
+            reservationPaymentNo !== null &&
+            reservationPaymentNo !== undefined;
+        
+        console.log('Payment category:', booking.paymentCategory);
         console.log('Reservation payment number:', reservationPaymentNo);
-        console.log('Reservation payment pending status:', isReservationPaymentPending);
         console.log('Package payment number:', packagePaymentNo);
-        console.log('Package payment pending status:', isPackagePaymentPending);
-        console.log('Reservation payment details:', booking.reservation);
-        console.log('Package payment details:', booking.package);
+        console.log('Is full payment with same number:', isFullPaymentSameNumber);
         
-        // Show/Hide reservation payment section based on payment number
-        if (isReservationPaymentPending) {
-            reservationSection.style.display = 'none';
-            console.log('Reservation payment section hidden - no actual payment number');
-        } else {
+        if (isFullPaymentSameNumber) {
+            // Show only reservation section for full payment (rename it conceptually)
             reservationSection.style.display = 'block';
-            console.log('Reservation payment section visible - has actual payment number');
-        }
-        
-        // Hide package payment section if:
-        // 1. Reservation payment number is "Pending" OR
-        // 2. Package payment number is "Pending"
-        if (isReservationPaymentPending || isPackagePaymentPending) {
             packageSection.style.display = 'none';
-            if (isReservationPaymentPending) {
-                console.log('Package payment section hidden - reservation payment number is pending');
+            
+            // Update reservation section title for full payment
+            const reservationTitle = reservationSection.querySelector('.font-semibold');
+            if (reservationTitle) {
+                reservationTitle.textContent = 'Full Payment';
             }
-            if (isPackagePaymentPending) {
-                console.log('Package payment section hidden - package payment number is pending');
+            
+            // Update reservation amount to show total fee
+            const reservationAmount = reservationSection.querySelector('[data-reservation-fee-amount]');
+            if (reservationAmount) {
+                reservationAmount.textContent = booking.totalFee.toLocaleString();
             }
+            
+            console.log('Full payment mode - showing single payment section');
         } else {
-            // Show package payment section only if both reservation and package payment numbers are NOT "Pending"
-            packageSection.style.display = 'block';
-            console.log('Package payment section visible - both reservation and package payment numbers are not pending');
+            // Original logic for separate payments
+            if (isReservationPaymentPending) {
+                reservationSection.style.display = 'none';
+                console.log('Reservation payment section hidden - no actual payment number');
+            } else {
+                reservationSection.style.display = 'block';
+                console.log('Reservation payment section visible - has actual payment number');
+                
+                // Reset title for separate payments
+                const reservationTitle = reservationSection.querySelector('.font-semibold');
+                if (reservationTitle) {
+                    reservationTitle.textContent = 'Reservation Payment';
+                }
+            }
+            
+            if (isReservationPaymentPending || isPackagePaymentPending) {
+                packageSection.style.display = 'none';
+                if (isReservationPaymentPending) {
+                    console.log('Package payment section hidden - reservation payment number is pending');
+                }
+                if (isPackagePaymentPending) {
+                    console.log('Package payment section hidden - package payment number is pending');
+                }
+            } else {
+                packageSection.style.display = 'block';
+                console.log('Package payment section visible - both reservation and package payment numbers are not pending');
+            }
         }
         
     } catch (error) {
@@ -845,6 +885,14 @@ function setupPaymentButtons(modal, booking) {
     try {
         console.log('Setting up payment button event listeners');
         
+        // Check if it's a full payment scenario
+        const isFullPaymentSameNumber = 
+            booking.paymentCategory === 'Full-Payment' && 
+            booking.reservation?.paymentNo === booking.package?.paymentNo &&
+            booking.reservation?.paymentNo !== 'Pending' &&
+            booking.reservation?.paymentNo !== null &&
+            booking.reservation?.paymentNo !== undefined;
+        
         // Reservation payment buttons
         const approveReservationBtn = modal.querySelector('[data-approve-reservation]');
         const declineReservationBtn = modal.querySelector('[data-decline-reservation]');
@@ -856,13 +904,23 @@ function setupPaymentButtons(modal, booking) {
         // Setup reservation payment buttons
         if (approveReservationBtn) {
             approveReservationBtn.addEventListener('click', () => {
-                handlePaymentAction('approve', 'reservation', booking);
+                if (isFullPaymentSameNumber) {
+                    // Handle full payment approval (approve both)
+                    handleFullPaymentAction('approve', booking);
+                } else {
+                    handlePaymentAction('approve', 'reservation', booking);
+                }
             });
         }
         
         if (declineReservationBtn) {
             declineReservationBtn.addEventListener('click', () => {
-                handlePaymentAction('decline', 'reservation', booking);
+                if (isFullPaymentSameNumber) {
+                    // Handle full payment decline (decline both)
+                    handleFullPaymentAction('decline', booking);
+                } else {
+                    handlePaymentAction('decline', 'reservation', booking);
+                }
             });
         }
         
@@ -935,6 +993,179 @@ function setButtonLoadingState(action, paymentType, isLoading) {
         
     } catch (error) {
         console.error('Error setting button loading state:', error);
+    }
+}
+
+// Handle Full Payment Action (Approve/Decline both reservation and package)
+async function handleFullPaymentAction(action, booking) {
+    try {
+        console.log(`${action} full payment for booking:`, booking._id);
+        
+        // Set button to loading state
+        setButtonLoadingState(action, 'reservation', true);
+        
+        if (action === 'approve') {
+            // Approve both payments with single notification
+            await approveFullPayment(booking);
+        } else if (action === 'decline') {
+            // Decline both payments with single notification  
+            await declineFullPayment(booking);
+        }
+        
+    } catch (error) {
+        console.error(`Error handling ${action} full payment:`, error);
+        // Reset button state on error
+        setButtonLoadingState(action, 'reservation', false);
+    }
+}
+
+// Approve Full Payment (both reservation and package with single notification)
+async function approveFullPayment(booking) {
+    try {
+        console.log('Approving full payment for booking:', booking._id);
+        
+        const baseURL = 'https://betcha-api.onrender.com';
+        
+        // Approve reservation payment (API call only, no notification)
+        const reservationEndpoint = `${baseURL}/booking/payment/reservation/${booking._id}`;
+        const reservationBody = {
+            modeOfPayment: booking.reservation?.modeOfPayment || 'GCash',
+            paymentNo: booking.reservation?.paymentNo || '',
+            numberBankEwallets: booking.reservation?.numberBankEwallets || ''
+        };
+        
+        const reservationResponse = await fetch(reservationEndpoint, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reservationBody)
+        });
+        
+        if (!reservationResponse.ok) {
+            throw new Error(`Reservation approval failed: ${reservationResponse.status}`);
+        }
+        
+        // Approve package payment (API call only, no notification)
+        const packageEndpoint = `${baseURL}/booking/payment/package/${booking._id}`;
+        const packageBody = {
+            modeOfPayment: booking.package?.modeOfPayment || 'GCash',
+            paymentNo: booking.package?.paymentNo || '',
+            numberBankEwallets: booking.package?.numberBankEwallets || ''
+        };
+        
+        const packageResponse = await fetch(packageEndpoint, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(packageBody)
+        });
+        
+        if (!packageResponse.ok) {
+            throw new Error(`Package approval failed: ${packageResponse.status}`);
+        }
+        
+        // Update payment statuses
+        await updatePaymentStatus('reservation', booking._id, 'approve');
+        await updatePaymentStatus('package', booking._id, 'approve');
+        
+        // Send single notification for full payment approval
+        try {
+            const guestId = booking.guestId;
+            const guestName = booking.guestName || 'Guest';
+            const transNo = booking.transNo || '';
+            const userDataRaw = localStorage.getItem('userData');
+            const emp = userDataRaw ? JSON.parse(userDataRaw) : {};
+            const fromId = emp?._id || localStorage.getItem('userId') || '';
+            
+            let fromName = 'Employee';
+            if (emp?.firstname && emp?.lastname) {
+                fromName = `${emp.firstname} ${emp.lastname}`;
+            } else if (emp?.name) {
+                fromName = emp.name;
+            }
+            
+            if (window.notify && guestId && fromId) {
+                const message = `Your full payment has been approved for transaction #${transNo}.`;
+                console.log('[Notify][TS->Guest] Sending full payment approval message', { toId: guestId, message });
+                await window.notify.sendMessage({
+                    fromId,
+                    fromName,
+                    fromRole: 'employee',
+                    toId: guestId,
+                    toName: guestName,
+                    toRole: 'guest',
+                    message,
+                    category: 'payment-status'
+                });
+            }
+        } catch (e) {
+            console.warn('[Notify][TS->Guest] Guest notify failed (full payment approve):', e);
+        }
+        
+        // Reload and close modal
+        const modal = document.getElementById('viewTSModal');
+        if (modal) {
+            setButtonLoadingState('approve', 'reservation', false);
+            await fetchBookingDetails(booking._id, modal, booking);
+        }
+        await loadTransactionData();
+        
+    } catch (error) {
+        console.error('Error approving full payment:', error);
+    }
+}
+
+// Decline Full Payment (both reservation and package with single notification)
+async function declineFullPayment(booking) {
+    try {
+        console.log('Declining full payment for booking:', booking._id);
+        
+        // Update payment statuses to declined
+        await updatePaymentStatus('reservation', booking._id, 'decline');
+        await updatePaymentStatus('package', booking._id, 'decline');
+        
+        // Send single notification for full payment decline
+        try {
+            const guestId = booking.guestId;
+            const guestName = booking.guestName || 'Guest';
+            const transNo = booking.transNo || '';
+            const userDataRaw = localStorage.getItem('userData');
+            const emp = userDataRaw ? JSON.parse(userDataRaw) : {};
+            const fromId = emp?._id || localStorage.getItem('userId') || '';
+            
+            let fromName = 'Employee';
+            if (emp?.firstname && emp?.lastname) {
+                fromName = `${emp.firstname} ${emp.lastname}`;
+            } else if (emp?.name) {
+                fromName = emp.name;
+            }
+            
+            if (window.notify && guestId && fromId) {
+                const message = `Your full payment has been declined for transaction #${transNo}.`;
+                console.log('[Notify][TS->Guest] Sending full payment decline message', { toId: guestId, message });
+                await window.notify.sendMessage({
+                    fromId,
+                    fromName,
+                    fromRole: 'employee',
+                    toId: guestId,
+                    toName: guestName,
+                    toRole: 'guest',
+                    message,
+                    category: 'payment-status'
+                });
+            }
+        } catch (e) {
+            console.warn('[Notify][TS->Guest] Guest notify failed (full payment decline):', e);
+        }
+        
+        // Reload and close modal
+        const modal = document.getElementById('viewTSModal');
+        if (modal) {
+            setButtonLoadingState('decline', 'reservation', false);
+            await fetchBookingDetails(booking._id, modal, booking);
+        }
+        await loadTransactionData();
+        
+    } catch (error) {
+        console.error('Error declining full payment:', error);
     }
 }
 
@@ -1276,39 +1507,74 @@ function updateButtonVisibility(modal, booking) {
             reservationPaymentNo === null || 
             reservationPaymentNo === undefined;
         
-        // Hide reservation buttons if payment is already processed (status not pending)
-        if (booking.reservation && booking.reservation.status !== 'Pending') {
-            if (approveReservationBtn) approveReservationBtn.style.display = 'none';
-            if (declineReservationBtn) declineReservationBtn.style.display = 'none';
-        } else {
-            // Show reservation buttons if payment is still pending and has actual payment number
-            if (!isReservationPaymentPending) {
+        // Check if it's a full payment scenario
+        const isFullPaymentSameNumber = 
+            booking.paymentCategory === 'Full-Payment' && 
+            booking.reservation?.paymentNo === booking.package?.paymentNo &&
+            booking.reservation?.paymentNo !== 'Pending' &&
+            booking.reservation?.paymentNo !== null &&
+            booking.reservation?.paymentNo !== undefined;
+
+        // Debug logging for reservation payment
+        console.log('=== RESERVATION BUTTON VISIBILITY DEBUG ===');
+        console.log('Reservation status:', booking.reservation?.status);
+        console.log('Package status:', booking.package?.status);
+        console.log('Is full payment same number:', isFullPaymentSameNumber);
+        console.log('Reservation payment number:', reservationPaymentNo);
+        console.log('Is reservation payment pending:', isReservationPaymentPending);
+
+        // Handle full payment scenario differently
+        if (isFullPaymentSameNumber) {
+            // For full payment, show reservation buttons if ANY payment is still pending
+            const hasAnyPendingPayment = 
+                (booking.reservation && booking.reservation.status === 'Pending') ||
+                (booking.package && booking.package.status === 'Pending');
+                
+            if (hasAnyPendingPayment && !isReservationPaymentPending) {
                 if (approveReservationBtn) approveReservationBtn.style.display = 'inline-block';
                 if (declineReservationBtn) declineReservationBtn.style.display = 'inline-block';
+                console.log('Full payment buttons visible - pending payment exists');
             } else {
                 if (approveReservationBtn) approveReservationBtn.style.display = 'none';
                 if (declineReservationBtn) declineReservationBtn.style.display = 'none';
+                console.log('Full payment buttons hidden - all payments processed');
+            }
+        } else {
+            // Original logic for separate payments
+            if (booking.reservation && booking.reservation.status === 'Pending' && !isReservationPaymentPending) {
+                if (approveReservationBtn) approveReservationBtn.style.display = 'inline-block';
+                if (declineReservationBtn) declineReservationBtn.style.display = 'inline-block';
+                console.log('Reservation payment buttons visible - status pending with payment number');
+            } else {
+                if (approveReservationBtn) approveReservationBtn.style.display = 'none';
+                if (declineReservationBtn) declineReservationBtn.style.display = 'none';
+                console.log('Reservation payment buttons hidden - already processed or no payment number');
             }
         }
         
-        // Handle package buttons visibility
-        if (isReservationPaymentPending) {
-            // Hide package buttons if reservation payment number is still "Pending"
-            if (approvePackageBtn) approvePackageBtn.style.display = 'none';
-            if (declinePackageBtn) declinePackageBtn.style.display = 'none';
-            console.log('Package payment buttons hidden - reservation payment number is pending');
-        } else {
-            // Show package buttons if reservation payment number is not "Pending"
-            // But hide if package payment is already processed
-            if (booking.package && booking.package.status !== 'Pending') {
-                if (approvePackageBtn) approvePackageBtn.style.display = 'none';
-                if (declinePackageBtn) declinePackageBtn.style.display = 'none';
-                console.log('Package payment buttons hidden - package payment already processed');
-            } else {
+        // Handle package buttons visibility - check both status and payment number
+        const packagePaymentNo = booking.package?.paymentNo;
+        const isPackagePaymentPending = !packagePaymentNo || 
+            packagePaymentNo === 'Pending' || 
+            packagePaymentNo === null || 
+            packagePaymentNo === undefined;
+
+        // Handle package buttons (only for separate payment scenarios)
+        if (!isFullPaymentSameNumber) {
+            if (booking.package && booking.package.status === 'Pending' && !isPackagePaymentPending) {
                 if (approvePackageBtn) approvePackageBtn.style.display = 'inline-block';
                 if (declinePackageBtn) declinePackageBtn.style.display = 'inline-block';
-                console.log('Package payment buttons visible - reservation processed and package pending');
+                console.log('Package payment buttons visible - separate payment mode');
+            } else {
+                if (approvePackageBtn) approvePackageBtn.style.display = 'none';
+                if (declinePackageBtn) declinePackageBtn.style.display = 'none';
+                console.log('Package payment buttons hidden - separate payment mode');
             }
+        } else {
+            // Always hide package buttons in full payment mode
+            if (approvePackageBtn) approvePackageBtn.style.display = 'none';
+            if (declinePackageBtn) declinePackageBtn.style.display = 'none';
+            console.log('Package payment buttons hidden - full payment mode');
         }
         
         console.log('Button visibility updated based on payment status and workflow');

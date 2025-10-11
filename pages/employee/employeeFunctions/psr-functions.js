@@ -206,6 +206,11 @@ async function loadDashboardData() {
             fetchTransactions()
         ]);
         
+        console.log('API Data Results:');
+        console.log('- Summary Data:', summaryData);
+        console.log('- Peak Booking Data:', peakBookingData);
+        console.log('- Transactions Data:', transactionsData);
+        
         // Populate the UI with data
         populateEarningsData(summaryData);
         populatePeakBookingData(peakBookingData);
@@ -214,6 +219,9 @@ async function loadDashboardData() {
         console.log('Dashboard data loaded successfully');
     } catch (error) {
         console.error('Error loading dashboard data:', error);
+        // Show user-friendly error message
+        console.log('Loading failed, will use test data...');
+        // testPropertyFilter(); // Fallback to test data
     }
 }
 
@@ -243,9 +251,14 @@ async function fetchPeakBookingDay() {
 
 async function fetchTransactions() {
     try {
+        console.log('Fetching transactions from API...');
         const response = await fetch('https://betcha-api.onrender.com/psr/transactions');
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
         const data = await response.json();
-        console.log('Transactions Data:', data);
+        console.log('Transactions API Response:', data);
+        console.log('Transactions Array Length:', Array.isArray(data) ? data.length : 'Not an array');
         return data;
     } catch (error) {
         console.error('Error fetching transactions:', error);
@@ -350,9 +363,14 @@ function populatePeakBookingData(peakData) {
 
 function populateTransactionsData(transactionsData) {
     if (!transactionsData || !Array.isArray(transactionsData)) {
-        console.warn('No transactions data available');
+        console.warn('No transactions data available or data is not an array');
         return;
     }
+    
+    console.log(`Processing ${transactionsData.length} transactions`);
+    
+    // Store original data for filtering
+    window.originalTransactionsData = transactionsData;
     
     // Find the transactions container - look for the specific container on PSR page
     const transactionsContainer = document.querySelector('.space-y-4.overflow-y-auto');
@@ -368,6 +386,9 @@ function populateTransactionsData(transactionsData) {
             item.remove();
         }
     });
+    
+    // Populate property filter dropdown
+    populatePropertyFilter(transactionsData);
     
     // Format date function
     const formatDate = (dateString) => {
@@ -402,6 +423,10 @@ function populateTransactionsData(transactionsData) {
         }
         
         if (transactionElement) {
+            // Add data attribute for filtering
+            const propertyName = transaction.propertyName || transaction.property || 'Unknown Property';
+            transactionElement.setAttribute('data-property', propertyName);
+            
             // Update transaction number
             const transNoElement = transactionElement.querySelector('p.text-sm.font-semibold.text-neutral-800.font-inter.truncate');
             if (transNoElement) {
@@ -411,8 +436,8 @@ function populateTransactionsData(transactionsData) {
             // Update property name - find the second p element with the right classes
             const propertyElements = transactionElement.querySelectorAll('p.text-sm.font-semibold.text-neutral-800.font-inter.truncate');
             if (propertyElements.length > 1) {
-                propertyElements[1].textContent = transaction.propertyName || transaction.property || 'Unknown Property';
-                propertyElements[1].title = transaction.propertyName || transaction.property || 'Unknown Property'; // Add tooltip for long names
+                propertyElements[1].textContent = propertyName;
+                propertyElements[1].title = propertyName; // Add tooltip for long names
             }
             
             // Update booking date - find the third p element
@@ -429,6 +454,67 @@ function populateTransactionsData(transactionsData) {
     });
     
     console.log(`${transactionsData.length} transactions populated on PSR page`);
+}
+
+// Property Filter Functions
+function populatePropertyFilter(transactionsData) {
+    const propertyFilter = document.getElementById('propertyFilter');
+    if (!propertyFilter) {
+        console.warn('Property filter dropdown not found');
+        return;
+    }
+    
+    // Extract unique properties from transactions
+    const uniqueProperties = [...new Set(transactionsData.map(transaction => 
+        transaction.propertyName || transaction.property
+    ).filter(Boolean))].sort();
+    
+    console.log(`Property filter: Found ${uniqueProperties.length} unique properties:`, uniqueProperties);
+    
+    // Clear existing options except "All Properties"
+    propertyFilter.innerHTML = '<option value="">All Properties</option>';
+    
+    // Add property options
+    uniqueProperties.forEach(property => {
+        const option = document.createElement('option');
+        option.value = property;
+        option.textContent = property;
+        propertyFilter.appendChild(option);
+    });
+    
+    // Add event listener for filtering
+    propertyFilter.removeEventListener('change', handlePropertyFilter); // Remove existing listener
+    propertyFilter.addEventListener('change', handlePropertyFilter);
+    
+    console.log(`Property filter populated with ${uniqueProperties.length} properties`);
+}
+
+function handlePropertyFilter(event) {
+    const selectedProperty = event.target.value;
+    const transactionElements = document.querySelectorAll('.space-y-4.overflow-y-auto .grid.grid-cols-2.md\\:grid-cols-4');
+    
+    console.log(`Filtering by property: "${selectedProperty}"`);
+    console.log(`Found ${transactionElements.length} transaction elements`);
+    
+    let visibleCount = 0;
+    
+    transactionElements.forEach((element, index) => {
+        const elementProperty = element.getAttribute('data-property');
+        console.log(`Element ${index + 1}: data-property = "${elementProperty}"`);
+        
+        if (selectedProperty === '' || elementProperty === selectedProperty) {
+            // Show element
+            element.style.display = 'grid';
+            visibleCount++;
+            console.log(`  -> Showing element ${index + 1}`);
+        } else {
+            // Hide element
+            element.style.display = 'none';
+            console.log(`  -> Hiding element ${index + 1}`);
+        }
+    });
+    
+    console.log(`Total visible transactions: ${visibleCount}`);
 }
 
 // Download Functionality
@@ -1074,12 +1160,44 @@ function testModal() {
 // Make test function available globally for debugging
 window.testPSRModal = testModal;
 
+// Test function to verify property filter with mock data
+function testPropertyFilter() {
+    const mockTransactions = [
+        {
+            transactionNo: '0000075',
+            propertyName: 'Mark Room',
+            dateOfBooking: '2025-10-11',
+            amount: 3000
+        },
+        {
+            transactionNo: '0000074',
+            propertyName: 'Seaside Villa',
+            dateOfBooking: '2025-10-11',
+            amount: 5000
+        },
+        {
+            transactionNo: '0000073',
+            propertyName: 'Mark Room',
+            dateOfBooking: '2025-10-10',
+            amount: 3000
+        }
+    ];
+    
+    console.log('Testing with mock data:', mockTransactions);
+    populateTransactionsData(mockTransactions);
+}
+
+// Make test function available globally
+window.testPropertyFilter = testPropertyFilter;
+
 // Single initialization point
 function initializePage() {
     console.log('Initializing PSR page...');
     initializePSRModal();
     initializeBasicModal();
     loadDashboardData();
+    
+    // Remove automatic test - only manual testing via button now
 }
 
 // Initialize when DOM is ready

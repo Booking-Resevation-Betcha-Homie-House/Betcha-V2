@@ -1364,7 +1364,7 @@ function initializeCheckinConfirmationModal() {
 }
 
 // Function to populate the check-in confirmation modal
-function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkinDate, checkinTime, bookingStatus, guestId, transNo) {
+async function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkinDate, checkinTime, bookingStatus, guestId, transNo) {
     try {
         // Update modal content
         const propertyEl = document.getElementById('confirm-property-name');
@@ -1378,6 +1378,9 @@ function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkin
         if (dateEl) dateEl.textContent = checkinDate || '--';
         if (timeEl) timeEl.textContent = checkinTime || '--';
         if (bookingIdEl) bookingIdEl.textContent = bookingId || '--';
+
+        // Fetch and display payment information
+        await fetchAndDisplayPaymentInfo(bookingId);
         
         // Store all data in modal dataset for button listeners
         const modal = document.getElementById('checkinConfirmModal');
@@ -1439,6 +1442,83 @@ function populateCheckinConfirmModal(bookingId, propertyName, guestName, checkin
                 `;
             }
         }
+    }
+}
+
+// Function to fetch and display payment information in the modal
+async function fetchAndDisplayPaymentInfo(bookingId) {
+    if (!bookingId) return;
+    
+    try {
+        const response = await fetch(`${API_BASE_URL}/booking/${bookingId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        if (!response.ok) return;
+        
+        const data = await response.json();
+        const booking = data.booking;
+        
+        if (booking) {
+            const totalFee = booking.totalFee || 0;
+            const reservationFee = booking.reservationFee || 0;
+            const pendingBalance = totalFee - reservationFee;
+            const paymentCategory = booking.paymentCategory || '';
+            
+            // Find or create payment info section
+            let paymentSection = document.getElementById('payment-info-section');
+            if (!paymentSection) {
+                // Create payment section after booking details
+                const bookingDetailsSection = document.querySelector('#checkinConfirmModal .bg-neutral-50');
+                if (bookingDetailsSection) {
+                    paymentSection = document.createElement('div');
+                    paymentSection.id = 'payment-info-section';
+                    paymentSection.className = 'bg-amber-50 p-4 rounded-lg border border-amber-200';
+                    bookingDetailsSection.parentNode.insertBefore(paymentSection, bookingDetailsSection.nextSibling);
+                }
+            }
+            
+            if (paymentSection) {
+                if (paymentCategory === 'Reservation' && pendingBalance > 0) {
+                    // Show pending balance for partial payments
+                    paymentSection.innerHTML = `
+                        <div class="space-y-2">
+                            <h4 class="font-semibold text-amber-800 text-sm">Payment Information</h4>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-amber-700">Total Fee:</span>
+                                <span class="font-medium">₱${totalFee.toLocaleString()}</span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-amber-700">Reservation Fee Paid:</span>
+                                <span class="font-medium text-green-600">₱${reservationFee.toLocaleString()}</span>
+                            </div>
+                            <hr class="border-amber-300">
+                            <div class="flex justify-between text-sm">
+                                <span class="font-semibold text-amber-800">Pending Balance:</span>
+                                <span class="font-bold text-red-600">₱${pendingBalance.toLocaleString()}</span>
+                            </div>
+                        </div>
+                    `;
+                } else if (pendingBalance <= 0) {
+                    // Show fully paid status
+                    paymentSection.innerHTML = `
+                        <div class="text-center">
+                            <h4 class="font-semibold text-green-800 text-sm mb-1">Payment Status</h4>
+                            <span class="inline-block px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm font-medium">
+                                ✓ Fully Paid
+                            </span>
+                        </div>
+                    `;
+                } else {
+                    // Hide payment section if no clear payment info
+                    paymentSection.style.display = 'none';
+                }
+            }
+        }
+    } catch (error) {
+        console.error('Error fetching payment info:', error);
+        // Don't show error to user, just log it
     }
 }
 
