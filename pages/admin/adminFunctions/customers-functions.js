@@ -310,6 +310,9 @@ function clearSearch() {
     }
 }
 
+// Make clearSearch globally accessible
+window.clearSearch = clearSearch;
+
 // Function to handle tab switching for customer tabs
 function setActiveTab(tabIndex) {
     showTab(tabIndex);

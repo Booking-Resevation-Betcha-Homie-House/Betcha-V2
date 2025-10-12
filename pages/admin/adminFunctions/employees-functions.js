@@ -444,4 +444,7 @@ async function retryLoad() {
     }
 }
 
+// Make retryLoad globally accessible for HTML onclick handlers
+window.retryLoad = retryLoad;
+
 

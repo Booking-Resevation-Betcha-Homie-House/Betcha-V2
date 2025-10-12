@@ -894,7 +894,7 @@ function createImageCarousel(images) {
             imageContainer.innerHTML = `
                 <img src="${images[0]}" 
                      class="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105" 
-                     onerror="this.src='/public/images/unit01.jpg'"
+                     onerror="this.src='/images/unit01.jpg'"
                      alt="Property image" />
             `;
             return;
@@ -909,7 +909,7 @@ function createImageCarousel(images) {
                             <div class="w-full h-full flex-shrink-0 overflow-hidden">
                                 <img src="${image}" 
                                      class="carousel-image w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500" 
-                                     onerror="this.src='/public/images/unit01.jpg'"
+                                     onerror="this.src='/images/unit01.jpg'"
                                      alt="Property image ${index + 1}" />
                             </div>
                         `).join('')}

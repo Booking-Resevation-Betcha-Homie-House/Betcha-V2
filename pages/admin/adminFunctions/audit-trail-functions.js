@@ -543,5 +543,6 @@ window.auditTrailFunctions = {
     setActiveAuditTab
 };
 
-// Make setActiveAuditTab available globally for HTML onclick handlers
+// Make functions available globally for HTML onclick handlers
 window.setActiveAuditTab = setActiveAuditTab;
+window.fetchAuditTrails = fetchAuditTrails;

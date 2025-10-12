@@ -117,7 +117,7 @@ function renderProperties(properties) {
         propertyCard.className = "relative";
 
         // Debug: Log the image URL being generated
-        const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/public/images/unit01.jpg';
+        const imageUrl = property.photoLinks && property.photoLinks.length > 0 ? property.photoLinks[0] : '/images/unit01.jpg';
         console.log(`Property: ${property.name}, Image URL: ${imageUrl}`);
 
         // Truncate text function for consistent card sizes
@@ -140,7 +140,7 @@ function renderProperties(properties) {
                          class="w-full h-full object-cover object-center bg-neutral-300
                          transition-all duration-300 ease-in-out
                          group-hover:scale-105"
-                         onerror="this.src='/public/images/unit01.jpg'"
+                         onerror="this.src='/images/unit01.jpg'"
                          alt="${property.name}">
                 </div>
                 <div class="p-5">
