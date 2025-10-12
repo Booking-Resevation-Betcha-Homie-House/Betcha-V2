@@ -3,6 +3,12 @@
 //The report tab is not working yet
 // Amenities should only show the selected amenities
 
+// Import ToastNotification for better toast notifications
+import { ToastNotification } from '../../../src/toastNotification.js';
+
+// Make ToastNotification globally available
+window.ToastNotification = ToastNotification;
+
 // API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
@@ -1650,19 +1656,88 @@ async function initializeDeleteButton() {
     }
 }
 
-// Unified toast helper
-function showToast(type, message) {
-    const baseClass = 'fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-50';
-    const colorClass = type === 'error' ? 'bg-red-500' : 'bg-green-500';
-    const div = document.createElement('div');
-    div.className = `${baseClass} ${colorClass}`;
-    div.textContent = message;
-    document.body.appendChild(div);
-    setTimeout(() => {
-        if (div.parentNode) {
-            div.parentNode.removeChild(div);
+// Toast helper using existing ToastNotification system
+function showToast(type, message, title = '') {
+    // Check if ToastNotification is available
+    if (typeof window !== 'undefined' && window.ToastNotification) {
+        const toast = new window.ToastNotification();
+        
+        // Set appropriate titles if not provided
+        if (!title) {
+            switch (type) {
+                case 'error':
+                    title = 'Error';
+                    break;
+                case 'warning':
+                    title = 'Warning';
+                    break;
+                case 'success':
+                    title = 'Success';
+                    break;
+                default:
+                    title = 'Notification';
+            }
         }
-    }, 5000);
+        
+        toast.show(type, title, message);
+    } else {
+        // Fallback to simple toast if ToastNotification is not available
+        const baseClass = 'fixed top-4 right-4 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300 ease-in-out';
+        let colorClass;
+        let icon;
+        
+        switch (type) {
+            case 'error':
+                colorClass = 'bg-red-500 hover:bg-red-600';
+                icon = '❌';
+                break;
+            case 'warning':
+                colorClass = 'bg-orange-500 hover:bg-orange-600';
+                icon = '⚠️';
+                break;
+            case 'success':
+            default:
+                colorClass = 'bg-green-500 hover:bg-green-600';
+                icon = '✅';
+                break;
+        }
+        
+        const div = document.createElement('div');
+        div.className = `${baseClass} ${colorClass}`;
+        div.innerHTML = `
+            <div class="flex items-center gap-2">
+                <span class="text-lg">${icon}</span>
+                <span class="font-medium">${message}</span>
+            </div>
+        `;
+        
+        div.style.cursor = 'pointer';
+        div.onclick = () => {
+            if (div.parentNode) {
+                div.style.opacity = '0';
+                div.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (div.parentNode) {
+                        div.parentNode.removeChild(div);
+                    }
+                }, 300);
+            }
+        };
+        
+        document.body.appendChild(div);
+        
+        setTimeout(() => {
+            if (div.parentNode) {
+                div.style.opacity = '0';
+                div.style.transform = 'translateX(100%)';
+                setTimeout(() => {
+                    if (div.parentNode) {
+                        div.parentNode.removeChild(div);
+                    }
+                }, 300);
+            }
+        }, 5000);
+    }
 }
 
 // Backwards-compatible wrappers
@@ -1974,9 +2049,6 @@ async function loadCurrentMaintenanceDates(propertyId) {
             
             const maintenanceDates = calendarData.calendar?.maintenance || [];
             
-            if (maintenanceDates.length > 0) {
-            }
-            
             displayCurrentMaintenanceDates(maintenanceDates);
         } else {
             console.error('❌ Failed to load maintenance dates:', response.status);
@@ -2009,7 +2081,7 @@ function displayCurrentMaintenanceDates(maintenanceDates) {
     maintenanceDates.forEach((maintenance, index) => {
         // Handle the case where maintenance is just a date string from calendar API
         if (typeof maintenance === 'string') {
-            // Single date
+            // Single date - check if it's part of a larger maintenance object
             const date = new Date(maintenance);
             const displayDate = date.toLocaleDateString();
             const status = 'Active';
@@ -2024,13 +2096,10 @@ function displayCurrentMaintenanceDates(maintenanceDates) {
                      data-maintenance-id="${index}"
                      data-maintenance-dates='${datesJson}'>
                     <div class="flex-1">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm font-medium text-rose-800">${displayDate}</span>
-                            <span class="px-2 py-1 text-xs ${statusColor} rounded-full">${status}</span>
-                        </div>
-                        <p class="text-xs text-rose-600">Maintenance scheduled</p>
+                        <span class="text-sm font-medium text-rose-800">${displayDate}</span>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 text-xs ${statusColor} rounded-full">${status}</span>
                         <button 
                             onclick="removeMaintenanceDate('${index}')"
                             class="p-1 text-neutral-600 hover:text-neutral-800 hover:bg-neutral-100 rounded transition-colors"
@@ -2046,7 +2115,6 @@ function displayCurrentMaintenanceDates(maintenanceDates) {
             // Handle object format (if it exists)
             const startDate = new Date(maintenance.startDate || maintenance.date).toLocaleDateString();
             const endDate = maintenance.endDate ? new Date(maintenance.endDate).toLocaleDateString() : startDate;
-            const reason = maintenance.reason || 'No reason specified';
             const status = maintenance.status || 'Active';
             const statusColor = status === 'Active' ? 'bg-rose-100 text-rose-700' : 'bg-neutral-100 text-neutral-700';
             
@@ -2059,13 +2127,10 @@ function displayCurrentMaintenanceDates(maintenanceDates) {
                      data-maintenance-id="${maintenance._id || maintenance.id || index}"
                      data-maintenance-dates='${datesJson}'>
                     <div class="flex-1 font-inter">
-                        <div class="flex items-center gap-2 mb-1">
-                            <span class="text-sm font-medium font-manrope text-rose-800">${startDate}${endDate !== startDate ? ` - ${endDate}` : ''}</span>
-                            <span class="px-2 py-1 text-xs ${statusColor} rounded-full">${status}</span>
-                        </div>
-                        <p class="text-xs text-rose-600">${reason}</p>
+                        <span class="text-sm font-medium font-manrope text-rose-800">${startDate}${endDate !== startDate ? ` - ${endDate}` : ''}</span>
                     </div>
-                    <div class="flex gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="px-2 py-1 text-xs ${statusColor} rounded-full">${status}</span>
                         <button 
                             onclick="removeMaintenanceDate('${maintenance._id || maintenance.id || index}')"
                             class="!p-2 rounded-full group
@@ -2088,10 +2153,6 @@ function displayCurrentMaintenanceDates(maintenanceDates) {
 
 // Function to remove a maintenance date
 async function removeMaintenanceDate(maintenanceId) {
-    if (!confirm('Are you sure you want to remove this maintenance date?')) {
-        return;
-    }
-    
     try {
         
         // Get property ID
@@ -2152,13 +2213,14 @@ async function removeMaintenanceDate(maintenanceId) {
 async function saveMaintenanceDates() {
     const startDate = document.getElementById('maintenanceStartDate').value;
     const endDate = document.getElementById('maintenanceEndDate').value;
-    const reason = document.getElementById('maintenanceReason').value;
     
     if (!startDate || !endDate) {
+        showErrorMessage('Please select both start and end dates.');
         return;
     }
     
     if (new Date(startDate) > new Date(endDate)) {
+        showErrorMessage('End date must be after start date.');
         return;
     }
     
@@ -2168,14 +2230,53 @@ async function saveMaintenanceDates() {
         const urlParams = new URLSearchParams(window.location.search);
         const propertyId = urlParams.get('id');
         
+        // Load existing maintenance dates first
+        const existingResponse = await fetch(`${API_BASE}/calendar/byProperty/${propertyId}`);
+        let existingDates = [];
+        
+        if (existingResponse.ok) {
+            const calendarData = await existingResponse.json();
+            existingDates = calendarData.calendar?.maintenance?.map(m => 
+                typeof m === 'string' ? m : m.date
+            ) || [];
+        }
+        
         // Generate array of dates between start and end date
         const dates = [];
+        const duplicates = [];
         const currentDate = new Date(startDate);
         const endDateTime = new Date(endDate);
         
         while (currentDate <= endDateTime) {
-            dates.push(currentDate.toISOString().split('T')[0]);
+            const dateString = currentDate.toISOString().split('T')[0];
+            
+            // Check for duplicates
+            if (existingDates.includes(dateString)) {
+                duplicates.push(dateString);
+            } else {
+                dates.push(dateString);
+            }
+            
             currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        // Handle duplicates
+        if (duplicates.length > 0) {
+            const duplicateList = duplicates.map(d => new Date(d).toLocaleDateString()).join(', ');
+            
+            if (dates.length === 0) {
+                // All dates are duplicates
+                showErrorMessage(`All selected dates already have maintenance scheduled: ${duplicateList}`);
+                return;
+            } else {
+                // Some dates are duplicates - show warning but continue with remaining dates
+                showToast('warning', `Some dates already scheduled (${duplicateList}). Setting maintenance for remaining dates.`);
+            }
+        }
+        
+        if (dates.length === 0) {
+            showErrorMessage('No new dates to schedule.');
+            return;
         }
         
         // Prepare maintenance data according to API specification
@@ -2193,10 +2294,11 @@ async function saveMaintenanceDates() {
         });
         
         if (response.ok) {
+            showSuccessMessage(`Maintenance scheduled for ${dates.length} date(s) successfully!`);
+            
             // Clear form
             document.getElementById('maintenanceStartDate').value = '';
             document.getElementById('maintenanceEndDate').value = '';
-            document.getElementById('maintenanceReason').value = '';
             
             // Reload current maintenance dates
             loadCurrentMaintenanceDates(propertyId);
@@ -2209,9 +2311,11 @@ async function saveMaintenanceDates() {
         } else {
             const errorData = await response.json().catch(() => ({}));
             console.error('❌ Failed to save maintenance dates:', response.status, errorData);
+            showErrorMessage(`Failed to save maintenance dates: ${errorData.message || 'Unknown error'}`);
         }
     } catch (error) {
         console.error('❌ Error saving maintenance dates:', error);
+        showErrorMessage('An error occurred while saving maintenance dates.');
     }
 }
 
