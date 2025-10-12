@@ -380,6 +380,7 @@ function createTicketCard(ticket, isCompleted, isFirst = false) {
     const card = document.createElement('div');
     card.className = `ticket-item w-full p-4 hover:bg-primary/10 cursor-pointer transition group border border-neutral-200 rounded-xl ${isCompleted ? 'opacity-75' : ''}`;
     card.dataset.ticketId = ticket._id;
+    card.dataset.ticket = JSON.stringify(ticket); // Store full ticket data
 
     // 🔥 Fix: pull customer name from messages[0]
     const customerName = ticket.messages?.[0]?.userName || 'Unknown Customer';
@@ -506,6 +507,168 @@ function loadTicketDetails(ticket) {
     }
 }
 
+// Helper function to detect payment mismatch message
+function detectPaymentMismatch(message) {
+    // Check if message contains the payment mismatch pattern
+    const pattern = /I accidentally sent the wrong amount for my booking\.|Booking ID:|Payment No\.:|Payment Method:|Required Amount:|Amount Sent:|E-wallet Number|Bank Account Number/i;
+    return pattern.test(message);
+}
+
+// Helper function to parse payment mismatch data from message
+function parsePaymentMismatchData(message) {
+    const data = {};
+    
+    // Extract Booking ID
+    const bookingIdMatch = message.match(/Booking ID:\s*([a-zA-Z0-9]+)/i);
+    if (bookingIdMatch) data.bookingId = bookingIdMatch[1].trim();
+    
+    // Extract Payment No
+    const paymentNoMatch = message.match(/Payment No\.:\s*([0-9]+)/i);
+    if (paymentNoMatch) data.transNo = paymentNoMatch[1].trim();
+    
+    // Extract Payment Method
+    const paymentMethodMatch = message.match(/Payment Method:\s*([^\n]+)/i);
+    if (paymentMethodMatch) data.modeOfRefund = paymentMethodMatch[1].trim();
+    
+    // Extract Required Amount
+    const requiredAmountMatch = message.match(/Required Amount:\s*₱?([\d,]+\.?\d*)/i);
+    if (requiredAmountMatch) data.requiredAmount = requiredAmountMatch[1].replace(/,/g, '').trim();
+    
+    // Extract Amount Sent
+    const amountSentMatch = message.match(/Amount Sent:\s*₱?([\d,]+\.?\d*)/i);
+    if (amountSentMatch) data.amountRefund = amountSentMatch[1].replace(/,/g, '').trim();
+    
+    // Extract E-wallet Number or Bank Account Number
+    const ewalletMatch = message.match(/E-wallet Number:\s*([0-9]+)/i);
+    const bankMatch = message.match(/Bank Account Number:\s*([0-9]+)/i);
+    if (ewalletMatch) data.numberEwalletBank = ewalletMatch[1].trim();
+    else if (bankMatch) data.numberEwalletBank = bankMatch[1].trim();
+    
+    return data;
+}
+
+// Helper function to create refund button
+function createRefundButton(message, isRequestingRefund) {
+    if (isRequestingRefund) {
+        return `
+            <div class="mt-3 pt-3 border-t border-neutral-200">
+                <button 
+                    class="w-full bg-neutral-300 text-neutral-500 px-4 py-2 rounded-lg text-sm font-medium cursor-not-allowed relative group"
+                    disabled
+                    title="Already sent a request. Please wait for admin to process the refund."
+                >
+                    Request Already Sent
+                    <span class="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 bg-neutral-800 text-white text-xs rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-200 whitespace-normal w-64 pointer-events-none">
+                        Already sent a request. Please wait for admin to process the refund.
+                    </span>
+                </button>
+            </div>
+        `;
+    }
+    
+    return `
+        <div class="mt-3 pt-3 border-t border-neutral-200">
+            <button 
+                class="refund-request-btn group w-full bg-primary/10 hover:bg-primary/20 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 active:scale-95 cursor-pointer"
+            >
+                <span class="text-primary/70 group-hover:text-primary">Request Refund</span>
+            </button>
+        </div>
+    `;
+}
+
+// Handler function for refund request
+async function handleRefundRequest(message) {
+    try {
+        // Parse the payment mismatch data from the message
+        const paymentData = parsePaymentMismatchData(message);
+        
+        // Validate that we have all required data
+        if (!paymentData.bookingId || !paymentData.transNo || !paymentData.amountRefund) {
+            alert('Unable to extract payment information from the message. Please contact support.');
+            return;
+        }
+        
+        // Get current ticket
+        const selectedTicket = document.querySelector('.ticket-item.selected-ticket');
+        if (!selectedTicket) {
+            alert('No ticket selected.');
+            return;
+        }
+        
+        const ticketId = selectedTicket.dataset.ticketId;
+        
+        // Get user data from localStorage
+        const userId = localStorage.getItem('userId');
+        const firstName = localStorage.getItem('firstName') || '';
+        const lastName = localStorage.getItem('lastName') || '';
+        const fromName = `${firstName} ${lastName}`.trim() || 'Employee';
+        
+        // Show confirmation
+        if (!confirm('Are you sure you want to request a refund for this booking?')) {
+            return;
+        }
+        
+        // Update ticket status to "requesting refund"
+        const statusRes = await fetch(`${API_BASE_URL}/tk/status/${ticketId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ status: 'requesting refund' })
+        });
+        
+        if (!statusRes.ok) {
+            const errorData = await statusRes.json().catch(() => ({}));
+            console.error('Status update failed:', errorData);
+            throw new Error(errorData.message || 'Failed to update ticket status');
+        }
+        
+        // Send notification to admin
+        const notifRes = await fetch('https://betcha-api.onrender.com/notify/cancellation', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                fromId: userId,
+                fromName: fromName,
+                fromRole: 'employee',
+                message: 'Requesting a refund for this booking because the guest sent the wrong amount.',
+                bookingId: paymentData.bookingId,
+                transNo: paymentData.transNo,
+                amountRefund: paymentData.amountRefund,
+                modeOfRefund: paymentData.modeOfRefund || 'N/A',
+                reasonToGuest: 'Refund Request Initiated',
+                numberEwalletBank: paymentData.numberEwalletBank || 'N/A'
+            })
+        });
+        
+        if (!notifRes.ok) {
+            throw new Error('Failed to send notification');
+        }
+        
+        // Log audit trail
+        try {
+            if (window.AuditTrailFunctions) {
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                const auditUserId = userData.userId || userData.user_id || userId || 'unknown';
+                const userType = userData.role || 'employee';
+                await window.AuditTrailFunctions.logTicketUpdate(auditUserId, userType);
+            }
+        } catch (auditError) {
+            console.error('Audit trail error:', auditError);
+        }
+        
+        // Success feedback
+        alert('Refund request submitted successfully! Admin will process the refund shortly.');
+        
+        // Refresh ticket list and details
+        await fetchAndPopulateTickets();
+        
+    } catch (error) {
+        console.error('Error handling refund request:', error);
+        const errorMessage = error.message || 'Failed to submit refund request. Please try again.';
+        alert(`Failed to submit refund request: ${errorMessage}`);
+    }
+}
+
 function createMessageElement(message) {
     const currentUserId = localStorage.getItem("userId"); // your logged-in employee ID
     const isMine = message.userId === currentUserId;      // check if this message is mine
@@ -530,6 +693,14 @@ function createMessageElement(message) {
     // Process message to handle newlines and escape HTML
     const processedMessage = escapeHtml(message.message).replace(/\n/g, '<br>');
 
+    // Detect payment mismatch message pattern (from sender, not from employee)
+    const isPaymentMismatch = !isMine && detectPaymentMismatch(message.message);
+    
+    // Get current ticket to check status
+    const selectedTicket = document.querySelector('.ticket-item.selected-ticket');
+    const currentTicket = selectedTicket ? JSON.parse(selectedTicket.dataset.ticket || '{}') : {};
+    const isRequestingRefund = currentTicket.status === 'requesting refund';
+
     el.innerHTML = `
         <div class="${bubbleClasses}">
             <div class="flex items-center gap-2 mb-1">
@@ -537,8 +708,17 @@ function createMessageElement(message) {
                 <span class="${timeClass}">${formattedTime}</span>
             </div>
             <div class="${msgClass}" style="word-wrap: break-word; overflow-wrap: anywhere;">${processedMessage}</div>
+            ${isPaymentMismatch ? createRefundButton(message.message, isRequestingRefund) : ''}
         </div>
     `;
+
+    // Add event listener for refund button if it exists
+    if (isPaymentMismatch) {
+        const refundBtn = el.querySelector('.refund-request-btn');
+        if (refundBtn && !isRequestingRefund) {
+            refundBtn.addEventListener('click', () => handleRefundRequest(message.message));
+        }
+    }
 
     return el;
 }

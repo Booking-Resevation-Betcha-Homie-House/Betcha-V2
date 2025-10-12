@@ -1,3 +1,190 @@
+// Function to show refund account modal
+function showRefundAccountModal(paymentMethod, callback) {
+  // Determine if it's an e-wallet or bank account
+  const isEWallet = ['gcash', 'maya'].includes(paymentMethod.toLowerCase());
+  const accountLabel = isEWallet ? 'E-wallet Number' : 'Bank Account Number';
+  const expectedLength = isEWallet ? 11 : 9;
+  const placeholderText = isEWallet ? '09XXXXXXXXX (11 digits)' : 'XXXXXXXXX (9 digits)';
+  
+  // Create modal HTML
+  const modalHTML = `
+    <div id="refundAccountModal" class="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+      <div class="bg-white rounded-2xl shadow-xl max-w-md w-full mx-4 transform transition-all duration-300 scale-95 opacity-0">
+        <div class="p-6">
+          <!-- Header -->
+          <div class="text-center mb-4">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg class="w-8 h-8" fill="none" stroke="#147b42" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/>
+              </svg>
+            </div>
+            <h3 class="text-xl font-semibold text-gray-900 font-manrope">
+              Refund Account Information
+            </h3>
+          </div>
+          
+          <!-- Message -->
+          <div class="mb-6">
+            <p class="text-gray-600 text-sm text-center mb-4">
+              Please provide your ${accountLabel.toLowerCase()} to process your refund. This will be the account that receives the refunded amount for the payment discrepancy.
+            </p>
+            <div class="bg-green-100 border border-green-200 rounded-lg p-3">
+              <p class="text-xs" style="color: #147b42;">
+                <strong>Important:</strong> Double-check your account number. The refund will be sent to this account.
+              </p>
+            </div>
+          </div>
+          
+          <!-- Input Field -->
+          <div class="mb-6">
+            <label for="accountNumberInput" class="block text-sm font-medium text-gray-700 mb-2">
+              ${accountLabel} <span class="text-red-500">*</span>
+            </label>
+            <input 
+              type="text" 
+              id="accountNumberInput" 
+              class="w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:ring-2 focus:ring-primary focus:border-primary outline-none transition"
+              placeholder="${placeholderText}"
+              maxlength="${expectedLength}"
+            />
+            <p id="accountNumberError" class="text-red-500 text-xs mt-1 hidden"></p>
+            <p class="text-gray-500 text-xs mt-1">Payment Method: <strong>${paymentMethod}</strong></p>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="flex gap-3">
+            <button id="cancelRefundModal" class="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-full hover:bg-gray-200 transition font-medium text-sm">
+              Cancel
+            </button>
+            <button id="confirmRefundAccount" class="flex-1 px-4 py-3 bg-primary rounded-full hover:bg-primary/90 transition font-medium text-sm">
+              <span class="text-white">Continue</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  // Add modal to document
+  document.body.insertAdjacentHTML('beforeend', modalHTML);
+  
+  // Get modal elements
+  const modal = document.getElementById('refundAccountModal');
+  const modalContent = modal.querySelector('.bg-white');
+  const accountInput = document.getElementById('accountNumberInput');
+  const errorElement = document.getElementById('accountNumberError');
+  const cancelBtn = document.getElementById('cancelRefundModal');
+  const confirmBtn = document.getElementById('confirmRefundAccount');
+  
+  // Show modal with animation
+  setTimeout(() => {
+    modalContent.classList.remove('scale-95', 'opacity-0');
+    modalContent.classList.add('scale-100', 'opacity-100');
+  }, 10);
+  
+  // Focus on input
+  setTimeout(() => accountInput.focus(), 300);
+  
+  // Validation function
+  function validateAccountNumber(value) {
+    const cleanValue = value.replace(/\D/g, '');
+    
+    // Check length
+    if (cleanValue.length === 0) {
+      errorElement.textContent = '';
+      errorElement.classList.add('hidden');
+      return false;
+    }
+    
+    if (cleanValue.length < expectedLength) {
+      errorElement.textContent = `${accountLabel} must be ${expectedLength} digits. Currently ${cleanValue.length}/${expectedLength}`;
+      errorElement.classList.remove('hidden');
+      return false;
+    }
+    
+    if (cleanValue.length > expectedLength) {
+      errorElement.textContent = `${accountLabel} must be exactly ${expectedLength} digits`;
+      errorElement.classList.remove('hidden');
+      return false;
+    }
+    
+    // Check "09" prefix for e-wallets
+    if (isEWallet && !cleanValue.startsWith('09')) {
+      errorElement.textContent = `${accountLabel} must start with "09"`;
+      errorElement.classList.remove('hidden');
+      return false;
+    }
+    
+    errorElement.textContent = '';
+    errorElement.classList.add('hidden');
+    return true;
+  }
+  
+  // Input validation - only allow numbers
+  accountInput.addEventListener('input', function() {
+    this.value = this.value.replace(/\D/g, '');
+    validateAccountNumber(this.value);
+  });
+  
+  // Prevent non-numeric paste
+  accountInput.addEventListener('paste', function(e) {
+    e.preventDefault();
+    const paste = (e.clipboardData || window.clipboardData).getData('text');
+    const numericPaste = paste.replace(/\D/g, '');
+    this.value = numericPaste.slice(0, expectedLength);
+    validateAccountNumber(this.value);
+  });
+  
+  // Close modal function
+  function closeModal() {
+    modalContent.classList.add('scale-95', 'opacity-0');
+    modalContent.classList.remove('scale-100', 'opacity-100');
+    setTimeout(() => modal.remove(), 300);
+  }
+  
+  // Cancel button
+  cancelBtn.addEventListener('click', () => {
+    closeModal();
+    // Redirect back to previous page
+    window.history.back();
+  });
+  
+  // Confirm button
+  confirmBtn.addEventListener('click', () => {
+    const accountNumber = accountInput.value.trim();
+    
+    if (!validateAccountNumber(accountNumber)) {
+      if (accountNumber === '') {
+        errorElement.textContent = `Please enter your ${accountLabel.toLowerCase()}`;
+        errorElement.classList.remove('hidden');
+      }
+      accountInput.focus();
+      return;
+    }
+    
+    closeModal();
+    callback(accountNumber);
+  });
+  
+  // ESC key to cancel
+  document.addEventListener('keydown', function handleEscapeKey(e) {
+    if (e.key === 'Escape') {
+      closeModal();
+      window.history.back();
+      document.removeEventListener('keydown', handleEscapeKey);
+    }
+  });
+  
+  // Prevent backdrop click from closing (force user to provide account number)
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) {
+      // Shake animation to indicate they need to fill the form
+      modalContent.classList.add('animate-shake');
+      setTimeout(() => modalContent.classList.remove('animate-shake'), 500);
+    }
+  });
+}
+
 document.addEventListener('DOMContentLoaded', () => {
   console.log("Ticket dropdowns JS loaded");
 
@@ -406,6 +593,93 @@ document.addEventListener('DOMContentLoaded', () => {
   // Initialize dropdowns
   setupAgentDropdown(); // Custom setup for agent dropdown with API data
   setupDropdown("concern", concerns, "Select a Concern");
+
+  // Check for URL parameters and auto-fill form
+  const urlParams = new URLSearchParams(window.location.search);
+  const reason = urlParams.get('reason');
+  
+  if (reason === 'amount_mismatch') {
+    const bookingId = urlParams.get('bookingId') || 'N/A';
+    const paymentNo = urlParams.get('paymentNo') || 'N/A';
+    const requiredAmount = urlParams.get('requiredAmount') || 'N/A';
+    const sentAmount = urlParams.get('sentAmount') || 'N/A';
+    const paymentMethod = urlParams.get('paymentMethod') || 'N/A';
+    
+    // Show modal to collect E-wallet/Bank number first
+    showRefundAccountModal(paymentMethod, (accountNumber) => {
+      // Auto-select first agent when employees are loaded
+      fetchTKEmployees().then(employees => {
+        if (employees.length > 0) {
+          const firstEmployee = employees[0];
+          selectedEmployeeId = firstEmployee._id;
+          
+          const agentDisplay = document.getElementById('selectedAgent');
+          if (agentDisplay) {
+            agentDisplay.innerHTML = `
+              <div class="flex items-center gap-3">
+                <img src="${firstEmployee.pfplink || "https://via.placeholder.com/32x32?text=CS"}" 
+                     alt="${firstEmployee.firstname} ${firstEmployee.lastname}" 
+                     class="w-6 h-6 rounded-full object-cover"
+                     onerror="this.src='https://via.placeholder.com/32x32?text=CS'">
+                <span>CS - ${firstEmployee.firstname} ${firstEmployee.lastname}</span>
+              </div>
+            `;
+            agentDisplay.classList.remove("text-muted");
+            agentDisplay.classList.add("text-primary-text");
+            
+            console.log('✅ Auto-selected first agent:', firstEmployee.firstname, firstEmployee.lastname);
+          }
+        }
+      }).catch(error => {
+        console.error('Failed to auto-select agent:', error);
+      });
+      
+      // Auto-select "Payment" in concern dropdown
+      const concernDisplay = document.getElementById('selectedConcern');
+      const concernIcon = document.getElementById('concernDropdownIcon');
+      const concernList = document.getElementById('concernDropdownList');
+      
+      if (concernDisplay) {
+        concernDisplay.textContent = 'Payment';
+        concernDisplay.classList.remove('text-muted');
+        concernDisplay.classList.add('text-primary-text');
+        selectedCategory = 'Payment';
+        
+        // Hide the list and rotate icon back
+        if (concernList) concernList.classList.add('hidden');
+        if (concernIcon) concernIcon.classList.remove('rotate-180');
+      }
+      
+      // Determine account type label based on payment method
+      const isEWallet = ['gcash', 'maya'].includes(paymentMethod.toLowerCase());
+      const accountLabel = isEWallet ? 'E-wallet Number' : 'Bank Account Number';
+      
+      // Auto-fill description with formatted message including account number
+      const descriptionField = document.getElementById('description');
+      if (descriptionField) {
+        descriptionField.value = `I accidentally sent the wrong amount for my booking.
+Here are the details:
+
+Booking ID: ${bookingId}
+Payment No.: ${paymentNo}
+Payment Method: ${paymentMethod}
+Required Amount: ₱${requiredAmount}
+Amount Sent: ₱${sentAmount}
+${accountLabel}: ${accountNumber}
+
+Please let me know how I can correct this. Thank you!`;
+      }
+      
+      console.log('✅ Auto-filled form with payment mismatch details:', {
+        bookingId,
+        paymentNo,
+        paymentMethod,
+        requiredAmount,
+        sentAmount,
+        accountNumber
+      });
+    });
+  }
 
   // Add form submission handler
   const form = document.getElementById('generateTicketForm');

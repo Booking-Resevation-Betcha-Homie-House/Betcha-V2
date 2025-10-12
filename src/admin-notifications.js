@@ -549,9 +549,16 @@ async function cancelBooking(bookingId) {
         // Log booking cancellation audit
         try {
             if (window.AuditTrailFunctions) {
-                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                const userId = userData._id || userData.userId || userData.user_id || 'unknown';
-                let userType = userData.userType || userData.role || 'admin';
+                // Get user ID from localStorage - try multiple possible keys
+                const userId = localStorage.getItem('adminId') || 
+                              localStorage.getItem('userId') || 
+                              localStorage.getItem('userID') || 
+                              localStorage.getItem('currentUser');
+                
+                // Get user type from localStorage or default to Admin
+                let userType = localStorage.getItem('userType') || 
+                              localStorage.getItem('role') || 
+                              'admin';
                 
                 // Normalize userType to match API expectations
                 if (userType.toLowerCase() === 'admin') {
@@ -564,7 +571,12 @@ async function cancelBooking(bookingId) {
                     userType = 'Admin'; // Default fallback
                 }
                 
-                await window.AuditTrailFunctions.logBookingCancellation(userId, userType);
+                // Only create audit trail if we have a valid userId
+                if (userId) {
+                    await window.AuditTrailFunctions.logBookingCancellation(userId, userType);
+                } else {
+                    console.warn('No valid user ID found for audit trail');
+                }
             }
         } catch (auditError) {
             console.error('Audit trail error:', auditError);

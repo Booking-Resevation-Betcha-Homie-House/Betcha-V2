@@ -411,7 +411,7 @@ function setupBankAccountValidation() {
                         console.log('✅ Real-time amount verification passed');
                     } else if (verificationResult.showAmountModal) {
                         console.log('💰 Real-time amount verification - showing amount mismatch modal');
-                        showAmountMismatchModal(verificationResult.apiAmount, verificationResult.expectedAmount);
+                        showAmountMismatchModal(verificationResult.apiAmount, verificationResult.expectedAmount, transactionNumber);
                     } else {
                         console.log('⚠️ Real-time transaction verification failed:', verificationResult.error);
                     }
@@ -2104,7 +2104,7 @@ async function triggerOCRFromPreview(fileInfo, transactionInput) {
                         // Allow for small floating point differences (less than 1 cent)
                         if (apiAmount && Math.abs(apiAmount - expectedAmount) >= 0.01) {
                             console.log('💰 Amount mismatch detected during OCR - showing mismatch modal');
-                            showAmountMismatchModal(apiAmount, expectedAmount);
+                            showAmountMismatchModal(apiAmount, expectedAmount, result.transactionNumber);
                             return; // Exit early, don't fill input or show success
                         }
                         
@@ -3043,8 +3043,8 @@ function getExpectedTotalAmount() {
 }
 
 // Function to show amount mismatch modal
-function showAmountMismatchModal(apiAmount, expectedAmount) {
-    console.log('💰 Showing amount mismatch modal with amounts:', { apiAmount, expectedAmount });
+function showAmountMismatchModal(apiAmount, expectedAmount, transactionNumber = '') {
+    console.log('💰 Showing amount mismatch modal with amounts:', { apiAmount, expectedAmount, transactionNumber });
     
     // Get the modal element
     const modal = document.getElementById('amountMismatchModal');
@@ -3126,6 +3126,44 @@ function showAmountMismatchModal(apiAmount, expectedAmount) {
         newUploadBtn.addEventListener('click', function() {
             console.log('📸 Upload Another Picture button clicked');
             clearInputsAndCloseModal();
+        });
+    }
+    
+    // Setup "Contact Customer Service" link with data passing
+    const contactServiceLink = modal.querySelector('a[href="create-ticket.html"]');
+    if (contactServiceLink) {
+        // Get booking ID from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const bookingId = urlParams.get('bookingId');
+        
+        // Use the transaction number passed to the function, or fallback to input value
+        let paymentNo = transactionNumber || '';
+        if (!paymentNo) {
+            const transactionInput = document.getElementById('transactionNumber');
+            paymentNo = transactionInput ? transactionInput.value.trim() : '';
+        }
+        
+        // Get selected payment method category
+        const selectedPaymentMethod = document.querySelector('input[name="payment"]:checked');
+        const paymentMethod = selectedPaymentMethod ? (selectedPaymentMethod.dataset?.category || '') : '';
+        
+        // Build URL with query parameters
+        const params = new URLSearchParams({
+            bookingId: bookingId || '',
+            paymentNo: paymentNo || '',
+            requiredAmount: expectedAmount.toFixed(2),
+            sentAmount: apiAmount.toFixed(2),
+            paymentMethod: paymentMethod,
+            reason: 'amount_mismatch'
+        });
+        
+        contactServiceLink.href = `create-ticket.html?${params.toString()}`;
+        console.log('🎫 Contact Service link updated with data:', {
+            bookingId,
+            paymentNo: paymentNo,
+            requiredAmount: expectedAmount,
+            sentAmount: apiAmount,
+            paymentMethod: paymentMethod
         });
     }
     

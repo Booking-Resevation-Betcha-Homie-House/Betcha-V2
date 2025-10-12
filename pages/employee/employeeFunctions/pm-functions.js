@@ -1233,7 +1233,7 @@ async function handleEndBookingConfirm() {
         const checkoutResponse = await fetch(`${API_BASE_URL}/booking/update-status/${bookingId}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ status: 'Checked-Out' })
+            body: JSON.stringify({ status: 'Completed' })
         });
         
         if (!checkoutResponse.ok) {
