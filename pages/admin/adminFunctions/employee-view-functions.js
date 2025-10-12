@@ -57,18 +57,18 @@ async function populateEmployeeDetails() {
 		const status = employee.status ? employee.status.charAt(0).toUpperCase() + employee.status.slice(1) : 'Unknown';
 		document.getElementById('employee-status').textContent = status;
 		
-		// Handle profile picture
-		const avatarElement = document.getElementById('employee-avatar');
-		if (employee.pfplink) {
-			// If profile picture exists, replace with image
-			avatarElement.innerHTML = `<img src="${employee.pfplink}" alt="Profile Picture" class="w-full h-full rounded-full object-cover">`;
-		} else {
-			// If no profile picture, show first letter of first name
-			const firstLetter = employee.firstname ? employee.firstname.charAt(0).toUpperCase() : '?';
-			avatarElement.innerHTML = firstLetter;
-		}
-		
-		// Update edit button to include employee ID
+	// Handle profile picture
+	const avatarElement = document.getElementById('employee-avatar');
+	if (employee.pfplink) {
+		// If profile picture exists, replace with image
+		avatarElement.classList.remove('bg-primary');
+		avatarElement.innerHTML = `<img src="${employee.pfplink}" alt="Profile Picture" class="w-full h-full rounded-full object-cover">`;
+	} else {
+		// If no profile picture, show first letter of first name and add bg-primary
+		avatarElement.classList.add('bg-primary');
+		const firstLetter = employee.firstname ? employee.firstname.charAt(0).toUpperCase() : '?';
+		avatarElement.innerHTML = firstLetter;
+	}		// Update edit button to include employee ID
 		const editBtn = document.getElementById('edit-employee-btn');
 		if (editBtn) {
 			editBtn.onclick = () => window.location.href = `employee-edit.html?id=${employeeId}`;
