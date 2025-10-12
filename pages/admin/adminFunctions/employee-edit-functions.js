@@ -101,6 +101,33 @@ document.addEventListener('DOMContentLoaded', function() {
         input.addEventListener('change', function(event) {
             const file = event.target.files && event.target.files[0];
             if (!file) return;
+
+            // Validate file type
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type.toLowerCase())) {
+                import('/src/toastNotification.js').then(module => {
+                    module.showToastError(
+                        'Please select a valid image file (JPG, PNG, GIF, JPEG, or WEBP).',
+                        'Invalid File Type'
+                    );
+                });
+                event.target.value = ''; // Clear the input
+                return;
+            }
+
+            // Validate file size (max 5MB)
+            if (file.size > 5 * 1024 * 1024) {
+                import('/src/toastNotification.js').then(module => {
+                    module.showToastError(
+                        'Image size should be less than 5MB.',
+                        'File Too Large'
+                    );
+                });
+                event.target.value = ''; // Clear the input
+                return;
+            }
+
+            // File is valid, proceed with preview
             const avatarElement = document.getElementById('employee-avatar');
             if (!avatarElement) return;
             const reader = new FileReader();
@@ -114,17 +141,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Function to handle discarding changes and returning to employee view
 function discardChanges() {
+    console.log('🔄 discardChanges() function called');
+    
     const urlParams = new URLSearchParams(window.location.search);
+    console.log('📍 Current URL:', window.location.href);
+    console.log('🔍 URL Parameters:', urlParams.toString());
+    
     const employeeId = urlParams.get('id');
+    console.log('👤 Employee ID found:', employeeId);
     
     if (employeeId) {
+        const targetUrl = `employee-view.html?id=${employeeId}`;
+        console.log('✅ Redirecting to employee view:', targetUrl);
         // Redirect to employee view with the current employee ID
-        window.location.href = `employee-view.html?id=${employeeId}`;
+        window.location.href = targetUrl;
     } else {
+        const fallbackUrl = 'employees.html';
+        console.log('⚠️ No employee ID found, redirecting to employees list:', fallbackUrl);
         // Fallback to employees list if no ID is found
-        window.location.href = 'employees.html';
+        window.location.href = fallbackUrl;
     }
 }
+
+// Make discardChanges globally available
+window.discardChanges = discardChanges;
 
 // Function to wait for Alpine.js and then populate the form
 function waitForAlpineAndPopulate(employeeId) {
@@ -559,7 +599,8 @@ async function submitEmployeeUpdate() {
         }
         
         // Show success message
-        showSuccess('Employee updated successfully!');
+        const toastModule = await import('/src/toastNotification.js');
+        toastModule.showToastSuccess('Employee updated successfully!');
         
         // Optionally redirect back to employee view or list
         setTimeout(() => {
@@ -568,7 +609,8 @@ async function submitEmployeeUpdate() {
         
     } catch (error) {
         console.error('Error updating employee:', error);
-        showError(`Failed to update employee: ${error.message}`);
+        const toastModule = await import('/src/toastNotification.js');
+        toastModule.showToastError(`Failed to update employee: ${error.message}`);
     } finally {
         showLoadingState(false);
     }
@@ -583,6 +625,27 @@ async function handleProfilePictureUpdate(employeeId) {
     }
     
     const profilePicture = profilePictureInput.files[0];
+    
+    // Additional validation before upload
+    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+    if (!validTypes.includes(profilePicture.type.toLowerCase())) {
+        const toastModule = await import('/src/toastNotification.js');
+        toastModule.showToastError(
+            'Please select a valid image file (JPG, PNG, GIF, JPEG, or WEBP).',
+            'Invalid File Type'
+        );
+        throw new Error('Invalid file type selected');
+    }
+
+    // Validate file size (max 5MB)
+    if (profilePicture.size > 5 * 1024 * 1024) {
+        const toastModule = await import('/src/toastNotification.js');
+        toastModule.showToastError(
+            'Image size should be less than 5MB.',
+            'File Too Large'
+        );
+        throw new Error('File size too large');
+    }
     
     try {
         // Create FormData for file upload
@@ -602,9 +665,23 @@ async function handleProfilePictureUpdate(employeeId) {
         
         const result = await response.json();
         
+        // Show success notification for profile picture update
+        const toastModule = await import('/src/toastNotification.js');
+        toastModule.showToastSuccess(
+            'Profile picture updated successfully!',
+            'Success'
+        );
+        
     } catch (error) {
         console.error('Error updating profile picture:', error);
-        showError(`Failed to update profile picture: ${error.message}`);
+        
+        // Show error notification using toast
+        const toastModule = await import('/src/toastNotification.js');
+        toastModule.showToastError(
+            `Failed to update profile picture: ${error.message}`,
+            'Upload Failed'
+        );
+        
         throw error; // Re-throw to be caught by main function
     }
 }
