@@ -1286,7 +1286,7 @@ async function uploadAllImages() {
 }
 
 // Make function globally accessible for onclick handlers
-window.uploadAllImages = uploadAllImages;
+// No longer needed to expose uploadAllImages globally since upload is automatic
 
 // ==================== SAVE & DISCARD FUNCTIONALITY ====================
 function initializeSaveAndDiscardFunctionality() {

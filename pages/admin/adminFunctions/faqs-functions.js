@@ -247,4 +247,3 @@ async function updateFAQ(id, question, answer) {
 window.addEventListener("DOMContentLoaded", getAllFAQS);
 
 window.toggleFAQStatus = toggleFAQStatus;
-window.getAllFAQS = getAllFAQS;

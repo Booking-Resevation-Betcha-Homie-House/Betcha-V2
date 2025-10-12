@@ -787,7 +787,7 @@ function populatePropertyImages(photoLinks) {
 }
 
 // Create image element with proper attributes
-function createImage/imageslassName) {
+function createImageElement(src, className) {
     const img = document.createElement('img');
     img.src = src;
     img.alt = 'Property photo';
@@ -1796,7 +1796,7 @@ window.updateCalendarLegend = updateCalendarLegend;
 window.initializeCalendar = initializeCalendar;
 
 // Navigation and Page Functions
-window.goToEditPage = goT/images
+window.goToEditPage = goToEditPage;
 window.initializePage = initializePage;
 window.initializeEditButton = initializeEditButton;
 window.initializeDeleteButton = initializeDeleteButton;

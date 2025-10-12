@@ -875,9 +875,6 @@ async function fetchAndRenderBookings() {
     }
 }
 
-// Make fetchAndRenderBookings globally accessible for HTML onclick handlers
-window.fetchAndRenderBookings = fetchAndRenderBookings;
-
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🚀 My Bookings page loaded');

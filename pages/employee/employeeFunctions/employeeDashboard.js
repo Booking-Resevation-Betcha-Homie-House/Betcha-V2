@@ -964,8 +964,3 @@ window.showDashboardSkeleton = showDashboardSkeleton;
 window.hideDashboardSkeleton = hideDashboardSkeleton;
 window.simulateDashboardLoading = simulateDashboardLoading;
 window.loadDashboardWithSkeleton = loadDashboardWithSkeleton;
-
-// Export functions for HTML onclick handlers
-window.loadAndPopulateTickets = loadAndPopulateTickets;
-window.loadAndPopulateTransactions = loadAndPopulateTransactions;
-window.loadAndPopulateTodayCheckins = loadAndPopulateTodayCheckins;

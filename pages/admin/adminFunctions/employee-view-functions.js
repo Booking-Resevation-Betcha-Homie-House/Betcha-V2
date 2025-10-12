@@ -219,7 +219,7 @@ async function populateAssignedProperties(properties) {
 			
 			// If still no image found, use default
 			if (!propertyImage) {
-				propertyImage = '/images/unit01.jpg';
+				propertyImage = '/public/images/unit01.jpg';
 			}
 			
 			console.log('Selected image for ' + property.name + ':', propertyImage); // Debug log
@@ -238,7 +238,7 @@ async function populateAssignedProperties(properties) {
 						<img src="${finalImagePath}" 
 							class="w-full h-full object-cover" 
 							alt="${property.name}"
-							onerror="this.src='/images/unit01.jpg'"/>
+							onerror="this.src='/public/images/unit01.jpg'"/>
 						<div class="absolute inset-0 bg-black/20 rounded-xl"></div>
 					</div>
 

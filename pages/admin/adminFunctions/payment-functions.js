@@ -334,4 +334,3 @@ document.addEventListener('DOMContentLoaded', function() {
 
 window.deletePayment = deletePayment;
 window.editPayment = editPayment;
-window.loadPaymentMethods = loadPaymentMethods;
