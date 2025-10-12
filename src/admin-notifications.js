@@ -78,6 +78,23 @@ document.addEventListener("DOMContentLoaded", () => {
         wrapper.dataset.amountRefund = n.amountRefund != null ? String(n.amountRefund) : '';
         wrapper.dataset.mode = n.modeOfRefund || n.mode || '';
         wrapper.dataset.number = n.numberEwalletBank || n.number || '';
+        
+        // Debug log for refund amount from API
+        if ((n.category || '').toLowerCase() === 'cancellation request') {
+            console.log('💰 NOTIFICATION REFUND DATA:', {
+                notificationId: n._id,
+                category: n.category,
+                amountRefund: n.amountRefund,
+                amountRefundType: typeof n.amountRefund,
+                stringified: String(n.amountRefund),
+                modeOfRefund: n.modeOfRefund,
+                mode: n.mode,
+                numberEwalletBank: n.numberEwalletBank,
+                number: n.number,
+                transNo: n.transNo,
+                fullNotification: n
+            });
+        }
         // Normalize bookingId to a plain string id
         (function() {
             try {
@@ -124,9 +141,18 @@ document.addEventListener("DOMContentLoaded", () => {
                     cModal.dataset.notificationId = wrapper.dataset.id || '';
                     cModal.dataset.bookingId = wrapper.dataset.bookingId || '';
                     cModal.dataset.fromId = wrapper.dataset.fromId || '';
+                    cModal.dataset.amountRefund = wrapper.dataset.amountRefund || '';
                     
-
-                    
+                    console.log('🔍 MODAL DATA EXTRACTION:', {
+                        source: 'notification wrapper',
+                        notificationId: wrapper.dataset.id,
+                        bookingId: wrapper.dataset.bookingId,
+                        refundAmount: wrapper.dataset.amountRefund,
+                        transNo: wrapper.dataset.transNo,
+                        mode: wrapper.dataset.mode,
+                        number: wrapper.dataset.number,
+                        wrapperDataset: wrapper.dataset
+                    });
 
                     
                     const sender = cModal.querySelector('#notifSender');
@@ -144,6 +170,13 @@ document.addEventListener("DOMContentLoaded", () => {
                     if (amount) amount.textContent = wrapper.dataset.amountRefund || '';
                     if (mode) mode.textContent = wrapper.dataset.mode || '';
                     if (number) number.textContent = wrapper.dataset.number || '';
+                    
+                    console.log('💰 REFUND AMOUNT DISPLAY:', {
+                        amountElement: amount,
+                        displayedValue: amount?.textContent,
+                        originalValue: wrapper.dataset.amountRefund,
+                        modalDataset: cModal.dataset.amountRefund
+                    });
 
                     // Fallbacks for templates without explicit ids
                     // 1) Transaction no. title line
@@ -358,6 +391,18 @@ document.addEventListener("DOMContentLoaded", () => {
     window.fetchNotifications = fetchNotifications;
 });
 
+// Make admin notification functions globally available
+window.AdminNotifications = {
+    updateNotificationStatus,
+    updateBookingRefundAmount,
+    cancelBooking,
+    handleCancellationRequest,
+    guestCancllationNotification,
+    showNotificationSuccess,
+    showNotificationError,
+    markAsReadInUI
+};
+
 // Initialize tabs within a specific notification container
 function initializeScopedTabs(container) {
     if (!container) return;
@@ -520,6 +565,69 @@ async function updateNotificationStatus(notifId, statusRejection) {
     }
 }
 
+// Update booking refund amount function
+async function updateBookingRefundAmount(bookingId, refundAmount) {
+    try {
+        if (!bookingId) {
+            throw new Error('Booking ID is required');
+        }
+        
+        if (refundAmount === null || refundAmount === undefined) {
+            throw new Error('Refund amount is required');
+        }
+        
+        // Use the correct refund approval endpoint
+        const url = `${window.API_BASE}/booking/refund/toggle-approval/${bookingId}`;
+        const body = { refundAmount: refundAmount };
+
+        console.log('🔄 REFUND API CALL - Starting:', {
+            url: url,
+            bookingId: bookingId,
+            refundAmount: refundAmount,
+            refundAmountType: typeof refundAmount,
+            body: body,
+            timestamp: new Date().toISOString()
+        });
+        
+        const response = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+        
+        console.log('📡 REFUND API RESPONSE:', {
+            status: response.status,
+            statusText: response.statusText,
+            ok: response.ok,
+            headers: Object.fromEntries(response.headers.entries())
+        });
+        
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => 'Unknown error');
+            console.error('❌ REFUND API ERROR:', {
+                status: response.status,
+                statusText: response.statusText,
+                errorText: errorText
+            });
+            throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('✅ REFUND API SUCCESS:', {
+            result: result,
+            message: 'Booking refund amount updated successfully'
+        });
+        
+        return result;
+        
+    } catch (error) {
+        console.error('❌ Error updating booking refund amount:', error);
+        throw error;
+    }
+}
+
 // Cancel booking function
 async function cancelBooking(bookingId) {
     try {
@@ -530,6 +638,12 @@ async function cancelBooking(bookingId) {
         const url = `${window.API_BASE}/booking/update-status/${bookingId}`;
         const body = { status: 'Cancel' };
 
+        console.log('🔄 CANCEL BOOKING API CALL:', {
+            url: url,
+            method: 'PATCH',
+            body: body,
+            timestamp: new Date().toISOString()
+        });
         
         const response = await fetch(url, {
             method: 'PATCH',
@@ -549,14 +663,22 @@ async function cancelBooking(bookingId) {
         // Log booking cancellation audit
         try {
             if (window.AuditTrailFunctions) {
-                // Get user ID from localStorage - try multiple possible keys
-                const userId = localStorage.getItem('adminId') || 
+                // Try multiple sources for user data
+                const userData = JSON.parse(localStorage.getItem('userData') || '{}');
+                
+                // Check various localStorage keys for user ID
+                const userId = userData._id || 
+                              userData.userId || 
+                              userData.user_id || 
                               localStorage.getItem('userId') || 
                               localStorage.getItem('userID') || 
-                              localStorage.getItem('currentUser');
-                
-                // Get user type from localStorage or default to Admin
-                let userType = localStorage.getItem('userType') || 
+                              localStorage.getItem('adminId') || 
+                              localStorage.getItem('currentUser') || 
+                              'unknown';
+                              
+                let userType = userData.userType || 
+                              userData.role || 
+                              localStorage.getItem('userRole') || 
                               localStorage.getItem('role') || 
                               'admin';
                 
@@ -571,12 +693,7 @@ async function cancelBooking(bookingId) {
                     userType = 'Admin'; // Default fallback
                 }
                 
-                // Only create audit trail if we have a valid userId
-                if (userId) {
-                    await window.AuditTrailFunctions.logBookingCancellation(userId, userType);
-                } else {
-                    console.warn('No valid user ID found for audit trail');
-                }
+                await window.AuditTrailFunctions.logBookingCancellation(userId, userType);
             }
         } catch (auditError) {
             console.error('Audit trail error:', auditError);
@@ -607,7 +724,35 @@ async function handleCancellationRequest(notifId, bookingId, action) {
                 throw new Error('Booking ID is required when accepting cancellation');
             }
             
+            // Step 1: Update notification status to "Complete"
             const notifResult = await updateNotificationStatus(notifId, 'Complete');
+            
+            // Step 2: Get refund amount from notification data
+            const cancelModal = document.getElementById('cancelModal');
+            const refundAmount = cancelModal?.dataset.amountRefund;
+            
+            console.log('🔄 REFUND AMOUNT DEBUG:', {
+                rawRefundAmount: refundAmount,
+                type: typeof refundAmount,
+                parsedFloat: parseFloat(refundAmount),
+                isNaN: isNaN(parseFloat(refundAmount)),
+                modalDataset: cancelModal?.dataset,
+                bookingId: bookingId
+            });
+            
+            // Step 3: Update booking refund amount using correct endpoint
+            if (refundAmount && !isNaN(parseFloat(refundAmount))) {
+                console.log('✅ Refund amount is valid, updating booking refund...');
+                await updateBookingRefundAmount(bookingId, parseFloat(refundAmount));
+            } else {
+                console.warn('⚠️ Refund amount is invalid or missing:', {
+                    refundAmount,
+                    condition1: !!refundAmount,
+                    condition2: !isNaN(parseFloat(refundAmount))
+                });
+            }
+            
+            // Step 4: Cancel the booking
             const bookingResult = await cancelBooking(bookingId);
             
             return {
@@ -813,18 +958,57 @@ function initializeStaticModalButtons() {
                 approveBtn.disabled = true;
                 approvelbl.textContent = 'Processing...';
                 
-                // Handle the complete cancellation workflow
-                await handleCancellationRequest(notifId, bookingId, 'accept');
-                
-                // Close the modal
-                const closeBtn = modal.querySelector('[data-close-modal]');
-                if (closeBtn) {
-                    closeBtn.click();
-                }
-                
-                // Refresh notifications to update the UI
-                if (typeof window.fetchNotifications === 'function') {
-                    window.fetchNotifications();
+                // Instead of immediately processing, open the reason modal first
+                // Store the data needed for processing later
+                const cancelReqModal = document.getElementById('cancelReqModal');
+                if (cancelReqModal) {
+                    // Transfer the data to the reason modal
+                    cancelReqModal.dataset.notificationId = notifId;
+                    cancelReqModal.dataset.bookingId = bookingId;
+                    cancelReqModal.dataset.action = 'approve';
+                    
+                    // Update modal labels for approval context
+                    const reasonLabel = cancelReqModal.querySelector('label[for="input-lpc-subtitle"]');
+                    const sendButton = cancelReqModal.querySelector('#guestMsgBtn span');
+                    const textarea = cancelReqModal.querySelector('#input-lpc-subtitle');
+                    
+                    if (reasonLabel) reasonLabel.textContent = 'Approval Reason:';
+                    if (sendButton) sendButton.textContent = 'Approve & Notify';
+                    if (textarea) {
+                        textarea.placeholder = 'Enter reason for approving the cancellation...';
+                        textarea.value = ''; // Clear any previous content
+                    }
+                    
+                    // Get booking details to show guest name in the reason modal
+                    try {
+                        const bookingResponse = await fetch(`${window.API_BASE}/booking/${bookingId}`);
+                        if (bookingResponse.ok) {
+                            const bookingData = await bookingResponse.json();
+                            const booking = bookingData.booking || bookingData.data;
+                            
+                            if (booking && booking.guestName) {
+                                const guestNameSpan = cancelReqModal.querySelector('p span');
+                                if (guestNameSpan) {
+                                    guestNameSpan.textContent = booking.guestName;
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.warn('Could not fetch guest name:', error);
+                    }
+                    
+                    // Close the current cancelModal
+                    const closeBtn = modal.querySelector('[data-close-modal]');
+                    if (closeBtn) {
+                        closeBtn.click();
+                    }
+                    
+                    // Open the reason modal
+                    setTimeout(() => {
+                        cancelReqModal.classList.remove('hidden');
+                    }, 300); // Small delay to ensure cancelModal closes first
+                } else {
+                    console.error('cancelReqModal not found');
                 }
                 
 
@@ -970,13 +1154,95 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 // Disable button during processing
                 guestMsgBtn.disabled = true;
-                guestMsgBtn.textContent = 'Sending...';
+                guestMsgBtn.textContent = 'Processing...';
                 
-                // Send guest notification
-                await guestCancllationNotification();
+                const reqModal = document.getElementById('cancelReqModal');
+                const action = reqModal?.dataset.action;
+                
+                // Check if this is an approval workflow or just a regular guest message
+                if (action === 'approve') {
+                    // This is from the approval flow - process the cancellation with reason
+                    const notifId = reqModal.dataset.notificationId;
+                    const bookingId = reqModal.dataset.bookingId;
+                    
+                    if (!notifId || !bookingId) {
+                        throw new Error('Missing notification or booking ID for approval');
+                    }
+                    
+                    // Get the reason from textarea
+                    const messageTextarea = document.getElementById('input-lpc-subtitle');
+                    const reason = messageTextarea?.value.trim() || 'Cancellation approved by admin';
+                    
+                    console.log('🔄 Processing approval with reason:', { notifId, bookingId, reason });
+                    
+                    // Process the complete cancellation workflow
+                    await handleCancellationRequest(notifId, bookingId, 'accept');
+                    
+                    // Send custom approval notification to guest with the provided reason
+                    try {
+                        const bookingResponse = await fetch(`${window.API_BASE}/booking/${bookingId}`);
+                        if (bookingResponse.ok) {
+                            const bookingData = await bookingResponse.json();
+                            const booking = bookingData.booking || bookingData.data;
+                            
+                            if (booking && booking.guestId) {
+                                const adminId = localStorage.getItem('adminId') || localStorage.getItem('userId') || 'admin-user';
+                                const adminName = localStorage.getItem('adminName') || 
+                                    `${localStorage.getItem('firstName') || 'Admin'} ${localStorage.getItem('lastName') || 'User'}`.trim();
+                                
+                                const approvalPayload = {
+                                    fromId: adminId,
+                                    fromName: adminName,
+                                    fromRole: 'admin',
+                                    toId: booking.guestId,
+                                    toName: booking.guestName || 'Guest',
+                                    toRole: 'guest',
+                                    message: `Your cancellation request has been approved. ${reason}`
+                                };
+                                
+                                await fetch(`${window.API_BASE}/notify/message`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(approvalPayload)
+                                });
+                                
+                                console.log('✅ Approval notification with reason sent to guest');
+                            }
+                        }
+                    } catch (notifError) {
+                        console.warn('Warning: Failed to send approval notification to guest:', notifError);
+                    }
+                    
+                    // Reset modal labels back to original state
+                    const reasonLabel = reqModal.querySelector('label[for="input-lpc-subtitle"]');
+                    const sendButton = reqModal.querySelector('#guestMsgBtn span');
+                    const textarea = reqModal.querySelector('#input-lpc-subtitle');
+                    
+                    if (reasonLabel) reasonLabel.textContent = 'Reason:';
+                    if (sendButton) sendButton.textContent = 'Send';
+                    if (textarea) {
+                        textarea.placeholder = 'Enter subtitle here...';
+                        textarea.value = ''; // Clear content
+                    }
+                    
+                    // Clear the modal data
+                    reqModal.dataset.action = '';
+                    reqModal.dataset.notificationId = '';
+                    reqModal.dataset.bookingId = '';
+                    
+                    // Refresh notifications to update the UI
+                    if (typeof window.fetchNotifications === 'function') {
+                        window.fetchNotifications();
+                    }
+                    
+                    showNotificationSuccess('Cancellation approved and notification sent to guest');
+                    
+                } else {
+                    // Regular guest messaging (original functionality)
+                    await guestCancllationNotification();
+                }
 
                 // Close the send message modal on success
-                const reqModal = document.getElementById('cancelReqModal');
                 const closeBtn = reqModal?.querySelector('[data-close-modal]');
                 if (closeBtn) {
                     closeBtn.click();
@@ -985,7 +1251,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 
             } catch (error) {
-                console.error('❌ Error sending guest notification:', error);
+                console.error('❌ Error processing request:', error);
+                showNotificationError(`Failed to process request: ${error.message}`);
             } finally {
                 // Re-enable button
                 guestMsgBtn.disabled = false;
