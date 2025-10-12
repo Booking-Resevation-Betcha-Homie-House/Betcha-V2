@@ -1678,17 +1678,79 @@ function showSuccessMessage(message) {
 
 // (Removed) window.PropertyView aggregate export: not referenced elsewhere
 
-// Make amenity functions globally available for property-edit-functions-clean.js
+// ===== GLOBAL EXPORTS FOR MODULE COMPATIBILITY =====
+// Make all major functions globally available for use with ES6 modules
+
+// Core Data Functions
+window.fetchPropertyData = fetchPropertyData;
+window.populatePropertyData = populatePropertyData;
+window.populateBasicInfo = populateBasicInfo;
+window.populatePropertyImages = populatePropertyImages;
+window.populateAmenities = populateAmenities;
+window.populateReports = populateReports;
+
+// Utility Functions
+window.extractCoordinatesFromMapLink = extractCoordinatesFromMapLink;
+window.setupDirectionsButton = setupDirectionsButton;
+window.loadMapPreview = loadMapPreview;
+window.updateArchiveButtonUI = updateArchiveButtonUI;
+window.createImageElement = createImageElement;
+
+// Amenity Functions
 window.getAmenityDisplayInfo = getAmenityDisplayInfo;
 window.getAmenityIcon = getAmenityIcon;
+window.renderAmenities = renderAmenities;
+window.populateCategorizedAmenities = populateCategorizedAmenities;
+window.populateOtherAmenities = populateOtherAmenities;
+window.categorizeAmenities = categorizeAmenities;
+window.clearAllAmenities = clearAllAmenities;
+window.resetAmenitiesPopulatedFlag = resetAmenitiesPopulatedFlag;
 
-// Make reports functions globally available
+// Report Functions
 window.setReportsActiveTab = setReportsActiveTab;
 window.showReportDetails = showReportDetails;
 window.changeReportStatus = changeReportStatus;
+window.createReportElement = createReportElement;
+window.createNoReportsElement = createNoReportsElement;
+window.initializeReportsTabs = initializeReportsTabs;
 
-// Make edit page function globally available
+// Calendar Functions
+window.fetchAndDisplayCalendarData = fetchAndDisplayCalendarData;
+window.updateCalendarWithDates = updateCalendarWithDates;
+window.updateCalendarLegend = updateCalendarLegend;
+window.initializeCalendar = initializeCalendar;
+
+// Navigation and Page Functions
 window.goToEditPage = goToEditPage;
+window.initializePage = initializePage;
+window.initializeEditButton = initializeEditButton;
+window.initializeDeleteButton = initializeDeleteButton;
+window.initializeReadMoreToggle = initializeReadMoreToggle;
+
+// Toast and Message Functions
+window.showToast = showToast;
+window.showErrorMessage = showErrorMessage;
+window.showSuccessMessage = showSuccessMessage;
+
+// Gallery Functions
+window.populateGalleryModal = populateGalleryModal;
+window.openFullSizeImage = openFullSizeImage;
+
+// Maintenance Modal Functions
+window.openMaintenanceModal = openMaintenanceModal;
+window.closeMaintenanceModal = closeMaintenanceModal;
+window.setQuickMaintenanceDate = setQuickMaintenanceDate;
+window.loadCurrentMaintenanceDates = loadCurrentMaintenanceDates;
+window.displayCurrentMaintenanceDates = displayCurrentMaintenanceDates;
+window.removeMaintenanceDate = removeMaintenanceDate;
+window.saveMaintenanceDates = saveMaintenanceDates;
+window.updateMaintenanceDates = updateMaintenanceDates;
+
+// Constants and Configuration
+window.API_BASE = API_BASE;
+window.AMENITY_META = AMENITY_META;
+window.CATEGORIES = CATEGORIES;
+window.CATEGORY_TO_CONTAINER_ID = CATEGORY_TO_CONTAINER_ID;
 
 // Function to populate gallery modal with property images
 function populateGalleryModal(propertyImages) {
