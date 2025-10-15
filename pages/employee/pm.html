@@ -612,8 +612,8 @@
 
     <!-- Complete Booking Modal -->
     <div id="checkoutModal" class="modal fixed inset-0 bg-black/50 bg-opacity-50 flex items-center justify-center hidden z-50">
-      <div class="w-full h-full bg-background px-5 pt-3 md:rounded-3xl relative modal-animate overflow-hidden flex flex-col
-        md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80%]">
+      <div class="w-full h-full bg-background px-5 pt-3 md:rounded-3xl relative modal-animate overflow-hidden
+        md:max-w-lg lg:max-w-xl xl:max-w-3xl md:h-fit md:max-h-[80vh]">
         <div class="flex justify-end w-full">
             <button data-close-modal class="btn-close group">
                 <span>
@@ -624,7 +624,10 @@
                 </span>
             </button>
         </div>
-        <div class="flex flex-col space-y-5 px-5 mb-5 flex-1">
+        
+        <!-- Content with scroll -->
+        <div class="px-5 pb-20 overflow-y-auto max-h-[calc(80vh-140px)]">
+          <div class="space-y-5">
           <div class="mb-5">
             <h2 class="text-xl font-bold text-primary-text font-manrope">End Booking</h2>
             <p class="text-sm text-neutral-500 mt-1">Complete the checkout process and add any necessary remarks</p>
@@ -706,17 +709,20 @@
                 <p class="text-xs text-neutral-400 mt-1">This will create a property report for maintenance or management review.</p>
               </div>
           </div>
+          </div>
         </div>
-        <div class="flex flex-col md:flex-row items-center py-5 gap-3">
+        
+        <!-- Fixed buttons at bottom -->
+        <div class="absolute bottom-0 left-0 right-0 flex flex-col md:flex-row items-center px-5 py-5 gap-3 bg-background border-t border-neutral-200">
           <button type="button" data-close-modal
-          class=" w-full btn rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden shadow-s order-2 md:order-1
+          class="w-full btn rounded-full bg-neutral-200 flex items-center justify-center overflow-hidden shadow-s order-2 md:order-1
           hover:cursor-pointer active:scale-95 
           transition-all duration-300 ease-in-out">
               <span class="text-primary-text text-base  
               md:text-lg">Close</span>
           </button>
           <button type="button"
-          class=" w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-sm order-1 md:order-2
+          class="w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden shadow-sm order-1 md:order-2
           hover:cursor-pointer active:scale-95
           transition-all duration-300 ease-in-out">
               <span class="text-white text-base  
