@@ -2455,62 +2455,100 @@ function initializeCalendarBookings() {
                 transNo: bookingCard.dataset.transNo
             };
             
-            
-            // Populate and show the modal
-            populateViewBookingModal(bookingData);
-            
-            // Manually open the modal
-            const modal = document.getElementById('viewBookingModal');
-            if (modal) {
-                
-                modal.classList.remove('hidden');
-                document.body.classList.add('modal-open');
-                // Attach for cancel flow
-                const cancelBtn = modal.querySelector('[data-modal-target="cancelBookingModal"]');
-                if (cancelBtn) {
-                    // Persist booking context globally for downstream modals
-                    try {
-                        if (bookingData.bookingId) localStorage.setItem('currentBookingId', bookingData.bookingId);
-                        if (bookingData.transNo) localStorage.setItem('currentTransNo', bookingData.transNo);
-                        if (bookingData.guestId) localStorage.setItem('currentGuestId', bookingData.guestId);
-                    } catch(_) {}
-                    if (bookingData.transNo) cancelBtn.setAttribute('data-trans-no', bookingData.transNo);
-                    if (bookingData.guestId) cancelBtn.setAttribute('data-guest-id', bookingData.guestId);
-                    
+            // Fetch detailed booking info to check for transfer status
+            checkBookingTransferStatus(bookingData);
+        }
+    });
+}
 
-                    // If details are missing, fetch from /booking/{id} before user opens cancel modal
-                    (async () => {
-                        try {
-                            if (!cancelBtn.getAttribute('data-trans-no') || !cancelBtn.getAttribute('data-guest-id')) {
-                                const id = bookingData.bookingId;
-                                if (id) {
-                                    const resp = await fetch(`${API_BASE_URL}/booking/${id}`, { method: 'GET', headers: { 'Content-Type': 'application/json' } });
-                                    if (resp.ok) {
-                                        const data = await resp.json();
-                                        const b = data?.booking || {};
-                                        if (b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo) {
-                                            const t = b.transNo || b?.reservation?.paymentNo || b?.package?.paymentNo;
-                                            cancelBtn.setAttribute('data-trans-no', t);
-                                        }
-                                        if (b.guestId || b?.guest?.id) {
-                                            cancelBtn.setAttribute('data-guest-id', b.guestId || b?.guest?.id);
-                                        }
-                                        // For completeness store ewallet
-                                        if (b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets) {
-                                            cancelBtn.setAttribute('data-ewallet', b?.reservation?.numberBankEwallets || b?.package?.numberBankEwallets);
-                                        }
-                                        
-                                    }
-                                }
-                            }
-                        } catch (e) {
-                            console.warn('ViewBooking: enrichment fetch failed', e);
-                        }
-                    })();
+// Function to check booking transfer status and populate modal
+async function checkBookingTransferStatus(bookingData) {
+    try {
+        console.log('🔍 Checking transfer status for booking:', bookingData.bookingId);
+        
+        // Make API call to get detailed booking information
+        const response = await fetch(`${API_BASE_URL}/booking/${bookingData.bookingId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to fetch booking details: ${response.status}`);
+        }
+
+        const data = await response.json();
+        const booking = data.booking || {};
+        
+        console.log('📋 Booking details received:', booking);
+        
+        // Check if booking has transfer information
+        const transferInfo = booking.transfer || null;
+        const isTransferred = transferInfo && transferInfo.isTransferred === true;
+        
+        console.log('🔄 Transfer status:', { isTransferred, transferInfo });
+        
+        // Merge the transfer information with the original booking data
+        const enhancedBookingData = {
+            ...bookingData,
+            transferInfo: transferInfo,
+            isTransferred: isTransferred,
+            transferredToProperty: isTransferred ? transferInfo.propertyName : null
+        };
+        
+        // Populate and show the modal with enhanced data
+        populateViewBookingModal(enhancedBookingData);
+        
+        // Manually open the modal
+        const modal = document.getElementById('viewBookingModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('modal-open');
+            
+            // Attach for cancel flow
+            const cancelBtn = modal.querySelector('[data-modal-target="cancelBookingModal"]');
+            if (cancelBtn) {
+                // Persist booking context globally for downstream modals
+                try {
+                    if (bookingData.bookingId) localStorage.setItem('currentBookingId', bookingData.bookingId);
+                    if (bookingData.transNo) localStorage.setItem('currentTransNo', bookingData.transNo);
+                    if (bookingData.guestId) localStorage.setItem('currentGuestId', bookingData.guestId);
+                } catch(_) {}
+                
+                // Set attributes from original booking data
+                if (bookingData.transNo) cancelBtn.setAttribute('data-trans-no', bookingData.transNo);
+                if (bookingData.guestId) cancelBtn.setAttribute('data-guest-id', bookingData.guestId);
+                
+                // Store detailed booking data from API response
+                if (booking.transNo || booking?.reservation?.paymentNo || booking?.package?.paymentNo) {
+                    const transNo = booking.transNo || booking?.reservation?.paymentNo || booking?.package?.paymentNo;
+                    cancelBtn.setAttribute('data-trans-no', transNo);
+                    localStorage.setItem('currentTransNo', transNo);
+                }
+                if (booking.guestId || booking?.guest?.id) {
+                    const guestId = booking.guestId || booking?.guest?.id;
+                    cancelBtn.setAttribute('data-guest-id', guestId);
+                    localStorage.setItem('currentGuestId', guestId);
+                }
+                // For completeness store ewallet
+                if (booking?.reservation?.numberBankEwallets || booking?.package?.numberBankEwallets) {
+                    const ewallet = booking?.reservation?.numberBankEwallets || booking?.package?.numberBankEwallets;
+                    cancelBtn.setAttribute('data-ewallet', ewallet);
                 }
             }
         }
-    });
+        
+    } catch (error) {
+        console.error('❌ Error fetching booking transfer status:', error);
+        
+        // Fallback: show modal with original data
+        populateViewBookingModal(bookingData);
+        
+        const modal = document.getElementById('viewBookingModal');
+        if (modal) {
+            modal.classList.remove('hidden');
+            document.body.classList.add('modal-open');
+        }
+    }
 }
 
 // PM-Specific Single-Selection Calendar Function
@@ -3235,6 +3273,24 @@ function populateViewBookingModal(bookingData) {
     const checkOutTime = bookingData.checkOutTime || bookingData.timeOut || '11:00 AM';
     const bookingId = bookingData.bookingId || bookingData._id || bookingData.id || '';
     
+    // Check for transfer information
+    const isTransferred = bookingData.isTransferred || false;
+    const transferredToProperty = bookingData.transferredToProperty || null;
+    
+    console.log('🔄 Modal display - Transfer info:', { isTransferred, transferredToProperty });
+    
+    // Build transfer info HTML if applicable
+    const transferInfoHTML = isTransferred && transferredToProperty ? `
+        <!-- Transfer Information -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+            <p class="text-xs text-blue-600 font-medium uppercase tracking-wide mb-1">Transfer Information</p>
+            <p class="text-blue-800 font-semibold">Transferred to: ${transferredToProperty}</p>
+        </div>
+        
+        <!-- Divider -->
+        <hr class="border-neutral-100">
+    ` : '';
+    
     // Rebuild the modal content
     modalContent.innerHTML = `
         <!-- Property Name -->
@@ -3245,6 +3301,8 @@ function populateViewBookingModal(bookingData) {
 
         <!-- Divider -->
         <hr class="border-neutral-100">
+
+        ${transferInfoHTML}
 
         <!-- Guest Info -->
         <div>
