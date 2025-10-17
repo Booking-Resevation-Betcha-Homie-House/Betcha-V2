@@ -385,13 +385,50 @@ function initializePropertyMonitoringFeatures() {
                                     if (typeof b.reservationFee !== 'undefined') localStorage.setItem('amountRefund', String(b.reservationFee || 0));
                                     const mode = b?.reservation?.modeOfPayment || b?.package?.modeOfPayment || '';
                                     if (mode) localStorage.setItem('modeOfRefund', mode);
+                                    
+                                    // Handle transfer button visibility and state based on booking status
+                                    const transferBtn = document.getElementById('transfer-booking-btn');
+                                    const bookingStatus = b.status || '';
+                                    console.log('📊 Booking status for transfer check:', bookingStatus);
+                                    
+                                    if (transferBtn) {
+                                        // DEBUGGING: Transfer button filtering disabled - always enable
+                                        transferBtn.disabled = false;
+                                        transferBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                                        transferBtn.classList.add('hover:bg-neutral-500');
+                                        transferBtn.removeAttribute('title');
+                                        transferBtn.removeAttribute('data-tooltip');
+                                        console.log('🔧 DEBUG: Transfer button enabled for all statuses. Current status:', bookingStatus);
+                                        
+                                        
+                                        if (bookingStatus.toLowerCase() === 'checked-in') {
+                                            // Enable transfer for checked-in bookings
+                                            transferBtn.disabled = false;
+                                            transferBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+                                            transferBtn.classList.add('hover:bg-neutral-500');
+                                            transferBtn.removeAttribute('title');
+                                            transferBtn.removeAttribute('data-tooltip');
+                                            console.log('✅ Transfer button enabled for checked-in booking');
+                                        } else {
+                                            // Disable transfer for other statuses
+                                            transferBtn.disabled = true;
+                                            transferBtn.classList.add('opacity-50', 'cursor-not-allowed');
+                                            transferBtn.classList.remove('hover:bg-neutral-500');
+                                            transferBtn.setAttribute('title', 'Only checked-in bookings can be transferred');
+                                            transferBtn.setAttribute('data-tooltip', 'Only checked-in bookings can be transferred');
+                                            console.log('❌ Transfer button disabled for status:', bookingStatus);
+                                        }
+                                        
+                                    }
+                                    
                                     console.log('CancelModal: prepared context from booking API', {
                                         bookingId: idToFetch,
                                         transNo: modal.dataset.transNo || null,
                                         guestId: modal.dataset.guestId || null,
                                         ewallet: localStorage.getItem('ewalletNumber') || null,
                                         amountRefund: localStorage.getItem('amountRefund') || null,
-                                        modeOfRefund: localStorage.getItem('modeOfRefund') || null
+                                        modeOfRefund: localStorage.getItem('modeOfRefund') || null,
+                                        bookingStatus: bookingStatus
                                     });
                                 }
                             }
@@ -430,6 +467,416 @@ function initializePropertyMonitoringFeatures() {
                 });
         }
     });
+
+    // Load available properties when transfer modal is opened
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('[data-modal-target="transferPropertyModal"]')) {
+            resetTransferModal();
+            loadAvailablePropertiesForTransfer(e.target);
+        }
+    });
+
+    // Reset transfer modal when closed
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('[data-close-modal]')) {
+            const modal = e.target.closest('#transferPropertyModal');
+            if (modal) {
+                resetTransferModal();
+            }
+        }
+    });
+
+    // Handle transfer booking confirmation
+    document.addEventListener('click', function(e) {
+        const transferBtn = e.target.closest('#confirm-transfer-btn');
+        if (transferBtn && !transferBtn.disabled) {
+            console.log('🔄 Transfer button clicked');
+            e.preventDefault();
+            e.stopPropagation();
+            confirmBookingTransfer();
+        }
+    });
+
+    // Handle transfer modal opening (check if booking can be transferred)
+    document.addEventListener('click', function(e) {
+        const transferModalBtn = e.target.closest('#transfer-booking-btn');
+        if (transferModalBtn && transferModalBtn.disabled) {
+            console.log('❌ Transfer blocked - booking not checked-in');
+            e.preventDefault();
+            e.stopPropagation();
+            showTransferTooltip(transferModalBtn);
+            return false;
+        }
+    });
+
+    // Initialize tooltip functionality for transfer button
+    initializeTransferTooltip();
+}
+
+// Function to reset transfer modal
+function resetTransferModal() {
+    const propertySelect = document.getElementById('select-transfer-property');
+    const confirmBtn = document.getElementById('confirm-transfer-btn');
+    const loadingDiv = document.getElementById('transfer-loading');
+    const errorDiv = document.getElementById('transfer-error');
+    const currentPropertySpan = document.getElementById('transfer-current-property');
+    const guestNameSpan = document.getElementById('transfer-guest-name');
+    const checkoutDateSpan = document.getElementById('transfer-checkout-date');
+
+    // Reset form elements
+    if (propertySelect) {
+        propertySelect.innerHTML = '<option value="" selected disabled>Select a property to transfer to</option>';
+        propertySelect.disabled = false;
+    }
+    
+    if (confirmBtn) {
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = `<span class="text-white text-base md:text-lg">Transfer Booking</span>`;
+    }
+
+    // Hide loading and error states
+    if (loadingDiv) loadingDiv.classList.add('hidden');
+    if (errorDiv) errorDiv.classList.add('hidden');
+
+    // Reset booking info
+    if (currentPropertySpan) currentPropertySpan.textContent = '-';
+    if (guestNameSpan) guestNameSpan.textContent = '-';
+    if (checkoutDateSpan) checkoutDateSpan.textContent = '-';
+
+    console.log('🔄 Transfer modal reset');
+}
+
+// Function to load available properties for transfer
+async function loadAvailablePropertiesForTransfer(triggerElement) {
+    try {
+        // Show loading state
+        const loadingDiv = document.getElementById('transfer-loading');
+        const errorDiv = document.getElementById('transfer-error');
+        const propertySelect = document.getElementById('select-transfer-property');
+        
+        if (loadingDiv) loadingDiv.classList.remove('hidden');
+        if (errorDiv) errorDiv.classList.add('hidden');
+        if (propertySelect) {
+            propertySelect.innerHTML = '<option value="" selected disabled>Loading available properties...</option>';
+            propertySelect.disabled = true;
+        }
+
+        // Get booking information from the trigger element or its data attributes
+        let bookingId = '';
+        let propertyCity = '';
+        let checkOut = '';
+        let propertyName = '';
+        let guestName = '';
+
+        // Try to get booking data from the trigger element or nearest container
+        const nearestContainer = triggerElement.closest('[data-booking-id]') || triggerElement.closest('.booking-element');
+        if (nearestContainer) {
+            bookingId = nearestContainer.getAttribute('data-booking-id') || 
+                       nearestContainer.getAttribute('data-id') || '';
+        }
+
+        // If no booking ID found, try to get from BookingContext or localStorage
+        if (!bookingId) {
+            bookingId = BookingContext.get().bookingId || 
+                       localStorage.getItem('currentBookingId') || 
+                       localStorage.getItem('selectedBookingId') || '';
+        }
+
+        if (!bookingId) {
+            throw new Error('No booking ID found');
+        }
+
+        console.log('🔄 Loading transfer properties for booking:', bookingId);
+
+        // Fetch booking details first to get property city and checkout date
+        const bookingResponse = await fetch(`${API_BASE_URL}/booking/${bookingId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (!bookingResponse.ok) {
+            throw new Error('Failed to fetch booking details');
+        }
+
+        const bookingData = await bookingResponse.json();
+        const booking = bookingData.booking || {};
+
+        // Extract property city and checkout date
+        propertyCity = booking.propertyCity || booking.city || '';
+        checkOut = booking.checkOut || '';
+        propertyName = booking.nameOfProperty || booking.propertyName || 'Unknown Property';
+        guestName = booking.nameOfGuest || booking.guestName || 'Unknown Guest';
+
+        // Update transfer modal with booking info
+        const currentPropertySpan = document.getElementById('transfer-current-property');
+        const guestNameSpan = document.getElementById('transfer-guest-name');
+        const checkoutDateSpan = document.getElementById('transfer-checkout-date');
+        
+        if (currentPropertySpan) currentPropertySpan.textContent = propertyName;
+        if (guestNameSpan) guestNameSpan.textContent = guestName;
+        if (checkoutDateSpan) checkoutDateSpan.textContent = formatDate(checkOut);
+
+        if (!propertyCity || !checkOut) {
+            throw new Error('Missing property city or checkout date');
+        }
+
+        // Format checkout date to YYYY-MM-DD (remove time)
+        const checkOutDate = new Date(checkOut);
+        const checkOutFormatted = `${checkOutDate.getFullYear()}-${String(checkOutDate.getMonth() + 1).padStart(2, '0')}-${String(checkOutDate.getDate()).padStart(2, '0')}`;
+
+        // Prepare the payload for the POST request
+        const payload = {
+            city: propertyCity,
+            CheckOut: checkOutFormatted
+        };
+
+        console.log('📊 Fetching properties for:', { city: propertyCity, checkOut: checkOutFormatted });
+        console.log('🔍 POST API Payload being sent:', JSON.stringify(payload, null, 2));
+        console.log('🌐 API Endpoint:', `${API_BASE_URL}/getProperty/filter/citydate`);
+
+        // Fetch available properties
+        const propertiesResponse = await fetch(`${API_BASE_URL}/getProperty/filter/citydate`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!propertiesResponse.ok) {
+            throw new Error('Failed to fetch available properties');
+        }
+
+        const propertiesData = await propertiesResponse.json();
+        console.log('📦 API Response:', propertiesData);
+        
+        const properties = propertiesData.availableProperties || [];
+
+        console.log('✅ Found available properties:', properties.length);
+        console.log('🏠 Properties list:', properties);
+
+        // Populate property dropdown
+        if (propertySelect) {
+            propertySelect.innerHTML = '<option value="" selected disabled>Select a property to transfer to</option>';
+            
+            if (properties.length === 0) {
+                propertySelect.innerHTML += '<option value="" disabled>No available properties found</option>';
+            } else {
+                properties.forEach(property => {
+                    const option = document.createElement('option');
+                    option.value = property.propertyId || property._id || property.id || '';
+                    
+                    // Truncate long property names and addresses for readability
+                    const propertyName = property.propertyName || property.name || property.title || 'Unnamed Property';
+                    const address = property.address || property.location || '';
+                    
+                    // Reasonable truncation - let CSS handle the overflow
+                    const truncatedName = propertyName.length > 30 ? propertyName.substring(0, 30) + '...' : propertyName;
+                    const truncatedAddress = address.length > 50 ? address.substring(0, 50) + '...' : address;
+                    
+                    option.textContent = `${truncatedName} - ${truncatedAddress}`;
+                    option.title = `${propertyName} - ${address}`; // Show full text on hover
+                    propertySelect.appendChild(option);
+                });
+            }
+            
+            propertySelect.disabled = false;
+
+            // Enable/disable confirm button based on selection
+            propertySelect.addEventListener('change', function() {
+                const confirmBtn = document.getElementById('confirm-transfer-btn');
+                if (confirmBtn) {
+                    confirmBtn.disabled = !this.value;
+                }
+            });
+        }
+
+        // Store booking data for transfer
+        const transferModal = document.getElementById('transferPropertyModal');
+        if (transferModal) {
+            transferModal.dataset.bookingId = bookingId;
+            transferModal.dataset.currentProperty = propertyName;
+            transferModal.dataset.guestName = guestName;
+            transferModal.dataset.checkoutDate = checkOut;
+            transferModal.dataset.guestId = booking.guestId || '';
+            
+            // Console log transfer modal data to verify values
+            console.log('📋 Transfer Modal Dataset Updated:', {
+                bookingId: transferModal.dataset.bookingId,
+                currentProperty: transferModal.dataset.currentProperty,
+                guestName: transferModal.dataset.guestName,
+                checkoutDate: transferModal.dataset.checkoutDate,
+                guestId: transferModal.dataset.guestId
+            });
+        }
+
+        // Ensure confirm button event listener is attached
+        const confirmBtn = document.getElementById('confirm-transfer-btn');
+        if (confirmBtn && !confirmBtn.hasAttribute('data-listener-attached')) {
+            confirmBtn.setAttribute('data-listener-attached', 'true');
+            confirmBtn.addEventListener('click', function(e) {
+                if (!this.disabled) {
+                    console.log('🔄 Direct transfer button clicked');
+                    e.preventDefault();
+                    e.stopPropagation();
+                    confirmBookingTransfer();
+                }
+            });
+            console.log('✅ Direct event listener attached to transfer button');
+        }
+
+        // Hide loading state
+        if (loadingDiv) loadingDiv.classList.add('hidden');
+
+    } catch (error) {
+        console.error('❌ Error loading available properties:', error);
+        
+        // Show error state
+        const loadingDiv = document.getElementById('transfer-loading');
+        const errorDiv = document.getElementById('transfer-error');
+        const propertySelect = document.getElementById('select-transfer-property');
+        
+        if (loadingDiv) loadingDiv.classList.add('hidden');
+        if (errorDiv) {
+            errorDiv.classList.remove('hidden');
+            const errorText = errorDiv.querySelector('p');
+            if (errorText) {
+                errorText.textContent = error.message || 'Failed to load available properties. Please try again.';
+            }
+        }
+        if (propertySelect) {
+            propertySelect.innerHTML = '<option value="" selected disabled>Error loading properties</option>';
+            propertySelect.disabled = true;
+        }
+    }
+}
+
+// Function to confirm booking transfer
+async function confirmBookingTransfer() {
+    console.log('🚀 confirmBookingTransfer function called');
+    try {
+        const transferModal = document.getElementById('transferPropertyModal');
+        const propertySelect = document.getElementById('select-transfer-property');
+        const confirmBtn = document.getElementById('confirm-transfer-btn');
+
+        if (!transferModal || !propertySelect || !confirmBtn) {
+            throw new Error('Transfer modal elements not found');
+        }
+
+        // Console log transfer modal data when reading it
+        console.log('📊 Reading Transfer Modal Data:', {
+            bookingId: transferModal.dataset.bookingId,
+            currentProperty: transferModal.dataset.currentProperty,
+            guestName: transferModal.dataset.guestName,
+            checkoutDate: transferModal.dataset.checkoutDate,
+            guestId: transferModal.dataset.guestId,
+            allDataset: transferModal.dataset
+        });
+
+        const bookingId = transferModal.dataset.bookingId;
+        const newPropertyId = propertySelect.value;
+        const checkoutDate = transferModal.dataset.checkoutDate;
+
+        if (!bookingId || !newPropertyId) {
+            throw new Error('Missing booking ID or selected property');
+        }
+
+        // Set loading state
+        confirmBtn.disabled = true;
+        confirmBtn.innerHTML = `
+            <div class="flex items-center justify-center">
+                <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
+                <span class="text-white text-base md:text-lg">Transferring...</span>
+            </div>
+        `;
+
+        // Format checkout date to YYYY-MM-DD
+        const formattedCheckoutDate = new Date(checkoutDate).toISOString().split('T')[0];
+
+        // Prepare the payload for the PATCH request
+        const payload = {
+            bookingId: bookingId,
+            transferToPropertyId: newPropertyId,
+            checkOut: formattedCheckoutDate
+        };
+
+        console.log('🔄 Transferring booking with payload:', JSON.stringify(payload, null, 2));
+        console.log('🌐 Transfer API Endpoint:', `${API_BASE_URL}/booking/transfer-property`);
+
+        // Call the transfer API
+        const transferResponse = await fetch(`${API_BASE_URL}/booking/transfer-property`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (!transferResponse.ok) {
+            const errorData = await transferResponse.json().catch(() => ({}));
+            throw new Error(errorData.message || `Transfer failed with status: ${transferResponse.status}`);
+        }
+
+        const transferResult = await transferResponse.json();
+        console.log('✅ Transfer successful:', transferResult);
+
+        // Get the new property name from the selected option
+        const selectedOption = propertySelect.options[propertySelect.selectedIndex];
+        const newPropertyName = selectedOption ? selectedOption.textContent.split(' - ')[0] : 'New Property';
+        const guestId = transferModal.dataset.guestId || '';
+        const guestName = transferModal.dataset.guestName || 'Guest';
+
+        // Send notification to guest about the transfer
+        if (guestId) {
+            try {
+                console.log('📧 Sending transfer notification to guest...');
+                await sendTransferNotificationToGuest(bookingId, guestId, newPropertyName, guestName);
+            } catch (notificationError) {
+                console.warn('⚠️ Failed to send notification to guest:', notificationError);
+                // Don't fail the whole process if notification fails
+            }
+        } else {
+            console.warn('⚠️ No guest ID available for transfer notification');
+        }
+
+        // Show success state
+        confirmBtn.innerHTML = `<span class="text-white text-base md:text-lg">Transfer Completed!</span>`;
+        
+        // Show success toast notification
+        if (typeof window.showToast === 'function') {
+            window.showToast(`Booking transferred successfully to ${newPropertyName}!`, 'success');
+        } else if (typeof showNotification === 'function') {
+            showNotification(`Booking transferred successfully to ${newPropertyName}`, 'success');
+        }
+
+        // Close modal after short delay
+        setTimeout(() => {
+            // Reset form and close modal
+            if (propertySelect) propertySelect.selectedIndex = 0;
+            confirmBtn.disabled = true;
+            confirmBtn.innerHTML = `<span class="text-white text-base md:text-lg">Transfer Booking</span>`;
+            
+            const closeBtn = transferModal.querySelector('[data-close-modal]');
+            if (closeBtn) closeBtn.click();
+            
+            // Refresh the current tab data
+            if (typeof loadTodaysCheckins === 'function') {
+                loadTodaysCheckins();
+            }
+        }, 1500);
+
+    } catch (error) {
+        console.error('❌ Error confirming transfer:', error);
+        
+        const confirmBtn = document.getElementById('confirm-transfer-btn');
+        if (confirmBtn) {
+            confirmBtn.disabled = false;
+            confirmBtn.innerHTML = `<span class="text-white text-base md:text-lg">Transfer Booking</span>`;
+        }
+
+        // Show error toast notification
+        if (typeof window.showToast === 'function') {
+            window.showToast(error.message || 'Failed to transfer booking', 'error');
+        } else if (typeof showNotification === 'function') {
+            showNotification(error.message || 'Failed to transfer booking', 'error');
+        }
+    }
 }
 
 // PM-Specific Tab Switching Function
@@ -1819,6 +2266,13 @@ window.populateCheckinTab = populateCheckinTab;
 window.populateCheckoutTab = populateCheckoutTab;
 window.populateCalendarBookings = populateCalendarBookings;
 window.fetchTodaysCheckouts = fetchTodaysCheckouts;
+window.loadAvailablePropertiesForTransfer = loadAvailablePropertiesForTransfer;
+window.confirmBookingTransfer = confirmBookingTransfer;
+window.resetTransferModal = resetTransferModal;
+window.initializeTransferTooltip = initializeTransferTooltip;
+window.showTransferTooltip = showTransferTooltip;
+window.hideTransferTooltip = hideTransferTooltip;
+window.sendTransferNotificationToGuest = sendTransferNotificationToGuest;
 
 // Make critical helper functions globally accessible
 window.isCheckoutDateToday = isCheckoutDateToday;
@@ -2957,5 +3411,127 @@ function formatDate(dateInput) {
     } catch (e) {
         console.error('formatDate error for input:', dateInput, e);
         return '';
+    }
+}
+
+// Initialize tooltip functionality for transfer button
+function initializeTransferTooltip() {
+    const transferBtn = document.getElementById('transfer-booking-btn');
+    if (!transferBtn) return;
+
+    let tooltipElement = null;
+
+    // Show tooltip on hover
+    transferBtn.addEventListener('mouseenter', function() {
+        if (this.disabled && this.getAttribute('data-tooltip')) {
+            showTransferTooltip(this);
+        }
+    });
+
+    // Hide tooltip on mouse leave
+    transferBtn.addEventListener('mouseleave', function() {
+        hideTransferTooltip();
+    });
+
+    // Show tooltip on click for disabled button
+    transferBtn.addEventListener('click', function(e) {
+        if (this.disabled) {
+            e.preventDefault();
+            e.stopPropagation();
+            showTransferTooltip(this);
+        }
+    });
+
+    console.log('✅ Transfer button tooltip initialized');
+}
+
+// Show custom tooltip for transfer button
+function showTransferTooltip(button) {
+    const tooltipText = button.getAttribute('data-tooltip');
+    if (!tooltipText) return;
+
+    // Remove existing tooltip
+    hideTransferTooltip();
+
+    // Create tooltip element
+    const tooltip = document.createElement('div');
+    tooltip.className = 'transfer-tooltip';
+    tooltip.textContent = tooltipText;
+    tooltip.id = 'transfer-tooltip';
+
+    // Position tooltip above button
+    const rect = button.getBoundingClientRect();
+    tooltip.style.position = 'fixed';
+    tooltip.style.left = rect.left + (rect.width / 2) + 'px';
+    tooltip.style.top = (rect.top - 10) + 'px';
+    tooltip.style.transform = 'translateX(-50%) translateY(-100%)';
+
+    // Add to document
+    document.body.appendChild(tooltip);
+
+    // Show tooltip with animation
+    setTimeout(() => {
+        tooltip.classList.add('show');
+    }, 10);
+
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+        hideTransferTooltip();
+    }, 3000);
+}
+
+// Hide custom tooltip
+function hideTransferTooltip() {
+    const existingTooltip = document.getElementById('transfer-tooltip');
+    if (existingTooltip) {
+        existingTooltip.classList.remove('show');
+        setTimeout(() => {
+            if (existingTooltip.parentNode) {
+                existingTooltip.parentNode.removeChild(existingTooltip);
+            }
+        }, 300);
+    }
+}
+
+// Send transfer notification to guest
+async function sendTransferNotificationToGuest(bookingId, guestId, newPropertyName, guestName = 'Guest') {
+    try {
+        // Get employee information from localStorage or session
+        const employeeName = (localStorage.firstName + " " + localStorage.lastName);
+        const employeeId = localStorage.userId;
+
+        // Prepare notification payload according to API specification
+        const notificationPayload = {
+            fromId: employeeId,
+            fromName: employeeName,
+            fromRole: "employee",
+            toId: guestId,
+            toName: guestName, // Use the actual guest name from modal
+            toRole: "guest",
+            message: `Your booking has been successfully transferred to ${newPropertyName}. Please check your updated booking details for the new property information.`
+        };
+
+        console.log('📧 Sending transfer notification with payload:', JSON.stringify(notificationPayload, null, 2));
+        console.log('🌐 Notification API Endpoint:', `${API_BASE_URL}/notification/guest`);
+
+        // Send notification to guest
+        const notificationResponse = await fetch(`${API_BASE_URL}/notification/guest`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(notificationPayload)
+        });
+
+        if (!notificationResponse.ok) {
+            const errorData = await notificationResponse.json().catch(() => ({}));
+            throw new Error(errorData.message || `Notification failed with status: ${notificationResponse.status}`);
+        }
+
+        const notificationResult = await notificationResponse.json();
+        console.log('✅ Transfer notification sent successfully:', notificationResult);
+        
+        return notificationResult;
+    } catch (error) {
+        console.error('❌ Error sending transfer notification:', error);
+        throw error;
     }
 }

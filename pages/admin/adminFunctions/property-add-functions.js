@@ -622,6 +622,54 @@ function filterValidImages(files) {
   return { validFiles, invalidFiles };
 }
 
+// Function to validate check-in and check-out times
+function validateCheckTimes() {
+  const checkInElement = document.getElementById('checkInTimeText');
+  const checkOutElement = document.getElementById('checkOutTimeText');
+  
+  if (!checkInElement || !checkOutElement) {
+    return true; // Skip validation if elements don't exist
+  }
+  
+  const checkInText = checkInElement.textContent.trim();
+  const checkOutText = checkOutElement.textContent.trim();
+  
+  // Skip validation if either time is not set or is placeholder text
+  if (!checkInText || !checkOutText || 
+      checkInText === 'Select time' || checkOutText === 'Select time') {
+    return true;
+  }
+  
+  // Convert time strings to comparable format (24-hour)
+  const parseTime = (timeStr) => {
+    const match = timeStr.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+    if (!match) return null;
+    
+    let hours = parseInt(match[1]);
+    const minutes = parseInt(match[2]);
+    const ampm = match[3].toUpperCase();
+    
+    if (ampm === 'PM' && hours !== 12) hours += 12;
+    if (ampm === 'AM' && hours === 12) hours = 0;
+    
+    return hours * 60 + minutes; // Return total minutes from midnight
+  };
+  
+  const checkInMinutes = parseTime(checkInText);
+  const checkOutMinutes = parseTime(checkOutText);
+  
+  if (checkInMinutes === null || checkOutMinutes === null) {
+    return true; // Skip validation if time parsing fails
+  }
+  
+  // Check-in should be later (greater) than check-out
+  if (checkInMinutes <= checkOutMinutes) {
+    return false;
+  }
+  
+  return true;
+}
+
 // Expose functions globally
 window.updateAmenitiesDisplay = updateAmenitiesDisplay;
 window.setupAmenitiesListeners = setupAmenitiesListeners;
@@ -784,6 +832,21 @@ document.addEventListener('DOMContentLoaded', function () {
       confirmBtn.disabled = false;
       confirmBtn.innerHTML = originalContent;
       
+      // Update button text based on current image count
+      const confirmBtnText = document.getElementById('confirmBtnText');
+      const imageContainer = document.getElementById('imageEditContainer');
+      
+      if (confirmBtnText && imageContainer && window.Alpine) {
+        const alpineData = window.Alpine.$data(imageContainer);
+        if (alpineData && alpineData.images) {
+          confirmBtnText.textContent = alpineData.images.length >= 3 ? 'Confirm' : 'Need 3+ Images';
+        } else {
+          confirmBtnText.textContent = 'Confirm';
+        }
+      } else if (confirmBtnText) {
+        confirmBtnText.textContent = 'Confirm';
+      }
+      
       // Restore all close buttons
       closeButtons.forEach((btn, index) => {
         btn.disabled = false;
@@ -825,7 +888,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Check if at least 3 images are selected
     if (selectedFiles.length < 3) {
-      alert(`Please select at least 3 images. You currently have ${selectedFiles.length} image(s) selected.`);
+      // Show toast notification for insufficient images
+      import('/src/toastNotification.js').then(module => {
+        module.showToastError(
+          `Please select at least 3 images. You currently have ${selectedFiles.length} image(s) selected.`,
+          'Insufficient Images'
+        );
+      }).catch(() => {
+        // Fallback to alert if toast module fails to load
+        alert(`Please select at least 3 images. You currently have ${selectedFiles.length} image(s) selected.`);
+      });
+      restoreButton();
+      return;
+    }
+
+    // Check if at least one employee is assigned
+    if (selectedEmployeeIds.length === 0) {
+      // Show toast notification for no employees assigned
+      import('/src/toastNotification.js').then(module => {
+        module.showToastError(
+          'Please assign at least one employee to this property.',
+          'No Employees Assigned'
+        );
+      }).catch(() => {
+        // Fallback to alert if toast module fails to load
+        alert('Please assign at least one employee to this property.');
+      });
       restoreButton();
       return;
     }
@@ -835,17 +923,124 @@ document.addEventListener('DOMContentLoaded', function () {
       { id: 'input-prop-name', label: 'Property Name' },
       { id: 'input-prop-city', label: 'City' },
       { id: 'input-prop-address', label: 'Address' },
-      { id: 'input-prop-desc', label: 'Description' }
+      { id: 'input-prop-desc', label: 'Description' },
+      { id: 'input-prop-packCap', label: 'Package Capacity' },
+      { id: 'input-prop-maxCap', label: 'Maximum Capacity' },
+      { id: 'input-prop-packPrice', label: 'Package Price' },
+      { id: 'input-prop-addPaxPrice', label: 'Additional Pax Price' },
+      { id: 'input-prop-rsrvFee', label: 'Reservation Fee' }
     ];
 
     for (const field of requiredFields) {
       const element = document.getElementById(field.id);
       if (!element || !element.value.trim()) {
-        alert(`Please fill in the ${field.label} field.`);
+        // Show toast notification for empty fields
+        import('/src/toastNotification.js').then(module => {
+          module.showToastError(
+            `Please fill in the ${field.label} field.`,
+            'Required Field Missing'
+          );
+        }).catch(() => {
+          // Fallback to alert if toast module fails to load
+          alert(`Please fill in the ${field.label} field.`);
+        });
         if (element) element.focus();
         restoreButton();
         return;
       }
+    }
+
+    // Validate numeric fields have valid values
+    const numericFields = [
+      { id: 'input-prop-packCap', label: 'Package Capacity', min: 1 },
+      { id: 'input-prop-maxCap', label: 'Maximum Capacity', min: 1 },
+      { id: 'input-prop-packPrice', label: 'Package Price', min: 0 },
+      { id: 'input-prop-addPaxPrice', label: 'Additional Pax Price', min: 0 },
+      { id: 'input-prop-rsrvFee', label: 'Reservation Fee', min: 0 }
+    ];
+
+    for (const field of numericFields) {
+      const element = document.getElementById(field.id);
+      if (element) {
+        const value = parseFloat(element.value);
+        if (isNaN(value) || value < field.min) {
+          // Show toast notification for invalid numeric values
+          import('/src/toastNotification.js').then(module => {
+            module.showToastError(
+              `${field.label} must be a valid number ${field.min > 0 ? 'greater than 0' : 'and cannot be negative'}.`,
+              'Invalid Value'
+            );
+          }).catch(() => {
+            // Fallback to alert if toast module fails to load
+            alert(`${field.label} must be a valid number ${field.min > 0 ? 'greater than 0' : 'and cannot be negative'}.`);
+          });
+          if (element) element.focus();
+          restoreButton();
+          return;
+        }
+      }
+    }
+
+    // Validate that Package Capacity is not greater than Maximum Capacity
+    const packCapElement = document.getElementById('input-prop-packCap');
+    const maxCapElement = document.getElementById('input-prop-maxCap');
+    if (packCapElement && maxCapElement) {
+      const packCap = parseInt(packCapElement.value);
+      const maxCap = parseInt(maxCapElement.value);
+      if (packCap > maxCap) {
+        // Show toast notification for capacity validation
+        import('/src/toastNotification.js').then(module => {
+          module.showToastError(
+            'Package Capacity cannot be greater than Maximum Capacity.',
+            'Invalid Capacity Values'
+          );
+        }).catch(() => {
+          // Fallback to alert if toast module fails to load
+          alert('Package Capacity cannot be greater than Maximum Capacity.');
+        });
+        packCapElement.focus();
+        restoreButton();
+        return;
+      }
+    }
+
+    // Validate time selections
+    const checkInElement = document.getElementById('checkInTimeText');
+    const checkOutElement = document.getElementById('checkOutTimeText');
+    if (checkInElement && checkOutElement) {
+      const checkInText = checkInElement.textContent.trim();
+      const checkOutText = checkOutElement.textContent.trim();
+      
+      if (!checkInText || checkInText === 'Select time' || !checkOutText || checkOutText === 'Select time') {
+        // Show toast notification for missing time selection
+        import('/src/toastNotification.js').then(module => {
+          module.showToastError(
+            'Please select both Check-in and Check-out times.',
+            'Time Selection Required'
+          );
+        }).catch(() => {
+          // Fallback to alert if toast module fails to load
+          alert('Please select both Check-in and Check-out times.');
+        });
+        restoreButton();
+        return;
+      }
+    }
+
+    // Validate check-in and check-out times
+    if (!validateCheckTimes()) {
+      // Show toast notification for invalid check-in/check-out times
+      import('/src/toastNotification.js').then(module => {
+        module.showToastError(
+          'Check-in time must be later than check-out time.',
+          'Invalid Time Selection'
+        );
+      }).catch(() => {
+        // Fallback to alert if toast module fails to load
+        alert('Check-in time must be later than check-out time.');
+      });
+      restoreButton();
+      return;
     }
 
     // Collect form data

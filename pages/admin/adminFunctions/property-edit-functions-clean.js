@@ -72,7 +72,14 @@ function showSuccessMessage(message) {
 
 function handleError(message, error = null) {
     if (error) console.error('Error:', error);
-    showErrorMessage(message);
+    
+    // Use toast notification instead of showErrorMessage for better UX
+    import('/src/toastNotification.js').then(module => {
+        module.showToastError(message, 'Update Error');
+    }).catch(() => {
+        // Fallback to original method if toast fails to load
+        showErrorMessage(message);
+    });
 }
 
 // ==================== API FUNCTIONS ====================
@@ -100,12 +107,13 @@ class PropertyAPI {
             // Log property update audit
             try {
                 if (window.AuditTrailFunctions) {
-                    const userData = JSON.parse(localStorage.getItem('userData') || '{}');
-                    const userId = userData.userId || userData.user_id || 'unknown';
-                    const userType = userData.role || 'admin';
+                    const userId = localStorage.userId; // Always set as 'Admin' for property edit actions
+                    const userType = 'Admin';
+                    console.log('🔍 Audit trail - userId:', userId, 'userType:', userType);
                     await window.AuditTrailFunctions.logPropertyUpdate(userId, userType);
                 }
             } catch (auditError) {
+                
                 console.error('Audit trail error:', auditError);
             }
             
@@ -164,14 +172,37 @@ async function initializePropertyEdit(propertyId) {
         
         // Fetch and populate property data
         const propertyData = await PropertyAPI.fetchProperty(propertyId);
+        
+        if (!propertyData) {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError('Property data not found. Please check the property ID.', 'Data Not Found');
+            });
+            return;
+        }
+        
         populateForm(propertyData);
         
         // Initialize form functionality
         initializeFormComponents();
         
         console.log('✅ Property edit initialized successfully');
+        
     } catch (error) {
-        handleError('Failed to load property data for editing', error);
+        console.error('Failed to initialize property edit:', error);
+        
+        if (error.message.includes('404')) {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError('Property not found. It may have been deleted or moved.', 'Property Not Found');
+            });
+        } else if (error.message.includes('fetch')) {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError('Failed to load property data. Please check your connection.', 'Loading Failed');
+            });
+        } else {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError('Unable to load property for editing. Please try again.', 'Loading Error');
+            });
+        }
     }
 }
 
@@ -226,6 +257,9 @@ function populateDropdowns(data) {
         const selectedCategory = document.getElementById('selectedCategory');
         if (categoryButton && selectedCategory) {
             selectedCategory.textContent = data.category;
+            // Store the value in data attribute since there's no hidden input
+            categoryButton.setAttribute('data-selected-value', data.category);
+            console.log(`Category populated: ${data.category}`);
         }
     }
     
@@ -250,6 +284,26 @@ function populateTimeFields(data) {
         const checkOutTimeInput = document.getElementById('checkOutTimeInput');
         if (checkOutTimeText) checkOutTimeText.textContent = data.timeOut;
         if (checkOutTimeInput) checkOutTimeInput.value = data.timeOut;
+    }
+
+    // Add validation listeners for time changes
+    const checkInInput = document.getElementById('checkInTimeInput');
+    const checkOutInput = document.getElementById('checkOutTimeInput');
+    
+    if (checkInInput && checkOutInput) {
+        // Add event listeners to validate times when they change
+        const timeValidationHandler = () => {
+            // Use setTimeout to ensure the input values are updated
+            setTimeout(validateCheckTimes, 100);
+        };
+        
+        // Remove existing listeners to prevent duplicates
+        checkInInput.removeEventListener('change', timeValidationHandler);
+        checkOutInput.removeEventListener('change', timeValidationHandler);
+        
+        // Add new listeners
+        checkInInput.addEventListener('change', timeValidationHandler);
+        checkOutInput.addEventListener('change', timeValidationHandler);
     }
 }
 
@@ -748,37 +802,197 @@ function initializeModalSystem() {
 }
 
 function initializeDropdowns() {
-    setupDropdown('category', ['Hotel', 'Apartment', 'Resort', 'Villa']);
+    console.log('🚀 Initializing all dropdowns...');
+    console.log('⚠️ Skipping category dropdown - handled by categoryStatusDropdown.js');
+    // setupDropdown('category', ['Hotel', 'Apartment', 'Resort', 'Villa']); // Handled by categoryStatusDropdown.js
     setupTimeDropdowns();
+    
+    // Initialize outside click handler after a short delay to avoid conflicts
+    // But only if we're not using checkInOut.js
+    const checkInList = document.getElementById('checkInTimeList');
+    if (!checkInList || checkInList.children.length === 0) {
+        console.log('⚡ Setting up custom outside click handler...');
+        setTimeout(initializeDropdownOutsideHandler, 100);
+    } else {
+        console.log('⚠️ Using checkInOut.js for time dropdowns');
+        console.log('⚠️ categoryStatusDropdown.js handles category dropdown - no additional setup needed');
+    }
+}
+
+// Add a single outside click handler for all dropdowns
+function initializeDropdownOutsideHandler() {
+    if (!window._dropdownOutsideHandler) {
+        window._dropdownOutsideHandler = (e) => {
+            // Check if the click is on any dropdown button or list
+            const dropdownElements = [
+                document.getElementById('checkInTimeBtn'),
+                document.getElementById('checkOutTimeBtn'), 
+                document.getElementById('categoryDropdownBtn'),
+                document.getElementById('checkInTimeList'),
+                document.getElementById('checkOutTimeList'),
+                document.getElementById('categoryDropdownList')
+            ].filter(Boolean);
+            
+            const isClickOnDropdown = dropdownElements.some(el => 
+                el && (el.contains(e.target) || el === e.target)
+            );
+            
+            if (!isClickOnDropdown) {
+                // Close all dropdowns
+                document.querySelectorAll('#checkInTimeList, #checkOutTimeList, #categoryDropdownList').forEach(list => {
+                    if (!list.classList.contains('hidden')) {
+                        list.classList.add('hidden');
+                        console.log('🔽 Dropdown closed by outside click');
+                    }
+                });
+            }
+        };
+        
+        // Use bubble phase (default)
+        document.addEventListener('click', window._dropdownOutsideHandler);
+        console.log('✅ Global dropdown outside click handler initialized');
+    }
 }
 
 function setupDropdown(type, options) {
-    const button = document.getElementById(`${type}-btn`);
-    const list = document.getElementById(`${type}-list`);
-    const input = document.getElementById(`input-prop-${type}`);
-    const display = document.getElementById(`${type}-display`);
+    // Handle category dropdown specifically since it has different IDs
+    let button, list, display;
+    
+    if (type === 'category') {
+        button = document.getElementById('categoryDropdownBtn');
+        list = document.getElementById('categoryDropdownList');
+        display = document.getElementById('selectedCategory');
+    } else {
+        button = document.getElementById(`${type}-btn`);
+        list = document.getElementById(`${type}-list`);
+        display = document.getElementById(`${type}-display`);
+    }
 
-    if (!button || !list || !input || !display) return;
+    console.log(`🔧 Setting up ${type} dropdown:`, { 
+        button: !!button, 
+        list: !!list, 
+        display: !!display,
+        buttonElement: button,
+        listElement: list,
+        displayElement: display
+    });
+
+    if (!button || !list || !display) {
+        console.error(`❌ Missing elements for ${type} dropdown:`, {
+            button: !!button,
+            list: !!list, 
+            display: !!display
+        });
+        return;
+    }
+
+    // Generate dropdown options if not already present
+    if (list.children.length === 0 && options) {
+        options.forEach(option => {
+            const li = document.createElement('li');
+            li.textContent = option;
+            li.className = 'cursor-pointer hover:bg-gray-100 p-2';
+            list.appendChild(li);
+        });
+    }
+
+    // Remove existing listeners to prevent duplicates
+    const existingClickHandler = button._clickHandler;
+    if (existingClickHandler) {
+        button.removeEventListener('click', existingClickHandler);
+    }
 
     // Toggle dropdown
-    button.addEventListener('click', () => {
-        list.classList.toggle('hidden');
-    });
+    const clickHandler = (e) => {
+        console.log(`🖱️ ${type} dropdown clicked!`, e);
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const isCurrentlyHidden = list.classList.contains('hidden');
+        console.log(`📋 ${type} dropdown state - isHidden: ${isCurrentlyHidden}`);
+        
+        // Close other dropdowns first
+        document.querySelectorAll('#checkInTimeList, #checkOutTimeList, #categoryDropdownList').forEach(otherList => {
+            if (otherList !== list) {
+                otherList.classList.add('hidden');
+            }
+        });
+        
+        // Toggle current dropdown - force show if it was hidden
+        if (isCurrentlyHidden) {
+            console.log(`🔓 Opening ${type} dropdown...`);
+            // Use setTimeout to ensure this runs after any conflicting handlers
+            setTimeout(() => {
+                list.classList.remove('hidden');
+                console.log(`✅ ${type} dropdown opened - classes:`, list.className);
+                console.log(`📝 ${type} dropdown children count:`, list.children.length);
+            }, 10);
+        } else {
+            console.log(`🔒 Closing ${type} dropdown...`);
+            list.classList.add('hidden');
+            console.log(`❌ ${type} dropdown closed`);
+        }
+    };
+    
+    button._clickHandler = clickHandler;
+    button.addEventListener('click', clickHandler);
 
     // Handle option selection
-    list.addEventListener('click', (e) => {
+    const listClickHandler = (e) => {
         if (e.target.tagName === 'LI') {
             const value = e.target.textContent.trim();
-            input.value = value;
             display.textContent = value;
             list.classList.add('hidden');
+            
+            // Store the selected category value in a data attribute since there's no hidden input
+            if (type === 'category') {
+                button.setAttribute('data-selected-value', value);
+                console.log(`Category selected: ${value}`);
+            }
         }
-    });
+    };
+    
+    // Remove existing list handler
+    if (list._clickHandler) {
+        list.removeEventListener('click', list._clickHandler);
+    }
+    list._clickHandler = listClickHandler;
+    list.addEventListener('click', listClickHandler);
 }
 
 function setupTimeDropdowns() {
-    setupTimeDropdown('checkIn');
-    setupTimeDropdown('checkOut');
+    console.log('🕐 Setting up time dropdowns...');
+    
+    // Check if checkInOut.js has already populated the dropdowns
+    const checkInList = document.getElementById('checkInTimeList');
+    const checkOutList = document.getElementById('checkOutTimeList');
+    
+    if (checkInList && checkInList.children.length > 0) {
+        console.log('⚠️ Time dropdowns already initialized by checkInOut.js - skipping custom setup');
+        console.log('checkIn dropdown has', checkInList.children.length, 'options');
+        console.log('checkOut dropdown has', checkOutList.children.length, 'options');
+        return;
+    }
+    
+    // Check-in time dropdown
+    setupTimeDropdown(
+        'checkIn', 
+        'checkInTimeBtn',      // Button ID
+        'checkInTimeList',     // List ID  
+        'checkInTimeInput',    // Hidden input ID
+        'checkInTimeText'      // Display text ID
+    );
+    
+    // Check-out time dropdown
+    setupTimeDropdown(
+        'checkOut',
+        'checkOutTimeBtn',     // Button ID
+        'checkOutTimeList',    // List ID
+        'checkOutTimeInput',   // Hidden input ID
+        'checkOutTimeText'     // Display text ID
+    );
+    
+    console.log('✅ Time dropdowns setup complete');
 }
 
 // ==================== ARCHIVE/ACTIVATE TOGGLE ====================
@@ -856,57 +1070,147 @@ async function updatePropertyStatus(newStatus) {
         const selectedStatus = document.getElementById('selectedStatus');
         if (selectedStatus) selectedStatus.textContent = newStatus;
         updateArchiveButtonUI(newStatus);
-        showSuccessMessage(`Status updated to ${newStatus}`);
+        import('/src/toastNotification.js').then(module => {
+            module.showToastSuccess(`Property status updated to ${newStatus}!`, 'Status Updated');
+        });
+        
         // Redirect to properties list to match archive behavior
         setTimeout(() => { window.location.href = 'property.html'; }, 1500);
     } catch (error) {
-        handleError('Failed to update status', error);
+        console.error('Failed to update property status:', error);
+        
+        import('/src/toastNotification.js').then(module => {
+            module.showToastError('Failed to update property status. Please try again.', 'Status Update Failed');
+        });
     }
 }
 
-function setupTimeDropdown(type) {
-    const button = document.getElementById(`${type}-btn`);
-    const list = document.getElementById(`${type}-list`);
-    const input = document.getElementById(`input-prop-${type}`);
-    const display = document.getElementById(`${type}-display`);
+function setupTimeDropdown(type, buttonId, listId, inputId, displayId) {
+    const button = document.getElementById(buttonId);
+    const list = document.getElementById(listId);
+    const input = document.getElementById(inputId);
+    const display = document.getElementById(displayId);
 
-    if (!button || !list || !input || !display) return;
+    console.log(`Setting up ${type} dropdown:`, { button: !!button, list: !!list, input: !!input, display: !!display });
+
+    if (!button || !list || !input || !display) {
+        console.warn(`Missing elements for ${type}:`, {
+            button: buttonId,
+            list: listId, 
+            input: inputId,
+            display: displayId
+        });
+        return;
+    }
 
     // Generate time options if not already present
     if (list.children.length === 0) {
-        generateTimeOptions().forEach(time => {
+        const timeOptions = generateTimeOptions();
+        console.log(`Generated ${timeOptions.length} time options for ${type}:`, timeOptions.slice(0, 5));
+        
+        timeOptions.forEach(time => {
             const li = document.createElement('li');
             li.textContent = time;
             li.className = 'cursor-pointer hover:bg-gray-100 p-2';
             list.appendChild(li);
         });
+        
+        console.log(`${type} dropdown now has ${list.children.length} options`);
+    } else {
+        console.log(`${type} dropdown already has ${list.children.length} options`);
+    }
+
+    // Remove existing listeners to prevent duplicates
+    const existingClickHandler = button._clickHandler;
+    if (existingClickHandler) {
+        button.removeEventListener('click', existingClickHandler);
     }
 
     // Toggle dropdown
-    button.addEventListener('click', () => {
-        list.classList.toggle('hidden');
-    });
+    const clickHandler = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const isCurrentlyHidden = list.classList.contains('hidden');
+        
+        // Close other dropdowns first
+        document.querySelectorAll('.time-dropdown-list, #checkInTimeList, #checkOutTimeList, #categoryDropdownList').forEach(otherList => {
+            if (otherList !== list) {
+                otherList.classList.add('hidden');
+            }
+        });
+        
+        // Toggle current dropdown - force show if it was hidden
+        if (isCurrentlyHidden) {
+            // Use setTimeout to ensure this runs after any conflicting handlers
+            setTimeout(() => {
+                list.classList.remove('hidden');
+                console.log(`${type} dropdown opened - classes:`, list.className);
+                console.log(`${type} dropdown element:`, list);
+                console.log(`${type} dropdown computed style:`, window.getComputedStyle(list).display);
+                console.log(`${type} dropdown children count:`, list.children.length);
+            }, 10);
+        } else {
+            list.classList.add('hidden');
+            console.log(`${type} dropdown closed`);
+        }
+    };
+    
+    button._clickHandler = clickHandler;
+    button.addEventListener('click', clickHandler);
 
     // Handle option selection
-    list.addEventListener('click', (e) => {
+    const listClickHandler = (e) => {
         if (e.target.tagName === 'LI') {
             const value = e.target.textContent.trim();
             input.value = value;
             display.textContent = value;
             list.classList.add('hidden');
+            
+            console.log(`${type} time selected:`, value);
+            
+            // Validate check-in/check-out times after selection
+            setTimeout(validateCheckTimes, 100);
         }
-    });
+    };
+    
+    // Remove existing list handler
+    if (list._clickHandler) {
+        list.removeEventListener('click', list._clickHandler);
+    }
+    list._clickHandler = listClickHandler;
+    list.addEventListener('click', listClickHandler);
 }
 
 function generateTimeOptions() {
     const times = [];
-    for (let hour = 0; hour < 24; hour++) {
+    
+    // Generate 12-hour format times every 30 minutes
+    for (let hour = 1; hour <= 12; hour++) {
         for (let minute = 0; minute < 60; minute += 30) {
-            const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-            times.push(timeString);
+            const minuteStr = minute.toString().padStart(2, '0');
+            
+            // AM times
+            times.push(`${hour}:${minuteStr} AM`);
+            
+            // PM times  
+            times.push(`${hour}:${minuteStr} PM`);
         }
     }
-    return times;
+    
+    // Sort times chronologically
+    return times.sort((a, b) => {
+        const parseTime = (timeStr) => {
+            const [time, period] = timeStr.split(' ');
+            const [hours, minutes] = time.split(':').map(Number);
+            let hour24 = hours;
+            if (period === 'PM' && hours !== 12) hour24 += 12;
+            if (period === 'AM' && hours === 12) hour24 = 0;
+            return hour24 * 60 + minutes;
+        };
+        
+        return parseTime(a) - parseTime(b);
+    });
 }
 
 // ==================== IMAGE UPLOAD FUNCTIONALITY ====================
@@ -1016,11 +1320,16 @@ async function deleteExistingImage(imageUrl, buttonElement) {
         // Update the main gallery display
         updateGalleryDisplay(currentPropertyImages);
         
-        showSuccessMessage('Image deleted successfully!');
+        import('/src/toastNotification.js').then(module => {
+            module.showToastSuccess('Image deleted successfully!', 'Image Removed');
+        });
         
     } catch (error) {
         console.error('Failed to delete image:', error);
-        showErrorMessage('Failed to delete image');
+        
+        import('/src/toastNotification.js').then(module => {
+            module.showToastError('Failed to delete image. Please try again.', 'Deletion Failed');
+        });
         
         // Reset button state
         buttonElement.innerHTML = `×`;
@@ -1232,7 +1541,10 @@ async function uploadAllImages() {
 
         if (response.ok) {
             console.log('✅ Images uploaded successfully');
-            showSuccessMessage('Images uploaded successfully!');
+            
+            import('/src/toastNotification.js').then(module => {
+                module.showToastSuccess('Images uploaded successfully!', 'Upload Complete');
+            });
             
             // Clear selected files after successful upload
             selectedImageFiles = [];
@@ -1269,7 +1581,10 @@ async function uploadAllImages() {
         
     } catch (error) {
         console.error('Image upload failed:', error);
-        showErrorMessage(`Failed to upload images: ${error.message}`);
+        
+        import('/src/toastNotification.js').then(module => {
+            module.showToastError(`Failed to upload images: ${error.message}`, 'Upload Failed');
+        });
     } finally {
         // Reset upload button
         const uploadBtn = document.querySelector('button[onclick="uploadAllImages()"]');
@@ -1332,13 +1647,45 @@ function initializeSaveAndDiscardFunctionality() {
 async function handlePropertyUpdate() {
     try {
         if (!currentPropertyId) {
-            throw new Error('Property ID not found');
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError('Property ID not found. Cannot update property.', 'Invalid Property');
+            });
+            return;
+        }
+
+        // Validate form before proceeding with update
+        if (!validateForm()) {
+            // Validation errors are already handled in validateForm() with toast notifications
+            return;
         }
 
         const formData = collectFormData();
+        
+        // Additional validation for empty form data
+        const missingFields = [];
+        if (!formData.name?.trim()) missingFields.push('Property Name');
+        if (!formData.city?.trim()) missingFields.push('City');
+        if (!formData.address?.trim()) missingFields.push('Address');
+        if (!formData.description?.trim()) missingFields.push('Description');
+        
+        if (missingFields.length > 0) {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError(
+                    `Please fill in the following required fields: ${missingFields.join(', ')}.`,
+                    'Missing Required Fields'
+                );
+            });
+            return;
+        }
+
         const hasNewImages = selectedImageFiles.length > 0;
         
         console.log('🔄 Starting property update...');
+
+        // Show loading toast
+        import('/src/toastNotification.js').then(module => {
+            module.showToastWarning('Updating property details...', 'Please Wait');
+        });
 
         // Update property data first
         await PropertyAPI.updateProperty(currentPropertyId, formData);
@@ -1350,11 +1697,41 @@ async function handlePropertyUpdate() {
             await uploadAllImages();
         }
 
-        // Redirect to property view page
-        redirectToPropertyView();
+        // Show success message
+        import('/src/toastNotification.js').then(module => {
+            module.showToastSuccess('Property updated successfully!', 'Update Complete');
+        });
+
+        // Redirect to property view page after a short delay
+        setTimeout(() => {
+            redirectToPropertyView();
+        }, 1500);
         
     } catch (error) {
-        handleError('Failed to update property', error);
+        console.error('Property update failed:', error);
+        
+        // Handle specific error types with appropriate toast messages
+        if (error.message.includes('fetch')) {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError('Network error. Please check your connection and try again.', 'Connection Failed');
+            });
+        } else if (error.message.includes('400')) {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError('Invalid data provided. Please check your inputs and try again.', 'Invalid Data');
+            });
+        } else if (error.message.includes('401') || error.message.includes('403')) {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError('You are not authorized to perform this action.', 'Access Denied');
+            });
+        } else if (error.message.includes('404')) {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError('Property not found. It may have been deleted.', 'Property Not Found');
+            });
+        } else {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError('An unexpected error occurred. Please try again.', 'Update Failed');
+            });
+        }
     }
 }
 
@@ -1364,16 +1741,19 @@ function collectFormData() {
         name: getValue('input-prop-name'),
         city: getValue('input-prop-city'),
         address: getValue('input-prop-address'),
-        description: getValue('input-prop-desc'), // Fixed: was 'input-prop-description'
-        packagePrice: parseFloat(getValue('input-prop-packPrice')) || 0, // Fixed: was 'input-prop-price'
+        description: getValue('input-prop-desc'),
+        packagePrice: parseFloat(getValue('input-prop-packPrice')) || 0,
         reservationFee: parseFloat(getValue('input-prop-rsrvFee')) || 0,
         additionalPaxPrice: parseFloat(getValue('input-prop-addPaxPrice')) || 0,
         discount: parseFloat(getValue('input-prop-discount')) || 0,
         packageCapacity: parseInt(getValue('input-prop-packCap')) || 1,
-        maxCapacity: parseInt(getValue('input-prop-maxCap')) || 1, // Fixed: was 'input-prop-guests'
+        maxCapacity: parseInt(getValue('input-prop-maxCap')) || 1,
+        timeIn: getValue('checkInTimeInput'),
+        timeOut: getValue('checkOutTimeInput'),
+        category: getCategoryValue(),
         amenities: collectAmenities(),
         otherAmenities: collectCustomAmenities(),
-        mapLink: getValue('input-prop-mapLink') // Fixed: was 'input-prop-map'
+        mapLink: getValue('input-prop-mapLink')
     };
     
     return formData;
@@ -1382,6 +1762,11 @@ function collectFormData() {
 function getValue(id) {
     const element = document.getElementById(id);
     return element ? element.value.trim() : '';
+}
+
+function getCategoryValue() {
+    const categoryButton = document.getElementById('categoryDropdownBtn');
+    return categoryButton ? (categoryButton.getAttribute('data-selected-value') || '').trim() : '';
 }
 
 function collectAmenities() {
@@ -1426,27 +1811,182 @@ function collectCustomAmenities() {
 }
 
 // ==================== VALIDATION ====================
+// Function to validate check-in and check-out times
+function validateCheckTimes() {
+    const checkInInput = document.getElementById('checkInTimeInput');
+    const checkOutInput = document.getElementById('checkOutTimeInput');
+    
+    if (!checkInInput || !checkOutInput) {
+        console.warn('Check-in or check-out time inputs not found');
+        return true; // Skip validation if elements are missing
+    }
+    
+    let checkInTime = checkInInput.value;
+    let checkOutTime = checkOutInput.value;
+    
+    // If hidden inputs are empty, try to get from display text (for compatibility)
+    if (!checkInTime) {
+        const checkInText = document.getElementById('checkInTimeText');
+        if (checkInText && checkInText.textContent !== 'Select time') {
+            checkInTime = checkInText.textContent.trim();
+        }
+    }
+    
+    if (!checkOutTime) {
+        const checkOutText = document.getElementById('checkOutTimeText');
+        if (checkOutText && checkOutText.textContent !== 'Select time') {
+            checkOutTime = checkOutText.textContent.trim();
+        }
+    }
+    
+    // Skip validation if either time is not set
+    if (!checkInTime || !checkOutTime || 
+        checkInTime === 'Select time' || checkOutTime === 'Select time') {
+        return true;
+    }
+    
+    // Convert times to minutes for comparison
+    const checkInMinutes = timeToMinutes(checkInTime);
+    const checkOutMinutes = timeToMinutes(checkOutTime);
+    
+    console.log('🕐 Time validation:', {
+        checkInTime,
+        checkOutTime,
+        checkInMinutes,
+        checkOutMinutes,
+        isValid: checkInMinutes < checkOutMinutes
+    });
+    
+    if (checkInMinutes <= checkOutMinutes) {
+        // Show toast notification for invalid times
+        import('/src/toastNotification.js').then(module => {
+            module.showToastError(
+                'Check-in time must be later than check-out time. Please adjust the times.',
+                'Invalid Time Selection'
+            );
+        }).catch(() => {
+            // Fallback to console error if toast module fails to load
+            console.error('Check-in time must be later than check-out time');
+        });
+        return false;
+    }
+    
+    return true;
+}
+
+// Helper function to convert time string to minutes (handles both 12-hour and 24-hour formats)
+function timeToMinutes(timeStr) {
+    if (!timeStr) return 0;
+    
+    // Handle 12-hour format from display text (e.g., "02:00 PM")
+    if (timeStr.includes('AM') || timeStr.includes('PM')) {
+        const [time, period] = timeStr.split(' ');
+        const [hours, minutes] = time.split(':').map(Number);
+        let hour24 = hours;
+        
+        if (period === 'PM' && hours !== 12) {
+            hour24 += 12;
+        } else if (period === 'AM' && hours === 12) {
+            hour24 = 0;
+        }
+        
+        return hour24 * 60 + minutes;
+    }
+    
+    // Handle 24-hour format from hidden input (e.g., "14:00")
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    return hours * 60 + minutes;
+}
+
 function validateForm() {
+    // Validate check-in/check-out times first
+    if (!validateCheckTimes()) {
+        return false;
+    }
+    
+    // Required fields validation
     const requiredFields = [
         { id: 'input-prop-name', label: 'Property Name' },
         { id: 'input-prop-city', label: 'City' },
         { id: 'input-prop-address', label: 'Address' },
         { id: 'input-prop-desc', label: 'Description' },
+        { id: 'input-prop-packCap', label: 'Package Capacity' },
+        { id: 'input-prop-maxCap', label: 'Maximum Capacity' },
         { id: 'input-prop-packPrice', label: 'Package Price' },
-        { id: 'input-prop-maxCap', label: 'Max Capacity' }
+        { id: 'input-prop-addPaxPrice', label: 'Additional Pax Price' },
+        { id: 'input-prop-rsrvFee', label: 'Reservation Fee' },
+        { id: 'input-prop-discount', label: 'Discount' }
     ];
-    
-    const missingFields = requiredFields.filter(field => {
+
+    for (const field of requiredFields) {
         const element = document.getElementById(field.id);
         if (!element) {
             console.warn(`❌ Field element not found: ${field.id}`);
-            return true;
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError(`Field not found: ${field.label}`, 'Validation Error');
+            });
+            return false;
         }
-        return !element.value?.trim();
-    }).map(field => field.label);
+        
+        if (!element.value?.trim()) {
+            import('/src/toastNotification.js').then(module => {
+                module.showToastError(
+                    `${field.label} is required. Please fill in this field.`,
+                    'Missing Required Field'
+                );
+            });
+            element.focus();
+            return false;
+        }
+    }
 
-    if (missingFields.length > 0) {
-        showErrorMessage(`Please fill in all required fields: ${missingFields.join(', ')}`);
+    // Numeric fields validation
+    const numericFields = [
+        { id: 'input-prop-packCap', label: 'Package Capacity', min: 1 },
+        { id: 'input-prop-maxCap', label: 'Maximum Capacity', min: 1 },
+        { id: 'input-prop-packPrice', label: 'Package Price', min: 0 },
+        { id: 'input-prop-addPaxPrice', label: 'Additional Pax Price', min: 0 },
+        { id: 'input-prop-rsrvFee', label: 'Reservation Fee', min: 0 },
+        { id: 'input-prop-discount', label: 'Discount', min: 0 }
+    ];
+
+    for (const field of numericFields) {
+        const element = document.getElementById(field.id);
+        if (element && element.value?.trim()) {
+            const value = parseFloat(element.value);
+            if (isNaN(value)) {
+                import('/src/toastNotification.js').then(module => {
+                    module.showToastError(
+                        `${field.label} must be a valid number.`,
+                        'Invalid Input'
+                    );
+                });
+                element.focus();
+                return false;
+            }
+            
+            if (value < field.min) {
+                import('/src/toastNotification.js').then(module => {
+                    module.showToastError(
+                        `${field.label} must be at least ${field.min}.`,
+                        'Invalid Value'
+                    );
+                });
+                element.focus();
+                return false;
+            }
+        }
+    }
+
+    // Category validation
+    const categoryValue = getCategoryValue();
+    if (!categoryValue) {
+        import('/src/toastNotification.js').then(module => {
+            module.showToastError(
+                'Property category is required. Please select a category.',
+                'Missing Category'
+            );
+        });
         return false;
     }
     
