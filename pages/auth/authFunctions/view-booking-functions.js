@@ -331,6 +331,29 @@ function populateBookingData(booking) {
         // Set up reschedule functionality if eligible
         setupRescheduleModal();
 
+        // Show transferred property if applicable (clean and simple)
+        if (booking.transfer?.isTransferred && booking.transfer.propertyName) {
+            const container = document.querySelector('.flex.flex-col.border.border-gray-300.bg-white.rounded-3xl.p-5');
+            if (container && !document.getElementById('transferredPropertyMsg')) {
+                const msg = document.createElement('div');
+                msg.id = 'transferredPropertyMsg';
+                msg.style.marginBottom = '12px';
+                msg.style.padding = '8px 12px';
+                msg.style.background = '#eff6ff';
+                msg.style.border = '1px solid #bfdbfe';
+                msg.style.borderRadius = '8px';
+                msg.style.fontFamily = 'Inter, sans-serif';
+                msg.style.fontSize = '14px';
+                msg.style.color = '#2563eb';
+                 let address = booking.propertyAddress || '';
+                if (address.length > 40) {
+                    address = address.slice(0, 40) + '...';
+                }
+                msg.innerHTML = `Transferred to: <strong>${booking.transfer.propertyName}</strong><br><span style='color:#1e293b;font-size:13px;'>${address ? 'Address: ' + address : ''}</span>`;
+                container.insertBefore(msg, container.firstChild.nextSibling);
+            }
+        }
+
         console.log('Booking data populated successfully');
 
     } catch (error) {
@@ -1813,6 +1836,7 @@ async function handleReschedule() {
                     window.AuditTrailFunctions.logBookingReschedule(userId, 'Guest');
                 }
             } catch (auditError) {
+
                 console.warn('Audit trail for booking reschedule failed:', auditError);
             }
 
