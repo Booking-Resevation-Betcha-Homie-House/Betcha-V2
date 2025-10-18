@@ -175,21 +175,73 @@ function populateTransactionTabs(transactionData) {
     try {
         console.log('Populating transaction tabs with data:', transactionData);
         
+        // Recategorize transactions to ensure "Transferred" status is in Pending
+        const recategorized = recategorizeTransactions(transactionData);
+        
         // Get tab content containers
         const tabContents = document.querySelectorAll('.tab-content');
         
         if (tabContents.length >= 2) {
             // Populate Pending transactions (first tab)
-            populateTransactionTab(tabContents[0], transactionData.pending || [], 'pending');
+            populateTransactionTab(tabContents[0], recategorized.pending || [], 'pending');
             
             // Populate Completed transactions (second tab)
-            populateTransactionTab(tabContents[1], transactionData.completed || [], 'completed');
+            populateTransactionTab(tabContents[1], recategorized.completed || [], 'completed');
         } else {
             console.error('Tab content containers not found');
         }
         
     } catch (error) {
         console.error('Error populating transaction tabs:', error);
+    }
+}
+
+// Recategorize transactions to ensure proper tab placement
+function recategorizeTransactions(transactionData) {
+    try {
+        console.log('Recategorizing transactions...');
+        
+        // Combine all transactions
+        const allTransactions = [
+            ...(transactionData.pending || []),
+            ...(transactionData.completed || [])
+        ];
+        
+        const pending = [];
+        const completed = [];
+        
+        // Statuses that should be in Pending tab
+        const pendingStatuses = [
+            'Pending Payment',
+            'Reserved',
+            'Fully-Paid',
+            'Checked-In',
+            'Checked-Out',
+            'Transferred' // Add Transferred to pending statuses
+        ];
+        
+        // Categorize transactions
+        allTransactions.forEach(transaction => {
+            const status = transaction.status || '';
+            
+            if (pendingStatuses.includes(status)) {
+                pending.push(transaction);
+            } else {
+                // Everything else (Completed, Cancel, etc.) goes to completed
+                completed.push(transaction);
+            }
+        });
+        
+        console.log('Recategorization complete:', {
+            pending: pending.length,
+            completed: completed.length
+        });
+        
+        return { pending, completed };
+        
+    } catch (error) {
+        console.error('Error recategorizing transactions:', error);
+        return transactionData; // Return original data if error
     }
 }
 
@@ -329,8 +381,8 @@ function getStatusColorClass(status) {
         return 'text-rose-600';
     }
     
-    // Yellow for any pending variants
-    if (normalized.includes('pending')) {
+    // Yellow for any pending or transferred variants
+    if (normalized.includes('pending') || normalized.includes('transferred')) {
         return 'text-yellow-600';
     }
     
@@ -538,6 +590,13 @@ function restoreModalContent(modal) {
                                     <span class="absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="checkin"></span>
                                     <h3 class="text-sm font-medium leading-tight">Check In</h3>
                                     <p class="text-xs text-neutral-500">Guest has checked in</p>
+                                </li>
+                                
+                                <!-- Step 3b - Transferred -->
+                                <li class="mb-6 ms-4">
+                                    <span class="absolute flex items-center justify-center w-3 h-3 bg-neutral-300 rounded-full -start-1.5 ring-4 ring-background" data-status-step="transferred"></span>
+                                    <h3 class="text-sm font-medium leading-tight">Transferred</h3>
+                                    <p class="text-xs text-neutral-500">Guest transferred to another unit</p>
                                 </li>
 
                                 <!-- Step 4 -->
@@ -1596,6 +1655,7 @@ function updateStatusProgressionDetailed(modal, currentStatus) {
             { key: 'reserved', status: 'Reserved' },
             { key: 'paid', status: 'Fully Paid' },
             { key: 'checkin', status: 'Check In' },
+            { key: 'transferred', status: 'Transferred' },
             { key: 'checkout', status: 'Check Out' },
             { key: 'completed', status: 'Completed' }
         ];
@@ -1604,7 +1664,8 @@ function updateStatusProgressionDetailed(modal, currentStatus) {
         const statusMapping = {
             'Pending Payment': 'Reserved',
             'Reserved': 'Reserved',
-            'Fully-Paid': 'Fully-Paid',
+            'Fully-Paid': 'Fully Paid',
+            'Transferred': 'Transferred',
             'Checked-In': 'Check In',
             'Check In': 'Check In',
             'Checked-Out': 'Check Out',
@@ -1830,6 +1891,7 @@ function updateStatusProgression(modal, currentStatus) {
             'Reserved',      // Step 1
             'Fully-Paid',    // Step 2  
             'Check In',      // Step 3
+            'Transferred',   // Step 3b
             'Check Out',     // Step 4
             'Completed',     // Step 5
             'Cancelled'      // Step 6
@@ -1840,6 +1902,7 @@ function updateStatusProgression(modal, currentStatus) {
             'Pending Payment': 'Reserved',
             'Reserved': 'Reserved',
             'Fully-Paid': 'Fully-Paid',
+            'Transferred': 'Transferred',
             'Checked In': 'Check In',
             'Checked Out': 'Check Out',
             'Completed': 'Completed',
@@ -1864,7 +1927,7 @@ function updateStatusProgression(modal, currentStatus) {
         if (mappedStatus === 'Cancelled') {
             // Handle cancelled status - only show cancelled step as active
             statusSteps.forEach((step, index) => {
-                if (index === 5) { // Last step (Cancelled)
+                if (index === 6) { // Last step (Cancelled) - updated from 5 to 6 due to Transferred addition
                     step.classList.remove('bg-neutral-300');
                     step.classList.add('bg-rose-700');
                 }

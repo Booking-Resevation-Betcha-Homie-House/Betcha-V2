@@ -295,15 +295,35 @@
                 Category
               </p>
             </div>
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-1 relative group">
               <svg class="w-4 h-4 fill-neutral-500 flex-shrink-0" 
                 viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 12C10.9 12 9.95833 11.6083 9.175 10.825C8.39167 10.0417 8 9.1 8 8C8 6.9 8.39167 5.95833 9.175 5.175C9.95833 4.39167 10.9 4 12 4C13.1 4 14.0417 4.39167 14.825 5.175C15.6083 5.95833 16 6.9 16 8C16 9.1 15.6083 10.0417 14.825 10.825C14.0417 11.6083 13.1 12 12 12ZM4 18V17.2C4 16.6333 4.146 16.1127 4.438 15.638C4.73 15.1633 5.11733 14.8007 5.6 14.55C6.63333 14.0333 7.68333 13.646 8.75 13.388C9.81667 13.13 10.9 13.0007 12 13C13.1 12.9993 14.1833 13.1287 15.25 13.388C16.3167 13.6473 17.3667 14.0347 18.4 14.55C18.8833 14.8 19.271 15.1627 19.563 15.638C19.855 16.1133 20.0007 16.634 20 17.2V18C20 18.55 19.8043 19.021 19.413 19.413C19.0217 19.805 18.5507 20.0007 18 20H6C5.45 20 4.97933 19.8043 4.588 19.413C4.19667 19.0217 4.00067 18.5507 4 18Z"/>
               </svg>
-              <p class="font-inter text-neutral-500 text-sm md:text-base">
-                <span id="packageCapacity" >00</span>
-                <span >(Package)</span>
+              <p class="font-inter text-neutral-500 text-sm leading-tight md:text-base whitespace-nowrap">
+                <span id="packageCapacity" >00</span><span> (Pkg) + </span><span id="additionalPax" >00</span>
               </p>
+              <!-- Info Icon -->
+              <svg id="capacityInfoIcon" class="w-3.5 h-3.5 stroke-neutral-400 flex-shrink-0 cursor-pointer active:stroke-neutral-600 transition-colors" 
+                viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <circle cx="12" cy="12" r="10" stroke-width="2"/>
+                <path d="M12 16V12M12 8H12.01" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+              <!-- Tooltip -->
+              <div id="capacityTooltip" class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 md:w-56 
+                opacity-0 invisible group-hover:opacity-100 group-hover:visible
+                transition-all duration-300 ease-in-out z-50">
+                <div class="bg-neutral-800 text-white text-xs md:text-sm rounded-lg p-3 shadow-lg">
+                  <p class="font-inter leading-relaxed">
+                    The package includes <span id="tooltipPackageCapacity" class="font-semibold">00</span> people. 
+                    You can add up to <span id="tooltipAdditionalPax" class="font-semibold">00</span> additional guests.
+                  </p>
+                  <!-- Tooltip Arrow -->
+                  <div class="absolute top-full left-1/2 -translate-x-1/2 -mt-1">
+                    <div class="border-8 border-transparent border-t-neutral-800"></div>
+                  </div>
+                </div>
+              </div>
             </div>
             <div class="flex items-center gap-1 ">
               <svg class="w-4 h-4 fill-yellow-400 flex-shrink-0" viewBox="0 0 19 18" xmlns="http://www.w3.org/2000/svg">

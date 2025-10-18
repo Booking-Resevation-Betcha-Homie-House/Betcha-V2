@@ -145,6 +145,7 @@ function getStatusStyle(status) {
     const statusMap = {
         'pending': { bgColor: 'bg-yellow-100', textColor: 'text-yellow-600' },
         'pending payment': { bgColor: 'bg-yellow-100', textColor: 'text-yellow-600' },
+        'transferred': { bgColor: 'bg-yellow-100', textColor: 'text-yellow-600' },
         'reserved': { bgColor: 'bg-blue-100', textColor: 'text-blue-600' },
         'fully-paid': { bgColor: 'bg-green-100', textColor: 'text-green-600' },
         'checked-in': { bgColor: 'bg-emerald-100', textColor: 'text-emerald-600' },

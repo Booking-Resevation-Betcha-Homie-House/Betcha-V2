@@ -526,6 +526,26 @@ async function fetchAndDisplayProperty() {
             }
         });
 
+        // Calculate and display additional pax capacity (maxCapacity - packageCapacity)
+        const additionalPaxElement = document.getElementById('additionalPax');
+        if (additionalPaxElement) {
+            const maxCap = parseInt(data.maxCapacity) || 0;
+            const pkgCap = parseInt(data.packageCapacity) || 0;
+            const additionalPaxCount = Math.max(0, maxCap - pkgCap);
+            additionalPaxElement.textContent = additionalPaxCount.toString();
+            console.log(maxCap, pkgCap)
+            
+            // Update tooltip values
+            const tooltipPackageCapacity = document.getElementById('tooltipPackageCapacity');
+            const tooltipAdditionalPax = document.getElementById('tooltipAdditionalPax');
+            if (tooltipPackageCapacity) {
+                tooltipPackageCapacity.textContent = pkgCap.toString();
+            }
+            if (tooltipAdditionalPax) {
+                tooltipAdditionalPax.textContent = additionalPaxCount.toString();
+            }
+        }
+
         // Handle timeIn and timeOut data
         const timeInOutElement = document.getElementById('timeInOut');
         if (timeInOutElement && data.timeIn && data.timeOut) {
@@ -971,6 +991,65 @@ function navigateToConfirmReservation(propertyData, bookingData) {
 }
 
 document.addEventListener('DOMContentLoaded', fetchAndDisplayProperty);
+
+// Setup tooltip click handler for mobile
+document.addEventListener('DOMContentLoaded', () => {
+    const infoIcon = document.getElementById('capacityInfoIcon');
+    const tooltip = document.getElementById('capacityTooltip');
+    
+    if (infoIcon && tooltip) {
+        let isTooltipVisible = false;
+        
+        // Show tooltip automatically for 3 seconds on page load
+        setTimeout(() => {
+            // Wait for property data to load first
+            const checkDataLoaded = setInterval(() => {
+                const packageCapacity = document.getElementById('tooltipPackageCapacity');
+                if (packageCapacity && packageCapacity.textContent !== '00') {
+                    clearInterval(checkDataLoaded);
+                    
+                    // Show tooltip
+                    tooltip.classList.remove('opacity-0', 'invisible');
+                    tooltip.classList.add('opacity-100', 'visible');
+                    isTooltipVisible = true;
+                    
+                    // Hide after 3 seconds
+                    setTimeout(() => {
+                        tooltip.classList.add('opacity-0', 'invisible');
+                        tooltip.classList.remove('opacity-100', 'visible');
+                        isTooltipVisible = false;
+                    }, 3000);
+                }
+            }, 100);
+            
+            // Fail-safe: stop checking after 5 seconds
+            setTimeout(() => clearInterval(checkDataLoaded), 5000);
+        }, 500);
+        
+        // Toggle tooltip on click (for mobile)
+        infoIcon.addEventListener('click', (e) => {
+            e.stopPropagation();
+            isTooltipVisible = !isTooltipVisible;
+            
+            if (isTooltipVisible) {
+                tooltip.classList.remove('opacity-0', 'invisible');
+                tooltip.classList.add('opacity-100', 'visible');
+            } else {
+                tooltip.classList.add('opacity-0', 'invisible');
+                tooltip.classList.remove('opacity-100', 'visible');
+            }
+        });
+        
+        // Close tooltip when clicking outside
+        document.addEventListener('click', (e) => {
+            if (isTooltipVisible && !tooltip.contains(e.target) && !infoIcon.contains(e.target)) {
+                isTooltipVisible = false;
+                tooltip.classList.add('opacity-0', 'invisible');
+                tooltip.classList.remove('opacity-100', 'visible');
+            }
+        });
+    }
+});
 
 // Function to update the booking dates display in the dateBookingModal
 function updateBookingDatesDisplay() {

@@ -250,6 +250,15 @@
      * Main initialization function
      */
     function init() {
+        // If user is logged in and trying to access login/register pages, redirect to their dashboard
+        if (userRole && (currentPath.includes('/login.html') || currentPath.includes('/register.html'))) {
+            console.log(`Page Control: Logged-in user '${userRole}' trying to access auth page, redirecting to dashboard`);
+            if (defaultPages[userRole]) {
+                window.location.href = defaultPages[userRole];
+                return;
+            }
+        }
+
         // Check if page access is allowed
         if (!isPageAccessAllowed()) {
             redirectToRolePage();

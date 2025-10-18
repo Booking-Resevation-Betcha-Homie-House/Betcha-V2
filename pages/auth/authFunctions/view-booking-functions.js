@@ -337,19 +337,22 @@ function populateBookingData(booking) {
             if (container && !document.getElementById('transferredPropertyMsg')) {
                 const msg = document.createElement('div');
                 msg.id = 'transferredPropertyMsg';
-                msg.style.marginBottom = '12px';
-                msg.style.padding = '8px 12px';
-                msg.style.background = '#eff6ff';
-                msg.style.border = '1px solid #bfdbfe';
-                msg.style.borderRadius = '8px';
-                msg.style.fontFamily = 'Inter, sans-serif';
-                msg.style.fontSize = '14px';
-                msg.style.color = '#2563eb';
-                 let address = booking.propertyAddress || '';
-                if (address.length > 40) {
-                    address = address.slice(0, 40) + '...';
+                msg.className = 'bg-primary/10 border border-primary/20 rounded-lg p-3 mb-3';
+                
+                let address = booking.propertyAddress || '';
+                if (address.length > 50) {
+                    address = address.slice(0, 50) + '...';
                 }
-                msg.innerHTML = `Transferred to: <strong>${booking.transfer.propertyName}</strong><br><span style='color:#1e293b;font-size:13px;'>${address ? 'Address: ' + address : ''}</span>`;
+                
+                msg.innerHTML = `
+                    <div class="flex items-start gap-2">
+                        <div>
+                            <p class="text-primary font-semibold text-base font-manrope mb-1">Booking Transferred</p>
+                            <p class="text-primary text-sm font-inter">Your booking has been transferred to <strong>${booking.transfer.propertyName}</strong>${address ? '<br>' + address : ''}</p>
+                        </div>
+                    </div>
+                `;
+                
                 container.insertBefore(msg, container.firstChild.nextSibling);
             }
         }
