@@ -269,21 +269,50 @@ function populateDropdowns(data) {
     }
 }
 
+// Helper function to convert 24-hour format to 12-hour format with AM/PM
+function convertTo12HourFormat(time24) {
+    if (!time24) return '';
+    
+    // If already in 12-hour format (contains AM/PM), return as is
+    if (time24.includes('AM') || time24.includes('PM')) {
+        return time24;
+    }
+    
+    // Parse 24-hour format (e.g., "13:00" or "13:30")
+    const [hours, minutes] = time24.split(':').map(str => parseInt(str));
+    
+    if (isNaN(hours) || isNaN(minutes)) {
+        console.warn('Invalid time format:', time24);
+        return time24; // Return original if invalid
+    }
+    
+    // Convert to 12-hour format
+    let hour12 = hours % 12;
+    if (hour12 === 0) hour12 = 12; // Handle midnight (0) and noon (12)
+    
+    const period = hours >= 12 ? 'PM' : 'AM';
+    const minuteStr = minutes.toString().padStart(2, '0');
+    
+    return `${hour12}:${minuteStr} ${period}`;
+}
+
 function populateTimeFields(data) {
     // Populate check-in time
     if (data.timeIn) {
         const checkInTimeText = document.getElementById('checkInTimeText');
         const checkInTimeInput = document.getElementById('checkInTimeInput');
-        if (checkInTimeText) checkInTimeText.textContent = data.timeIn;
-        if (checkInTimeInput) checkInTimeInput.value = data.timeIn;
+        const formattedTimeIn = convertTo12HourFormat(data.timeIn);
+        if (checkInTimeText) checkInTimeText.textContent = formattedTimeIn;
+        if (checkInTimeInput) checkInTimeInput.value = formattedTimeIn;
     }
     
     // Populate check-out time
     if (data.timeOut) {
         const checkOutTimeText = document.getElementById('checkOutTimeText');
         const checkOutTimeInput = document.getElementById('checkOutTimeInput');
-        if (checkOutTimeText) checkOutTimeText.textContent = data.timeOut;
-        if (checkOutTimeInput) checkOutTimeInput.value = data.timeOut;
+        const formattedTimeOut = convertTo12HourFormat(data.timeOut);
+        if (checkOutTimeText) checkOutTimeText.textContent = formattedTimeOut;
+        if (checkOutTimeInput) checkOutTimeInput.value = formattedTimeOut;
     }
 
     // Add validation listeners for time changes
@@ -770,9 +799,15 @@ function initializeFormComponents() {
 function initializeModalSystem() {
     // Modal triggers
     document.querySelectorAll('[data-modal-target]').forEach(trigger => {
+        // Skip the save button as it has its own validation handler
+        const modalId = trigger.getAttribute('data-modal-target');
+        if (modalId === 'confirmDetailsModal') {
+            console.log('⏭️ Skipping modal trigger for save button - using custom validation handler');
+            return; // Skip this trigger, handled in initializeSaveAndDiscardFunctionality
+        }
+        
         trigger.addEventListener('click', (e) => {
             e.preventDefault();
-            const modalId = trigger.getAttribute('data-modal-target');
             showModal(modalId);
             
             if (modalId === 'editGalleryModal') {
@@ -1854,14 +1889,16 @@ function validateCheckTimes() {
         checkOutTime,
         checkInMinutes,
         checkOutMinutes,
-        isValid: checkInMinutes < checkOutMinutes
+        isValid: checkInMinutes > checkOutMinutes
     });
     
+    // Check-in time should be LATER (greater) than check-out time
+    // e.g., Check-in: 1:00 PM (13:00), Check-out: 11:00 AM (11:00)
     if (checkInMinutes <= checkOutMinutes) {
         // Show toast notification for invalid times
         import('/src/toastNotification.js').then(module => {
             module.showToastError(
-                'Check-in time must be later than check-out time. Please adjust the times.',
+                'Check-in time must be later than check-out time. For example: Check-in at 1:00 PM, Check-out at 11:00 AM.',
                 'Invalid Time Selection'
             );
         }).catch(() => {

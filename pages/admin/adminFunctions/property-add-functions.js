@@ -670,12 +670,204 @@ function validateCheckTimes() {
   return true;
 }
 
+// Function to validate form before opening confirmation modal
+function validateFormBeforeConfirm() {
+  // Validate minimum image requirement
+  const imageContainer = document.querySelector('[x-data*="images"]');
+  let selectedFiles = [];
+  
+  if (imageContainer && window.Alpine) {
+    const alpineData = window.Alpine.$data(imageContainer);
+    if (alpineData && alpineData.selectedFiles) {
+      selectedFiles = alpineData.selectedFiles;
+    }
+  } else {
+    // Fallback to direct file input access
+    const fileInput = document.getElementById('images');
+    if (fileInput && fileInput.files) {
+      selectedFiles = Array.from(fileInput.files);
+    }
+  }
+
+  // Check if at least 3 images are selected
+  if (selectedFiles.length < 3) {
+    import('/src/toastNotification.js').then(module => {
+      module.showToastError(
+        `Please select at least 3 images. You currently have ${selectedFiles.length} image(s) selected.`,
+        'Insufficient Images'
+      );
+    }).catch(() => {
+      alert(`Please select at least 3 images. You currently have ${selectedFiles.length} image(s) selected.`);
+    });
+    return false;
+  }
+
+  // Check if at least one employee is assigned
+  const employeeContainer = document.getElementById('assigned-employees-container');
+  let selectedEmployeeIds = [];
+  
+  if (employeeContainer && window.Alpine) {
+    const alpineData = window.Alpine.$data(employeeContainer);
+    selectedEmployeeIds = alpineData.selected || [];
+  }
+
+  if (selectedEmployeeIds.length === 0) {
+    import('/src/toastNotification.js').then(module => {
+      module.showToastError(
+        'Please assign at least one employee to this property.',
+        'No Employees Assigned'
+      );
+    }).catch(() => {
+      alert('Please assign at least one employee to this property.');
+    });
+    return false;
+  }
+
+  // Basic validation for required fields
+  const requiredFields = [
+    { id: 'input-prop-name', label: 'Property Name' },
+    { id: 'input-prop-city', label: 'City' },
+    { id: 'input-prop-address', label: 'Address' },
+    { id: 'input-prop-desc', label: 'Description' },
+    { id: 'input-prop-packCap', label: 'Package Capacity' },
+    { id: 'input-prop-maxCap', label: 'Maximum Capacity' },
+    { id: 'input-prop-packPrice', label: 'Package Price' },
+    { id: 'input-prop-addPaxPrice', label: 'Additional Pax Price' },
+    { id: 'input-prop-rsrvFee', label: 'Reservation Fee' }
+  ];
+
+  for (const field of requiredFields) {
+    const element = document.getElementById(field.id);
+    if (!element || !element.value.trim()) {
+      import('/src/toastNotification.js').then(module => {
+        module.showToastError(
+          `Please fill in the ${field.label} field.`,
+          'Required Field Missing'
+        );
+      }).catch(() => {
+        alert(`Please fill in the ${field.label} field.`);
+      });
+      if (element) element.focus();
+      return false;
+    }
+  }
+
+  // Validate numeric fields have valid values
+  const numericFields = [
+    { id: 'input-prop-packCap', label: 'Package Capacity', min: 1 },
+    { id: 'input-prop-maxCap', label: 'Maximum Capacity', min: 1 },
+    { id: 'input-prop-packPrice', label: 'Package Price', min: 0 },
+    { id: 'input-prop-addPaxPrice', label: 'Additional Pax Price', min: 0 },
+    { id: 'input-prop-rsrvFee', label: 'Reservation Fee', min: 0 }
+  ];
+
+  for (const field of numericFields) {
+    const element = document.getElementById(field.id);
+    if (element) {
+      const value = parseFloat(element.value);
+      if (isNaN(value) || value < field.min) {
+        import('/src/toastNotification.js').then(module => {
+          module.showToastError(
+            `${field.label} must be a valid number ${field.min > 0 ? 'greater than 0' : 'and cannot be negative'}.`,
+            'Invalid Value'
+          );
+        }).catch(() => {
+          alert(`${field.label} must be a valid number ${field.min > 0 ? 'greater than 0' : 'and cannot be negative'}.`);
+        });
+        if (element) element.focus();
+        return false;
+      }
+    }
+  }
+
+  // Validate that Package Capacity is not greater than Maximum Capacity
+  const packCapElement = document.getElementById('input-prop-packCap');
+  const maxCapElement = document.getElementById('input-prop-maxCap');
+  if (packCapElement && maxCapElement) {
+    const packCap = parseInt(packCapElement.value);
+    const maxCap = parseInt(maxCapElement.value);
+    if (packCap > maxCap) {
+      import('/src/toastNotification.js').then(module => {
+        module.showToastError(
+          'Package Capacity cannot be greater than Maximum Capacity.',
+          'Invalid Capacity Values'
+        );
+      }).catch(() => {
+        alert('Package Capacity cannot be greater than Maximum Capacity.');
+      });
+      packCapElement.focus();
+      return false;
+    }
+  }
+
+  // Validate time selections
+  const checkInElement = document.getElementById('checkInTimeText');
+  const checkOutElement = document.getElementById('checkOutTimeText');
+  if (checkInElement && checkOutElement) {
+    const checkInText = checkInElement.textContent.trim();
+    const checkOutText = checkOutElement.textContent.trim();
+    
+    if (!checkInText || checkInText === 'Select time' || !checkOutText || checkOutText === 'Select time') {
+      import('/src/toastNotification.js').then(module => {
+        module.showToastError(
+          'Please select both Check-in and Check-out times.',
+          'Time Selection Required'
+        );
+      }).catch(() => {
+        alert('Please select both Check-in and Check-out times.');
+      });
+      return false;
+    }
+  }
+
+  // Validate check-in and check-out times
+  if (!validateCheckTimes()) {
+    import('/src/toastNotification.js').then(module => {
+      module.showToastError(
+        'Check-in time must be later than check-out time. For example: Check-in at 1:00 PM, Check-out at 11:00 AM.',
+        'Invalid Time Selection'
+      );
+    }).catch(() => {
+      alert('Check-in time must be later than check-out time.');
+    });
+    return false;
+  }
+
+  return true;
+}
+
 // Expose functions globally
 window.updateAmenitiesDisplay = updateAmenitiesDisplay;
 window.setupAmenitiesListeners = setupAmenitiesListeners;
 
 document.addEventListener('DOMContentLoaded', function () {
   console.log('DOMContentLoaded: Event fired!');
+  
+  // Intercept the "Add" button click to validate before opening modal
+  const addButton = document.querySelector('[data-modal-target="confirmDetailsModal"]');
+  if (addButton) {
+    console.log('Add button found, setting up validation handler');
+    
+    // Remove the data-modal-target attribute to prevent automatic modal opening
+    addButton.removeAttribute('data-modal-target');
+    
+    // Add our own click handler with validation
+    addButton.addEventListener('click', function(e) {
+      e.preventDefault();
+      console.log('Add button clicked, validating form...');
+      
+      if (validateFormBeforeConfirm()) {
+        console.log('Validation passed, opening modal');
+        const confirmModal = document.getElementById('confirmDetailsModal');
+        if (confirmModal) {
+          confirmModal.classList.remove('hidden');
+          confirmModal.classList.add('flex');
+        }
+      } else {
+        console.log('Validation failed, modal not opened');
+      }
+    });
+  }
   
   // Find the Confirm button inside the confirmDetailsModal
   const confirmModal = document.getElementById('confirmDetailsModal');
