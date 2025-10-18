@@ -352,8 +352,8 @@
           <p class="relative font-manrope text-primary text-5xl w-[90%] font-bold md:w-[90%] lg:w-full md:text-6xl lg:text-5xl">Find the perfect room for you</p>
           <p class="relative font-inter text-primary-text w-[90%] md:w-[90%] lg:w-[full]">We offer a wide range of rooms for rent in different locations across the Philippines, designed to suit your needs. Each room ensures comfort and convenience, making it easy to find your perfect stay.</p>
         </div>
-        <img src="../../public/images/old-vintage-key 1.png" alt="Old vintage key" class="absolute bottom-0 right-0 top-7 w-auto h-40 
-        hover:rotate-45 hover:scale-120
+        <img id="vintageKey" src="../../public/images/old-vintage-key 1.png" alt="Old vintage key" class="absolute bottom-0 right-0 top-7 w-auto h-40 
+        hover:rotate-45 hover:scale-120 cursor-pointer active:scale-110
         md:-top-3 md:h-50 lg:h-70 lg:relative lg:bottom-auto lg:right-auto lg:top-auto 
         transition-all duration-300 ease-in-out">
       </div>
@@ -990,6 +990,25 @@
           // Redirect to search results page with parameters
           window.location.href = `search-result.html?${queryParams.toString()}`;
         });
+      });
+      
+      // Vintage key click toggle for mobile
+      document.addEventListener('DOMContentLoaded', () => {
+        const vintageKey = document.getElementById('vintageKey');
+        
+        if (vintageKey) {
+          let isRotated = false;
+          
+          vintageKey.addEventListener('click', () => {
+            isRotated = !isRotated;
+            
+            if (isRotated) {
+              vintageKey.classList.add('rotate-45', 'scale-120');
+            } else {
+              vintageKey.classList.remove('rotate-45', 'scale-120');
+            }
+          });
+        }
       });
     </script>
   </body>
