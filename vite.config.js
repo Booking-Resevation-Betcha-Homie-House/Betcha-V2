@@ -82,6 +82,7 @@ export default defineConfig({
         rolesEdit: 'pages/admin/roles-edit.html',
         auditTrails: 'pages/admin/audit-trails.html',
         adminFaqs: 'pages/admin/faqs.html',
+        refunds: 'pages/admin/refunds.html',
         
         // Admin function pages
         adminTest1: 'pages/admin/adminFunctions/test1.html',
