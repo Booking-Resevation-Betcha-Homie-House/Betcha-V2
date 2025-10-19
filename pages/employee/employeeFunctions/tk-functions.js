@@ -585,14 +585,14 @@ async function handleRefundRequest(message) {
         
         // Validate that we have all required data
         if (!paymentData.bookingId || !paymentData.transNo || !paymentData.amountRefund) {
-            alert('Unable to extract payment information from the message. Please contact support.');
+            window.showToastError('Unable to extract payment information from the message. Please contact support.', 'Missing Information');
             return;
         }
         
         // Get current ticket
         const selectedTicket = document.querySelector('.ticket-item.selected-ticket');
         if (!selectedTicket) {
-            alert('No ticket selected.');
+            window.showToastWarning('No ticket selected.', 'Selection Required');
             return;
         }
         
@@ -657,7 +657,7 @@ async function handleRefundRequest(message) {
         }
         
         // Success feedback
-        alert('Refund request submitted successfully! Admin will process the refund shortly.');
+        window.showToastSuccess('Refund request submitted successfully! Admin will process the refund shortly.', 'Refund Submitted');
         
         // Refresh ticket list and details
         await fetchAndPopulateTickets();
@@ -665,7 +665,7 @@ async function handleRefundRequest(message) {
     } catch (error) {
         console.error('Error handling refund request:', error);
         const errorMessage = error.message || 'Failed to submit refund request. Please try again.';
-        alert(`Failed to submit refund request: ${errorMessage}`);
+        window.showToastError(`Failed to submit refund request: ${errorMessage}`, 'Refund Failed');
     }
 }
 
@@ -873,7 +873,7 @@ function showNoTicketsMessage() {
 }
 
 async function confirmResolve(ticketId) {
-    if (!ticketId) return alert("No ticket selected");
+    if (!ticketId) return window.showToastWarning("No ticket selected", "Selection Required");
 
     try {
         const res = await fetch(`${API_BASE_URL}/tk/status/${ticketId}`, {
@@ -912,14 +912,14 @@ async function confirmResolve(ticketId) {
 
     } catch (err) {
         console.error("Error resolving ticket:", err);
-        alert("Failed to resolve ticket ❌");
+        window.showToastError("Failed to resolve ticket ❌", "Resolution Failed");
     }
 }
 
 document.getElementById("confirmResolveBtn")?.addEventListener("click", () => {
     const selected = document.querySelector(".ticket-item.selected-ticket"); 
     if (!selected) {
-        alert("Please select a ticket first.");
+        window.showToastWarning("Please select a ticket first.", "Selection Required");
         return;
     }
     confirmResolve(selected.dataset.ticketId);
@@ -1025,13 +1025,13 @@ document.querySelector('#ticketMain form').addEventListener('submit', (e) => {
     const ticketId = selectedTicket?.dataset.ticketId;
 
     if (!ticketId) {
-        alert("No ticket selected!");
+        window.showToastWarning("No ticket selected!", "Selection Required");
         return;
     }
 
     // Check if ticket is closed (completed/resolved)
     if (textarea.disabled) {
-        alert("Cannot send messages to closed tickets.");
+        window.showToastWarning("Cannot send messages to closed tickets.", "Ticket Closed");
         return;
     }
 
