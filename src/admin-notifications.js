@@ -332,15 +332,33 @@ document.addEventListener("DOMContentLoaded", () => {
             console.warn('No user id in localStorage; skipping notifications fetch');
             return;
         }
+        
+        const timestamp = new Date().toLocaleTimeString('en-PH', { hour12: false });
+        
         try {
-            const resp = await fetch(`${window.API_BASE}/notify/to/${uid}`);
-            if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+            const resp = await fetch(`${window.API_BASE}/notify/to/${uid}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!resp.ok) {
+                throw new Error(`HTTP ${resp.status}: ${resp.statusText}`);
+            }
+            
             const json = await resp.json();
             const items = Array.isArray(json?.data) ? json.data : [];
+            
             renderNotifications(items);
         } catch (err) {
-            console.error('Failed to fetch notifications:', err);
-            renderNotifications([]);
+            console.error(`❌ [${timestamp}] Failed to fetch notifications:`, err.message || err);
+            // Don't clear notifications on error - keep showing last successful fetch
+            // Only clear if it's the first fetch (no notifications displayed yet)
+            const hasExistingNotifs = document.querySelector('#notificationsContainer .notification');
+            if (!hasExistingNotifs) {
+                renderNotifications([]);
+            }
         }
     };
 
@@ -390,8 +408,46 @@ document.addEventListener("DOMContentLoaded", () => {
     // Initialize scoped tabs for all notification tab groups (desktop + small modal)
     initializeAllNotificationTabs();
     
+    // Poll notifications every 5 seconds
+    let notificationInterval = setInterval(() => {
+        try {
+            fetchNotifications();
+        } catch (error) {
+            console.error('❌ Error during notification polling:', error);
+        }
+    }, 5000); // 5 seconds
+    
+    // Cleanup interval on page unload
+    window.addEventListener('beforeunload', () => {
+        if (notificationInterval) {
+            clearInterval(notificationInterval);
+        }
+    });
+    
     // Make fetchNotifications globally accessible for other scripts
     window.fetchNotifications = fetchNotifications;
+    
+    // Expose method to stop polling (useful for debugging or manual control)
+    window.stopNotificationPolling = () => {
+        if (notificationInterval) {
+            clearInterval(notificationInterval);
+            notificationInterval = null;
+        }
+    };
+    
+    // Expose method to start polling (useful for debugging or manual control)
+    window.startNotificationPolling = () => {
+        if (notificationInterval) {
+            clearInterval(notificationInterval);
+        }
+        notificationInterval = setInterval(() => {
+            try {
+                fetchNotifications();
+            } catch (error) {
+                console.error('❌ Error during notification polling:', error);
+            }
+        }, 5000);
+    };
 });
 
 // Make admin notification functions globally available

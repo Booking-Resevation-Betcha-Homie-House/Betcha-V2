@@ -1106,8 +1106,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         modal.classList.add('hidden');
                     });
 
+                    // Show loading while verifying OTP
+                    showFullscreenLoading('Verifying OTP');
+
                     // Verify OTP first
                     await verifyOTP(email, otpValue);
+                
+                    // Update loading message for account creation
+                    updateLoadingMessage('Creating your account');
                 
                 // If OTP is verified, proceed with registration
                 const formData = new FormData();
@@ -1175,11 +1181,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Try to register user
                 const response = await registerUser(formData).catch(error => {
+                    // Hide loading on error
+                    hideFullscreenLoading();
                     // Handle registration error
                     throw new Error(error.message || 'Registration failed. Please try again.');
                 });
 
                 console.log('Registration successful:', response);
+
+                // Update loading message before redirect
+                updateLoadingMessage('Registration successful! Redirecting');
 
                 // Close the email OTP modal
                 const emailOTPModal = document.getElementById('emailOTPModal');
@@ -1187,10 +1198,16 @@ document.addEventListener('DOMContentLoaded', () => {
                     emailOTPModal.classList.add('hidden');
                 }
 
-                // Redirect to login page after successful registration
-                window.location.href = 'login.html';
+                // Small delay to show success message, then redirect
+                setTimeout(() => {
+                    hideFullscreenLoading();
+                    // Redirect to login page after successful registration
+                    window.location.href = 'login.html';
+                }, 1500);
 
             } catch (error) {
+                // Hide loading on error
+                hideFullscreenLoading();
                 // Show error modal for any failure (OTP or registration)
                 showRegistrationError(error.message || 'The process failed. Please try again.');
                 // Reset OTP inputs
@@ -1198,6 +1215,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
+            // Hide loading on error
+            hideFullscreenLoading();
             console.error('Error in registration process:', error);
             showRegistrationError('An unexpected error occurred. Please try again.');
         }

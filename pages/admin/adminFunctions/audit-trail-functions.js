@@ -7,12 +7,6 @@ let customerNameMap = new Map(); // Map userId to customer name
 // Fetch audit trail data from API
 async function fetchAuditTrails() {
     try {
-        // Show loading state for the current active tab
-        showLoadingState();
-        
-        // Add a small delay to ensure skeleton is visible
-        await new Promise(resolve => setTimeout(resolve, 200));
-        
         // Fetch both audit trails and customer data
         const [auditResponse, customerResponse] = await Promise.all([
             fetch('https://betcha-api.onrender.com/audit/getAll'),
@@ -55,8 +49,8 @@ async function fetchAuditTrails() {
         
     } catch (error) {
         console.error('Error fetching audit trails:', error);
-        hideLoadingState();
         showErrorMessage('Failed to load audit trail data: ' + error.message);
+        throw error; // Re-throw to handle in polling
     }
 }
 
@@ -493,13 +487,8 @@ function setActiveAuditTab(tabIndex) {
         return;
     }
     
-    // Show skeleton loading for the new tab
-    showLoadingState();
-    
-    // Add a small delay to ensure skeleton is visible before filtering
-    setTimeout(() => {
-        filterByUserType(userType);
-    }, 100);
+    // Filter and render immediately (no delay needed for polling updates)
+    filterByUserType(userType);
 }
 
 // Initialize audit trail functionality
@@ -531,6 +520,75 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log('Double-checking search setup after tab initialization...');
         setupSearch();
     });
+    
+    // Set up AJAX polling for audit trail updates (every 5 seconds)
+    let auditPollingInterval = setInterval(() => {
+        try {
+            fetchAuditTrails().then(() => {
+                // Re-render the current active tab with updated data
+                const currentTabIndex = getCurrentTabIndex();
+                let userType;
+                switch(currentTabIndex) {
+                    case 0: userType = 'Admin'; break;
+                    case 1: userType = 'Employee'; break;
+                    case 2: userType = 'Guest'; break;
+                    default: userType = 'All';
+                }
+                
+                // Only update if no search is active
+                const searchInput = document.getElementById('audit-search');
+                if (!searchInput || !searchInput.value.trim()) {
+                    filterByUserType(userType);
+                }
+            });
+        } catch (error) {
+            console.error('Error during audit trail polling:', error);
+        }
+    }, 5000); // 5 seconds
+    
+    // Cleanup interval on page unload
+    window.addEventListener('beforeunload', () => {
+        if (auditPollingInterval) {
+            clearInterval(auditPollingInterval);
+        }
+    });
+    
+    // Expose methods to control polling (for debugging)
+    window.stopAuditPolling = () => {
+        if (auditPollingInterval) {
+            clearInterval(auditPollingInterval);
+            auditPollingInterval = null;
+            console.log('Audit trail polling stopped');
+        }
+    };
+    
+    window.startAuditPolling = () => {
+        if (auditPollingInterval) {
+            clearInterval(auditPollingInterval);
+        }
+        auditPollingInterval = setInterval(() => {
+            try {
+                fetchAuditTrails().then(() => {
+                    const currentTabIndex = getCurrentTabIndex();
+                    let userType;
+                    switch(currentTabIndex) {
+                        case 0: userType = 'Admin'; break;
+                        case 1: userType = 'Employee'; break;
+                        case 2: userType = 'Guest'; break;
+                        default: userType = 'All';
+                    }
+                    
+                    const searchInput = document.getElementById('audit-search');
+                    if (!searchInput || !searchInput.value.trim()) {
+                        filterByUserType(userType);
+                    }
+                });
+            } catch (error) {
+                console.error('Error during audit trail polling:', error);
+            }
+        }, 5000);
+        console.log('Audit trail polling started');
+    };
     
     console.log('=== END DOM CONTENT LOADED DEBUG ===');
 });

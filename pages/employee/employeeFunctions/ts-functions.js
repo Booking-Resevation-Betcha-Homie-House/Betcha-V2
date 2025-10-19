@@ -56,6 +56,43 @@ async function initializeTransactionFeatures() {
         // Set up tab switching functionality
         setupTabSwitching();
         
+        // Set up AJAX polling for transaction updates (every 10 seconds)
+        let transactionInterval = setInterval(() => {
+            try {
+                loadTransactionData();
+            } catch (error) {
+                console.error('❌ Error during transaction polling:', error);
+            }
+        }, 10000); // 10 seconds
+        
+        // Cleanup interval on page unload
+        window.addEventListener('beforeunload', () => {
+            if (transactionInterval) {
+                clearInterval(transactionInterval);
+            }
+        });
+        
+        // Expose methods to control polling (for debugging)
+        window.stopTransactionPolling = () => {
+            if (transactionInterval) {
+                clearInterval(transactionInterval);
+                transactionInterval = null;
+            }
+        };
+        
+        window.startTransactionPolling = () => {
+            if (transactionInterval) {
+                clearInterval(transactionInterval);
+            }
+            transactionInterval = setInterval(() => {
+                try {
+                    loadTransactionData();
+                } catch (error) {
+                    console.error('❌ Error during transaction polling:', error);
+                }
+            }, 5000);
+        };
+        
     } catch (error) {
         console.error('Error initializing transaction features:', error);
     }
@@ -64,37 +101,48 @@ async function initializeTransactionFeatures() {
 // Load Transaction Data from API
 async function loadTransactionData() {
     try {
-        console.log('Loading transaction data...');
-        
         // Get property IDs from localStorage
         let propertyIds = getPropertyIdsFromStorage();
         
         if (!propertyIds || propertyIds.length === 0) {
-            console.warn('No property IDs found in localStorage. Creating test property for demo.');
             // For testing purposes, use the sample property ID from the API documentation
             const testPropertyIds = ["685c32000741b89b5f2c97b9"];
             
             // Save test property to localStorage for future use
             localStorage.setItem('properties', JSON.stringify(testPropertyIds));
             
-            console.log('Using test property IDs:', testPropertyIds);
             propertyIds = testPropertyIds;
         }
-        
-        console.log('Property IDs:', propertyIds);
         
         // Fetch transactions from API
         const transactionData = await fetchTransactionsByProperties(propertyIds);
         
         if (transactionData) {
-            console.log('Transaction data received:', transactionData);
-            
             // Populate the UI with transaction data
             populateTransactionTabs(transactionData);
         }
         
     } catch (error) {
-        console.error('Error loading transaction data:', error);
+        console.error('Error loading transaction data:', error.message || error);
+        
+        // Show error message to user if table exists
+        const tabContents = document.querySelectorAll('.tab-content');
+        if (tabContents.length > 0) {
+            tabContents.forEach(container => {
+                const errorMessage = `
+                    <div class="col-span-full flex items-center justify-center py-8">
+                        <div class="text-center">
+                            <svg class="w-12 h-12 text-red-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-neutral-600 font-medium">Failed to load transactions</p>
+                            <p class="text-neutral-400 text-sm mt-1">${error.message || 'Please try again later'}</p>
+                        </div>
+                    </div>
+                `;
+                container.innerHTML = errorMessage;
+            });
+        }
     }
 }
 
@@ -105,7 +153,6 @@ function getPropertyIdsFromStorage() {
         const properties = localStorage.getItem('properties');
         if (properties) {
             const propertyIds = JSON.parse(properties);
-            console.log('Found properties in localStorage:', propertyIds);
             return propertyIds;
         }
         
@@ -113,7 +160,6 @@ function getPropertyIdsFromStorage() {
         const userData = localStorage.getItem('userData');
         if (userData) {
             const user = JSON.parse(userData);
-            console.log('User data:', user);
             
             // Check if user has properties array
             if (user.properties && Array.isArray(user.properties)) {
@@ -132,7 +178,6 @@ function getPropertyIdsFromStorage() {
             return JSON.parse(propertyIds);
         }
         
-        console.warn('No property IDs found in localStorage. Available keys:', Object.keys(localStorage));
         return [];
         
     } catch (error) {
@@ -144,8 +189,6 @@ function getPropertyIdsFromStorage() {
 // Fetch Transactions by Properties from API
 async function fetchTransactionsByProperties(propertyIds) {
     try {
-        console.log('Fetching transactions for properties:', propertyIds);
-        
         const response = await fetch(`${API_BASE_URL}/ts/transactionsByProperties`, {
             method: 'POST',
             headers: {
@@ -157,15 +200,14 @@ async function fetchTransactionsByProperties(propertyIds) {
         });
         
         if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json();
-        console.log('API Response:', data);
         return data;
         
     } catch (error) {
-        console.error('Error fetching transactions by properties:', error);
+        console.error('Error fetching transactions:', error.message || error);
         throw error;
     }
 }
@@ -173,8 +215,6 @@ async function fetchTransactionsByProperties(propertyIds) {
 // Populate Transaction Tabs with Data
 function populateTransactionTabs(transactionData) {
     try {
-        console.log('Populating transaction tabs with data:', transactionData);
-        
         // Recategorize transactions to ensure "Transferred" status is in Pending
         const recategorized = recategorizeTransactions(transactionData);
         
@@ -199,8 +239,6 @@ function populateTransactionTabs(transactionData) {
 // Recategorize transactions to ensure proper tab placement
 function recategorizeTransactions(transactionData) {
     try {
-        console.log('Recategorizing transactions...');
-        
         // Combine all transactions
         const allTransactions = [
             ...(transactionData.pending || []),
@@ -232,11 +270,6 @@ function recategorizeTransactions(transactionData) {
             }
         });
         
-        console.log('Recategorization complete:', {
-            pending: pending.length,
-            completed: completed.length
-        });
-        
         return { pending, completed };
         
     } catch (error) {
@@ -248,8 +281,6 @@ function recategorizeTransactions(transactionData) {
 // Populate Individual Transaction Tab
 function populateTransactionTab(tabContainer, transactions, tabType) {
     try {
-        console.log(`Populating ${tabType} tab with ${transactions.length} transactions`);
-        
         // Clear existing content
         tabContainer.innerHTML = '';
         
@@ -281,7 +312,6 @@ function populateTransactionTab(tabContainer, transactions, tabType) {
         
         // Create transaction items
         sorted.forEach((transaction, index) => {
-            console.log(`Creating transaction element ${index + 1}:`, transaction);
             const transactionElement = createTransactionElement(transaction, tabType);
             tabContainer.appendChild(transactionElement);
         });
