@@ -1,6 +1,26 @@
 // Customer/Guest Notification System
 // Simplified notification viewing functionality for customers
 
+// Add custom scrollbar styles for notification modal
+const style = document.createElement('style');
+style.textContent = `
+  #notifModal .overflow-y-auto::-webkit-scrollbar {
+    width: 8px;
+  }
+  #notifModal .overflow-y-auto::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 0 12px 12px 0;
+  }
+  #notifModal .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 4px;
+  }
+  #notifModal .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
+`;
+document.head.appendChild(style);
+
 document.addEventListener("DOMContentLoaded", () => {
   const dropdown = document.getElementById('notificationDropdown');
   const bellBtn = document.getElementById('notifBellBtnDesktop');
@@ -84,18 +104,80 @@ document.addEventListener("DOMContentLoaded", () => {
     `;
 
     // Fill detailed modal on click
-    wrapper.addEventListener('click', () => {
+    wrapper.addEventListener('click', async () => {
       suppressDropdownCloseOnce = true;
       
       const modal = document.getElementById('notifModal');
       if (modal) {
+        // Fix modal wrapper classes for proper display
+        const modalWrapper = modal.querySelector('.w-full.h-full.bg-background');
+        if (modalWrapper) {
+          // Ensure rounded corners on desktop
+          if (!modalWrapper.classList.contains('rounded-3xl')) {
+            modalWrapper.classList.remove('md:rounded-3xl');
+            modalWrapper.classList.add('md:rounded-3xl');
+          }
+          // Fix overflow for scrolling
+          if (modalWrapper.classList.contains('overflow-hidden')) {
+            modalWrapper.classList.remove('overflow-hidden');
+          }
+        }
+        
         const senderEl = modal.querySelector('#notifSender');
         const dateEl = modal.querySelector('#notifDate');
         const msgEl = modal.querySelector('#notifMessage');
         
         if (senderEl) senderEl.textContent = wrapper.dataset.sender || '';
         if (dateEl) dateEl.textContent = wrapper.dataset.datetime || '';
-        if (msgEl) msgEl.textContent = wrapper.dataset.message || '';
+        
+        // Check if message contains Refund ID
+        const message = wrapper.dataset.message || '';
+        const refundIdMatch = message.match(/Refund ID:\s*([a-f0-9]{24})/i);
+        
+        if (msgEl) {
+          // Replace \n with <br> to support newlines
+          msgEl.innerHTML = message.replace(/\n/g, '<br>');
+        }
+        
+        // Remove any existing refund details section
+        const existingRefundSection = modal.querySelector('#refundDetailsSection');
+        if (existingRefundSection) {
+          existingRefundSection.remove();
+        }
+        
+        // Ensure the content wrapper has scrolling enabled and is properly structured
+        const contentWrapper = msgEl?.closest('.flex.flex-col.items-start');
+        if (contentWrapper) {
+          // Change from items-start to items-stretch for full width
+          contentWrapper.classList.remove('items-start');
+          contentWrapper.classList.add('items-stretch');
+          
+          // Move scrolling to the content wrapper itself (not parent)
+          if (!contentWrapper.classList.contains('overflow-y-auto')) {
+            contentWrapper.classList.add('overflow-y-auto');
+            contentWrapper.classList.add('flex-1'); // Allow it to take available space
+            contentWrapper.style.maxHeight = '100%';
+            // Custom scrollbar styling
+            contentWrapper.style.paddingRight = '12px';
+          }
+          
+          // Ensure parent container doesn't have overflow-y-auto
+          const modalContent = contentWrapper.parentElement;
+          if (modalContent) {
+            modalContent.classList.remove('overflow-y-auto');
+            modalContent.classList.remove('overflow-hidden');
+            // Keep flex-col structure
+            if (!modalContent.classList.contains('flex-col')) {
+              modalContent.classList.add('flex-col');
+            }
+          }
+        }
+        
+        // If Refund ID is found, fetch and display refund details
+        if (refundIdMatch) {
+          const refundId = refundIdMatch[1];
+          await fetchAndDisplayRefundDetails(refundId, modal);
+        }
         
         // Open the modal
         modal.classList.remove('hidden');
@@ -212,6 +294,66 @@ document.addEventListener("DOMContentLoaded", () => {
   // Make fetchNotifications globally accessible for other scripts
   window.fetchNotifications = fetchNotifications;
 });
+
+// Fetch refund details and display in notification modal
+async function fetchAndDisplayRefundDetails(refundId, modal) {
+  try {
+    const API_BASE = 'https://betcha-api.onrender.com';
+    const response = await fetch(`${API_BASE}/refund/${refundId}`);
+    
+    if (!response.ok) {
+      console.error('Failed to fetch refund details:', response.status);
+      return;
+    }
+    
+    const data = await response.json();
+    const refund = data.refund || data.data || data;
+    
+    if (!refund) {
+      console.error('No refund data found');
+      return;
+    }
+    
+    // Create refund details section
+    const refundSection = document.createElement('div');
+    refundSection.id = 'refundDetailsSection';
+    refundSection.className = 'mt-5 pt-5 border-t border-neutral-300';
+    refundSection.innerHTML = `
+      <h3 class="text-base font-semibold text-primary-text mb-4">Refund Details</h3>
+      <div class="bg-neutral-50 rounded-2xl p-4 space-y-3 border border-neutral-200">
+        <div class="flex justify-between items-center py-2">
+          <span class="text-sm font-medium text-neutral-600">Amount</span>
+          <span class="text-base font-bold text-primary-text">₱${parseFloat(refund.amount || 0).toLocaleString('en-PH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+        </div>
+        <div class="h-px bg-neutral-200"></div>
+        <div class="flex justify-between items-center py-2">
+          <span class="text-sm font-medium text-neutral-600">Status</span>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700 shadow-sm">
+            ✓ Refunded
+          </span>
+        </div>
+        ${refund.image ? `
+          <div class="h-px bg-neutral-200"></div>
+          <div class="pt-2">
+            <span class="text-sm font-medium text-neutral-600 block mb-3">Proof of Refund</span>
+            <div class="relative w-full rounded-xl overflow-hidden border border-neutral-300 shadow-sm hover:shadow-md transition-all duration-300 bg-white">
+              <img src="${refund.image}" alt="Refund Proof" class="w-full h-auto object-contain cursor-pointer" onclick="window.open('${refund.image}', '_blank')" style="max-height: 400px;" />
+            </div>
+          </div>
+        ` : ''}
+      </div>
+    `;
+    
+    // Insert after the message element
+    const messageEl = modal.querySelector('#notifMessage');
+    if (messageEl && messageEl.parentNode) {
+      messageEl.parentNode.appendChild(refundSection);
+    }
+    
+  } catch (error) {
+    console.error('Error fetching refund details:', error);
+  }
+}
 
 // Mark a notification as read in UI
 function markAsReadInUI(notificationId) {

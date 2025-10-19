@@ -228,6 +228,9 @@ document.addEventListener("DOMContentLoaded", () => {
                     } catch {
                         // Failed to reset buttons
                     }
+
+                    // Initialize image upload if not already added
+                    initializeCancelModalImageUpload(cModal);
                 }
             } else {
                 const modal = document.getElementById('notifModal');
@@ -400,7 +403,11 @@ window.AdminNotifications = {
     guestCancllationNotification,
     showNotificationSuccess,
     showNotificationError,
-    markAsReadInUI
+    markAsReadInUI,
+    getCancelModalImage: () => {
+        const modal = document.getElementById('cancelModal');
+        return modal?.getCancelImage ? modal.getCancelImage() : null;
+    }
 };
 
 // Initialize tabs within a specific notification container
@@ -807,32 +814,25 @@ function initializeStaticModalButtons() {
                 }
                 
                 const notifId = modal.dataset.notificationId;
+                let bookingId = modal.dataset.bookingId;
+                
                 if (!notifId) {
                     throw new Error('No notification ID found in modal data');
                 }
-                
-
-                
-                // Get booking ID from modal data
-                let bookingId = modal.dataset.bookingId;
-
                 
                 // If no booking ID, try to get it from transaction number
                 if (!bookingId) {
                     const transNo = modal.querySelector('#cancel-transNo, #transNo')?.textContent?.replace('Transaction no. ', '') || 
                                    modal.querySelector('[data-trans-no]')?.textContent;
 
-                    
                     if (transNo) {
                         try {
-
                             const searchResponse = await fetch(`${window.API_BASE}/booking/trans/${encodeURIComponent(transNo)}`);
                             const searchData = await searchResponse.json();
                             
                             if (searchData && (searchData.booking || searchData.data)) {
                                 const b = searchData.booking || searchData.data;
                                 bookingId = b._id || b.id || b.bookingId || '';
-
                                 if (bookingId) modal.dataset.bookingId = bookingId;
                             }
                         } catch {
@@ -841,58 +841,75 @@ function initializeStaticModalButtons() {
                     }
                 }
                 
-
-                
                 // Disable button during processing
                 rejectBtn.disabled = true;
                 rejectLbl.textContent = 'Processing...';
                 
-                // Update notification status to "Rejected"
-                await updateNotificationStatus(notifId, 'Rejected');
-
-                // Send a static message back to the requester about rejection
-                try {
-                    const fromId = localStorage.getItem('adminId') || localStorage.getItem('userId') || 'admin-user';
-                    const fromName = localStorage.getItem('adminName') || `${localStorage.getItem('firstName') || 'Admin'} ${localStorage.getItem('lastName') || 'User'}`.trim();
-                    const toId = modal.dataset.fromId || '';
-                    const toName = 'Employee';
-                    const payload = {
-                        fromId,
-                        fromName,
-                        fromRole: 'admin',
-                        toId,
-                        toName,
-                        toRole: 'employee',
-                        message: 'Your cancellation request has been reviewed and rejected by the admin. The booking will remain active. This thread does not accept replies. For any concerns, please reach out to the admin via the designated support channel.'
-                    };
-
-                    const msgResp = await fetch(`${window.API_BASE}/notify/message`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
+                // Instead of immediately processing, open the reason modal first
+                const cancelReqModal = document.getElementById('cancelReqModal');
+                if (cancelReqModal) {
+                    // Transfer the data to the reason modal
+                    cancelReqModal.dataset.notificationId = notifId;
+                    cancelReqModal.dataset.bookingId = bookingId || '';
+                    cancelReqModal.dataset.action = 'reject';
+                    
+                    // Update modal labels for rejection context
+                    const reasonLabel = cancelReqModal.querySelector('label[for="input-lpc-subtitle"]');
+                    const sendButton = cancelReqModal.querySelector('#guestMsgBtn span');
+                    const textarea = cancelReqModal.querySelector('#input-lpc-subtitle');
+                    
+                    console.log('🔍 REJECTION MODAL DEBUG:', {
+                        reasonLabel: reasonLabel ? 'Found' : 'NOT FOUND',
+                        sendButton: sendButton ? 'Found' : 'NOT FOUND',
+                        textarea: textarea ? 'Found' : 'NOT FOUND',
+                        textareaId: textarea?.id,
+                        textareaValue: textarea?.value
                     });
-                    await msgResp.json().catch(() => ({}));
-
-                } catch (msgErr) {
-                    console.warn('⚠️ Failed to send rejection message:', msgErr);
+                    
+                    if (reasonLabel) reasonLabel.textContent = 'Rejection Reason:';
+                    if (sendButton) sendButton.textContent = 'Reject & Notify';
+                    if (textarea) {
+                        const rejectionMessage = 'Your cancellation request has been reviewed and rejected by the admin. The booking will remain active. This thread does not accept replies. For any concerns, please reach out to the admin via the designated support channel.';
+                        textarea.placeholder = 'Enter reason for rejecting the cancellation...';
+                        textarea.value = rejectionMessage;
+                        
+                        console.log('✅ TEXTAREA UPDATED:', {
+                            textareaValue: textarea.value,
+                            messageLength: rejectionMessage.length,
+                            actualLength: textarea.value.length
+                        });
+                    } else {
+                        console.error('❌ Textarea with id "input-lpc-subtitle" not found in cancelReqModal');
+                    }
+                    
+                    // Get employee/guest details to show name in the reason modal
+                    const fromId = modal.dataset.fromId || '';
+                    if (fromId) {
+                        // Try to get name from notification sender
+                        const senderName = modal.querySelector('#notifSender')?.textContent || 'Employee';
+                        const guestNameSpan = cancelReqModal.querySelector('p span');
+                        if (guestNameSpan) {
+                            guestNameSpan.textContent = senderName;
+                        }
+                    }
+                    
+                    // Close the current cancelModal
+                    const closeBtn = modal.querySelector('[data-close-modal]');
+                    if (closeBtn) {
+                        closeBtn.click();
+                    }
+                    
+                    // Open the reason modal
+                    setTimeout(() => {
+                        cancelReqModal.classList.remove('hidden');
+                    }, 300); // Small delay to ensure cancelModal closes first
+                } else {
+                    console.error('cancelReqModal not found');
                 }
-                
-                // Close the modal
-                const closeBtn = modal.querySelector('[data-close-modal]');
-                if (closeBtn) {
-                    closeBtn.click();
-                }
-                
-                // Refresh notifications to update the UI
-                if (typeof window.fetchNotifications === 'function') {
-                    window.fetchNotifications();
-                }
-                
-
                 
             } catch (error) {
-                console.error('❌ Error rejecting cancellation request:', error);
-                showNotificationError(`Failed to reject cancellation: ${error.message}`);
+                console.error('❌ Error preparing rejection:', error);
+                showNotificationError(`Failed to prepare rejection: ${error.message}`);
             } finally {
                 // Re-enable button
                 rejectBtn.disabled = false;
@@ -967,6 +984,12 @@ function initializeStaticModalButtons() {
                     cancelReqModal.dataset.bookingId = bookingId;
                     cancelReqModal.dataset.action = 'approve';
                     
+                    // Store the uploaded image reference before closing cancelModal
+                    const imageFile = modal.getCancelImage ? modal.getCancelImage() : null;
+                    cancelReqModal._storedImageFile = imageFile;
+                    
+                    console.log('📷 Image transfer:', imageFile ? `${imageFile.name} (${imageFile.size} bytes)` : 'No image uploaded');
+                    
                     // Update modal labels for approval context
                     const reasonLabel = cancelReqModal.querySelector('label[for="input-lpc-subtitle"]');
                     const sendButton = cancelReqModal.querySelector('#guestMsgBtn span');
@@ -975,8 +998,9 @@ function initializeStaticModalButtons() {
                     if (reasonLabel) reasonLabel.textContent = 'Approval Reason:';
                     if (sendButton) sendButton.textContent = 'Approve & Notify';
                     if (textarea) {
+                        const approvalMessage = 'Your cancellation request has been approved by the admin. The refund will be processed according to your selected payment method. Thank you for your patience.';
                         textarea.placeholder = 'Enter reason for approving the cancellation...';
-                        textarea.value = ''; // Clear any previous content
+                        textarea.value = approvalMessage; // Pre-fill with default approval message
                     }
                     
                     // Get booking details to show guest name in the reason modal
@@ -1136,6 +1160,175 @@ async function guestCancllationNotification() {
     }
 }
 
+// Initialize image upload UI for cancel modal
+function initializeCancelModalImageUpload(modal) {
+    if (!modal) return;
+    
+    // Check if already initialized
+    if (modal.querySelector('#cancelImageUploadContainer')) return;
+    
+    // Find the content container (before the buttons)
+    const contentContainer = modal.querySelector('.flex-1.overflow-y-auto');
+    if (!contentContainer) return;
+    
+    // Create image upload container
+    const uploadContainer = document.createElement('div');
+    uploadContainer.id = 'cancelImageUploadContainer';
+    uploadContainer.className = 'mt-5 mb-3';
+    uploadContainer.innerHTML = `
+        <div class="flex flex-col gap-3 w-full font-inter">
+            <label class="text-sm font-medium text-neutral-600">
+                Attach Refund Proof Image <span class="text-rose-600">*</span>
+            </label>
+            
+            <!-- File Input (Hidden) -->
+            <input 
+                type="file" 
+                id="cancelImageInput" 
+                accept="image/*" 
+                class="hidden"
+            />
+            
+            <!-- Upload Button -->
+            <button 
+                type="button"
+                id="cancelImageUploadBtn"
+                class="flex items-center justify-center gap-2 px-4 py-3 border-2 border-dashed border-neutral-300 rounded-lg hover:border-primary hover:bg-primary/5 transition-all duration-300 cursor-pointer group"
+            >
+                <svg class="w-6 h-6 fill-neutral-400 group-hover:fill-primary transition-all duration-300" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19 7V19H5V7H19ZM19 5H5C3.9 5 3 5.9 3 7V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V7C21 5.9 20.1 5 19 5Z"/>
+                    <path d="M14.14 11.86L11.14 15.73L9 13.14L6 17H18L14.14 11.86Z"/>
+                    <circle cx="9.5" cy="9.5" r="1.5"/>
+                </svg>
+                <span class="text-sm text-neutral-500 group-hover:text-primary transition-all duration-300">
+                    Click to upload image
+                </span>
+            </button>
+            
+            <!-- Image Preview Container -->
+            <div id="cancelImagePreviewContainer" class="hidden relative">
+                <div class="relative rounded-lg overflow-hidden border border-neutral-300 shadow-sm">
+                    <img 
+                        id="cancelImagePreview" 
+                        src="" 
+                        alt="Preview" 
+                        class="w-full h-auto max-h-64 object-contain bg-neutral-50"
+                    />
+                    <!-- Remove Button -->
+                    <button 
+                        type="button"
+                        id="cancelImageRemoveBtn"
+                        class="absolute top-2 right-2 bg-rose-500/30 hover:bg-rose-500/50 backdrop-blur-sm rounded-full p-1.5 shadow-md transition-all duration-300 hover:scale-110 active:scale-95"
+                        title="Remove image"
+                    >
+                        <svg class="w-3.5 h-3.5 fill-rose-700" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12 19 6.41z"/>
+                        </svg>
+                    </button>
+                    <!-- Image Info -->
+                    <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/60 to-transparent p-3">
+                        <p id="cancelImageFileName" class="text-xs text-white font-medium truncate"></p>
+                        <p id="cancelImageFileSize" class="text-xs text-white/80"></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Append to content container
+    contentContainer.appendChild(uploadContainer);
+    
+    // Get elements
+    const fileInput = document.getElementById('cancelImageInput');
+    const uploadBtn = document.getElementById('cancelImageUploadBtn');
+    const previewContainer = document.getElementById('cancelImagePreviewContainer');
+    const previewImg = document.getElementById('cancelImagePreview');
+    const removeBtn = document.getElementById('cancelImageRemoveBtn');
+    const fileName = document.getElementById('cancelImageFileName');
+    const fileSize = document.getElementById('cancelImageFileSize');
+    
+    // Store the selected file
+    let selectedFile = null;
+    
+    // Upload button click
+    uploadBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        fileInput.click();
+    });
+    
+    // File input change
+    fileInput.addEventListener('change', (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            showNotificationError('Please select a valid image file');
+            return;
+        }
+        
+        // Validate file size (max 5MB)
+        const maxSize = 5 * 1024 * 1024; // 5MB
+        if (file.size > maxSize) {
+            showNotificationError('Image size must be less than 5MB');
+            return;
+        }
+        
+        // Store file
+        selectedFile = file;
+        
+        // Read and display preview
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            previewImg.src = event.target.result;
+            fileName.textContent = file.name;
+            fileSize.textContent = formatFileSize(file.size);
+            
+            // Show preview, hide upload button
+            uploadBtn.classList.add('hidden');
+            previewContainer.classList.remove('hidden');
+        };
+        reader.readAsDataURL(file);
+    });
+    
+    // Remove button click
+    removeBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        // Clear file input and preview
+        fileInput.value = '';
+        selectedFile = null;
+        previewImg.src = '';
+        fileName.textContent = '';
+        fileSize.textContent = '';
+        
+        // Hide preview, show upload button
+        previewContainer.classList.add('hidden');
+        uploadBtn.classList.remove('hidden');
+    });
+    
+    // Store reference to get file later
+    modal.getCancelImage = () => selectedFile;
+    
+    // Reset image when modal closes
+    const closeBtn = modal.querySelector('[data-close-modal]');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', () => {
+            // Clear on close
+            if (removeBtn) removeBtn.click();
+        });
+    }
+}
+
+// Helper function to format file size
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + ' ' + sizes[i];
+}
+
 // Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
     // Initialize cancellation management
@@ -1149,12 +1342,19 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
 
             // Declare originalText outside try block to avoid scope issues
-            const originalText = guestMsgBtn.textContent;
+            const btnSpan = guestMsgBtn.querySelector('span');
+            const originalText = btnSpan ? btnSpan.textContent : guestMsgBtn.textContent;
             
             try {
                 // Disable button during processing
                 guestMsgBtn.disabled = true;
-                guestMsgBtn.textContent = 'Processing...';
+                
+                // Set loading text
+                if (btnSpan) {
+                    btnSpan.textContent = 'Processing...';
+                } else {
+                    guestMsgBtn.textContent = 'Processing...';
+                }
                 
                 const reqModal = document.getElementById('cancelReqModal');
                 const action = reqModal?.dataset.action;
@@ -1175,8 +1375,96 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     console.log('🔄 Processing approval with reason:', { notifId, bookingId, reason });
                     
+                    // Check if image is uploaded (required for refund creation)
+                    // Image was stored when transitioning from cancelModal to cancelReqModal
+                    const imageFile = reqModal._storedImageFile;
+                    
+                    if (!imageFile) {
+                        throw new Error('Please attach a refund proof image before approving the cancellation.');
+                    }
+                    
+                    console.log('✅ Image validated:', imageFile.name, `(${imageFile.size} bytes)`);
+                    
                     // Process the complete cancellation workflow
                     await handleCancellationRequest(notifId, bookingId, 'accept');
+                    
+                    // Create refund record with image if uploaded
+                    try {
+                        console.log('🔄 Creating refund record...');
+                        
+                        // Fetch the original notification to get all required data
+                        const notifResponse = await fetch(`${window.API_BASE}/notify/to/${localStorage.getItem('userId') || localStorage.getItem('adminId')}`);
+                        const notifData = await notifResponse.json();
+                        const notifications = Array.isArray(notifData?.data) ? notifData.data : [];
+                        const currentNotif = notifications.find(n => n._id === notifId);
+                        
+                        if (currentNotif) {
+                            console.log('📋 Notification data for refund:', {
+                                notificationId: currentNotif._id,
+                                bookingId: currentNotif.bookingId?._id || currentNotif.bookingId,
+                                guestId: currentNotif.bookingId?.guestId,
+                                amountRefund: currentNotif.amountRefund
+                            });
+                            
+                            // Prepare FormData for refund creation
+                            const formData = new FormData();
+                            
+                            // Extract bookingId (handle both string and object)
+                            const extractedBookingId = typeof currentNotif.bookingId === 'string' 
+                                ? currentNotif.bookingId 
+                                : (currentNotif.bookingId?._id || bookingId);
+                            
+                            formData.append('bookingId', extractedBookingId);
+                            formData.append('guestId', currentNotif.bookingId?.guestId || '');
+                            formData.append('amount', String(currentNotif.amountRefund || 0));
+                            
+                            // Attach the uploaded image (already validated above)
+                            formData.append('image', imageFile);
+                            console.log('📷 Image attached to refund:', imageFile.name, `(${imageFile.size} bytes)`);
+                            
+                            // Log FormData contents for debugging
+                            console.log('📤 Refund FormData contents:');
+                            for (let [key, value] of formData.entries()) {
+                                if (value instanceof File) {
+                                    console.log(`  ${key}: [File] ${value.name} (${value.size} bytes)`);
+                                } else {
+                                    console.log(`  ${key}: ${value}`);
+                                }
+                            }
+                            
+                            // Create refund record
+                            const refundResponse = await fetch(`${window.API_BASE}/refund/create`, {
+                                method: 'POST',
+                                body: formData
+                                // Don't set Content-Type header - browser will set it with boundary for FormData
+                            });
+                            
+                            if (!refundResponse.ok) {
+                                const errorText = await refundResponse.text().catch(() => 'Unknown error');
+                                console.error('❌ Failed to create refund record:', {
+                                    status: refundResponse.status,
+                                    statusText: refundResponse.statusText,
+                                    error: errorText
+                                });
+                                throw new Error(`Refund creation failed: ${errorText}`);
+                            }
+                            
+                            const refundResult = await refundResponse.json();
+                            console.log('✅ Refund record created successfully:', refundResult);
+                            
+                            // Store refund ID for use in notification message
+                            window._createdRefundId = refundResult.refund?._id || refundResult._id || refundResult.data?._id;
+                            console.log('💾 Stored refund ID:', window._createdRefundId);
+                            
+                        } else {
+                            console.warn('⚠️ Could not find notification data for refund creation');
+                        }
+                        
+                    } catch (refundError) {
+                        console.error('❌ Error creating refund record:', refundError);
+                        // Don't throw - continue with approval flow even if refund creation fails
+                        showNotificationError(`Warning: Refund record creation failed - ${refundError.message}`);
+                    }
                     
                     // Send custom approval notification to guest with the provided reason
                     try {
@@ -1190,6 +1478,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 const adminName = localStorage.getItem('adminName') || 
                                     `${localStorage.getItem('firstName') || 'Admin'} ${localStorage.getItem('lastName') || 'User'}`.trim();
                                 
+                                // Get the refund ID if it was created
+                                const refundId = window._createdRefundId;
+                                const refundIdText = refundId ? `\n\nRefund ID: ${refundId}` : '';
+                                
                                 const approvalPayload = {
                                     fromId: adminId,
                                     fromName: adminName,
@@ -1197,7 +1489,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     toId: booking.guestId,
                                     toName: booking.guestName || 'Guest',
                                     toRole: 'guest',
-                                    message: `Your cancellation request has been approved. ${reason}`
+                                    message: `${reason}${refundIdText}` // Concatenate refund ID to the message with newline
                                 };
                                 
                                 await fetch(`${window.API_BASE}/notify/message`, {
@@ -1207,6 +1499,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 });
                                 
                                 console.log('✅ Approval notification with reason sent to guest');
+                                
+                                // Clear the stored refund ID
+                                delete window._createdRefundId;
                             }
                         }
                     } catch (notifError) {
@@ -1237,6 +1532,78 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     showNotificationSuccess('Cancellation approved and notification sent to guest');
                     
+                } else if (action === 'reject') {
+                    // This is from the rejection flow - process the rejection with reason
+                    const notifId = reqModal.dataset.notificationId;
+                    
+                    if (!notifId) {
+                        throw new Error('Missing notification ID for rejection');
+                    }
+                    
+                    // Get the reason from textarea (admin can edit the default message)
+                    const messageTextarea = document.getElementById('input-lpc-subtitle');
+                    const rejectionMessage = messageTextarea?.value.trim() || 'Your cancellation request has been rejected.';
+                    
+                    console.log('🔄 Processing rejection with custom message:', { notifId, rejectionMessage });
+                    
+                    // Update notification status to "Rejected"
+                    await updateNotificationStatus(notifId, 'Rejected');
+                    
+                    // Send the custom rejection message to the requester
+                    try {
+                        const cancelModal = document.getElementById('cancelModal');
+                        const fromId = localStorage.getItem('adminId') || localStorage.getItem('userId') || 'admin-user';
+                        const fromName = localStorage.getItem('adminName') || `${localStorage.getItem('firstName') || 'Admin'} ${localStorage.getItem('lastName') || 'User'}`.trim();
+                        const toId = cancelModal?.dataset.fromId || '';
+                        const toName = cancelModal?.querySelector('#notifSender')?.textContent || 'Employee';
+                        
+                        const payload = {
+                            fromId,
+                            fromName,
+                            fromRole: 'admin',
+                            toId,
+                            toName,
+                            toRole: 'employee',
+                            message: rejectionMessage
+                        };
+                        
+                        const msgResp = await fetch(`${window.API_BASE}/notify/message`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                        await msgResp.json().catch(() => ({}));
+                        
+                        console.log('✅ Rejection notification sent to employee');
+                    } catch (msgErr) {
+                        console.warn('⚠️ Failed to send rejection message:', msgErr);
+                        throw msgErr; // Re-throw to show error to admin
+                    }
+                    
+                    // Reset modal labels back to original state
+                    const reasonLabel = reqModal.querySelector('label[for="input-lpc-subtitle"]');
+                    const sendButton = reqModal.querySelector('#guestMsgBtn span');
+                    const textarea = reqModal.querySelector('#input-lpc-subtitle');
+                    
+                    if (reasonLabel) reasonLabel.textContent = 'Reason:';
+                    if (sendButton) sendButton.textContent = 'Send';
+                    if (textarea) {
+                        textarea.placeholder = 'Enter subtitle here...';
+                        textarea.value = ''; // Clear content
+                    }
+                    
+                    // Clear the modal data
+                    reqModal.dataset.action = '';
+                    reqModal.dataset.notificationId = '';
+                    reqModal.dataset.bookingId = '';
+                    
+                    // Refresh notifications to update the UI
+                    if (typeof window.fetchNotifications === 'function') {
+                        window.fetchNotifications();
+                    }
+                    
+                    showNotificationSuccess('Cancellation rejected and notification sent to employee');
+                    
                 } else {
                     // Regular guest messaging (original functionality)
                     await guestCancllationNotification();
@@ -1254,9 +1621,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('❌ Error processing request:', error);
                 showNotificationError(`Failed to process request: ${error.message}`);
             } finally {
-                // Re-enable button
+                // Re-enable button and restore original content
                 guestMsgBtn.disabled = false;
-                guestMsgBtn.textContent = originalText;
+                
+                if (btnSpan) {
+                    btnSpan.textContent = originalText;
+                } else {
+                    guestMsgBtn.textContent = originalText;
+                }
             }
         });
         
