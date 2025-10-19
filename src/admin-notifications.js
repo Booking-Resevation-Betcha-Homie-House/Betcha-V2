@@ -556,9 +556,8 @@ async function updateNotificationStatus(notifId, statusRejection) {
 
         const result = await response.json();
 
-
-        // Show success message
-        showNotificationSuccess(`Cancellation request ${statusRejection.toLowerCase()} successfully`);
+        // Don't show toast here - let the caller handle success notification
+        // This prevents premature toast before refund creation completes
 
         return result;
 
@@ -706,8 +705,8 @@ async function cancelBooking(bookingId) {
             console.error('Audit trail error:', auditError);
         }
         
-        // Show success message
-        showNotificationSuccess('Booking cancelled successfully');
+        // Don't show toast here - let the caller handle success notification
+        // This prevents premature toast before refund creation completes
         
         return result;
         
