@@ -30,23 +30,62 @@ function toggleFaq(button) {
 // Expose toggleFaq to global scope for inline onclick handlers
 window.toggleFaq = toggleFaq;
 
+// Animate counter from 0 to target with easing
+function animateCounter(element, target) {
+    const duration = 2000; // 2 seconds
+    const startTime = performance.now();
+    
+    function easeOutQuad(t) {
+        // Slow to fast easing
+        return t * t;
+    }
+    
+    function updateCounter(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easedProgress = easeOutQuad(progress);
+        const current = Math.floor(easedProgress * target);
+        
+        element.textContent = current;
+        
+        if (progress < 1) {
+            requestAnimationFrame(updateCounter);
+        } else {
+            element.textContent = target; // Ensure final value is exact
+        }
+    }
+    
+    requestAnimationFrame(updateCounter);
+}
+
 async function fetchAndDisplayTotalBookedDays() {
     try {
         const response = await fetch('https://betcha-api.onrender.com/landing/totalOfDaysBooked');
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        const bookedDaysElement = document.getElementById('bookedDays');
-        if (bookedDaysElement && data.totalDaysBooked !== undefined) {
-            bookedDaysElement.textContent = `${data.totalDaysBooked} nights`;
+        const bookedDaysNumberElement = document.getElementById('bookedDaysNumber');
+        
+        if (bookedDaysNumberElement && data.totalDaysBooked !== undefined) {
+            // Animate the counter when element is in viewport
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        animateCounter(bookedDaysNumberElement, data.totalDaysBooked);
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            observer.observe(bookedDaysNumberElement);
         } else {
             console.error('Booked days element not found or invalid data structure');
         }
     } catch (error) {
         console.error('Error fetching total booked days:', error);
-        // Fallback to show placeholder if API fails
-        const bookedDaysElement = document.getElementById('bookedDays');
-        if (bookedDaysElement) {
-            bookedDaysElement.textContent = '0 nights';
+        // Fallback to show 0 if API fails
+        const bookedDaysNumberElement = document.getElementById('bookedDaysNumber');
+        if (bookedDaysNumberElement) {
+            bookedDaysNumberElement.textContent = '0';
         }
     }
 }

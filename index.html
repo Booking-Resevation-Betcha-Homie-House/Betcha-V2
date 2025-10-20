@@ -68,12 +68,12 @@
       <!-- Hero Section -->
       <div class="flex flex-col items-center justify-center h-full z-30">
         
-        <div class="w-fit text-secondary-text text-5xl md:text-7xl lg:text-8xl font-playfairDisplay italic font-bold text-center flex flex-col">
+        <div class="w-fit text-secondary-text text-5xl md:text-7xl lg:text-8xl font-playfairDisplay italic font-bold text-center flex flex-col hero-headline cursor-pointer" id="subtitle">
           <span class="text-stroke">Feel at Home,</span>
           <span class="text-stroke">Every Stay.</span>
         </div>
 
-        <div class="w-fit text-secondary-text text-base md:text-lg font-manrope text-center flex flex-col mt-10 drop-shadow-lg">
+        <div class="w-fit text-secondary-text text-base md:text-lg font-manrope text-center flex flex-col mt-10 drop-shadow-lg hero-subtext">
           <span>Cozy, affordable rooms at your fingertips.</span>
           <span>Book your perfect getaway today.</span>
         </div>
@@ -83,7 +83,7 @@
           onclick="window.location.href='/pages/unauth/register.html'"
           class="group relative rounded-full bg-white px-6 py-3 mt-10 md:mt-20 flex items-center justify-center overflow-hidden
             hover:cursor-pointer active:scale-95
-            transition-all duration-500 ease-in-out">
+            transition-all duration-500 ease-in-out hero-cta">
         
           <span class="text-primary-text text-sm font-bold
             group-hover:-translate-x-1
@@ -123,22 +123,22 @@
     <!-- About Us -->
     <div class="relative flex flex-col w-full  overflow-hidden">
       <div class="bg-[url('/images/texture01.png')] bg-no-repeat bg-cover bg-center py-10 md:py-20 mx-auto">
-        <div class="flex gap-5 justify-center items-center">
+        <div class="flex gap-5 justify-center items-center animate-on-scroll">
           <div class="border border-primary w-full h-[1px]"></div>
-          <svg class="h-7 w-auto fill-primary" viewBox="0 0 26 28" xmlns="http://www.w3.org/2000/svg">
+          <svg class="h-7 w-auto fill-primary icon-bounce" viewBox="0 0 26 28" xmlns="http://www.w3.org/2000/svg">
             <path d="M11.0774 0.863281C12.1045 -0.287775 13.895 -0.287777 14.9221 0.863281L25.3342 12.5332C26.7016 14.0668 25.8267 16.4298 23.9524 16.8174V25.3994C23.9522 26.8354 22.7959 28.0009 21.3684 28.001H18.5549C17.1285 28.001 15.9712 26.8355 15.9709 25.3994V19.6758C15.9709 18.9571 15.3927 18.3751 14.679 18.375H11.3215C10.6078 18.3751 10.0295 18.9572 10.0295 19.6758V25.3994C10.0293 26.8355 8.87203 28.001 7.44556 28.001H4.63208C3.20566 28.0009 2.04833 26.8354 2.0481 25.3994V16.8174C0.173688 16.4297 -0.701261 14.0668 0.667236 12.5332L11.0774 0.863281Z"/>
           </svg>
           <div class="border border-primary w-full h-[1px]"></div>
         </div>
 
         <div class="flex flex-col justify-center items-center my-10 md:my-36 overflow-hidden">
-          <p class="font-manrope text-primary-text text-xl mb-5">About us</p>
+          <p class="font-manrope text-primary-text text-xl mb-5 fade-in-up">About us</p>
           <p class="font-playfairDisplay text-primary text-5xl w-full max-w-full px-4 sm:px-10 text-center 
-            mb-20 md:text-8xl md:max-w-2xl lg:max-w-4xl">
+            mb-20 md:text-8xl md:max-w-2xl lg:max-w-4xl scale-in">
             A <i>Homey</i> Stay Made Just For You.
           </p>
           <p class="leading-relaxed font-manrope text-primary-text w-full text-center px-10 
-            md:w-[80%] md:text-lg lg:w-[50%] font-medium">
+            md:w-[80%] md:text-lg lg:w-[50%] font-medium fade-in-up">
             Founded in 2023, Betcha by Homie House began as one cozy room and a big dream—to create 
             staycations that feel personal, peaceful, and full of heart. Inspired by family and connection, 
             we've grown into a space where comfort, affordability, and genuine hospitality meet—because every 
@@ -153,12 +153,12 @@
     <!-- Service Desc -->
     <div class="flex flex-col justify-center items-center my-10 md:my-36">
       <p class="font-manrope text-5xl text-primary-text font-bold w-full text-center px-10 
-        md:w-3/4 md:text-6xl lg:w-1/2">
+        md:w-3/4 md:text-6xl lg:w-1/2 fade-in-up">
         Wondering why guests love staying here?
       </p>
 
       <div class="mt-20 max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4">
-        <div class="bg-background p-10 flex flex-col justify-center items-center gap-y-3 shadow-md border-0 rounded-3xl">
+        <div class="bg-background p-10 flex flex-col justify-center items-center gap-y-3 shadow-md border-0 rounded-3xl scale-in stagger-1">
           <svg class="w-auto h-10 fill-primary-text" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg">
             <g clip-path="url(#clip0_33_683)">
             <path d="M12.5009 3.53959C12.5009 2.94167 12.4949 2.37059 12.5009 1.79802C12.5158 0.757252 13.2777 -0.00468382 14.2946 -0.000210612C15.3039 0.00426259 16.0554 0.772163 16.0673 1.82188C16.0733 2.37804 16.0673 2.93421 16.0673 3.53064H33.9278C33.9278 3.00131 33.9263 2.469 33.9278 1.93669C33.9337 0.791547 34.6509 0.00575366 35.6976 -0.000210612C36.7696 -0.00617489 37.4942 0.784091 37.4972 1.96204C37.4972 2.47795 37.4972 2.99535 37.4972 3.5709C37.7447 3.5709 37.943 3.5709 38.1428 3.5709C40.3181 3.5709 42.4949 3.56344 44.6703 3.57239C47.6209 3.58581 49.9916 5.93871 49.9931 8.88656C50.0005 20.827 50.0005 32.769 49.9931 44.7095C49.9916 47.62 47.6135 49.9923 44.6971 49.9938C31.5661 50.0013 18.4365 50.0013 5.30544 49.9938C2.38908 49.9923 0.00649426 47.62 0.00500328 44.7125C-0.00245162 32.7541 -0.0039426 20.7942 0.00500328 8.83437C0.00649426 5.9581 2.39057 3.59028 5.26816 3.57388C7.61198 3.56046 9.95431 3.56941 12.2981 3.56792C12.3354 3.56792 12.3712 3.55897 12.4994 3.53959H12.5009ZM46.4281 17.8926H3.56844V18.5397C3.56844 27.094 3.56844 35.6497 3.56844 44.204C3.56844 45.7771 4.22597 46.4302 5.81088 46.4302C18.605 46.4302 31.3991 46.4302 44.1932 46.4302C45.7781 46.4302 46.4281 45.7801 46.4281 44.198C46.4281 35.6438 46.4281 27.088 46.4281 18.5338C46.4281 18.3325 46.4281 18.1297 46.4281 17.8941V17.8926ZM46.4281 14.2619C46.4281 12.6083 46.4281 10.9949 46.4281 9.3801C46.4281 7.79659 45.7751 7.13753 44.2021 7.13753C33.2688 7.13753 22.3354 7.13753 11.4006 7.13753C9.44887 7.13753 7.49568 7.13306 5.54399 7.13903C4.30499 7.1435 3.57888 7.88009 3.56844 9.12364C3.56397 9.75585 3.56844 10.3881 3.56844 11.0203C3.56844 12.0924 3.56844 13.1659 3.56844 14.2604H46.4296L46.4281 14.2619Z"/>
@@ -172,7 +172,7 @@
             Booking your stay is quick and easy with our smooth reservation system. No confusing steps—just pick, click, and confirm.
           </p>
         </div>
-        <div class="bg-background p-10 flex flex-col justify-center items-center gap-y-3 shadow-md border-0 rounded-3xl">
+        <div class="bg-background p-10 flex flex-col justify-center items-center gap-y-3 shadow-md border-0 rounded-3xl scale-in stagger-2">
           <svg class="w-auto h-10 fill-primary-text" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 6C3.24493 6.00003 3.48134 6.08996 3.66437 6.25272C3.84741 6.41547 3.96434 6.63975 3.993 6.883L4 7V13H10V8C10 7.75507 10.09 7.51866 10.2527 7.33563C10.4155 7.15259 10.6397 7.03566 10.883 7.007L11 7H19C19.7652 6.99996 20.5015 7.29233 21.0583 7.81728C21.615 8.34224 21.9501 9.06011 21.995 9.824L22 10V18C21.9997 18.2549 21.9021 18.5 21.7272 18.6854C21.5522 18.8707 21.313 18.9822 21.0586 18.9972C20.8042 19.0121 20.5536 18.9293 20.3582 18.7657C20.1627 18.6021 20.0371 18.3701 20.007 18.117L20 18V15H4V18C3.99972 18.2549 3.90212 18.5 3.72715 18.6854C3.55218 18.8707 3.31305 18.9822 3.05861 18.9972C2.80416 19.0121 2.55362 18.9293 2.35817 18.7657C2.16271 18.6021 2.0371 18.3701 2.007 18.117L2 18V7C2 6.73478 2.10536 6.48043 2.29289 6.29289C2.48043 6.10536 2.73478 6 3 6Z"/>
             <path d="M7 8C7.38914 8.00012 7.7698 8.11377 8.09532 8.32701C8.42084 8.54025 8.67707 8.84383 8.83263 9.20053C8.98818 9.55723 9.0363 9.95156 8.97108 10.3352C8.90586 10.7188 8.73013 11.0751 8.46544 11.3604C8.20075 11.6456 7.85859 11.8475 7.48089 11.9412C7.10319 12.0349 6.70637 12.0163 6.33904 11.8878C5.97172 11.7594 5.64986 11.5265 5.4129 11.2178C5.17594 10.9092 5.03419 10.538 5.005 10.15L5 10L5.005 9.85C5.04284 9.34685 5.26947 8.87659 5.63945 8.5335C6.00943 8.19041 6.49542 7.99984 7 8Z"/>
@@ -182,11 +182,11 @@
           </p>
           <p class="font-roboto text-sm text-primary-text text-center
             md:text-base">
-            Our rooms are spotless, cozy, and designed to help you unwind. Whether it’s a short stay or a 
-            weekend escape, you’ll feel right at home.
+            Our rooms are spotless, cozy, and designed to help you unwind. Whether it's a short stay or a 
+            weekend escape, you'll feel right at home.
           </p>
         </div>
-        <div class="bg-background p-10 flex flex-col justify-center items-center gap-y-3 shadow-md border-0 rounded-3xl">
+        <div class="bg-background p-10 flex flex-col justify-center items-center gap-y-3 shadow-md border-0 rounded-3xl scale-in stagger-3">
           <svg class="w-auto h-10 fill-primary-text" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
             <path d="M3 13.083C3 13.006 3 12.967 3.002 12.935C3.01775 12.6927 3.12111 12.4645 3.29279 12.2928C3.46446 12.1211 3.69273 12.0178 3.935 12.002C3.968 12 4.005 12 4.083 12H19.917C19.994 12 20.032 12 20.065 12.002C20.3073 12.0178 20.5355 12.1211 20.7072 12.2928C20.8789 12.4645 20.9822 12.6927 20.998 12.935C21 12.967 21 13.005 21 13.083C21 13.478 21 13.676 20.986 13.898C20.777 17.185 17.983 20.087 14.706 20.418C14.485 20.441 14.356 20.446 14.098 20.456C13.399 20.4835 12.6995 20.4982 12 20.5C11.35 20.5 10.636 20.483 9.902 20.456C9.644 20.446 9.515 20.441 9.295 20.419C6.017 20.087 3.223 17.185 3.015 13.898C3 13.676 3 13.478 3 13.083Z"/>
             <path class="stroke-[1.5px] stroke-primary-text [stroke-linecap:round]" d="M6 20L5 22M18 20L19 22M2 12H22"/>
@@ -209,7 +209,7 @@
 
     <!-- Featured Units -->
     <div class="my-10 md:my-36 max-w-6xl mx-auto px-4 overflow-hidden flex flex-col items-center">
-      <div class="relative flex flex-col justify-between items-center mb-5 md:flex-row">
+      <div class="relative flex flex-col justify-between items-center mb-5 md:flex-row slide-in-left">
         <p class="relative font-manrope text-primary-text text-5xl w-[90%] font-bold 
           md:w-[90%] lg:w-full md:text-6xl lg:text-8xl">
           Check out our featured units
@@ -221,7 +221,7 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 gap-4 w-full mb-5 mt-15 lg:mt-0">
-        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]" id="featuredUnit1">
+        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px] shimmer-effect fade-in-up stagger-1" id="featuredUnit1">
           <div class="absolute inset-0 bg-[url('/images/unit04.jpg')] bg-cover bg-center z-0 group transition-transform duration-[2000ms] ease-out group-hover:scale-110"></div>
           <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
@@ -250,7 +250,7 @@
           </div>
         </div>
 
-        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]" id="featuredUnit2">
+        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px] shimmer-effect fade-in-up stagger-2" id="featuredUnit2">
           <div class="absolute inset-0 bg-[url('/images/unit05.jpg')] bg-cover bg-center z-0 transition-transform duration-[2000ms] ease-out group-hover:scale-110"></div>
           <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
@@ -281,7 +281,7 @@
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 w-full">
-        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]" id="featuredUnit3">
+        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px] shimmer-effect fade-in-up stagger-3" id="featuredUnit3">
           <div class="absolute inset-0 bg-[url('/images/unit01.jpg')] bg-cover bg-center z-0 transition-transform duration-[2000ms] ease-out group-hover:scale-110"></div>
           <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
@@ -309,7 +309,7 @@
             </div>
           </div>
         </div>
-        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]" id="featuredUnit4">
+        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px] shimmer-effect fade-in-up stagger-4" id="featuredUnit4">
           <div class="absolute inset-0 bg-[url('/images/unit02.jpg')] bg-cover bg-center z-0 transition-transform duration-[2000ms] ease-out group-hover:scale-110"></div>
           <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
@@ -337,7 +337,7 @@
             </div>
           </div>
         </div>
-        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px]" id="featuredUnit5">
+        <div class="relative h-[350px] w-full rounded-3xl overflow-hidden group md:h-[400px] shimmer-effect fade-in-up stagger-5" id="featuredUnit5">
           <div class="absolute inset-0 bg-[url('/images/unit03.jpg')] bg-cover bg-center z-0 transition-transform duration-[2000ms] ease-out group-hover:scale-110"></div>
           <div class="absolute h-[70%] bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-black/0 z-10"></div>
 
@@ -396,17 +396,17 @@
     <div class="flex flex-col justify-center items-center w-full">
       <div class="bg-primary flex w-full">
         <div class="my-10 md:my-36 max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-7 gap-20 w-full">
-          <div class="col-auto text-secondary-text md:col-span-3">
+          <div class="col-auto text-secondary-text md:col-span-3 slide-in-left">
             <p class="font-manrope text-2xl mb-5">FAQs</p>
             <p class="font-manrope text-5xl mb-10 mb:text-6xl">
-              Questions? We’ve got you covered.
+              Questions? We've got you covered.
             </p>
             <p class="font-manrope text-sm md:text-base">
-              Not sure how things work? No worries. We’ve listed the most common questions people ask — along 
+              Not sure how things work? No worries. We've listed the most common questions people ask — along 
               with simple answers — so you can find what you need without the hassle.
             </p>
           </div>
-          <div class="col-auto w-full space-y-4 md:col-span-4" id="faqContainer">
+          <div class="col-auto w-full space-y-4 md:col-span-4 slide-in-right" id="faqContainer">
             <!-- FAQ Item -->
             <div class="rounded-3xl bg-background text-primary-text w-full p-2 md:p-5">
               <button onclick="toggleFaq(this)" class="w-full h-full flex justify-between items-center  text-left hover:cursor-pointer ">
@@ -436,26 +436,27 @@
 
     <!-- CTA -->
     <div class="flex justify-center items-center px-4 md:px-0">
-      <div class="relative my-10 md:my-36 max-w-6xl px-4 rounded-3xl overflow-hidden  ">
-        <div class="absolute inset-0 bg-[url('/public/images/unit01.jpg')] bg-cover bg-center z-10"></div>
-        <div class="absolute inset-0 bg-black/50 z-20"></div>
+      <div class="relative my-10 md:my-36 max-w-6xl rounded-3xl overflow-hidden scale-in" style="background-image: url('/images/unit01.jpg'); background-size: cover; background-position: center;">
+        <div class="absolute inset-0 bg-black/50 z-10"></div>
 
-        <div class="relative z-30 grid grid-cols-1 md:grid-cols-2 p-10 gap-10">
-          <div class="flex flex-col justify-center items-center gap-2">
-            <p class="font-manrope text-secondary-text text-center font-bold text-5xl md:text-7xl lg:text-8xl text-stroke" id="bookedDays">321 nights</p>
+        <div class="relative z-20 grid grid-cols-1 md:grid-cols-2 p-10 gap-10">
+          <div class="flex flex-col justify-center items-center gap-2 fade-in-up stagger-1">
+            <p class="font-manrope text-secondary-text text-center font-bold text-5xl md:text-7xl lg:text-8xl text-stroke">
+              <span id="bookedDaysNumber">0</span> nights
+            </p>
             <p class="font-roboto text-secondary-text text-lg">of booked dates</p>
           </div>
 
-          <div class="flex flex-col items-center md:items-start gap-2">
+          <div class="flex flex-col items-center md:items-start gap-2 fade-in-up stagger-2">
             <p class="font-manrope text-secondary-text text-center font-bold text-base md:text-start md:text-2xl text-stroke">
-              Join countless others who’ve already booked their perfect stay – blissful escapes await!
+              Join countless others who've already booked their perfect stay – blissful escapes await!
             </p>
             
             <button 
               onclick="window.open('/pages/unauth/register.html', '_blank')"  
               class="group relative rounded-full w-fit font-bold bg-secondary-text px-6 py-3 mt-5 flex items-center justify-center overflow-hidden 
               hover:cursor-pointer active:scale-95
-              transition-all duration-500 ease-in-out">
+              transition-all duration-500 ease-in-out pulse-subtle">
               <span class="text-primary-text text-sm
               group-hover:-translate-x-1
               transition-transform duration-500 ease-in-out 
@@ -693,6 +694,68 @@
 
     <script type="module" src="pages/unauth/unauthFunctions/landingPage-functions.js"></script>
     <script type="module" src="src/modal.js"></script>
+    <script type="module" src="src/landing-animations.js"></script>
+    
+    <!-- Subtitle Mouse Repel Effect -->
+    <script>
+      // Wait for animations to finish before adding mouse effect
+      setTimeout(() => {
+        const subtitle = document.getElementById('subtitle');
+        if (!subtitle) {
+          console.error('Subtitle element not found');
+          return;
+        }
+
+        console.log('Mouse repel effect initialized');
+
+        // Clear the animation but keep the final state
+        subtitle.style.animation = 'none';
+        subtitle.style.opacity = '1';
+        subtitle.style.transform = 'translateY(0) scale(1)';
+        
+        let rafId = null;
+        
+        subtitle.addEventListener('mousemove', (e) => {
+          // Cancel previous animation frame for smoother updates
+          if (rafId) cancelAnimationFrame(rafId);
+          
+          rafId = requestAnimationFrame(() => {
+            const rect = subtitle.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const mouseX = e.clientX;
+            const mouseY = e.clientY;
+            
+            // Calculate which side the mouse is on
+            const deltaX = mouseX - centerX;
+            const deltaY = mouseY - centerY;
+            
+            // Maximum movement distance - very minimal
+            const maxMove = 8;
+            
+            // Push in opposite direction
+            // If mouse is on left (negative deltaX), push right (positive moveX)
+            // If mouse is on right (positive deltaX), push left (negative moveX)
+            const moveX = deltaX > 0 ? -maxMove : maxMove;
+            
+            // If mouse is above (negative deltaY), push down (positive moveY)
+            // If mouse is below (positive deltaY), push up (negative moveY)
+            const moveY = deltaY > 0 ? -maxMove : maxMove;
+            
+            // Apply transform
+            subtitle.style.setProperty('transform', `translate(${moveX}px, ${moveY}px) scale(1)`, 'important');
+            subtitle.style.transition = 'transform 0.2s ease-out';
+          });
+        });
+
+        subtitle.addEventListener('mouseleave', () => {
+          if (rafId) cancelAnimationFrame(rafId);
+          subtitle.style.setProperty('transform', 'translate(0, 0) scale(1)', 'important');
+          subtitle.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
+        });
+      }, 1500); // Wait for hero animation to complete
+    </script>
     
     <!-- User Role Redirect Logic -->
     <script>
