@@ -928,10 +928,21 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   }
 
-  // Alternative approach: Use MutationObserver to watch for changes
+  // Alternative approach: Use MutationObserver to watch for changes ONLY in the modal
+  let isUpdatingPhotos = false; // Flag to prevent infinite loop
+  
   const observer = new MutationObserver(function(mutations) {
+    // Skip if we're currently updating photos to prevent infinite loop
+    if (isUpdatingPhotos) return;
+    
     mutations.forEach(function(mutation) {
       if (mutation.type === 'childList') {
+        // Ignore changes to PhotosSection itself to prevent loop
+        if (mutation.target.id === 'PhotosSection' || 
+            mutation.target.closest('#PhotosSection')) {
+          return;
+        }
+        
         // Check if the edit gallery modal is open and has images
         const editGalleryModal = document.getElementById('editGalleryModal');
         if (editGalleryModal && !editGalleryModal.classList.contains('hidden')) {
@@ -939,9 +950,17 @@ document.addEventListener('DOMContentLoaded', function () {
           if (imageContainer && window.Alpine) {
             const alpineData = window.Alpine.$data(imageContainer);
             if (alpineData && alpineData.images) {
+              // Set flag to prevent loop
+              isUpdatingPhotos = true;
+              
               // Small delay to ensure Alpine.js has finished updating
               setTimeout(() => {
                 updatePhotosSection(alpineData.images);
+                
+                // Reset flag after update is complete
+                setTimeout(() => {
+                  isUpdatingPhotos = false;
+                }, 100);
               }, 100);
             }
           }
@@ -950,11 +969,16 @@ document.addEventListener('DOMContentLoaded', function () {
     });
   });
 
-  // Start observing the document for changes
-  observer.observe(document.body, {
-    childList: true,
-    subtree: true
-  });
+  // Start observing ONLY the modal (not the entire body to reduce overhead)
+  setTimeout(() => {
+    const editGalleryModal = document.getElementById('editGalleryModal');
+    if (editGalleryModal) {
+      observer.observe(editGalleryModal, {
+        childList: true,
+        subtree: true
+      });
+    }
+  }, 500);
 
   // Listen for modal close to sync state
   document.addEventListener('modalClosed', function() {
