@@ -105,18 +105,18 @@
     </div>
     
     <!-- Ads Banner-->
-    <div id="adsBanner" class="relative flex flex-col justify-center items-center w-full h-[100px] md:h-[250px] text-center px-4 overflow-hidden">
+    <div id="adsBanner" class="relative flex flex-col justify-center items-center w-full h-[100px] md:h-[250px] text-center px-4 overflow-hidden ad-banner-container">
       <img 
         id="adsBannerImg"
         src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" 
-        class="absolute inset-0 w-full h-full object-cover filter blur-xs brightness-70"
+        class="absolute inset-0 w-full h-full object-cover filter blur-xs brightness-70 ad-banner-bg"
         alt="Advertisement Banner"
       />
 
       <!-- Content (above bg) -->
-      <div class="relative z-10">
-        <h1 id="adsBannerTitle" class="text-lg md:text-4xl font-bold tracking-wide drop-shadow-lg"></h1>
-        <p id="adsBannerContent" class="text-xs md:text-lg mt-1 md:mt-4 max-w-xl drop-shadow-lg"></p>
+      <div class="relative z-10 ad-banner-content">
+        <h1 id="adsBannerTitle" class="text-lg md:text-4xl font-bold tracking-wide drop-shadow-lg ad-banner-title"></h1>
+        <p id="adsBannerContent" class="text-xs md:text-lg mt-1 md:mt-4 max-w-xl drop-shadow-lg ad-banner-text"></p>
       </div>
     </div>
 
