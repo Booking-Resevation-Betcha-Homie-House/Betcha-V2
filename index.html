@@ -205,8 +205,6 @@
       </div>
     </div>
 
-    
-
     <!-- Featured Units -->
     <div class="my-10 md:my-36 max-w-6xl mx-auto px-4 overflow-hidden flex flex-col items-center">
       <div class="relative flex flex-col justify-between items-center mb-5 md:flex-row slide-in-left">
@@ -395,7 +393,7 @@
     <!-- FAQS -->
     <div class="flex flex-col justify-center items-center w-full">
       <div class="bg-primary flex w-full">
-        <div class="my-10 md:my-36 max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-7 gap-20 w-full">
+        <div class="my-10 md:my-36 max-w-6xl mx-auto px-4 grid grid-cols-1 sm:grid-cols-1 md:grid-cols-7 gap-20 w-full faq-anim" id="faq-anim">
           <div class="col-auto text-secondary-text md:col-span-3 slide-in-left">
             <p class="font-manrope text-2xl mb-5">FAQs</p>
             <p class="font-manrope text-5xl mb-10 mb:text-6xl">
@@ -720,7 +718,7 @@
       
       // Fallback: After 3 seconds, force show all content if animations haven't triggered
       setTimeout(() => {
-        const hiddenElements = document.querySelectorAll('.animate-on-scroll:not(.animated), .fade-in-up:not(.animated), .slide-in-left:not(.animated), .slide-in-right:not(.animated), .scale-in:not(.animated)');
+        const hiddenElements = document.querySelectorAll('.animate-on-scroll:not(.animated), .fade-in-up:not(.animated), .slide-in-left:not(.animated), .slide-in-right:not(.animated), .scale-in:not(.animated), .faq-anim:not(.animated)');
         
         if (hiddenElements.length > 0) {
           console.warn('Some animations did not trigger, forcing visibility for', hiddenElements.length, 'elements');

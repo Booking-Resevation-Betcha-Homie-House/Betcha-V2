@@ -12,7 +12,7 @@ if (!('IntersectionObserver' in window)) {
   // Immediately show all animated elements
   document.addEventListener('DOMContentLoaded', () => {
     const animatedElements = document.querySelectorAll(
-      '.animate-on-scroll, .fade-in-up, .slide-in-left, .slide-in-right, .scale-in'
+      '.animate-on-scroll, .fade-in-up, .slide-in-left, .slide-in-right, .scale-in, .faq-anim'
     );
     animatedElements.forEach(el => el.classList.add('animated'));
   });
@@ -20,18 +20,21 @@ if (!('IntersectionObserver' in window)) {
   // Intersection Observer for scroll-triggered animations
   const observerOptions = {
     root: null,
-    rootMargin: '0px',
-    threshold: 0.1
+    rootMargin: '0px', // No offset
+    threshold: 0.5 // Element must be at least 50% visible (center is in viewport)
   };
 
   // Create observer instance
   const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
+        // Element is visible - add animated class
         entry.target.classList.add('animated');
-        console.log('Animated element:', entry.target.className);
-        // Optional: stop observing after animation
-        // observer.unobserve(entry.target);
+        console.log('Element entered viewport:', entry.target.className);
+      } else {
+        // Element is not visible - remove animated class to reset animation
+        entry.target.classList.remove('animated');
+        console.log('Element left viewport:', entry.target.className);
       }
     });
   }, observerOptions);
@@ -42,7 +45,7 @@ if (!('IntersectionObserver' in window)) {
     
     // Observe all animated elements
     const animatedElements = document.querySelectorAll(
-      '.animate-on-scroll, .fade-in-up, .slide-in-left, .slide-in-right, .scale-in'
+      '.animate-on-scroll, .fade-in-up, .slide-in-left, .slide-in-right, .scale-in, .faq-anim'
     );
     
     console.log('Found animated elements:', animatedElements.length);

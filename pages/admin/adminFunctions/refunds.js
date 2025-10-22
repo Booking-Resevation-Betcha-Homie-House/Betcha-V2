@@ -171,10 +171,6 @@ function createRefundCard(refund) {
                         <span class="text-neutral-500">Check-out:</span>
                         <span class="text-neutral-700 font-medium">${formattedCheckOut}</span>
                     </div>
-                    <div class="flex justify-between text-sm">
-                        <span class="text-neutral-500">Total Fee:</span>
-                        <span class="text-neutral-700 font-medium">₱${bookingId.totalFee.toLocaleString()}</span>
-                    </div>
                 </div>
 
                 <!-- Divider -->
@@ -307,11 +303,6 @@ function openRefundModal(refund) {
                             <div class="flex justify-between items-center">
                                 <span class="text-sm text-neutral-600">Check-out Date</span>
                                 <span class="text-sm font-medium text-neutral-700">${formattedCheckOut}</span>
-                            </div>
-                            <hr class="border-neutral-200">
-                            <div class="flex justify-between items-center">
-                                <span class="text-sm text-neutral-600">Total Booking Fee</span>
-                                <span class="text-base font-semibold text-neutral-700">₱${bookingId.totalFee.toLocaleString()}</span>
                             </div>
                         </div>
                     </div>

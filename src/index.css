@@ -509,6 +509,18 @@ body.modal-open {
   transform: scale(1);
 }
 
+/* FAQ Animation */
+.faq-anim {
+  opacity: 0;
+  transform: translateY(50px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.faq-anim.animated {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* Stagger delays for multiple elements */
 .stagger-1 { transition-delay: 0.1s; }
 .stagger-2 { transition-delay: 0.2s; }
