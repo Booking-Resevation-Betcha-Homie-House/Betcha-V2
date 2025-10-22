@@ -436,6 +436,18 @@ body.modal-open {
   transform: translateY(0);
 }
 
+/* Fallback: show content if JS doesn't load within 2s */
+@media (prefers-reduced-motion: no-preference) {
+  .no-js .animate-on-scroll,
+  .no-js .fade-in-up,
+  .no-js .slide-in-left,
+  .no-js .slide-in-right,
+  .no-js .scale-in {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 /* Fade animations */
 .fade-in {
   opacity: 0;

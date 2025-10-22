@@ -3,49 +3,91 @@
  * Professional advertising-style animations for the landing page
  */
 
-// Intersection Observer for scroll-triggered animations
-const observerOptions = {
-  root: null,
-  rootMargin: '0px',
-  threshold: 0.1
-};
+// Check for browser compatibility
+console.log('Landing animations script loaded');
 
-// Create observer instance
-const observer = new IntersectionObserver((entries) => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('animated');
-      // Optional: stop observing after animation
-      // observer.unobserve(entry.target);
-    }
+// Fallback for browsers without Intersection Observer support
+if (!('IntersectionObserver' in window)) {
+  console.warn('IntersectionObserver not supported, using fallback');
+  // Immediately show all animated elements
+  document.addEventListener('DOMContentLoaded', () => {
+    const animatedElements = document.querySelectorAll(
+      '.animate-on-scroll, .fade-in-up, .slide-in-left, .slide-in-right, .scale-in'
+    );
+    animatedElements.forEach(el => el.classList.add('animated'));
   });
-}, observerOptions);
+} else {
+  // Intersection Observer for scroll-triggered animations
+  const observerOptions = {
+    root: null,
+    rootMargin: '0px',
+    threshold: 0.1
+  };
 
-// Initialize animations when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-  
-  // Observe all animated elements
-  const animatedElements = document.querySelectorAll(
-    '.animate-on-scroll, .fade-in-up, .slide-in-left, .slide-in-right, .scale-in'
-  );
-  
-  animatedElements.forEach(el => observer.observe(el));
-  
-  // Parallax effect on scroll
-  let ticking = false;
-  window.addEventListener('scroll', () => {
-    if (!ticking) {
-      window.requestAnimationFrame(() => {
-        handleParallax();
-        ticking = false;
-      });
-      ticking = true;
+  // Create observer instance
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('animated');
+        console.log('Animated element:', entry.target.className);
+        // Optional: stop observing after animation
+        // observer.unobserve(entry.target);
+      }
+    });
+  }, observerOptions);
+
+  // Initialize animations when DOM is ready
+  const initAnimations = () => {
+    console.log('Initializing animations...');
+    
+    // Observe all animated elements
+    const animatedElements = document.querySelectorAll(
+      '.animate-on-scroll, .fade-in-up, .slide-in-left, .slide-in-right, .scale-in'
+    );
+    
+    console.log('Found animated elements:', animatedElements.length);
+    
+    if (animatedElements.length === 0) {
+      console.warn('No animated elements found! Check if CSS is loaded.');
     }
-  });
+    
+    animatedElements.forEach(el => {
+      observer.observe(el);
+      console.log('Observing:', el.className);
+    });
+    
+    // Parallax effect on scroll
+    let ticking = false;
+    window.addEventListener('scroll', () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          handleParallax();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    });
+    
+    // Shimmer effect on featured units (random intervals)
+    initShimmerEffect();
+  };
+
+  // Try multiple initialization strategies
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initAnimations);
+  } else {
+    // DOM already loaded
+    initAnimations();
+  }
   
-  // Shimmer effect on featured units (random intervals)
-  initShimmerEffect();
-});
+  // Backup: force init after a delay
+  setTimeout(() => {
+    if (document.querySelectorAll('.animated').length === 0) {
+      console.log('Animations not initialized, forcing init...');
+      initAnimations();
+    }
+  }, 500);
+}
 
 // Parallax scroll effect
 function handleParallax() {
@@ -77,4 +119,4 @@ function initShimmerEffect() {
 }
 
 // Export for use in other files if needed
-export { observer, handleParallax };
+export { handleParallax };

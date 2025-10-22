@@ -1775,11 +1775,7 @@ function initializeCustomerReportCheckbox() {
     }
 }
 
-// Function to initialize the check-in confirmation modal button listeners only
-// Note: Modal opening is now handled by modal.js, this just sets up internal button listeners
 function initializeCheckinConfirmationModal() {
-    // Set up event listeners for the confirm/cancel buttons inside the modal
-    // This runs once on page load to set up the internal modal buttons
     const confirmBtn = document.getElementById('confirm-checkin-btn');
     const cancelBtn = document.getElementById('cancel-booking-btn');
     

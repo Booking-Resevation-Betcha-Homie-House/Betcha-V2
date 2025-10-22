@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="no-js">
   <head>
     <meta charset="UTF-8" />
     <link rel="stylesheet" href="src/index.css">
@@ -695,6 +695,45 @@
     <script type="module" src="pages/unauth/unauthFunctions/landingPage-functions.js"></script>
     <script type="module" src="src/modal.js"></script>
     <script type="module" src="src/landing-animations.js"></script>
+    
+    <!-- Animation Debug & Fallback Script -->
+    <script>
+      // Remove no-js class when JavaScript loads
+      document.documentElement.classList.remove('no-js');
+      
+      // Debug logging
+      console.log('Device Info:', {
+        userAgent: navigator.userAgent,
+        screenWidth: window.innerWidth,
+        screenHeight: window.innerHeight,
+        devicePixelRatio: window.devicePixelRatio
+      });
+      
+      // Check if CSS animations are supported
+      const testEl = document.createElement('div');
+      testEl.style.animation = 'test 1s';
+      const supportsAnimations = testEl.style.animation !== '';
+      console.log('CSS Animations supported:', supportsAnimations);
+      
+      // Check if Intersection Observer is supported
+      console.log('IntersectionObserver supported:', 'IntersectionObserver' in window);
+      
+      // Fallback: After 3 seconds, force show all content if animations haven't triggered
+      setTimeout(() => {
+        const hiddenElements = document.querySelectorAll('.animate-on-scroll:not(.animated), .fade-in-up:not(.animated), .slide-in-left:not(.animated), .slide-in-right:not(.animated), .scale-in:not(.animated)');
+        
+        if (hiddenElements.length > 0) {
+          console.warn('Some animations did not trigger, forcing visibility for', hiddenElements.length, 'elements');
+          hiddenElements.forEach(el => {
+            el.classList.add('animated');
+            el.style.opacity = '1';
+            el.style.transform = 'none';
+          });
+        } else {
+          console.log('All animations working correctly!');
+        }
+      }, 3000);
+    </script>
     
     <!-- Subtitle Mouse Repel Effect -->
     <script>

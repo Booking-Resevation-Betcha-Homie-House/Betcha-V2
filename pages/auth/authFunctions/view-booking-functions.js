@@ -2,11 +2,11 @@
 // This file handles fetching and populating booking data for the view-booking page
 
 // Import centralized toast notification system
-import { showToastError } from '/src/toastNotification.js';
+import { showToast as showToastNotification } from '/src/toastNotification.js';
 
 // Use centralized toast function (alias for consistency with existing code)
 function showToast(type, title, message, duration = 5000) {
-    return showToastError(type, title, message, duration);
+    return showToastNotification(type, title, message, duration);
 }
 
 // Guard to prevent double execution

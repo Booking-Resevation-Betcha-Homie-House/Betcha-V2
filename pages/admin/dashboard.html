@@ -839,24 +839,8 @@
     </div>
 
   <!-- Chatling Chatbot Configuration and Script -->
-  <script>
-    // Configure Chatling before loading the script
-    window.chtlConfig = { chatbotId: "9992489932" };
-    
-    // Load Chatling script dynamically to ensure it loads after DOM
-    (function() {
-      const script = document.createElement('script');
-      script.async = true;
-      script.defer = true;
-      script.id = 'chtl-script';
-      script.dataset.id = '9992489932';
-      script.src = 'https://chatling.ai/js/embed.js';
-      script.onerror = function() {
-        console.warn('Chatling chatbot failed to load');
-      };
-      document.body.appendChild(script);
-    })();
-  </script>
+  <script> window.chtlConfig = { chatbotId: "3445397958" } </script>
+  <script async data-id="3445397958" id="chtl-script" type="text/javascript" src="https://chatling.ai/js/embed.js"></script>
 
   <script type="module" src="../../src/admin-sidebar.js"></script>
   <script type="module" src="../../src/notifyService.js"></script>

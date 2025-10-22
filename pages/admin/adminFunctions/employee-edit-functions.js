@@ -418,22 +418,32 @@ function getFormData() {
     if (roleComponent) {
         try {
             const alpineData = Alpine.$data(roleComponent);
+            console.log('🔍 Role Alpine Data:', {
+                selected: alpineData.selected,
+                allRoles: alpineData.allRoles,
+                hasAllRoles: !!alpineData.allRoles,
+                allRolesLength: alpineData.allRoles?.length
+            });
+            
             // Get role IDs instead of role names
             const roleIds = [];
             if (alpineData.selected && alpineData.allRoles) {
                 alpineData.selected.forEach(roleName => {
                     const role = alpineData.allRoles.find(r => r.name === roleName);
-                    if (role) {
+                    console.log(`🔎 Looking for role: "${roleName}"`, role ? `Found: ${role._id}` : 'NOT FOUND');
+                    if (role && role._id) {
                         roleIds.push(role._id);
                     }
                 });
             }
+            console.log('✅ Extracted role IDs:', roleIds);
             formData.roles = roleIds;
         } catch (error) {
-            console.error('Error getting roles:', error);
+            console.error('❌ Error getting roles:', error);
             formData.roles = [];
         }
     } else {
+        console.warn('⚠️ Role component not found');
         formData.roles = [];
     }
     
@@ -535,7 +545,13 @@ async function submitEmployeeUpdate() {
         
         // Add role data - send as array of role IDs
         if (formData.roles && formData.roles.length > 0) {
-            updateData.role = formData.roles; // Send as array of IDs
+            // Ensure role IDs are strings and properly formatted
+            updateData.role = formData.roles.filter(id => id && typeof id === 'string');
+            console.log('📋 Role IDs being sent:', updateData.role);
+        } else {
+            // If no roles selected, send empty array
+            updateData.role = [];
+            console.warn('⚠️ No roles selected');
         }
         
         // Add properties if any are selected - send as array of property IDs
@@ -553,6 +569,20 @@ async function submitEmployeeUpdate() {
         if (!updateData.email || updateData.email.trim() === '') {
             throw new Error('Email cannot be empty');
         }
+        
+        // Validate role is an array
+        if (!Array.isArray(updateData.role)) {
+            throw new Error('Role must be an array');
+        }
+        
+        // Debug: Log the complete payload
+        console.log('🚀 Sending employee update with payload:', JSON.stringify(updateData, null, 2));
+        console.log('📦 Role field specifically:', {
+            type: typeof updateData.role,
+            isArray: Array.isArray(updateData.role),
+            length: updateData.role?.length,
+            values: updateData.role
+        });
         
         // Make API call to update employee
         

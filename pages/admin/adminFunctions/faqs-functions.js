@@ -1,6 +1,9 @@
 // finished? need to be tested
 // for what yung get five faq na api?
 
+// Import toast notifications
+import { showToastError, showToastSuccess, showToastWarning } from '/src/toastNotification.js';
+
 // API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
@@ -179,7 +182,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const question = document.getElementById('input-question-add').value;
             const answer = document.getElementById('input-answer-add').value;
             if (!question.trim() || !answer.trim()) {
-                alert('Please enter both question and answer.');
+                showToastWarning('Please enter both question and answer.', 'Missing Fields');
                 return;
             }
             await createFAQ(question, answer);
@@ -196,23 +199,25 @@ document.addEventListener('DOMContentLoaded', () => {
 // API: Create FAQ
 async function createFAQ(question, answer) {
     try {
-        await fetch(`${API_BASE}/faq/create`, {
+        const response = await fetch(`${API_BASE}/faq/create`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question, answer })
         });
+        
+        if (!response.ok) {
+            throw new Error('Failed to add FAQ');
+        }
+        
+        showToastSuccess('FAQ added successfully!', 'Success');
     } catch (error) {
         console.error('Failed to add FAQ:', error);
-        alert('Failed to add FAQ.');
+        showToastError('Failed to add FAQ. Please try again.', 'Error');
     }
 }
 
 // API: Toggle FAQ Active Status
 async function toggleFAQStatus(id) {
-    if (!confirm('Are you sure you want to toggle the status of this FAQ?')) {
-        return;
-    }
-    
     try {
         const response = await fetch(`${API_BASE}/faq/toggle-active/${id}`, {
             method: 'PATCH',
@@ -223,24 +228,30 @@ async function toggleFAQStatus(id) {
             throw new Error('Failed to update FAQ status');
         }
         
-        alert('FAQ status updated successfully!');
+        showToastSuccess('FAQ status updated successfully!', 'Success');
     } catch (error) {
         console.error('Failed to update FAQ status:', error);
-        alert('Failed to update FAQ status.');
+        showToastError('Failed to update FAQ status. Please try again.', 'Error');
     }
 }
 
 // API: Update FAQ
 async function updateFAQ(id, question, answer) {
     try {
-        await fetch(`${API_BASE}/faq/update/${id}`, {
+        const response = await fetch(`${API_BASE}/faq/update/${id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question, answer })
         });
+        
+        if (!response.ok) {
+            throw new Error('Failed to update FAQ');
+        }
+        
+        showToastSuccess('FAQ updated successfully!', 'Success');
     } catch (error) {
         console.error('Failed to update FAQ:', error);
-        alert('Failed to update FAQ.');
+        showToastError('Failed to update FAQ. Please try again.', 'Error');
     }
 }
 

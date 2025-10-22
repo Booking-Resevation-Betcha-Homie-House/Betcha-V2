@@ -49,12 +49,21 @@ document.addEventListener("DOMContentLoaded", () => {
         
         if (isBooked) {
           classes += "bg-primary text-white font-bold";
+          if (isSelected) {
+            classes += " ring-4 ring-gray-600 ring-offset-2";
+          }
         } else if (isMaintenance) {
           classes += "bg-rose-700 text-white font-bold";
+          if (isSelected) {
+            classes += " ring-4 ring-gray-600 ring-offset-2";
+          }
         } else if (isUnavailable) {
           classes += "bg-neutral-200 text-neutral-400 cursor-not-allowed";
+          if (isSelected) {
+            classes += " ring-4 ring-gray-600 ring-offset-2";
+          }
         } else if (isSelected) {
-          classes += "bg-secondary text-white font-bold";
+          classes += "bg-gray-300 text-gray-800 font-bold ring-4 ring-gray-600 ring-offset-2 scale-110";
         } else {
           classes += "bg-background text-black hover:bg-secondary";
         }

@@ -85,8 +85,16 @@ async function addEmployee() {
         formData.append('lastname', lastName);
         formData.append('email', email);
         formData.append('password', password);
-        formData.append('role', selectedRoles.join(','));
-        formData.append('properties', JSON.stringify(selectedProperties));
+        
+        // Append each role as a separate array element
+        selectedRoles.forEach(roleId => {
+            formData.append('role[]', roleId);
+        });
+        
+        // Append each property as a separate array element
+        selectedProperties.forEach(propertyId => {
+            formData.append('properties[]', propertyId);
+        });
         
         if (profilePicture) {
             formData.append('pfp', profilePicture);

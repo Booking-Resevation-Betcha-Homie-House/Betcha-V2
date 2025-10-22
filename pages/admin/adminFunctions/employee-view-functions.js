@@ -48,8 +48,14 @@ async function populateEmployeeDetails() {
 		// Populate email
 		document.getElementById('employee-email').textContent = employee.email || 'No email provided';
 		
-		// Populate role (from role array)
-		const roleName = employee.role && employee.role.length > 0 ? employee.role[0].name : 'No role assigned';
+		// Populate role (from role array) - show all roles
+		let roleName = 'No role assigned';
+		if (employee.role && Array.isArray(employee.role) && employee.role.length > 0) {
+			// Map all role names and join them with commas
+			const roleNames = employee.role.map(role => role.name || role).filter(name => name);
+			roleName = roleNames.length > 0 ? roleNames.join(', ') : 'No role assigned';
+			console.log('📋 Employee roles:', roleNames);
+		}
 		document.getElementById('employee-role').textContent = roleName;
 		document.getElementById('employee-role-header').textContent = roleName;
 		
