@@ -488,18 +488,30 @@ function validateFormData(formData) {
     
     if (!formData.firstname || formData.firstname.length === 0) {
         errors.push('First name is required');
+    } else {
+        // Validate first name - only letters and spaces
+        const namePattern = /^[A-Za-z\s]+$/;
+        if (!namePattern.test(formData.firstname)) {
+            errors.push('First name should contain only letters (no numbers or special characters)');
+        }
     }
     
     if (!formData.lastname || formData.lastname.length === 0) {
         errors.push('Last name is required');
+    } else {
+        // Validate last name - only letters and spaces
+        const namePattern = /^[A-Za-z\s]+$/;
+        if (!namePattern.test(formData.lastname)) {
+            errors.push('Last name should contain only letters (no numbers or special characters)');
+        }
     }
     
     if (!formData.email || formData.email.length === 0) {
         errors.push('Email address is required');
     } else {
-        // Basic email validation
-        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        if (!emailRegex.test(formData.email)) {
+        // Enhanced email validation
+        const emailPattern = /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/i;
+        if (!emailPattern.test(formData.email)) {
             errors.push('Please enter a valid email address');
         }
     }

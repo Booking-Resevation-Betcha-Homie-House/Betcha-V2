@@ -63,6 +63,32 @@ async function addEmployee() {
             return;
         }
 
+        // Validate first name - only letters and spaces
+        const namePattern = /^[A-Za-z\s]+$/;
+        if (!namePattern.test(firstName)) {
+            showError('First name should contain only letters (no numbers or special characters)');
+            return;
+        }
+
+        // Validate last name - only letters and spaces
+        if (!namePattern.test(lastName)) {
+            showError('Last name should contain only letters (no numbers or special characters)');
+            return;
+        }
+
+        // Validate middle initial if provided - only single letter
+        if (middleInitial && !/^[A-Za-z]$/.test(middleInitial)) {
+            showError('Middle initial should be a single letter only');
+            return;
+        }
+
+        // Validate email format
+        const emailPattern = /^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/i;
+        if (!emailPattern.test(email)) {
+            showError('Please enter a valid email address');
+            return;
+        }
+
         if (password !== confirmPassword) {
             showError('Passwords do not match');
             return;
