@@ -1,8 +1,3 @@
-// Customer Functions for Admin Dashboard
-
-/**
- * Initialize admin profile picture in navigation
- */
 function initializeAdminProfile() {
     try {
         const profilePicture = localStorage.getItem('pfplink') || '';
@@ -35,7 +30,6 @@ function initializeAdminProfile() {
     }
 }
 
-// Initialize profile when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
     initializeAdminProfile();
 });
@@ -43,16 +37,15 @@ document.addEventListener('DOMContentLoaded', function() {
 // API Base URL
 const API_BASE = 'https://betcha-api.onrender.com';
 
-let customers = []; // Store all customers for searching (like allProperties in property-functions.js)
-let allCustomers = []; // Additional storage to match property.js pattern exactly
-let currentCustomer = null; // Track the customer currently shown in modal
+let customers = []; 
+let allCustomers = [];
+let currentCustomer = null; 
 
 // Use full API URL
 const apiUrl = `${API_BASE}/guest/display`;
 
 // Initialize the customer manager when the DOM is loaded
 document.addEventListener('DOMContentLoaded', async () => {
-    // Show skeleton loading immediately
     showSkeletonLoading();
     
     try {

@@ -1,5 +1,3 @@
-// Audit Trail Functions for Betcha V2
-// Base API endpoint for creating audit trails
 const AUDIT_API_BASE = 'https://betcha-api.onrender.com/audit/create';
 
 /**
@@ -589,8 +587,3 @@ window.AuditTrailFunctions = {
     getCurrentUserType,
     logCurrentUserActivity
 };
-
-// For ES6 module support (if needed)
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = window.AuditTrailFunctions;
-}

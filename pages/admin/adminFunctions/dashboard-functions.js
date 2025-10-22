@@ -1,11 +1,5 @@
-// Dashboard not still finished Drop down issues Data population issue ? since no data for top property
-
-// Dashboard Functions for Admin Dashboard
-
-// API Base URLs
 const API_BASE = 'https://betcha-api.onrender.com';
 
-// Dashboard API endpoints
 const DASHBOARD_ENDPOINTS = {
     summary: `${API_BASE}/dashboard/admin/summary`,
     rankProperty: `${API_BASE}/dashboard/admin/rankProperty`,
@@ -18,26 +12,21 @@ const DASHBOARD_ENDPOINTS = {
     auditTrails: `${API_BASE}/dashboard/admin/audit`
 };
 
-// Global variables
 let summaryData = null;
 let topPropertiesData = null;
 let dashboardChart = null;
 let currentMonthFilter = null;
 let currentYearFilter = null;
 
-// Initialize dashboard when DOM loads
 document.addEventListener('DOMContentLoaded', function() {
-    // Initialize filters first to avoid undefined month/year
+
     initializeMonthYearFilters();
-    // Initialize admin profile picture
+
     initializeAdminProfile();
-    // Then load summary and counts
+
     initializeDashboard();
 });
 
-/**
- * Initialize admin profile picture in navigation
- */
 function initializeAdminProfile() {
     try {
         const profilePicture = localStorage.getItem('pfplink') || '';
@@ -49,16 +38,13 @@ function initializeAdminProfile() {
             return;
         }
         
-        // If profile picture exists, show it
         if (profilePicture && profilePicture.trim() !== '') {
             adminProfileImgElement.src = profilePicture;
             adminProfileImgElement.classList.remove('hidden');
-            // Remove green background when showing profile picture
             menuBtnElement.classList.remove('bg-primary');
             menuBtnElement.classList.add('bg-transparent');
             console.log('Admin profile picture loaded:', profilePicture);
         } else {
-            // Keep default SVG icon visible with green background
             adminProfileImgElement.classList.add('hidden');
             menuBtnElement.classList.remove('bg-transparent');
             menuBtnElement.classList.add('bg-primary');
@@ -70,12 +56,8 @@ function initializeAdminProfile() {
     }
 }
 
-/**
- * Initialize all dashboard functionality
- */
 async function initializeDashboard() {
     try {
-        // Log system access audit
         try {
             if (window.AuditTrailFunctions) {
                 const userData = JSON.parse(localStorage.getItem('userData') || '{}');
@@ -86,32 +68,25 @@ async function initializeDashboard() {
         } catch (auditError) {
             console.error('Audit trail error:', auditError);
         }
-        
-        // Fetch all dashboard data immediately without showing loading text
+
         await Promise.all([
             fetchSummaryData(),
             fetchCountsData()
         ]);
-        // Fetch Top Rentals after defaults are set by filters
+
         await fetchTopPropertiesData();
-        await fetchAuditTrailData(); // Fetch audit trails
-        
-        // Hide skeleton loading and show content
+        await fetchAuditTrailData(); 
+
         hideLoadingStates();
     } catch (error) {
         console.error('Error initializing dashboard:', error);
         showErrorState('Failed to load dashboard data. Please refresh the page.');
-        // Hide loading states even on error
         hideLoadingStates();
     }
 }
 
-// Global variable to store dashboard data for animations
 let dashboardStatsData = null;
 
-/**
- * Hide loading states and show actual content
- */
 function hideLoadingStates() {
     // Hide skeleton containers and show content containers
     const skeletonElements = ['earningsSkeleton', 'chartsSkeleton', 'auditTrailsSkeleton'];
@@ -131,7 +106,6 @@ function hideLoadingStates() {
         }
     });
 
-    // Start progress bar animations after skeleton loading is complete
     setTimeout(() => {
         if (typeof window.startProgressBarAnimations === 'function') {
             // Pass real dashboard data if available
@@ -139,12 +113,9 @@ function hideLoadingStates() {
         } else {
             console.warn('Progress bar animation function not found');
         }
-    }, 100); // Small delay to ensure content is visible before animations start
+    }, 100); 
 }
 
-/**
- * Show loading state for charts section only
- */
 function showChartLoading() {
     const chartsSkeleton = document.getElementById('chartsSkeleton');
     const chartsContent = document.getElementById('chartsContent');
@@ -153,9 +124,6 @@ function showChartLoading() {
     if (chartsContent) chartsContent.classList.add('hidden');
 }
 
-/**
- * Hide loading state for charts section only
- */
 function hideChartLoading() {
     const chartsSkeleton = document.getElementById('chartsSkeleton');
     const chartsContent = document.getElementById('chartsContent');
@@ -164,9 +132,6 @@ function hideChartLoading() {
     if (chartsContent) chartsContent.classList.remove('hidden');
 }
 
-/**
- * Fetch summary data (earnings)
- */
 async function fetchSummaryData() {
     try {
         const response = await fetch(DASHBOARD_ENDPOINTS.summary);
@@ -174,7 +139,6 @@ async function fetchSummaryData() {
         
         summaryData = await response.json();
         
-        // Normalize API shape to UI shape
         const normalized = (summaryData && summaryData.summary)
             ? {
                 yearlyEarnings: summaryData.summary.TotalEarningsThisYear || 0,
@@ -191,7 +155,6 @@ async function fetchSummaryData() {
         
     } catch (error) {
         console.error('Error fetching summary data:', error);
-        // Set fallback values
         populateSummaryData({
             yearlyEarnings: 0,
             monthlyEarnings: 0,
@@ -200,15 +163,10 @@ async function fetchSummaryData() {
     }
 }
 
-/**
- * Fetch top properties ranking data
- */
 async function fetchTopPropertiesData() {
     try {
-        // Show chart loading state
         showChartLoading();
         
-        // Build POST body with numeric fields
         const url = DASHBOARD_ENDPOINTS.rankProperty;
         const monthNum = (currentMonthFilter && currentMonthFilter !== 'all')
             ? parseInt(String(currentMonthFilter), 10)
@@ -229,7 +187,6 @@ async function fetchTopPropertiesData() {
             body: JSON.stringify(payload)
         });
 
-        // Fallback to GET with query params if POST is not supported on this deployment
         if (!response.ok) {
             const monthParam = (typeof payload.month === 'number') ? `month=${payload.month}` : '';
             const yearParam = (typeof payload.year === 'number') ? `year=${payload.year}` : '';
@@ -243,8 +200,7 @@ async function fetchTopPropertiesData() {
         }
         
         topPropertiesData = await response.json();
-        
-        // Normalize to array of items with name and earnings
+
         let chartData = [];
         if (topPropertiesData && typeof topPropertiesData === 'object') {
             if (Array.isArray(topPropertiesData)) {
@@ -259,37 +215,30 @@ async function fetchTopPropertiesData() {
             }
         }
 
-        // Map to unified keys expected by chart prep
         chartData = chartData.map(item => ({
             propertyName: item.propertyName || item.name || 'Unknown Property',
             totalEarnings: typeof item.totalEarnings === 'number' ? item.totalEarnings : (typeof item.earned === 'number' ? item.earned : 0)
         }));
 
-
-        // If the built-in chart exists, update it to preserve design
         if (window.updateTopRoomsChart) {
             const labels = chartData.map(i => i.propertyName || i.name || 'Unknown Property');
             const values = chartData.map(i => i.totalEarnings || 0);
             window.updateTopRoomsChart(labels, values);
         } else {
-            // Fallback to internal chart renderer
+
             populateTopPropertiesChart(chartData);
         }
-        
-        // Hide chart loading state
+
         hideChartLoading();
         
     } catch (error) {
         console.error('Error fetching top properties data:', error);
         populateTopPropertiesChart([]);
-        // Hide chart loading state even on error
+
         hideChartLoading();
     }
 }
 
-/**
- * Fetch all count data
- */
 async function fetchCountsData() {
     try {
         
