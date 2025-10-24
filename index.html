@@ -731,69 +731,7 @@
           console.log('All animations working correctly!');
         }
       }, 3000);
-    </script>
-    
-    <!-- Subtitle Mouse Repel Effect -->
-    <script>
-      // Wait for animations to finish before adding mouse effect
-      setTimeout(() => {
-        const subtitle = document.getElementById('subtitle');
-        if (!subtitle) {
-          console.error('Subtitle element not found');
-          return;
-        }
-
-        console.log('Mouse repel effect initialized');
-
-        // Clear the animation but keep the final state
-        subtitle.style.animation = 'none';
-        subtitle.style.opacity = '1';
-        subtitle.style.transform = 'translateY(0) scale(1)';
-        
-        let rafId = null;
-        
-        subtitle.addEventListener('mousemove', (e) => {
-          // Cancel previous animation frame for smoother updates
-          if (rafId) cancelAnimationFrame(rafId);
-          
-          rafId = requestAnimationFrame(() => {
-            const rect = subtitle.getBoundingClientRect();
-            const centerX = rect.left + rect.width / 2;
-            const centerY = rect.top + rect.height / 2;
-            
-            const mouseX = e.clientX;
-            const mouseY = e.clientY;
-            
-            // Calculate which side the mouse is on
-            const deltaX = mouseX - centerX;
-            const deltaY = mouseY - centerY;
-            
-            // Maximum movement distance - very minimal
-            const maxMove = 8;
-            
-            // Push in opposite direction
-            // If mouse is on left (negative deltaX), push right (positive moveX)
-            // If mouse is on right (positive deltaX), push left (negative moveX)
-            const moveX = deltaX > 0 ? -maxMove : maxMove;
-            
-            // If mouse is above (negative deltaY), push down (positive moveY)
-            // If mouse is below (positive deltaY), push up (negative moveY)
-            const moveY = deltaY > 0 ? -maxMove : maxMove;
-            
-            // Apply transform
-            subtitle.style.setProperty('transform', `translate(${moveX}px, ${moveY}px) scale(1)`, 'important');
-            subtitle.style.transition = 'transform 0.2s ease-out';
-          });
-        });
-
-        subtitle.addEventListener('mouseleave', () => {
-          if (rafId) cancelAnimationFrame(rafId);
-          subtitle.style.setProperty('transform', 'translate(0, 0) scale(1)', 'important');
-          subtitle.style.transition = 'transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)';
-        });
-      }, 1500); // Wait for hero animation to complete
-    </script>
-    
+    </script> 
     <!-- User Role Redirect Logic -->
     <script>
         // Check user role on page load and redirect accordingly
