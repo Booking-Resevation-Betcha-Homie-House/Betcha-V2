@@ -179,7 +179,6 @@ async function fetchAndDisplayFeaturedUnits() {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log('DOM loaded, initializing features');
-    fetchAndDisplayAdsBanner();
     fetchAndDisplayFeaturedUnits();
     fetchAndDisplayFAQs();
     fetchAndDisplayTotalBookedDays();
