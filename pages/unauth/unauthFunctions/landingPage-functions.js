@@ -90,40 +90,6 @@ async function fetchAndDisplayTotalBookedDays() {
     }
 }
 
-async function fetchAndDisplayAdsBanner() {
-    try {
-        const bannerContainer = document.getElementById('adsBanner');
-        const bannerImg = document.getElementById('adsBannerImg');
-        const bannerTitle = document.getElementById('adsBannerTitle');
-        const bannerContent = document.getElementById('adsBannerContent');
-
-        if (!bannerContainer || !bannerImg || !bannerTitle || !bannerContent) {
-            console.error('Required banner elements not found in DOM');
-            return;
-        }
-
-        const response = await fetch('https://betcha-api.onrender.com/landing/display/68e888c28705c6444cfd5fcf');
-        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-        const data = await response.json();
-
-        if (data.imageLink) {
-            const img = new Image();
-            img.onload = function() { bannerImg.src = data.imageLink; };
-            img.onerror = function() {
-                console.error('Failed to load banner image');
-                bannerImg.src = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
-            };
-            img.src = data.imageLink;
-        }
-
-        if (data.txtColor) bannerContainer.style.color = data.txtColor;
-        bannerTitle.textContent = data.title || 'Welcome to Betcha';
-        bannerContent.textContent = data.content || 'Experience the best stays';
-    } catch (error) {
-        console.error('Error in ads banner:', error);
-    }
-}
-
 async function fetchAndDisplayFAQs() {
     try {
         const response = await fetch('https://betcha-api.onrender.com/faq/five');
