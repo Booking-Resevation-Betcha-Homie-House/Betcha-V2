@@ -319,6 +319,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         let isInRange = false;
         let isStartDate = dateStr === selectionStart;
+        let rangeHasInvalidCheckout = false;
         
         if (selectionStart) {
           if (isRangeSelection) {
@@ -332,6 +333,23 @@ document.addEventListener("DOMContentLoaded", () => {
                 isInRange = dateObj >= rangeStart && dateObj <= rangeEnd;
               } else {
                 isInRange = dateObj <= rangeStart && dateObj >= rangeEnd;
+              }
+              
+              // Check if the entire range has a checkout-only date in the middle
+              const checkStart = rangeStart <= rangeEnd ? rangeStart : rangeEnd;
+              const checkEnd = rangeStart <= rangeEnd ? rangeEnd : rangeStart;
+              const tempDate = new Date(checkStart);
+              
+              while (tempDate <= checkEnd) {
+                const tempDateStr = tempDate.toISOString().split('T')[0];
+                const isStartOrEnd = tempDateStr === selectionStart || tempDateStr === hoverDate;
+                
+                // If checkout-only date is in the middle (not start or end), mark as invalid
+                if (!isStartOrEnd && isCheckoutOnlyDate(tempDateStr)) {
+                  rangeHasInvalidCheckout = true;
+                  break;
+                }
+                tempDate.setDate(tempDate.getDate() + 1);
               }
             } else {
               isInRange = isStartDate;
@@ -365,6 +383,9 @@ document.addEventListener("DOMContentLoaded", () => {
               // If this is a booked date in the hover range, show it differently
               if (isBooked && !isCheckoutOnlyDate(dateStr)) {
                 classes += "bg-neutral-300 text-neutral-700 cursor-not-allowed"; // Darker grey for blocked dates in range
+              } else if (rangeHasInvalidCheckout) {
+                // Show error state for invalid range with checkout-only in middle
+                classes += "bg-red-100 text-red-600 cursor-not-allowed"; // Red for invalid range
               } else if (isHoverEndDate) {
                 classes += "bg-green-200 text-green-700 font-bold checkout-preview"; // Light green for hover checkout
               } else {
@@ -438,19 +459,41 @@ document.addEventListener("DOMContentLoaded", () => {
           
         // Add all dates in range
         const current = new Date(startDate);
+        let hasCheckoutOnlyInMiddle = false;
+        
         while (current <= endDate) {
           const dateStr = current.toISOString().split('T')[0];
+          const isLastDate = dateStr === endDate.toISOString().split('T')[0];
+          
           // Add available dates and checkout-only end dates
           if (!bookedDates.has(dateStr) && !maintenanceDates.has(dateStr)) {
             selectedDates.add(dateStr);
-          } else if (bookedDates.has(dateStr) && isCheckoutOnlyDate(dateStr) && dateStr === endDate.toISOString().split('T')[0]) {
-            // Allow checkout-only dates as the final checkout date
-            selectedDates.add(dateStr);
+          } else if (bookedDates.has(dateStr) && isCheckoutOnlyDate(dateStr)) {
+            // Only allow checkout-only dates as the final checkout date
+            if (isLastDate) {
+              selectedDates.add(dateStr);
+            } else {
+              // Checkout-only date in the middle of range - invalid selection
+              hasCheckoutOnlyInMiddle = true;
+              break;
+            }
           } else if (bookedDates.has(dateStr) && !isCheckoutOnlyDate(dateStr)) {
             // If we hit a non-checkout-only booked date, stop the range
             break;
           }
           current.setDate(current.getDate() + 1);
+        }
+        
+        // If there's a checkout-only date in the middle, show error and reset
+        if (hasCheckoutOnlyInMiddle) {
+          const toast = new ToastNotification();
+          toast.show('error', 'Invalid Date Range', 'Cannot select dates with a checkout-only date in between. Please select a different range.');
+          selectedDates.clear();
+          selectionStart = null;
+          isRangeSelection = false;
+          delete calendarEl.dataset.hoverDate;
+          render();
+          return;
         }
           
         selectionStart = null;
@@ -474,6 +517,36 @@ document.addEventListener("DOMContentLoaded", () => {
       if (dateEl) {
         const dateStr = dateEl.dataset.date;
         const isCheckoutOnly = isCheckoutOnlyDate(dateStr);
+        
+        // If we have a selection started and clicking a second date, validate the range
+        if (selectionStart && dateStr !== selectionStart) {
+          // Check if there's a checkout-only date in the middle
+          const rangeStart = new Date(selectionStart);
+          const rangeEnd = new Date(dateStr);
+          const checkStart = rangeStart <= rangeEnd ? rangeStart : rangeEnd;
+          const checkEnd = rangeStart <= rangeEnd ? rangeEnd : rangeStart;
+          const tempDate = new Date(checkStart);
+          
+          let hasCheckoutOnlyInMiddle = false;
+          while (tempDate <= checkEnd) {
+            const tempDateStr = tempDate.toISOString().split('T')[0];
+            const isStartOrEnd = tempDateStr === selectionStart || tempDateStr === dateStr;
+            
+            // If checkout-only date is in the middle (not start or end), invalid
+            if (!isStartOrEnd && isCheckoutOnlyDate(tempDateStr)) {
+              hasCheckoutOnlyInMiddle = true;
+              break;
+            }
+            tempDate.setDate(tempDate.getDate() + 1);
+          }
+          
+          if (hasCheckoutOnlyInMiddle) {
+            // Don't allow this click - invalid range
+            const toast = new ToastNotification();
+            toast.show('error', 'Invalid Date Range', 'Cannot select dates with a checkout-only date in between. Please select a different date.');
+            return;
+          }
+        }
         
         // Allow click if:
         // 1. Date is not disabled (cursor-not-allowed)

@@ -1,6 +1,8 @@
 // Form validation and API integration
 let canResendOTP = true;
 let resendTimer = 60;
+// Store OCR data globally for validation
+let storedOCRData = null;
 
 // Regular expressions for validation
 const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
@@ -42,35 +44,10 @@ function isAtLeast18Today(birthMonth, birthDay, birthYear) {
     return true; // 19 or older
 }
 
-// Step 1 form validation (ID verification)
+// Step 1 form validation (Personal information - now the first step)
 function validateStep1() {
-    const selectedID = document.querySelector('#selectedID')?.textContent?.trim();
-    const idPreviewContainer = document.getElementById('IDpreviewContainer');
-    const hasUploadedFiles = idPreviewContainer && idPreviewContainer.children.length > 0;
-    
-    // Also check stored files as backup
-    const hasStoredFiles = window.uploadedIDFiles && window.uploadedIDFiles.length > 0;
-
-    // Check if ID type is selected
-    if (!selectedID || selectedID === 'Select an ID type' || selectedID === '' || selectedID === 'Select valid ID') {
-        showError('Please select a valid ID type');
-        return false;
-    }
-
-    // Check if ID file is uploaded (check both preview container and stored files)
-    if (!hasUploadedFiles && !hasStoredFiles) {
-        showError('Please upload a photo of your ID');
-        return false;
-    }
-
-    hideError();
-    return true;
-}
-
-// Step 2 form validation (Personal information)
-function validateStep2() {
-    const firstName = document.querySelector('#step2 input[placeholder="First name"]')?.value;
-    const lastName = document.querySelector('#step2 input[placeholder="Last name"]')?.value;
+    const firstName = document.querySelector('#step1 input[placeholder="First name"]')?.value;
+    const lastName = document.querySelector('#step1 input[placeholder="Last name"]')?.value;
     const selectedSex = document.querySelector('#selectedSex')?.textContent;
     const monthElement = document.querySelector('#selectedMonth');
     const dayElement = document.querySelector('#selectedDay');
@@ -136,6 +113,107 @@ function validateStep2() {
             showError('You must be at least 18 years old to register');
         }
         return false;
+    }
+
+    hideError();
+    return true;
+}
+
+// Step 2 form validation (ID verification - now the second step, with name matching)
+function validateStep2() {
+    const selectedID = document.querySelector('#selectedID')?.textContent?.trim();
+    const idPreviewContainer = document.getElementById('IDpreviewContainer');
+    const hasUploadedFiles = idPreviewContainer && idPreviewContainer.children.length > 0;
+    
+    // Also check stored files as backup
+    const hasStoredFiles = window.uploadedIDFiles && window.uploadedIDFiles.length > 0;
+
+    // Check if ID type is selected
+    if (!selectedID || selectedID === 'Select an ID type' || selectedID === '' || selectedID === 'Select valid ID') {
+        showError('Please select a valid ID type');
+        return false;
+    }
+
+    // Check if ID file is uploaded (check both preview container and stored files)
+    if (!hasUploadedFiles && !hasStoredFiles) {
+        showError('Please upload a photo of your ID');
+        return false;
+    }
+
+    // Validate all personal details match (case-insensitive)
+    if (storedOCRData) {
+        // Check First Name
+        const enteredFirstName = document.querySelector('#step1 input[placeholder="First name"]')?.value?.trim().toLowerCase();
+        const ocrFirstName = storedOCRData.firstName?.trim().toLowerCase();
+
+        if (ocrFirstName && enteredFirstName && ocrFirstName !== enteredFirstName) {
+            showError('First name does not match the ID. Please go back to Step 1 and correct it.');
+            return false;
+        }
+
+        // Check Last Name
+        const enteredLastName = document.querySelector('#step1 input[placeholder="Last name"]')?.value?.trim().toLowerCase();
+        const ocrLastName = storedOCRData.lastName?.trim().toLowerCase();
+
+        if (ocrLastName && enteredLastName && ocrLastName !== enteredLastName) {
+            showError('Last name does not match the ID. Please go back to Step 1 and correct it.');
+            return false;
+        }
+
+        // Check Middle Name (if provided)
+        const enteredMiddleName = document.querySelector('#step1 input[placeholder="Middle name"]')?.value?.trim().toLowerCase();
+        const ocrMiddleName = storedOCRData.middleName?.trim().toLowerCase();
+
+        if (ocrMiddleName && enteredMiddleName && ocrMiddleName !== enteredMiddleName) {
+            showError('Middle name does not match the ID. Please go back to Step 1 and correct it.');
+            return false;
+        }
+
+        // Check Sex/Gender
+        const enteredSex = document.querySelector('#selectedSex')?.textContent?.trim().toLowerCase();
+        const ocrGender = (storedOCRData.gender || storedOCRData.sex)?.trim().toLowerCase();
+
+        if (ocrGender && enteredSex && enteredSex !== 'sex') {
+            // Normalize gender values (Male/M/male -> male, Female/F/female -> female)
+            const normalizedEnteredSex = enteredSex.startsWith('m') ? 'male' : enteredSex.startsWith('f') ? 'female' : enteredSex;
+            const normalizedOcrGender = ocrGender.startsWith('m') ? 'male' : ocrGender.startsWith('f') ? 'female' : ocrGender;
+
+            if (normalizedEnteredSex !== normalizedOcrGender) {
+                showError('Sex does not match the ID. Please go back to Step 1 and correct it.');
+                return false;
+            }
+        }
+
+        // Check Birthday
+        if (storedOCRData.birthday) {
+            const monthElement = document.querySelector('#selectedMonth');
+            const dayElement = document.querySelector('#selectedDay');
+            const yearElement = document.querySelector('#selectedYear');
+
+            if (monthElement && dayElement && yearElement) {
+                const enteredMonth = monthElement.dataset?.value; // Gets numeric month (1-12)
+                const enteredDay = dayElement.textContent?.trim();
+                const enteredYear = yearElement.textContent?.trim();
+
+                // Parse OCR birthday (format: "2002/04/14" -> YYYY/MM/DD)
+                const ocrBirthdayParts = storedOCRData.birthday.split('/');
+                if (ocrBirthdayParts.length === 3) {
+                    const ocrYear = ocrBirthdayParts[0];
+                    const ocrMonth = ocrBirthdayParts[1]; // "04" -> will compare with enteredMonth
+                    const ocrDay = ocrBirthdayParts[2]; // "14"
+
+                    // Compare each part (normalize to remove leading zeros)
+                    const monthMatch = parseInt(enteredMonth) === parseInt(ocrMonth);
+                    const dayMatch = parseInt(enteredDay) === parseInt(ocrDay);
+                    const yearMatch = enteredYear === ocrYear;
+
+                    if (!monthMatch || !dayMatch || !yearMatch) {
+                        showError('Birthday does not match the ID. Please go back to Step 1 and correct it.');
+                        return false;
+                    }
+                }
+            }
+        }
     }
 
     hideError();
@@ -297,7 +375,7 @@ function updateNextButtonState() {
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
     
-    // Step 1 -> Step 2 button
+    // Step 1 -> Step 2 button (Personal Info)
     if (step1 && !step1.classList.contains('hidden')) {
         const nextBtn1 = document.getElementById('nextBtn1');
         if (!nextBtn1) return;
@@ -308,12 +386,19 @@ function updateNextButtonState() {
             !container.classList.contains('hidden')
         );
 
-        // Check step 1 fields (ID verification)
-        const selectedID = document.querySelector('#selectedID')?.textContent?.trim();
-        const idPreviewContainer = document.getElementById('IDpreviewContainer');
-        const hasUploadedFiles = idPreviewContainer && idPreviewContainer.children.length > 0;
+        // Check step 1 fields (personal information)
+        const firstName = document.querySelector('#step1 input[placeholder="First name"]')?.value || '';
+        const lastName = document.querySelector('#step1 input[placeholder="Last name"]')?.value || '';
+        const selectedSex = document.querySelector('#selectedSex')?.textContent || 'Sex';
+        const monthElement = document.querySelector('#selectedMonth');
+        const dayElement = document.querySelector('#selectedDay');
+        const yearElement = document.querySelector('#selectedYear');
 
-        const isStep1Valid = selectedID && selectedID !== 'Select an ID type' && selectedID !== '' && hasUploadedFiles;
+        const isStep1Valid = firstName.trim() && lastName.trim() && 
+                            selectedSex !== 'Sex' &&
+                            monthElement && monthElement.textContent !== 'Month' &&
+                            dayElement && dayElement.textContent !== 'Day' &&
+                            yearElement && yearElement.textContent !== 'Year';
 
         // Button should be enabled only if step 1 is valid AND no errors are shown
         const canProceed = isStep1Valid && !hasVisibleError;
@@ -331,7 +416,7 @@ function updateNextButtonState() {
         }
     }
     
-    // Step 2 -> Step 3 button
+    // Step 2 -> Step 3 button (ID Verification)
     if (step2 && !step2.classList.contains('hidden')) {
         const nextBtn2 = document.getElementById('nextBtn2');
         if (!nextBtn2) return;
@@ -342,19 +427,12 @@ function updateNextButtonState() {
             !container.classList.contains('hidden')
         );
 
-        // Check step 2 fields (personal info)
-        const firstName = document.querySelector('#step2 input[placeholder="First name"]')?.value || '';
-        const lastName = document.querySelector('#step2 input[placeholder="Last name"]')?.value || '';
-        const selectedSex = document.querySelector('#selectedSex')?.textContent || 'Sex';
-        const monthElement = document.querySelector('#selectedMonth');
-        const dayElement = document.querySelector('#selectedDay');
-        const yearElement = document.querySelector('#selectedYear');
+        // Check step 2 fields (ID verification)
+        const selectedID = document.querySelector('#selectedID')?.textContent?.trim();
+        const idPreviewContainer = document.getElementById('IDpreviewContainer');
+        const hasUploadedFiles = idPreviewContainer && idPreviewContainer.children.length > 0;
 
-        const isStep2Valid = firstName.trim() && lastName.trim() && 
-                            selectedSex !== 'Sex' &&
-                            monthElement && monthElement.textContent !== 'Month' &&
-                            dayElement && dayElement.textContent !== 'Month' &&
-                            yearElement && yearElement.textContent !== 'Month';
+        const isStep2Valid = selectedID && selectedID !== 'Select an ID type' && selectedID !== '' && selectedID !== 'Select valid ID' && hasUploadedFiles;
 
         // Button should be enabled only if step 2 is valid AND no errors are shown
         const canProceed = isStep2Valid && !hasVisibleError;
@@ -659,107 +737,6 @@ async function scanDriversLicense(imageFile) {
     }
 }
 
-// ⚙️ Auto-fill form with OCR data (global)
-function autoFillFromOCR(ocrData) {
-    try {
-        console.log('Auto-filling form with OCR data:', ocrData);
-        
-        // Fill first name
-        if (ocrData.firstName) {
-            const firstNameInput = document.querySelector('#step2 input[placeholder="First name"]');
-            if (firstNameInput) {
-                firstNameInput.value = ocrData.firstName;
-            }
-        }
-        
-        // Fill last name
-        if (ocrData.lastName) {
-            const lastNameInput = document.querySelector('#step2 input[placeholder="Last name"]');
-            if (lastNameInput) {
-                lastNameInput.value = ocrData.lastName;
-            }
-        }
-        
-        // Fill middle name
-        if (ocrData.middleName) {
-            const middleNameInput = document.querySelector('#step2 input[placeholder="Middle name"]');
-            if (middleNameInput) {
-                middleNameInput.value = ocrData.middleName;
-            }
-        }
-        
-        // Fill sex/gender (check both 'gender' and 'sex' fields)
-        const genderValue = ocrData.gender || ocrData.sex;
-        if (genderValue) {
-            const sexDisplay = document.querySelector('#selectedSex');
-            if (sexDisplay) {
-                // Convert to proper case and ensure it matches dropdown options
-                let displayValue = genderValue.charAt(0).toUpperCase() + genderValue.slice(1).toLowerCase();
-                
-                // Map common variations to dropdown options
-                if (displayValue === 'M' || displayValue === 'Male') {
-                    displayValue = 'Male';
-                } else if (displayValue === 'F' || displayValue === 'Female') {
-                    displayValue = 'Female';
-                }
-                
-                // Validate against allowed options (Male, Female, Other)
-                const allowedValues = ['Male', 'Female', 'Other'];
-                if (allowedValues.includes(displayValue)) {
-                    sexDisplay.textContent = displayValue;
-                    sexDisplay.classList.remove('text-neutral-400');
-                    sexDisplay.classList.add('text-primary-text');
-                    console.log('Gender auto-filled:', displayValue);
-                } else {
-                    console.warn('Unknown gender value from OCR:', genderValue);
-                }
-            }
-        }
-        
-        // Fill birthdate
-        if (ocrData.birthday) {
-            try {
-                const birthDate = new Date(ocrData.birthday);
-                const month = birthDate.getMonth() + 1; // 0-indexed
-                const day = birthDate.getDate();
-                const year = birthDate.getFullYear();
-                
-                // Set month
-                const monthDisplay = document.querySelector('#selectedMonth');
-                if (monthDisplay) {
-                    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-                    monthDisplay.textContent = months[month - 1];
-                    monthDisplay.dataset.value = month.toString();
-                    monthDisplay.classList.remove('text-neutral-400');
-                    monthDisplay.classList.add('text-primary-text');
-                }
-                
-                // Set day
-                const dayDisplay = document.querySelector('#selectedDay');
-                if (dayDisplay) {
-                    dayDisplay.textContent = day.toString();
-                    dayDisplay.classList.remove('text-neutral-400');
-                    dayDisplay.classList.add('text-primary-text');
-                }
-                
-                // Set year
-                const yearDisplay = document.querySelector('#selectedYear');
-                if (yearDisplay) {
-                    yearDisplay.textContent = year.toString();
-                    yearDisplay.classList.remove('text-neutral-400');
-                    yearDisplay.classList.add('text-primary-text');
-                }
-            } catch (error) {
-                console.error('Error parsing birthdate:', error);
-            }
-        }
-        
-        console.log('Form auto-fill completed');
-    } catch (error) {
-        console.error('Error auto-filling form:', error);
-    }
-}
-
 // Function to show OCR error modal
 function showOCRError(errorMessage) {
     // Update the confirmation modal content to show OCR error
@@ -820,101 +797,22 @@ window.closeOCRErrorModal = closeOCRErrorModal;
 // Add event listeners when the DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Step navigation
-    const step1Form = document.getElementById('step1');
-    const step2Form = document.getElementById('step2');
-    const step3Form = document.getElementById('step3');
-
-    // Handle Step 1 -> Step 2 (ID verification -> Personal info)
+    // Step navigation handled by event listeners and global onclick functions
+    // Handle Step 1 -> Step 2 (Personal info -> ID verification with OCR and validation)
     const nextBtn1 = document.getElementById('nextBtn1');
     if (nextBtn1) {
         nextBtn1.addEventListener('click', async (e) => {
             e.preventDefault();
-            console.log('nextBtn1 clicked - starting OCR process');
+            console.log('nextBtn1 clicked - validating personal info then scanning ID');
             
             // Check if button is disabled
             if (nextBtn1.disabled) {
                 console.log('Button is disabled, returning');
-                return; // Don't proceed if button is disabled
+                return;
             }
             
-            try {
-                if (!validateStep1()) {
-                    console.log('Step 1 validation failed');
-                    return;
-                }
-                
-                console.log('Step 1 validation passed, starting OCR scan...');
-                
-                // Show fullscreen loading immediately
-                showFullscreenLoading('AI analyzing your document');
-                
-                // Get the uploaded driver's license image
-                // First try the stored files from IDverifier.js
-                let imageFile = null;
-                if (window.uploadedIDFiles && window.uploadedIDFiles.length > 0) {
-                    imageFile = window.uploadedIDFiles[0];
-                } else {
-                    // Fallback to file input
-                    const fileInput = document.querySelector('input[type="file"]') || document.getElementById('IDfileInput');
-                    if (fileInput && fileInput.files && fileInput.files.length > 0) {
-                        imageFile = fileInput.files[0];
-                    }
-                }
-                
-                if (!imageFile) {
-                    hideFullscreenLoading();
-                    showOCRError('Please upload your driver\'s license image first.');
-                    return;
-                }
-                console.log('Found image file:', imageFile.name, 'Size:', imageFile.size);
-                await new Promise(resolve => setTimeout(resolve, 2000));
-
-                updateLoadingMessage('Checking the Language');
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Smooth transition to next message
-                setTimeout(() => updateLoadingMessage('Reading Image and extracting data'), 100);
-                
-                // Perform OCR scan
-                console.log('Calling OCR API...');
-                const ocrData = await scanDriversLicense(imageFile);
-                console.log('OCR scan successful:', ocrData);
-                
-                // Update loading message for processing
-                updateLoadingMessage('Formulating your profile');
-                
-                // Auto-fill the form with OCR data
-                autoFillFromOCR(ocrData);
-                
-                // Brief delay to show processing
-                await new Promise(resolve => setTimeout(resolve, 600));
-                
-                updateLoadingMessage('Validating the ID');
-                await new Promise(resolve => setTimeout(resolve, 3000));
-
-                // Final loading message
-                updateLoadingMessage('Almost ready');
-                await new Promise(resolve => setTimeout(resolve, 1000));
-                
-                // Hide loading before moving to step 2
-                hideFullscreenLoading();
-                
-                // Move to step 2
-                console.log('Moving to step 2...');
-                step1Form.classList.add('hidden');
-                step2Form.classList.remove('hidden');
-                document.getElementById('step-label').textContent = 'Step 2 of 3';
-                document.getElementById('progress-bar').style.width = '66.66%';
-                
-                // Initialize button state when step 2 is shown
-                updateNextButtonState();
-                
-            } catch (error) {
-                console.error('Error during OCR scan:', error);
-                hideFullscreenLoading();
-                showOCRError(`Failed to scan driver's license: ${error.message}`);
-            }
+            // Call the async goToStep2 function which handles everything
+            await window.goToStep2();
         });
         
         console.log('Event listener attached to nextBtn1');
@@ -922,27 +820,20 @@ document.addEventListener('DOMContentLoaded', () => {
         console.error('nextBtn1 button not found!');
     }
 
-    // Handle Step 2 -> Step 3 (Personal info -> Contact & password)
+    // Handle Step 2 -> Step 3 (ID verification with OCR -> Contact & password)
     const nextBtn2 = document.querySelector('button[onclick="goToStep3()"]');
     if (nextBtn2) {
-        nextBtn2.addEventListener('click', (e) => {
+        nextBtn2.addEventListener('click', async (e) => {
             e.preventDefault();
             
             // Check if button is disabled
             const btn = document.getElementById('nextBtn2');
             if (btn && btn.disabled) {
-                return; // Don't proceed if button is disabled
+                return;
             }
             
-            if (validateStep2()) {
-                step2Form.classList.add('hidden');
-                step3Form.classList.remove('hidden');
-                document.getElementById('step-label').textContent = 'Step 3 of 3';
-                document.getElementById('progress-bar').style.width = '100%';
-                
-                // Initialize button state when step 3 is shown
-                updateRegisterButtonState();
-            }
+            // Call the async goToStep3 function
+            await window.goToStep3();
         });
     }
 
@@ -1420,6 +1311,7 @@ document.addEventListener('DOMContentLoaded', () => {
     updateNextButtonState();
     
     // Global functions for HTML onclick attributes
+    // Step 1 -> Step 2: Personal info to ID verification (simple validation, no OCR yet)
     window.goToStep2 = function() {
         const step1Form = document.getElementById('step1');
         const step2Form = document.getElementById('step2');
@@ -1433,19 +1325,155 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
     
-    window.goToStep3 = function() {
+    // Step 2 -> Step 3: ID verification with OCR and name matching to contact/password
+    window.goToStep3 = async function() {
         const step2Form = document.getElementById('step2');
         const step3Form = document.getElementById('step3');
         
-        if (validateStep2()) {
+        // First validate step 2 (ID upload)
+        if (!validateStep2()) {
+            return;
+        }
+
+        try {
+            // Show loading
+            showFullscreenLoading('AI analyzing your document');
+            
+            // Get the uploaded driver's license image
+            let imageFile = null;
+            if (window.uploadedIDFiles && window.uploadedIDFiles.length > 0) {
+                imageFile = window.uploadedIDFiles[0];
+            } else {
+                const fileInput = document.querySelector('input[type="file"]') || document.getElementById('IDfileInput');
+                if (fileInput && fileInput.files && fileInput.files.length > 0) {
+                    imageFile = fileInput.files[0];
+                }
+            }
+            
+            if (!imageFile) {
+                hideFullscreenLoading();
+                showOCRError('Please upload your driver\'s license image first.');
+                return;
+            }
+            console.log('Found image file:', imageFile.name, 'Size:', imageFile.size);
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            updateLoadingMessage('Checking the Language');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            setTimeout(() => updateLoadingMessage('Reading Image and extracting data'), 100);
+            
+            // Perform OCR scan
+            console.log('Calling OCR API...');
+            const ocrData = await scanDriversLicense(imageFile);
+            console.log('OCR scan successful:', ocrData);
+            
+            // Store OCR data
+            storedOCRData = ocrData;
+            
+            updateLoadingMessage('Validating with your entered details');
+            await new Promise(resolve => setTimeout(resolve, 600));
+            
+            updateLoadingMessage('Checking for matches');
+            await new Promise(resolve => setTimeout(resolve, 2000));
+
+            // Validate ALL personal details match (case-insensitive) - same as validateStep2()
+            // Check First Name
+            const enteredFirstName = document.querySelector('#step1 input[placeholder="First name"]')?.value?.trim().toLowerCase();
+            const ocrFirstName = ocrData.firstName?.trim().toLowerCase();
+
+            if (ocrFirstName && enteredFirstName && ocrFirstName !== enteredFirstName) {
+                hideFullscreenLoading();
+                showError('First name does not match your ID. Please go back to Step 1 and correct it.');
+                return;
+            }
+
+            // Check Last Name
+            const enteredLastName = document.querySelector('#step1 input[placeholder="Last name"]')?.value?.trim().toLowerCase();
+            const ocrLastName = ocrData.lastName?.trim().toLowerCase();
+
+            if (ocrLastName && enteredLastName && ocrLastName !== enteredLastName) {
+                hideFullscreenLoading();
+                showError('Last name does not match your ID. Please go back to Step 1 and correct it.');
+                return;
+            }
+
+            // Check Middle Name (if provided)
+            const enteredMiddleName = document.querySelector('#step1 input[placeholder="Middle name"]')?.value?.trim().toLowerCase();
+            const ocrMiddleName = ocrData.middleName?.trim().toLowerCase();
+
+            if (ocrMiddleName && enteredMiddleName && ocrMiddleName !== enteredMiddleName) {
+                hideFullscreenLoading();
+                showError('Middle name does not match your ID. Please go back to Step 1 and correct it.');
+                return;
+            }
+
+            // Check Sex/Gender
+            const enteredSex = document.querySelector('#selectedSex')?.textContent?.trim().toLowerCase();
+            const ocrGender = (ocrData.gender || ocrData.sex)?.trim().toLowerCase();
+
+            if (ocrGender && enteredSex && enteredSex !== 'sex') {
+                const normalizedEnteredSex = enteredSex.startsWith('m') ? 'male' : enteredSex.startsWith('f') ? 'female' : enteredSex;
+                const normalizedOcrGender = ocrGender.startsWith('m') ? 'male' : ocrGender.startsWith('f') ? 'female' : ocrGender;
+
+                if (normalizedEnteredSex !== normalizedOcrGender) {
+                    hideFullscreenLoading();
+                    showError('Sex does not match your ID. Please go back to Step 1 and correct it.');
+                    return;
+                }
+            }
+
+            // Check Birthday
+            if (ocrData.birthday) {
+                const monthElement = document.querySelector('#selectedMonth');
+                const dayElement = document.querySelector('#selectedDay');
+                const yearElement = document.querySelector('#selectedYear');
+
+                if (monthElement && dayElement && yearElement) {
+                    const enteredMonth = monthElement.dataset?.value;
+                    const enteredDay = dayElement.textContent?.trim();
+                    const enteredYear = yearElement.textContent?.trim();
+
+                    const ocrBirthdayParts = ocrData.birthday.split('/');
+                    if (ocrBirthdayParts.length === 3) {
+                        const ocrYear = ocrBirthdayParts[0];
+                        const ocrMonth = ocrBirthdayParts[1];
+                        const ocrDay = ocrBirthdayParts[2];
+
+                        const monthMatch = parseInt(enteredMonth) === parseInt(ocrMonth);
+                        const dayMatch = parseInt(enteredDay) === parseInt(ocrDay);
+                        const yearMatch = enteredYear === ocrYear;
+
+                        if (!monthMatch || !dayMatch || !yearMatch) {
+                            hideFullscreenLoading();
+                            showError('Birthday does not match your ID. Please go back to Step 1 and correct it.');
+                            return;
+                        }
+                    }
+                }
+            }
+
+            updateLoadingMessage('All details verified! Proceeding...');
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            hideFullscreenLoading();
+            
+            // Move to step 3
+            console.log('Moving to step 3...');
             step2Form.classList.add('hidden');
             step3Form.classList.remove('hidden');
             document.getElementById('step-label').textContent = 'Step 3 of 3';
             document.getElementById('progress-bar').style.width = '100%';
             updateRegisterButtonState();
+            
+        } catch (error) {
+            console.error('Error during OCR scan:', error);
+            hideFullscreenLoading();
+            showOCRError(`Failed to scan driver's license: ${error.message}`);
         }
     };
     
+    // Back navigation: Step 2 -> Step 1
     window.goToStep1 = function() {
         const step1Form = document.getElementById('step1');
         const step2Form = document.getElementById('step2');

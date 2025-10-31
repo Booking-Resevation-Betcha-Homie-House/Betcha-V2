@@ -72,7 +72,7 @@
                     class="bg-primary h-2 md:h-3 rounded-full w-1/3 transition-all duration-500 ease-in-out"></div>
             </div>
 
-            <!-- Step 1 -->
+            <!-- Step 1 (Personal Information) -->
             <form id="step1" class="space-y-4">
                 <!-- Error Container -->
                 <div id="errorContainer" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
@@ -81,93 +81,6 @@
                             <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
                         </svg>
                         <p id="errorText" class="text-red-700 text-sm font-medium"></p>
-                    </div>
-                </div>
-                
-                </p>
-                <!-- ID options -->
-                <div class="flex flex-col gap-2 w-full group">
-                    <label for="IDDropdownBtn"
-                        class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                        Valid ID
-                    </label>
-                    <div class="relative w-full">
-                        <button type="button" id="IDDropdownBtn"
-                            class="input-style flex justify-between items-center w-full group">
-                            <div class="flex items-center justify-center gap-3">
-                                <svg class="w-4 md:w-5 fill-neutral-500 transition-colors duration-200 group-focus-within:fill-primary"
-                                    viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path fill-rule="evenodd" clip-rule="evenodd"
-                                        d="M0 3.5C0 3.10218 0.158035 2.72064 0.43934 2.43934C0.720644 2.15804 1.10218 2 1.5 2H13.5C13.8978 2 14.2794 2.15804 14.5607 2.43934C14.842 2.72064 15 3.10218 15 3.5V11.5C15 11.8978 14.842 12.2794 14.5607 12.5607C14.2794 12.842 13.8978 13 13.5 13H1.5C1.10218 13 0.720644 12.842 0.43934 12.5607C0.158035 12.2794 0 11.8978 0 11.5L0 3.5ZM3 6C3 5.46957 3.21071 4.96086 3.58579 4.58579C3.96086 4.21071 4.46957 4 5 4C5.53043 4 6.03914 4.21071 6.41421 4.58579C6.78929 4.96086 7 5.46957 7 6C7 6.53043 6.78929 7.03914 6.41421 7.41421C6.03914 7.78929 5.53043 8 5 8C4.46957 8 3.96086 7.78929 3.58579 7.41421C3.21071 7.03914 3 6.53043 3 6ZM12 6H9V5H12V6ZM12 9H9V8H12V9ZM5 9C4.45649 9.00034 3.92379 9.15185 3.46146 9.43759C2.99912 9.72332 2.62537 10.132 2.382 10.618L2.052 11.276C2.01376 11.3523 1.9957 11.4371 1.99952 11.5224C2.00334 11.6077 2.02892 11.6905 2.07383 11.7631C2.11874 11.8357 2.18148 11.8955 2.25608 11.937C2.33068 11.9785 2.41465 12.0002 2.5 12H7.5C7.58526 12 7.66911 11.9782 7.74357 11.9367C7.81803 11.8951 7.88064 11.8352 7.92543 11.7627C7.97022 11.6901 7.99572 11.6073 7.99949 11.5221C8.00327 11.437 7.9852 11.3522 7.947 11.276L7.618 10.618C7.37463 10.132 7.00088 9.72332 6.53854 9.43759C6.07621 9.15185 5.54351 9.00034 5 9Z" />
-                                </svg>
-
-                                <span id="selectedID" class="text-neutral-500 text-sm md:text-base"></span>
-                            </div>
-
-                            <svg id="IDDropdownIcon"
-                                class="w-4 md:w-5 text-neutral-500 transition-transform duration-300"
-                                viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M1 1.5L8 8.5L15 1.5" stroke="#666666" stroke-width="2" stroke-linecap="round"
-                                    stroke-linejoin="bevel" />
-                            </svg>
-                        </button>
-                        <ul id="IDDropdownList"
-                            class="absolute z-10 mt-1 bg-white w-full border border-neutral-300 rounded-xl shadow hidden text-sm md:text-base text-primary-text max-h-48 overflow-y-auto">
-                        </ul>
-                    </div>
-                </div>
-
-                <p class="text-sm text-neutral-500 font-inter mb-4 mt-10 ">
-                    Please upload a photo of your government-issued ID (e.g., passport, driver's license, or national ID
-                    card). This is required to verify your identity.
-                </p>
-
-                <!-- ID File Upload -->
-                <div id="IDdropzone"
-                    class="group border-2 border-dashed border-neutral-300 p-6 text-center rounded-lg cursor-pointer hover:border-primary transition-all duration-500 ease-in-out">
-                    <input type="file" id="IDfileInput" multiple accept=".jpg,.jpeg,.png,.webp" class="hidden">
-                    <div class="flex flex-col items-center justify-center font-inter">
-                        <svg class="w-8 h-8 text-neutral-500 group-hover:text-primary mb-2 transition-all duration-500 ease-in-out"
-                            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-                        </svg>
-                        <p class="text-sm text-neutral-600">Drag and Drop or <span
-                                class="text-black font-semibold underline">Choose a Local File</span></p>
-                        <p class="text-xs text-neutral-400 mt-1">Supported formats: .jpg, .jpeg, .png, .webp</p>
-                    </div>
-                </div>
-
-                <!-- Preview Container -->
-                <div id="IDpreviewContainer" class="mt-4 flex flex-col gap-3"></div>
-
-                <div class="mt-10">
-                    <button id="nextBtn1" type="button" class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden
-                    hover:cursor-pointer active:scale-95
-                    transition-all duration-500 ease-in-out "
-                    data-step="1">
-                        <span class="text-secondary-text text-base group-hover:-translate-x-1
-                        transition-transform duration-500 ease-in-out 
-                        md:text-lg">Next</span>
-                        <span
-                            class="overflow-hidden max-w-[30px] lg:max-w-0 lg:group-hover:max-w-[30px] transition-all duration-500 ease-in-out">
-                            <svg class="w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 25"
-                                xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1975 7.45773 13.1213 7.34739 13.0689 7.22538C13.0165 7.10338 12.9889 6.97216 12.9877 6.83938C12.9866 6.7066 13.0119 6.57492 13.0622 6.45202C13.1125 6.32913 13.1867 6.21747 13.2806 6.12358C13.3745 6.02969 13.4861 5.95544 13.609 5.90516C13.7319 5.85487 13.8636 5.82957 13.9964 5.83073C14.1292 5.83188 14.2604 5.85947 14.3824 5.91188C14.5044 5.96428 14.6148 6.04047 14.707 6.13598Z" />
-                            </svg>
-                        </span>
-                    </button>
-                </div>
-            </form>
-            <!-- Step 2 -->
-            <form id="step2" class="space-y-4 hidden">
-                <!-- Error Container -->
-                <div id="errorContainer2" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
-                    <div class="flex items-center">
-                        <svg class="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
-                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
-                        </svg>
-                        <p id="errorText2" class="text-red-700 text-sm font-medium"></p>
                     </div>
                 </div>
                 
@@ -272,10 +185,6 @@
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <!-- Month -->
                         <div class="flex flex-col gap-2 w-full group">
-                            <label for="monthDropdownBtn"
-                                class="font-manrope text-xs font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                                Month
-                            </label>
                             <div class="relative w-full">
                                 <button type="button" id="monthDropdownBtn"
                                     class="input-style flex justify-between items-center w-full group">
@@ -299,10 +208,6 @@
                         </div>
                         <!-- Day -->
                         <div class="flex flex-col gap-2 w-full group">
-                            <label for="dayDropdownBtn"
-                                class="font-manrope text-xs font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                                Day
-                            </label>
                             <div class="relative w-full">
                                 <button type="button" id="dayDropdownBtn"
                                     class="input-style flex justify-between items-center w-full group">
@@ -325,10 +230,6 @@
                         </div>
                         <!-- Year -->
                         <div class="flex flex-col gap-2 w-full group">
-                            <label for="yearDropdownBtn"
-                                class="font-manrope text-xs font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
-                                Year
-                            </label>
                             <div class="relative w-full">
                                 <button type="button" id="yearDropdownBtn"
                                     class="input-style flex justify-between items-center w-full group">
@@ -352,6 +253,91 @@
                         </div>
                     </div>
                 </div>
+                <div class="mt-10">
+                    <button id="nextBtn1" type="button" class="group relative w-full btn rounded-full bg-primary flex items-center justify-center overflow-hidden
+                    hover:cursor-pointer active:scale-95
+                    transition-all duration-500 ease-in-out "
+                    data-step="1">
+                        <span class="text-secondary-text text-base group-hover:-translate-x-1
+                        transition-transform duration-500 ease-in-out 
+                        md:text-lg">Next</span>
+                        <span
+                            class="overflow-hidden max-w-[30px] lg:max-w-0 lg:group-hover:max-w-[30px] transition-all duration-500 ease-in-out">
+                            <svg class="w-5 h-5 ml-2 fill-secondary-text" viewBox="0 0 24 25"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M14.707 6.13598L20.364 11.793C20.5515 11.9805 20.6568 12.2348 20.6568 12.5C20.6568 12.7651 20.5515 13.0194 20.364 13.207L14.707 18.864C14.5184 19.0461 14.2658 19.1469 14.0036 19.1447C13.7414 19.1424 13.4906 19.0372 13.3052 18.8518C13.1198 18.6664 13.0146 18.4156 13.0123 18.1534C13.01 17.8912 13.1108 17.6386 13.293 17.45L17.243 13.5H4C3.73478 13.5 3.48043 13.3946 3.29289 13.2071C3.10536 13.0195 3 12.7652 3 12.5C3 12.2348 3.10536 11.9804 3.29289 11.7929C3.48043 11.6053 3.73478 11.5 4 11.5H17.243L13.293 7.54998C13.1975 7.45773 13.1213 7.34739 13.0689 7.22538C13.0165 7.10338 12.9889 6.97216 12.9877 6.83938C12.9866 6.7066 13.0119 6.57492 13.0622 6.45202C13.1125 6.32913 13.1867 6.21747 13.2806 6.12358C13.3745 6.02969 13.4861 5.95544 13.609 5.90516C13.7319 5.85487 13.8636 5.82957 13.9964 5.83073C14.1292 5.83188 14.2604 5.85947 14.3824 5.91188C14.5044 5.96428 14.6148 6.04047 14.707 6.13598Z" />
+                            </svg>
+                        </span>
+                    </button>
+                </div>
+            </form>
+            <!-- Step 2 (ID Verification) -->
+            <form id="step2" class="space-y-4 hidden">
+                <!-- Error Container -->
+                <div id="errorContainer2" class="hidden bg-red-50 border border-red-200 rounded-lg p-4 mb-4">
+                    <div class="flex items-center">
+                        <svg class="w-5 h-5 text-red-400 mr-3" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                        </svg>
+                        <p id="errorText2" class="text-red-700 text-sm font-medium"></p>
+                    </div>
+                </div>
+                
+                <!-- ID options -->
+                <div class="flex flex-col gap-2 w-full group">
+                    <label for="IDDropdownBtn"
+                        class="font-manrope text-sm font-medium text-neutral-600 group-hover:text-primary transition-all duration-300">
+                        Valid ID
+                    </label>
+                    <div class="relative w-full">
+                        <button type="button" id="IDDropdownBtn"
+                            class="input-style flex justify-between items-center w-full group">
+                            <div class="flex items-center justify-center gap-3">
+                                <svg class="w-4 md:w-5 fill-neutral-500 transition-colors duration-200 group-focus-within:fill-primary"
+                                    viewBox="0 0 15 15" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path fill-rule="evenodd" clip-rule="evenodd"
+                                        d="M0 3.5C0 3.10218 0.158035 2.72064 0.43934 2.43934C0.720644 2.15804 1.10218 2 1.5 2H13.5C13.8978 2 14.2794 2.15804 14.5607 2.43934C14.842 2.72064 15 3.10218 15 3.5V11.5C15 11.8978 14.842 12.2794 14.5607 12.5607C14.2794 12.842 13.8978 13 13.5 13H1.5C1.10218 13 0.720644 12.842 0.43934 12.5607C0.158035 12.2794 0 11.8978 0 11.5L0 3.5ZM3 6C3 5.46957 3.21071 4.96086 3.58579 4.58579C3.96086 4.21071 4.46957 4 5 4C5.53043 4 6.03914 4.21071 6.41421 4.58579C6.78929 4.96086 7 5.46957 7 6C7 6.53043 6.78929 7.03914 6.41421 7.41421C6.03914 7.78929 5.53043 8 5 8C4.46957 8 3.96086 7.78929 3.58579 7.41421C3.21071 7.03914 3 6.53043 3 6ZM12 6H9V5H12V6ZM12 9H9V8H12V9ZM5 9C4.45649 9.00034 3.92379 9.15185 3.46146 9.43759C2.99912 9.72332 2.62537 10.132 2.382 10.618L2.052 11.276C2.01376 11.3523 1.9957 11.4371 1.99952 11.5224C2.00334 11.6077 2.02892 11.6905 2.07383 11.7631C2.11874 11.8357 2.18148 11.8955 2.25608 11.937C2.33068 11.9785 2.41465 12.0002 2.5 12H7.5C7.58526 12 7.66911 11.9782 7.74357 11.9367C7.81803 11.8951 7.88064 11.8352 7.92543 11.7627C7.97022 11.6901 7.99572 11.6073 7.99949 11.5221C8.00327 11.437 7.9852 11.3522 7.947 11.276L7.618 10.618C7.37463 10.132 7.00088 9.72332 6.53854 9.43759C6.07621 9.15185 5.54351 9.00034 5 9Z" />
+                                </svg>
+
+                                <span id="selectedID" class="text-neutral-500 text-sm md:text-base"></span>
+                            </div>
+
+                            <svg id="IDDropdownIcon"
+                                class="w-4 md:w-5 text-neutral-500 transition-transform duration-300"
+                                viewBox="0 0 16 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M1 1.5L8 8.5L15 1.5" stroke="#666666" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="bevel" />
+                            </svg>
+                        </button>
+                        <ul id="IDDropdownList"
+                            class="absolute z-10 mt-1 bg-white w-full border border-neutral-300 rounded-xl shadow hidden text-sm md:text-base text-primary-text max-h-48 overflow-y-auto">
+                        </ul>
+                    </div>
+                </div>
+
+                <p class="text-sm text-neutral-500 font-inter mb-4 mt-10 ">
+                    Please upload a photo of your government-issued ID (e.g., passport, driver's license, or national ID
+                    card). This is required to verify your identity.
+                </p>
+
+                <!-- ID File Upload -->
+                <div id="IDdropzone"
+                    class="group border-2 border-dashed border-neutral-300 p-6 text-center rounded-lg cursor-pointer hover:border-primary transition-all duration-500 ease-in-out">
+                    <input type="file" id="IDfileInput" multiple accept=".jpg,.jpeg,.png,.webp" class="hidden">
+                    <div class="flex flex-col items-center justify-center font-inter">
+                        <svg class="w-8 h-8 text-neutral-500 group-hover:text-primary mb-2 transition-all duration-500 ease-in-out"
+                            fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                        <p class="text-sm text-neutral-600">Drag and Drop or <span
+                                class="text-black font-semibold underline">Choose a Local File</span></p>
+                        <p class="text-xs text-neutral-400 mt-1">Supported formats: .jpg, .jpeg, .png, .webp</p>
+                    </div>
+                </div>
+
+                <!-- Preview Container -->
+                <div id="IDpreviewContainer" class="mt-4 flex flex-col gap-3"></div>
                 <div class="flex justify-between items-center gap-5 mt-10">
                     <button type="button" 
                     onclick="goToStep1()" 
