@@ -243,6 +243,85 @@
       </div>
 
     </div>
+    <!-- Nearest Properties Section -->
+    <div class="w-full mx-auto my-5 p-5 sm:p-6 md:w-[80%] lg:px-8 md:my-10" id="nearestPropertiesSection">
+      <!-- Title and Nav Buttons -->
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-4">
+          <p class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold font-manrope">Nearest unit in your Area</p>
+        </div>
+        <div class="flex gap-2">
+          <!-- Scroll Left -->
+          <button class="scrollLeft group bg-neutral-100 btn-round border border-primary-text flex items-center justify-center 
+            hover:bg-primary/10 hover:border-primary hover:scale-105
+            active:bg-primary/10 active:border-primary active:scale-95
+            disabled:cursor-not-allowed disabled:border-neutral-300 disabled:hover:bg-transparent disabled:hover:scale-none
+            transition-all duration-300 ease-in-out">
+            <span>
+              <svg class="h-4 w-4 stroke-primary-text
+              group-enabled:group-hover:stroke-primary
+              group-disabled:stroke-neutral-300" viewBox="0 0 10 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8.66699 0.5L0.666992 8.5L8.66699 16.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+          <!-- Scroll Right -->
+          <button class="scrollRight group bg-neutral-100 btn-round border border-primary-text flex items-center justify-center 
+            hover:bg-primary/10 hover:border-primary hover:scale-105
+            active:bg-primary/10 active:border-primary active:scale-95
+            disabled:cursor-not-allowed disabled:border-neutral-300 disabled:hover:bg-transparent disabled:hover:scale-none
+            transition-all duration-300 ease-in-out">
+            <span>
+              <svg class="h-4 w-4 stroke-primary-text
+              group-enabled:group-hover:stroke-primary
+              group-disabled:stroke-neutral-300" viewBox="0 0 10 17" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M1 0.5L9 8.5L1 16.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Loading State -->
+      <div id="nearestPropertiesLoading" class="flex items-center justify-center py-20" style="display: none;">
+        <div class="flex items-center gap-3">
+          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
+          <span class="text-primary-text">Finding nearest properties...</span>
+        </div>
+      </div>
+
+      <!-- Location Permission Required -->
+      <div id="locationPermissionRequired" class="flex flex-col items-center justify-center py-20 text-center">
+        <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+        </svg>
+        <p class="text-xl font-semibold text-primary-text mb-2">Enable Location Access</p>
+        <p class="text-gray-600 mb-4 max-w-md">Allow location access to see properties near you. We'll show you the properties based on your current location.</p>
+        <button id="enableLocationBtn" class="bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors">
+          Enable Location
+        </button>
+      </div>
+
+      <!-- Error State -->
+      <div id="nearestPropertiesError" class="flex flex-col items-center justify-center py-20 text-center" style="display: none;">
+        <svg class="w-16 h-16 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"/>
+        </svg>
+        <p class="text-xl font-semibold text-primary-text mb-2">Unable to Get Location</p>
+        <p class="text-gray-600 mb-4 max-w-md">Please enable location permissions in your browser or application settings.</p>
+        <button id="retryLocationBtn" class="bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors">
+          Try Again
+        </button>
+      </div>
+
+      <!-- Carousel -->
+      <div class="carousel-wrapper overflow-hidden" id="nearestPropertiesCarousel" style="display: none;">
+        <div class="carousel-track flex gap-5 overflow-x-auto scroll-smooth whitespace-nowrap custom-scroll" id="nearestPropertiesContainer">
+          <!-- Cards will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
     
     <!-- Popular Units -->
     <div class="w-full mx-auto my-5 p-5 sm:p-6 md:w-[80%] lg:px-8 md:my-10">
@@ -332,86 +411,6 @@
           <!-- Cards (Repeat as needed) -->
           
           <!-- End of Cards -->
-        </div>
-      </div>
-    </div>
-
-    <!-- Nearest Properties Section -->
-    <div class="w-full mx-auto my-5 p-5 sm:p-6 md:w-[80%] lg:px-8 md:my-10" id="nearestPropertiesSection">
-      <!-- Title and Nav Buttons -->
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex items-center gap-4">
-          <p class="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold font-manrope">Nearest unit in your Area</p>
-        </div>
-        <div class="flex gap-2">
-          <!-- Scroll Left -->
-          <button class="scrollLeft group bg-neutral-100 btn-round border border-primary-text flex items-center justify-center 
-            hover:bg-primary/10 hover:border-primary hover:scale-105
-            active:bg-primary/10 active:border-primary active:scale-95
-            disabled:cursor-not-allowed disabled:border-neutral-300 disabled:hover:bg-transparent disabled:hover:scale-none
-            transition-all duration-300 ease-in-out">
-            <span>
-              <svg class="h-4 w-4 stroke-primary-text
-              group-enabled:group-hover:stroke-primary
-              group-disabled:stroke-neutral-300" viewBox="0 0 10 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8.66699 0.5L0.666992 8.5L8.66699 16.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-          <!-- Scroll Right -->
-          <button class="scrollRight group bg-neutral-100 btn-round border border-primary-text flex items-center justify-center 
-            hover:bg-primary/10 hover:border-primary hover:scale-105
-            active:bg-primary/10 active:border-primary active:scale-95
-            disabled:cursor-not-allowed disabled:border-neutral-300 disabled:hover:bg-transparent disabled:hover:scale-none
-            transition-all duration-300 ease-in-out">
-            <span>
-              <svg class="h-4 w-4 stroke-primary-text
-              group-enabled:group-hover:stroke-primary
-              group-disabled:stroke-neutral-300" viewBox="0 0 10 17" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M1 0.5L9 8.5L1 16.5" stroke-linecap="round" stroke-linejoin="round"/>
-              </svg>
-            </span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Loading State -->
-      <div id="nearestPropertiesLoading" class="flex items-center justify-center py-20" style="display: none;">
-        <div class="flex items-center gap-3">
-          <div class="animate-spin rounded-full h-6 w-6 border-b-2 border-primary"></div>
-          <span class="text-primary-text">Finding nearest properties...</span>
-        </div>
-      </div>
-
-      <!-- Location Permission Required -->
-      <div id="locationPermissionRequired" class="flex flex-col items-center justify-center py-20 text-center">
-        <svg class="w-16 h-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
-        </svg>
-        <p class="text-xl font-semibold text-primary-text mb-2">Enable Location Access</p>
-        <p class="text-gray-600 mb-4 max-w-md">Allow location access to see properties near you. We'll show you the properties based on your current location.</p>
-        <button id="enableLocationBtn" class="bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors">
-          Enable Location
-        </button>
-      </div>
-
-      <!-- Error State -->
-      <div id="nearestPropertiesError" class="flex flex-col items-center justify-center py-20 text-center" style="display: none;">
-        <svg class="w-16 h-16 text-red-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 15.5c-.77.833.192 2.5 1.732 2.5z"/>
-        </svg>
-        <p class="text-xl font-semibold text-primary-text mb-2">Unable to Get Location</p>
-        <p class="text-gray-600 mb-4 max-w-md">Please enable location permissions in your browser or application settings.</p>
-        <button id="retryLocationBtn" class="bg-primary text-white px-6 py-3 rounded-full font-medium hover:bg-primary/90 transition-colors">
-          Try Again
-        </button>
-      </div>
-
-      <!-- Carousel -->
-      <div class="carousel-wrapper overflow-hidden" id="nearestPropertiesCarousel" style="display: none;">
-        <div class="carousel-track flex gap-5 overflow-x-auto scroll-smooth whitespace-nowrap custom-scroll" id="nearestPropertiesContainer">
-          <!-- Cards will be populated by JavaScript -->
         </div>
       </div>
     </div>
