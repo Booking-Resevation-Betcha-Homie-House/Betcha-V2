@@ -5,17 +5,20 @@ function initializeCarousel(wrapper) {
 
   if (!container || !btnLeft || !btnRight) return;
 
+  let isScrolling = false;
+
   const getCardWidth = () => {
     const card = container.querySelector(".card");
+    if (!card) return 320;
     const style = window.getComputedStyle(card);
     const gap = parseInt(style.marginRight) || 20;
-    return card ? card.offsetWidth + gap : 320;
+    return card.offsetWidth + gap;
   };
 
   const updateButtonStates = () => {
     const maxScrollLeft = container.scrollWidth - container.clientWidth;
-    btnLeft.disabled = container.scrollLeft <= 0;
-    btnRight.disabled = container.scrollLeft >= maxScrollLeft - 5;
+    btnLeft.disabled = container.scrollLeft <= 1;
+    btnRight.disabled = container.scrollLeft >= maxScrollLeft - 1;
 
     // Add/remove disabled styling
     if (btnLeft.disabled) {
@@ -30,24 +33,46 @@ function initializeCarousel(wrapper) {
     }
   };
 
-  const handleScroll = () => {
+  const scrollLeft = () => {
+    if (isScrolling) return;
+    isScrolling = true;
     const cardWidth = getCardWidth();
     container.scrollBy({
-      left: cardWidth * (event.target === btnLeft ? -1 : 1),
+      left: -cardWidth,
       behavior: "smooth",
     });
+    setTimeout(() => {
+      isScrolling = false;
+      updateButtonStates();
+    }, 300);
   };
 
-  btnLeft.addEventListener("click", handleScroll);
-  btnRight.addEventListener("click", handleScroll);
+  const scrollRight = () => {
+    if (isScrolling) return;
+    isScrolling = true;
+    const cardWidth = getCardWidth();
+    container.scrollBy({
+      left: cardWidth,
+      behavior: "smooth",
+    });
+    setTimeout(() => {
+      isScrolling = false;
+      updateButtonStates();
+    }, 300);
+  };
+
+  btnLeft.addEventListener("click", scrollLeft);
+  btnRight.addEventListener("click", scrollRight);
   container.addEventListener("scroll", updateButtonStates);
   window.addEventListener("resize", updateButtonStates);
 
-  // Initial update
-  updateButtonStates();
+  // Initial update with delay to ensure content is loaded
+  setTimeout(updateButtonStates, 100);
 
   // Re-check button states when content changes
-  const observer = new MutationObserver(updateButtonStates);
+  const observer = new MutationObserver(() => {
+    setTimeout(updateButtonStates, 100);
+  });
   observer.observe(container, { childList: true, subtree: true });
 }
 

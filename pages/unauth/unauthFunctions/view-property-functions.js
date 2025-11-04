@@ -441,11 +441,13 @@ async function fetchAndDisplayProperty() {
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
 
-        // Audit: Log property view
+        // Audit: Log property view (only for logged-in users)
         try {
-            const userId = localStorage.getItem('userId') || 'anonymous';
-            const userType = localStorage.getItem('role') || localStorage.getItem('userType') || 'Guest';
-            if (window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPropertyView === 'function') {
+            const userId = localStorage.getItem('userId');
+            const userType = localStorage.getItem('role') || localStorage.getItem('userType');
+            
+            // Only create audit trail for logged-in users (not anonymous)
+            if (userId && userType && userId !== 'anonymous' && window.AuditTrailFunctions && typeof window.AuditTrailFunctions.logPropertyView === 'function') {
                 window.AuditTrailFunctions.logPropertyView(userId, userType.charAt(0).toUpperCase() + userType.slice(1));
             }
         } catch (auditError) {
@@ -1118,11 +1120,11 @@ function updateBookingDatesDisplay() {
 }
 
 // Listen for date selection events
-document.addEventListener('datesSelected', function(e) {
+document.addEventListener('datesSelected', function() {
     updateBookingDatesDisplay();
 });
 
-document.addEventListener('bookingDatesUpdate', function(e) {
+document.addEventListener('bookingDatesUpdate', function() {
     updateBookingDatesDisplay();
 });
 
@@ -1342,105 +1344,7 @@ function setupDirectionsButton(address, latitude, longitude) {
         console.error('Error setting up directions button:', error);
     }
 }
-                if (navigator.geolocation) {
-                    console.log('Geolocation available, requesting user location...');
-                    
-                    navigator.geolocation.getCurrentPosition(
-                        (position) => {
-                            const userLat = position.coords.latitude;
-                            const userLng = position.coords.longitude;
-                            
-                            // Create directions URL with user location and our precise destination (driving mode)
-                            const directionsEmbedUrl = `https://maps.google.com/maps?saddr=${userLat},${userLng}&daddr=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
-                            
-                            console.log('Generated directions URL:', directionsEmbedUrl);
-                            
-                            // Update the iframe with directions from user's actual location
-                            mapContainer.innerHTML = `
-                                <iframe src="${directionsEmbedUrl}" 
-                                    class="w-full h-full rounded-2xl"
-                                    style="border:0;" 
-                                    allowfullscreen="" 
-                                    loading="lazy" 
-                                    referrerpolicy="no-referrer-when-downgrade">
-                                </iframe>
-                            `;
-                            
-                            isShowingDirections = true;
-                        },
-                        (error) => {
-                            console.error('Geolocation error:', error);
-                            
-                            // Show loading briefly before showing fallback
-                            mapContainer.innerHTML = `
-                                <div class="w-full h-full bg-neutral-100 flex items-center justify-center rounded-2xl">
-                                    <div class="text-center">
-                                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-                                        <p class="text-neutral-600 font-inter">Loading map...</p>
-                                    </div>
-                                </div>
-                            `;
-                            
-                            // Add a brief delay to show loading, then show fallback
-                            setTimeout(() => {
-                                // Use simple maps.google.com URL for fallback (no API key needed)
-                                const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
-                                
-                                console.log('Generated fallback directions URL:', fallbackEmbedUrl);
-                                
-                                mapContainer.innerHTML = `
-                                    <div class="w-full h-full bg-neutral-100 flex flex-col rounded-2xl overflow-hidden">
-                                        <div class="p-2 bg-yellow-100 text-yellow-800 text-center text-xs">
-                                            <p>Location access denied. Showing property location.</p>
-                                        </div>
-                                        <iframe src="${fallbackEmbedUrl}" 
-                                            class="w-full flex-1"
-                                            style="border:0;" 
-                                            allowfullscreen="" 
-                                            loading="lazy" 
-                                            referrerpolicy="no-referrer-when-downgrade">
-                                        </iframe>
-                                    </div>
-                                `;
-                                
-                                isShowingDirections = true;
-                            }, 800); // 800ms delay to show loading
-                        },
-                        { 
-                            enableHighAccuracy: true, 
-                            timeout: 10000, 
-                            maximumAge: 300000 
-                        }
-                    );
-                } else {
-                    // Browser doesn't support geolocation, show loading then fallback
-                    console.log('Geolocation not supported, showing loading then fallback...');
-                    
-                    // Show loading briefly before showing fallback
-                    setTimeout(() => {
-                        // Use simple maps.google.com URL (no API key needed)
-                        const fallbackEmbedUrl = `https://maps.google.com/maps?q=${directionsQuery}&output=embed&maptype=satellite&dirflg=d`;
-                        
-                        console.log('Generated no-geolocation fallback URL:', fallbackEmbedUrl);
-                        
-                        mapContainer.innerHTML = `
-                            <div class="w-full h-full bg-neutral-100 flex flex-col rounded-2xl overflow-hidden">
-                                <div class="p-2 bg-blue-100 text-blue-800 text-center text-xs">
-                                    <p>Geolocation not supported. Showing property location.</p>
-                                </div>
-                                <iframe src="${fallbackEmbedUrl}" 
-                                    class="w-full flex-1"
-                                    style="border:0;" 
-                                    allowfullscreen="" 
-                                    loading="lazy" 
-                                    referrerpolicy="no-referrer-when-downgrade">
-                                </iframe>
-                            </div>
-                        `;
-                        
-                        isShowingDirections = true;
-                    }, 800); // 800ms delay to show loading
-                }
+
 // Call this function after property data is loaded
 document.addEventListener('DOMContentLoaded', () => {
     // Add a small delay to ensure all elements are loaded
